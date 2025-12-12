@@ -17,6 +17,7 @@ import {
 	saveGlobalConfig,
 } from "./config.js";
 import { createIndexer } from "./core/indexer.js";
+import { OpenRouterEmbeddingsClient } from "./core/embeddings.js";
 import {
 	CURATED_PICKS,
 	discoverEmbeddingModels,
@@ -80,6 +81,9 @@ export async function runCli(args: string[]): Promise<void> {
 		case "models":
 			await handleModels(args.slice(1));
 			break;
+		case "benchmark":
+			await handleBenchmark(args.slice(1));
+			break;
 		default:
 			// Check if it looks like a search query
 			if (!command.startsWith("-")) {
@@ -119,7 +123,7 @@ interface ProgressState {
 /** Create a progress renderer with continuous timer and animation */
 function createProgressRenderer() {
 	const startTime = Date.now();
-	let state: ProgressState = { completed: 0, total: 0, inProgress: 0, phase: "", detail: "" };
+	let state: ProgressState = { completed: 0, total: 0, inProgress: 0, phase: "starting", detail: "scanning files..." };
 	let animFrame = 0;
 	let interval: ReturnType<typeof setInterval> | null = null;
 	let lastPhase = "";
@@ -140,7 +144,12 @@ function createProgressRenderer() {
 		const emptyWidth = width - filledWidth - inProgressWidth;
 
 		const filled = "█".repeat(filledWidth);
-		const animated = inProgressWidth > 0 ? ANIM_FRAMES[animFrame].repeat(inProgressWidth) : "";
+		// Wave animation: each position has a different phase
+		let animated = "";
+		for (let i = 0; i < inProgressWidth; i++) {
+			const charIndex = (animFrame + i) % ANIM_FRAMES.length;
+			animated += ANIM_FRAMES[charIndex];
+		}
 		const empty = "░".repeat(emptyWidth);
 		const bar = filled + animated + empty;
 
@@ -161,8 +170,11 @@ function createProgressRenderer() {
 			const phase = phaseMatch ? phaseMatch[1] : "processing";
 			const cleanDetail = detail.replace(/^\[\w+\]\s*/, "").slice(0, 35);
 
-			// Show phase change
+			// On phase change: render final state of previous phase before moving on
 			if (phase !== lastPhase && lastPhase !== "") {
+				// Show previous phase at 100% completion
+				state = { ...state, completed: state.total, inProgress: 0 };
+				render();
 				process.stdout.write("\n");
 			}
 			lastPhase = phase;
@@ -174,6 +186,14 @@ function createProgressRenderer() {
 				clearInterval(interval);
 				interval = null;
 			}
+		},
+		/** Render final 100% state before clearing */
+		finish() {
+			this.stop();
+			// Show final completed state
+			state = { ...state, completed: state.total, inProgress: 0 };
+			render();
+			process.stdout.write("\n");
 		},
 	};
 }
@@ -210,12 +230,11 @@ async function handleIndex(args: string[]): Promise<void> {
 	try {
 		const result = await indexer.index(force);
 
-		// Stop progress renderer and clear line
-		progress.stop();
-		process.stdout.write("\r" + " ".repeat(100) + "\r");
+		// Show final state and stop progress renderer
+		progress.finish();
 
 		const totalElapsed = formatElapsed(result.durationMs);
-		console.log(`\n✅ Indexing complete in ${totalElapsed}!\n`);
+		console.log(`✅ Indexing complete in ${totalElapsed}!\n`);
 		console.log(`  Files indexed:  ${result.filesIndexed}`);
 		console.log(`  Chunks created: ${result.chunksCreated}`);
 		console.log(`  Duration:       ${(result.durationMs / 1000).toFixed(2)}s`);
@@ -721,6 +740,196 @@ async function promptForApiKey(): Promise<void> {
 	console.log("\n✅ API key saved.");
 }
 
+// ============================================================================
+// Benchmark Command
+// ============================================================================
+
+/** Test pairs for quality validation */
+const QUALITY_TEST_PAIRS = [
+	// Similar pairs (should have high cosine similarity)
+	{ a: "function getUserById(id) { return db.users.find(id); }", b: "const fetchUser = (userId) => database.users.get(userId);", similar: true },
+	{ a: "class AuthenticationService { login(user, pass) {} }", b: "export const authenticate = async (username, password) => {}", similar: true },
+	{ a: "try { await api.request(); } catch (err) { log(err); }", b: "const result = await fetch(url).catch(handleError);", similar: true },
+	{ a: "const config = { host: 'localhost', port: 3000 };", b: "export default { server: 'localhost', port: 3000 };", similar: true },
+	// Dissimilar pairs (should have low cosine similarity)
+	{ a: "function getUserById(id) { return db.users.find(id); }", b: "const PI = 3.14159; function calculateArea(r) { return PI * r * r; }", similar: false },
+	{ a: "class AuthenticationService { login(user, pass) {} }", b: "SELECT * FROM products WHERE price < 100 ORDER BY name;", similar: false },
+	{ a: "try { await api.request(); } catch (err) { log(err); }", b: "The quick brown fox jumps over the lazy dog.", similar: false },
+	{ a: "const config = { host: 'localhost', port: 3000 };", b: "import numpy as np; arr = np.array([1, 2, 3])", similar: false },
+];
+
+/** Cosine similarity between two vectors */
+function cosineSimilarity(a: number[], b: number[]): number {
+	if (a.length !== b.length) return 0;
+	let dotProduct = 0;
+	let normA = 0;
+	let normB = 0;
+	for (let i = 0; i < a.length; i++) {
+		dotProduct += a[i] * b[i];
+		normA += a[i] * a[i];
+		normB += b[i] * b[i];
+	}
+	return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+interface BenchmarkResult {
+	model: string;
+	speedMs: number;
+	cost: number | undefined;
+	dimension: number;
+	qualityScore: number;
+	error?: string;
+}
+
+async function handleBenchmark(args: string[]): Promise<void> {
+	// Colors
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		red: "\x1b[31m",
+		orange: "\x1b[38;5;209m",
+	};
+
+	// Check for API key
+	if (!hasApiKey()) {
+		console.error("Error: OpenRouter API key not configured.");
+		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
+		process.exit(1);
+	}
+
+	// Parse model list from args
+	const modelsArg = args.find((a) => a.startsWith("--models="));
+	const modelIds = modelsArg
+		? modelsArg.replace("--models=", "").split(",").map((s) => s.trim())
+		: [
+			CURATED_PICKS.bestQuality.id,
+			CURATED_PICKS.bestBalanced.id,
+			CURATED_PICKS.bestValue.id,
+			CURATED_PICKS.fastest.id,
+		];
+
+	console.log(`\n${c.orange}${c.bold}🏁 EMBEDDING MODEL BENCHMARK${c.reset}\n`);
+	console.log(`${c.dim}Testing ${modelIds.length} models with ${QUALITY_TEST_PAIRS.length} quality test pairs${c.reset}\n`);
+
+	// Collect all unique texts for embedding
+	const uniqueTexts = new Set<string>();
+	for (const pair of QUALITY_TEST_PAIRS) {
+		uniqueTexts.add(pair.a);
+		uniqueTexts.add(pair.b);
+	}
+	const textsArray = Array.from(uniqueTexts);
+
+	console.log(`${c.cyan}Running benchmarks in parallel...${c.reset}\n`);
+
+	// Run all models in parallel
+	const benchmarkPromises = modelIds.map(async (modelId): Promise<BenchmarkResult> => {
+		const startTime = Date.now();
+		try {
+			const client = new OpenRouterEmbeddingsClient({ model: modelId });
+			const result = await client.embed(textsArray);
+			const speedMs = Date.now() - startTime;
+
+			// Build text -> embedding map
+			const embeddingMap = new Map<string, number[]>();
+			for (let i = 0; i < textsArray.length; i++) {
+				embeddingMap.set(textsArray[i], result.embeddings[i]);
+			}
+
+			// Calculate quality score
+			let correct = 0;
+			const similarities: { pair: typeof QUALITY_TEST_PAIRS[0]; similarity: number }[] = [];
+
+			for (const pair of QUALITY_TEST_PAIRS) {
+				const embA = embeddingMap.get(pair.a)!;
+				const embB = embeddingMap.get(pair.b)!;
+				const similarity = cosineSimilarity(embA, embB);
+				similarities.push({ pair, similarity });
+
+				// Threshold: 0.5 for similar, < 0.5 for dissimilar
+				const predictedSimilar = similarity > 0.5;
+				if (predictedSimilar === pair.similar) {
+					correct++;
+				}
+			}
+
+			const qualityScore = (correct / QUALITY_TEST_PAIRS.length) * 100;
+
+			return {
+				model: modelId,
+				speedMs,
+				cost: result.cost,
+				dimension: result.embeddings[0]?.length || 0,
+				qualityScore,
+			};
+		} catch (error) {
+			return {
+				model: modelId,
+				speedMs: Date.now() - startTime,
+				cost: undefined,
+				dimension: 0,
+				qualityScore: 0,
+				error: error instanceof Error ? error.message : String(error),
+			};
+		}
+	});
+
+	const results = await Promise.all(benchmarkPromises);
+
+	// Sort by quality score (descending)
+	results.sort((a, b) => b.qualityScore - a.qualityScore);
+
+	// Display results table
+	console.log(`${c.bold}Results (sorted by quality):${c.reset}\n`);
+	console.log(`  ${"Model".padEnd(40)} ${"Speed".padEnd(10)} ${"Cost".padEnd(12)} ${"Dim".padEnd(8)} ${"Quality"}`);
+	console.log("  " + "─".repeat(85));
+
+	for (const r of results) {
+		if (r.error) {
+			console.log(`  ${c.red}${r.model.padEnd(40)} ERROR: ${r.error.slice(0, 40)}${c.reset}`);
+			continue;
+		}
+
+		const speed = `${(r.speedMs / 1000).toFixed(2)}s`;
+		const cost = r.cost !== undefined ? `$${r.cost.toFixed(6)}` : "N/A";
+		const dim = `${r.dimension}d`;
+		const quality = `${r.qualityScore.toFixed(0)}%`;
+
+		// Color quality score
+		let qualityColored = quality;
+		if (r.qualityScore >= 80) {
+			qualityColored = `${c.green}${quality}${c.reset}`;
+		} else if (r.qualityScore >= 60) {
+			qualityColored = `${c.yellow}${quality}${c.reset}`;
+		} else {
+			qualityColored = `${c.red}${quality}${c.reset}`;
+		}
+
+		console.log(`  ${r.model.padEnd(40)} ${speed.padEnd(10)} ${cost.padEnd(12)} ${dim.padEnd(8)} ${qualityColored}`);
+	}
+
+	// Summary
+	const successfulResults = results.filter((r) => !r.error);
+	if (successfulResults.length > 0) {
+		const fastest = successfulResults.reduce((a, b) => a.speedMs < b.speedMs ? a : b);
+		const cheapest = successfulResults.filter((r) => r.cost !== undefined).reduce((a, b) => (a.cost || Infinity) < (b.cost || Infinity) ? a : b, successfulResults[0]);
+		const bestQuality = successfulResults[0]; // Already sorted
+
+		console.log(`\n${c.bold}Summary:${c.reset}`);
+		console.log(`  ${c.green}⚡ Fastest:${c.reset} ${fastest.model} (${(fastest.speedMs / 1000).toFixed(2)}s)`);
+		if (cheapest.cost !== undefined) {
+			console.log(`  ${c.green}💰 Cheapest:${c.reset} ${cheapest.model} ($${cheapest.cost.toFixed(6)})`);
+		}
+		console.log(`  ${c.green}🏆 Best Quality:${c.reset} ${bestQuality.model} (${bestQuality.qualityScore.toFixed(0)}%)`);
+	}
+
+	console.log(`\n${c.dim}Note: Speed includes network latency to your location.${c.reset}`);
+	console.log(`${c.dim}Quality is measured by semantic similarity accuracy on code pairs.${c.reset}\n`);
+}
+
 function printHelp(): void {
 	// Colors (matching claudish style)
 	const c = {
@@ -758,6 +967,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}clear${c.reset} [path]           Clear the index
   ${c.green}init${c.reset}                   Interactive setup wizard
   ${c.green}models${c.reset}                 List available embedding models
+  ${c.green}benchmark${c.reset}              Compare embedding models (speed, cost, quality)
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
@@ -773,6 +983,9 @@ ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
   ${c.cyan}--free${c.reset}                 Show only free models
   ${c.cyan}--refresh${c.reset}              Force refresh from API
   ${c.cyan}--ollama${c.reset}               Show Ollama local models
+
+${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
+  ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
 
 ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
@@ -806,6 +1019,10 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.dim}# Show available embedding models${c.reset}
   ${c.cyan}claudemem --models${c.reset}
   ${c.cyan}claudemem --models --free${c.reset}
+
+  ${c.dim}# Benchmark embedding models (speed, cost, quality)${c.reset}
+  ${c.cyan}claudemem benchmark${c.reset}
+  ${c.cyan}claudemem benchmark --models=voyage/voyage-code-3,openai/text-embedding-3-small${c.reset}
 
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}

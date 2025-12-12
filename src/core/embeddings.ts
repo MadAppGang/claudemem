@@ -139,8 +139,8 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 			batches.push(texts.slice(i, i + MAX_BATCH_SIZE));
 		}
 
-		// Process batches in parallel (up to 3 at a time for good balance)
-		const PARALLEL_BATCHES = 3;
+		// Process batches in parallel (5 at a time for speed)
+		const PARALLEL_BATCHES = 5;
 		const results: number[][] = new Array(texts.length);
 		let resultIndex = 0;
 		let completedTexts = 0;
