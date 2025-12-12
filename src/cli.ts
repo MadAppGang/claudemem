@@ -1,0 +1,500 @@
+/**
+ * claudemem CLI
+ *
+ * Command-line interface for code indexing and search.
+ */
+
+import { readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import inquirerSearch from "@inquirer/search";
+import { confirm, input, select } from "@inquirer/prompts";
+import {
+	ENV,
+	getApiKey,
+	hasApiKey,
+	saveGlobalConfig,
+} from "./config.js";
+import { createIndexer } from "./core/indexer.js";
+import {
+	discoverEmbeddingModels,
+	formatModelInfo,
+	RECOMMENDED_MODELS,
+} from "./models/model-discovery.js";
+
+// ============================================================================
+// Version
+// ============================================================================
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const packageJson = JSON.parse(
+	readFileSync(join(__dirname, "../package.json"), "utf-8"),
+);
+const VERSION = packageJson.version;
+
+// ============================================================================
+// CLI Entry Point
+// ============================================================================
+
+export async function runCli(args: string[]): Promise<void> {
+	// Parse command
+	const command = args[0];
+
+	// Handle global flags
+	if (args.includes("--version") || args.includes("-v")) {
+		console.log(`claudemem version ${VERSION}`);
+		return;
+	}
+
+	if (args.includes("--help") || args.includes("-h") || !command) {
+		printHelp();
+		return;
+	}
+
+	// Route to command handler
+	switch (command) {
+		case "index":
+			await handleIndex(args.slice(1));
+			break;
+		case "search":
+			await handleSearch(args.slice(1));
+			break;
+		case "status":
+			await handleStatus(args.slice(1));
+			break;
+		case "clear":
+			await handleClear(args.slice(1));
+			break;
+		case "init":
+			await handleInit();
+			break;
+		case "models":
+			await handleModels(args.slice(1));
+			break;
+		default:
+			// Check if it looks like a search query
+			if (!command.startsWith("-")) {
+				await handleSearch(args);
+			} else {
+				console.error(`Unknown command: ${command}`);
+				console.error('Run "claudemem --help" for usage information.');
+				process.exit(1);
+			}
+	}
+}
+
+// ============================================================================
+// Command Handlers
+// ============================================================================
+
+async function handleIndex(args: string[]): Promise<void> {
+	// Parse arguments
+	const force = args.includes("--force") || args.includes("-f");
+	const pathArg = args.find((a) => !a.startsWith("-"));
+	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	// Check for API key
+	if (!hasApiKey()) {
+		console.error("Error: OpenRouter API key not configured.");
+		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
+		process.exit(1);
+	}
+
+	console.log(`\nIndexing ${projectPath}...`);
+	if (force) {
+		console.log("(Force mode: re-indexing all files)\n");
+	}
+
+	const indexer = createIndexer({
+		projectPath,
+		onProgress: (current, total, file) => {
+			process.stdout.write(`\r[${current}/${total}] ${file.slice(0, 60).padEnd(60)}`);
+		},
+	});
+
+	try {
+		const result = await indexer.index(force);
+
+		// Clear progress line
+		process.stdout.write("\r" + " ".repeat(80) + "\r");
+
+		console.log("\n✅ Indexing complete!\n");
+		console.log(`  Files indexed: ${result.filesIndexed}`);
+		console.log(`  Chunks created: ${result.chunksCreated}`);
+		console.log(`  Duration: ${(result.durationMs / 1000).toFixed(2)}s`);
+
+		if (result.errors.length > 0) {
+			console.log(`\n⚠️  Errors (${result.errors.length}):`);
+			for (const err of result.errors.slice(0, 5)) {
+				console.log(`  - ${err.file}: ${err.error}`);
+			}
+			if (result.errors.length > 5) {
+				console.log(`  ... and ${result.errors.length - 5} more`);
+			}
+		}
+	} finally {
+		await indexer.close();
+	}
+}
+
+async function handleSearch(args: string[]): Promise<void> {
+	// Parse arguments
+	const limitIdx = args.findIndex((a) => a === "-n" || a === "--limit");
+	const limit =
+		limitIdx >= 0 && args[limitIdx + 1]
+			? parseInt(args[limitIdx + 1], 10)
+			: 10;
+
+	const langIdx = args.findIndex((a) => a === "-l" || a === "--language");
+	const language = langIdx >= 0 ? args[langIdx + 1] : undefined;
+
+	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
+	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
+
+	// Auto-index flags
+	const noReindex = args.includes("--no-reindex");
+	const autoYes = args.includes("-y") || args.includes("--yes");
+
+	// Get query (everything that's not a flag)
+	const flagIndices = new Set([limitIdx, limitIdx + 1, langIdx, langIdx + 1, pathIdx, pathIdx + 1]);
+	const queryParts = args.filter((_, i) => !flagIndices.has(i) && !args[i].startsWith("-"));
+	const query = queryParts.join(" ");
+
+	if (!query) {
+		console.error("Error: No search query provided.");
+		console.error('Usage: claudemem search "your query"');
+		process.exit(1);
+	}
+
+	// Check for API key
+	if (!hasApiKey()) {
+		console.error("Error: OpenRouter API key not configured.");
+		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
+		process.exit(1);
+	}
+
+	const indexer = createIndexer({ projectPath });
+
+	try {
+		// Check if index exists
+		const status = await indexer.getStatus();
+
+		if (!status.exists) {
+			// No index - prompt to create or auto-create with -y
+			if (autoYes) {
+				console.log("\nNo index found. Creating initial index...\n");
+			} else {
+				const shouldIndex = await confirm({
+					message: "No index found. Create initial index now?",
+					default: true,
+				});
+
+				if (!shouldIndex) {
+					console.log("Search cancelled. Run 'claudemem index' to create an index.");
+					return;
+				}
+				console.log("");
+			}
+
+			// Create initial index
+			const result = await indexer.index(false);
+			console.log(`✅ Indexed ${result.filesIndexed} files (${result.chunksCreated} chunks)\n`);
+		} else if (!noReindex) {
+			// Index exists - auto-reindex changed files
+			const result = await indexer.index(false); // incremental
+			if (result.filesIndexed > 0) {
+				console.log(`\n🔄 Auto-indexed ${result.filesIndexed} changed file(s)\n`);
+			}
+		}
+
+		console.log(`Searching for: "${query}"\n`);
+
+		const results = await indexer.search(query, { limit, language });
+
+		if (results.length === 0) {
+			console.log("No results found.");
+			console.log("Make sure the codebase is indexed: claudemem index");
+			return;
+		}
+
+		console.log(`Found ${results.length} result(s):\n`);
+
+		for (let i = 0; i < results.length; i++) {
+			const r = results[i];
+			const chunk = r.chunk;
+
+			console.log(`━━━ ${i + 1}. ${chunk.filePath}:${chunk.startLine}-${chunk.endLine} ━━━`);
+			console.log(`Type: ${chunk.chunkType}${chunk.name ? ` | Name: ${chunk.name}` : ""}${chunk.parentName ? ` | Parent: ${chunk.parentName}` : ""}`);
+			console.log(`Score: ${(r.score * 100).toFixed(1)}% (vector: ${(r.vectorScore * 100).toFixed(0)}%, keyword: ${(r.keywordScore * 100).toFixed(0)}%)`);
+			console.log("");
+
+			// Print code with truncation
+			const lines = chunk.content.split("\n");
+			const maxLines = 20;
+			const displayLines = lines.slice(0, maxLines);
+
+			for (const line of displayLines) {
+				console.log(`  ${line}`);
+			}
+
+			if (lines.length > maxLines) {
+				console.log(`  ... (${lines.length - maxLines} more lines)`);
+			}
+
+			console.log("");
+		}
+	} finally {
+		await indexer.close();
+	}
+}
+
+async function handleStatus(args: string[]): Promise<void> {
+	const pathArg = args.find((a) => !a.startsWith("-"));
+	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	const indexer = createIndexer({ projectPath });
+
+	try {
+		const status = await indexer.getStatus();
+
+		if (!status.exists) {
+			console.log("\nNo index found for this project.");
+			console.log("Run 'claudemem index' to create one.");
+			return;
+		}
+
+		console.log("\n📊 Index Status\n");
+		console.log(`  Path: ${projectPath}`);
+		console.log(`  Files: ${status.totalFiles}`);
+		console.log(`  Chunks: ${status.totalChunks}`);
+		console.log(`  Languages: ${status.languages.join(", ") || "none"}`);
+		if (status.embeddingModel) {
+			console.log(`  Embedding model: ${status.embeddingModel}`);
+		}
+		if (status.lastUpdated) {
+			console.log(`  Last updated: ${status.lastUpdated.toISOString()}`);
+		}
+	} finally {
+		await indexer.close();
+	}
+}
+
+async function handleClear(args: string[]): Promise<void> {
+	const pathArg = args.find((a) => !a.startsWith("-"));
+	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	const force = args.includes("--force") || args.includes("-f");
+
+	if (!force) {
+		const confirmed = await confirm({
+			message: `Clear index for ${projectPath}?`,
+			default: false,
+		});
+
+		if (!confirmed) {
+			console.log("Cancelled.");
+			return;
+		}
+	}
+
+	const indexer = createIndexer({ projectPath });
+
+	try {
+		await indexer.clear();
+		console.log("\n✅ Index cleared.");
+	} finally {
+		await indexer.close();
+	}
+}
+
+async function handleInit(): Promise<void> {
+	console.log("\n🔧 claudemem Setup\n");
+
+	// Check for existing API key
+	const existingKey = getApiKey();
+	if (existingKey) {
+		const useExisting = await confirm({
+			message: "OpenRouter API key already configured. Keep it?",
+			default: true,
+		});
+
+		if (useExisting) {
+			console.log("\n✅ Using existing API key.");
+		} else {
+			await promptForApiKey();
+		}
+	} else {
+		await promptForApiKey();
+	}
+
+	// Select default model
+	console.log("\n📦 Selecting embedding model...\n");
+
+	const models = await discoverEmbeddingModels();
+
+	const modelId = await inquirerSearch({
+		message: "Choose default embedding model:",
+		source: async (term: string | undefined) => {
+			const filtered = term
+				? models.filter(
+						(m) =>
+							m.id.toLowerCase().includes(term.toLowerCase()) ||
+							m.name.toLowerCase().includes(term.toLowerCase()),
+					)
+				: models.slice(0, 10);
+
+			return filtered.map((m) => ({
+				name: formatModelInfo(m),
+				value: m.id,
+			}));
+		},
+	});
+
+	saveGlobalConfig({ defaultModel: modelId });
+
+	console.log("\n✅ Setup complete!");
+	console.log(`\nDefault model: ${modelId}`);
+	console.log("\nYou can now index your codebase:");
+	console.log("  claudemem index\n");
+}
+
+async function handleModels(args: string[]): Promise<void> {
+	const freeOnly = args.includes("--free");
+	const forceRefresh = args.includes("--refresh");
+
+	console.log("\n📦 Fetching embedding models...\n");
+
+	const models = await discoverEmbeddingModels(forceRefresh);
+	const filtered = freeOnly ? models.filter((m) => m.isFree) : models;
+
+	console.log("Available Embedding Models:\n");
+	console.log("  Model                              Provider    Price        Context");
+	console.log("  " + "─".repeat(74));
+
+	for (const model of filtered.slice(0, 20)) {
+		const id = model.id.length > 35 ? model.id.slice(0, 32) + "..." : model.id;
+		const price = model.isFree ? "FREE" : `$${model.pricePerMillion.toFixed(3)}/1M`;
+		const context = `${Math.round(model.contextLength / 1000)}K`;
+
+		console.log(
+			`  ${id.padEnd(36)} ${model.provider.padEnd(11)} ${price.padEnd(12)} ${context}`,
+		);
+	}
+
+	if (filtered.length > 20) {
+		console.log(`\n  ... and ${filtered.length - 20} more models`);
+	}
+
+	console.log("\n💡 Recommended for code: qwen/qwen3-embedding-8b");
+	console.log("   Best price/quality for code embeddings.\n");
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+async function promptForApiKey(): Promise<void> {
+	console.log("OpenRouter API key required for embeddings.");
+	console.log("Get yours at: https://openrouter.ai/keys\n");
+
+	const apiKey = await input({
+		message: "Enter your OpenRouter API key:",
+		validate: (value) => {
+			if (!value.trim()) {
+				return "API key is required";
+			}
+			if (!value.startsWith("sk-or-")) {
+				return "Invalid format. OpenRouter keys start with 'sk-or-'";
+			}
+			return true;
+		},
+	});
+
+	saveGlobalConfig({ openrouterApiKey: apiKey });
+	console.log("\n✅ API key saved.");
+}
+
+function printHelp(): void {
+	// Colors (matching claudish style)
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",  // Softer green (not acid)
+		yellow: "\x1b[33m",
+		blue: "\x1b[34m",
+		magenta: "\x1b[35m",
+		orange: "\x1b[38;5;209m",  // Salmon/orange like claudish
+		gray: "\x1b[90m",
+	};
+
+	// ASCII art logo (claudish style)
+	console.log(`
+${c.orange}   ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗${c.reset}${c.green}███╗   ███╗███████╗███╗   ███╗${c.reset}
+${c.orange}  ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝${c.reset}${c.green}████╗ ████║██╔════╝████╗ ████║${c.reset}
+${c.orange}  ██║     ██║     ███████║██║   ██║██║  ██║█████╗  ${c.reset}${c.green}██╔████╔██║█████╗  ██╔████╔██║${c.reset}
+${c.orange}  ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  ${c.reset}${c.green}██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║${c.reset}
+${c.orange}  ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗${c.reset}${c.green}██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║${c.reset}
+${c.orange}   ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝${c.reset}${c.green}╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝${c.reset}
+
+${c.bold}  Local Code Indexing.${c.reset} ${c.green}For Claude Code.${c.reset}
+${c.dim}  Semantic search powered by embeddings via OpenRouter${c.reset}
+
+${c.yellow}${c.bold}USAGE${c.reset}
+  ${c.cyan}claudemem${c.reset} <command> [options]
+
+${c.yellow}${c.bold}COMMANDS${c.reset}
+  ${c.green}index${c.reset} [path]           Index a codebase (default: current directory)
+  ${c.green}search${c.reset} <query>         Search indexed code ${c.dim}(auto-indexes changes)${c.reset}
+  ${c.green}status${c.reset} [path]          Show index status
+  ${c.green}clear${c.reset} [path]           Clear the index
+  ${c.green}init${c.reset}                   Interactive setup wizard
+  ${c.green}models${c.reset}                 List available embedding models
+
+${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
+  ${c.cyan}-f, --force${c.reset}            Force re-index all files
+
+${c.yellow}${c.bold}SEARCH OPTIONS${c.reset}
+  ${c.cyan}-n, --limit${c.reset} <n>        Maximum results (default: 10)
+  ${c.cyan}-l, --language${c.reset} <lang>  Filter by programming language
+  ${c.cyan}-p, --path${c.reset} <path>      Project path (default: current directory)
+  ${c.cyan}-y, --yes${c.reset}              Auto-create index if missing (no prompt)
+  ${c.cyan}--no-reindex${c.reset}           Skip auto-reindexing changed files
+
+${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
+  ${c.cyan}--free${c.reset}                 Show only free models
+  ${c.cyan}--refresh${c.reset}              Force refresh from API
+
+${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
+  ${c.cyan}-v, --version${c.reset}          Show version
+  ${c.cyan}-h, --help${c.reset}             Show this help
+
+${c.yellow}${c.bold}MCP SERVER${c.reset}
+  ${c.cyan}claudemem --mcp${c.reset}        Start as MCP server (for Claude Code)
+
+${c.yellow}${c.bold}ENVIRONMENT${c.reset}
+  ${c.magenta}OPENROUTER_API_KEY${c.reset}     API key for embeddings
+  ${c.magenta}CLAUDEMEM_MODEL${c.reset}        Override default embedding model
+
+${c.yellow}${c.bold}EXAMPLES${c.reset}
+  ${c.dim}# First time setup${c.reset}
+  ${c.cyan}claudemem init${c.reset}
+
+  ${c.dim}# Index current project${c.reset}
+  ${c.cyan}claudemem index${c.reset}
+
+  ${c.dim}# Search (auto-indexes changes)${c.reset}
+  ${c.cyan}claudemem search "authentication flow"${c.reset}
+  ${c.cyan}claudemem search "error handling" -n 5${c.reset}
+
+  ${c.dim}# Search without auto-reindex${c.reset}
+  ${c.cyan}claudemem search "query" --no-reindex${c.reset}
+
+  ${c.dim}# Auto-create index on first search${c.reset}
+  ${c.cyan}claudemem search "something" -y${c.reset}
+
+${c.yellow}${c.bold}MORE INFO${c.reset}
+  ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}
+`);
+}

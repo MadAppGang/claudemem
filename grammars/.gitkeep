@@ -1,0 +1,2 @@
+# Tree-sitter grammar WASM files are downloaded here at build time
+# Run: bun run download-grammars

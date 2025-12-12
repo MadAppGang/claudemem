@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Binary builds
+claudemem
+claudemem-*
+
+# Tree-sitter grammars (downloaded at build time)
+grammars/*.wasm
+
+# Environment
+.env
+.env.local
+
+# Index data (per-project)
+.claudemem/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/

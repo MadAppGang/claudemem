@@ -1,0 +1,210 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write  # Required for npm OIDC trusted publishing
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: bun-darwin-arm64
+            artifact: claudemem-darwin-arm64
+          - os: macos-13
+            target: bun-darwin-x64
+            artifact: claudemem-darwin-x64
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            artifact: claudemem-linux-x64
+          - os: ubuntu-24.04-arm
+            target: bun-linux-arm64
+            artifact: claudemem-linux-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Download grammars
+        run: bun run download-grammars
+
+      - name: Build binary
+        run: bun build src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          for dir in artifacts/*/; do
+            name=$(basename "$dir")
+            cp "$dir/$name" "release/$name"
+            chmod +x "release/$name"
+          done
+          ls -la release/
+
+      - name: Generate manifest and checksums
+        run: |
+          bun scripts/generate-manifest.ts ${{ steps.version.outputs.version }} release
+          cat release/manifest.json
+          cat release/checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/claudemem-*
+            release/manifest.json
+            release/checksums.txt
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
+
+  publish-npm:
+    needs: release
+    runs-on: ubuntu-latest
+    # OIDC trusted publishing - no NPM_TOKEN needed!
+    # Configure at: https://www.npmjs.com/package/claudemem/access (Trusted Publishers)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update npm for OIDC support
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Download grammars
+        run: bun run download-grammars
+
+      - name: Build
+        run: bun run build
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+
+  update-homebrew:
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ vars.ENABLE_HOMEBREW == 'true' }}
+
+    steps:
+      - name: Get release info
+        id: release
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Wait for release assets
+          sleep 10
+
+          # Get checksums
+          curl -sL "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/checksums.txt" -o checksums.txt
+
+          ARM64_SHA=$(grep "darwin-arm64" checksums.txt | awk '{print $1}')
+          X64_SHA=$(grep "darwin-x64" checksums.txt | awk '{print $1}')
+
+          echo "arm64_sha=$ARM64_SHA" >> $GITHUB_OUTPUT
+          echo "x64_sha=$X64_SHA" >> $GITHUB_OUTPUT
+
+      - name: Update Homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: MadAppGang/homebrew-claudemem
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+
+      - name: Update formula
+        run: |
+          cat > tap/Casks/claudemem.rb << 'EOF'
+          cask "claudemem" do
+            version "${{ steps.release.outputs.version }}"
+
+            on_arm do
+              url "https://github.com/MadAppGang/claudemem/releases/download/v#{version}/claudemem-darwin-arm64"
+              sha256 "${{ steps.release.outputs.arm64_sha }}"
+            end
+
+            on_intel do
+              url "https://github.com/MadAppGang/claudemem/releases/download/v#{version}/claudemem-darwin-x64"
+              sha256 "${{ steps.release.outputs.x64_sha }}"
+            end
+
+            name "claudemem"
+            desc "Local code indexing with semantic search for Claude Code"
+            homepage "https://github.com/MadAppGang/claudemem"
+
+            binary "claudemem-darwin-#{Hardware::CPU.arch == :arm64 ? 'arm64' : 'x64'}", target: "claudemem"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            zap trash: [
+              "~/.claudemem",
+              "~/.config/claudemem",
+            ]
+          end
+          EOF
+
+      - name: Push to tap
+        run: |
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/claudemem.rb
+          git commit -m "Update claudemem to v${{ steps.release.outputs.version }}"
+          git push
