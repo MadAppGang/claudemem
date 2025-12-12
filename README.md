@@ -1,131 +1,113 @@
 # claudemem
 
-Local code indexing with semantic search for Claude Code.
+Local semantic code search for Claude Code. Index your codebase once, search it with natural language.
 
-## Installation
-
-### npm
+## Install
 
 ```bash
+# npm
 npm install -g claude-codemem
-```
 
-### Homebrew (macOS)
+# homebrew (macOS)
+brew tap MadAppGang/claude-mem && brew install --cask claudemem
 
-```bash
-brew tap MadAppGang/claude-mem
-brew install --cask claudemem
-```
-
-### Direct Install
-
-```bash
+# or just curl it
 curl -fsSL https://raw.githubusercontent.com/MadAppGang/claudemem/main/install.sh | bash
 ```
 
-## Quick Start
+## Why this exists
+
+Claude Code's built-in search (grep/glob) works fine for exact matches. But when you're trying to find "where do we handle auth tokens" or "error retry logic" — good luck.
+
+claudemem fixes that. It chunks your code using tree-sitter (so it actually understands functions/classes, not just lines), generates embeddings via OpenRouter, and stores everything locally in LanceDB.
+
+The search combines keyword matching with vector similarity. Works surprisingly well for finding stuff you kinda-sorta remember but can't grep for.
+
+## Quick start
 
 ```bash
-# Set up API key (get one at https://openrouter.ai/keys)
+# first time setup - grabs your OpenRouter API key
+# (free tier works fine, or pay ~$0.01 per 1M tokens)
 claudemem init
 
-# Index your codebase
+# index your project
 claudemem index
 
-# Search code with natural language
+# search
 claudemem search "authentication flow"
-claudemem search "error handling" -n 5
-
-# Start MCP server for Claude Code integration
-claudemem --mcp
+claudemem search "where do we validate user input"
 ```
 
-## Features
+That's it. Changed some files? Just search again — it auto-reindexes modified files before searching.
 
-- **AST-based code chunking** - Uses tree-sitter for intelligent code parsing (TypeScript, JavaScript, Python, Go, Rust, C/C++, Java)
-- **Vector embeddings** - Powered by OpenRouter API with free/cheap embedding models
-- **Local storage** - LanceDB vector database stored per-project (no external services)
-- **Hybrid search** - Combines BM25 keyword search with vector similarity
-- **Auto-indexing** - Automatically indexes changed files on search
-- **MCP integration** - Seamless integration with Claude Code via MCP server
+## Using with Claude Code
 
-## CLI Commands
-
-```
-claudemem init              Interactive setup wizard
-claudemem index [path]      Index a codebase (default: current directory)
-claudemem search <query>    Search indexed code
-claudemem status [path]     Show index status
-claudemem clear [path]      Clear the index
-claudemem models            List available embedding models
-claudemem --mcp             Start as MCP server
-```
-
-### Search Options
-
-```
--n, --limit <n>        Maximum results (default: 10)
--l, --language <lang>  Filter by programming language
--p, --path <path>      Project path (default: current directory)
--y, --yes              Auto-create index if missing (no prompt)
---no-reindex           Skip auto-reindexing changed files
-```
-
-## MCP Server
-
-claudemem can run as an MCP (Model Context Protocol) server for integration with Claude Code:
+Run it as an MCP server:
 
 ```bash
 claudemem --mcp
 ```
 
-### Available MCP Tools
+Then Claude Code can use these tools:
+- `search_code` — semantic search (auto-indexes changes)
+- `index_codebase` — manual full reindex
+- `get_status` — check what's indexed
+- `clear_index` — start fresh
 
-| Tool | Description |
-|------|-------------|
-| `index_codebase` | Index a codebase for semantic search |
-| `search_code` | Search indexed code using natural language |
-| `clear_index` | Clear the code index for a project |
-| `get_status` | Get index status for a project |
-| `list_embedding_models` | List available embedding models |
+## What it actually does
 
-## Configuration
+1. **Parses code** with tree-sitter — extracts functions, classes, methods as chunks (not dumb line splits)
+2. **Generates embeddings** via OpenRouter (default: qwen3-embedding-8b, good quality, cheap)
+3. **Stores locally** in LanceDB — everything stays in `.claudemem/` in your project
+4. **Hybrid search** — BM25 for exact matches + vector similarity for semantic. Combines both.
 
-### Environment Variables
+## Supported languages
 
-| Variable | Description |
-|----------|-------------|
-| `OPENROUTER_API_KEY` | API key for embeddings (required) |
-| `CLAUDEMEM_MODEL` | Override default embedding model |
+TypeScript, JavaScript, Python, Go, Rust, C, C++, Java.
 
-### Config Files
+If your language isn't here, it falls back to line-based chunking. Works, but not as clean.
 
-- Global config: `~/.claudemem/config.json`
-- Project index: `.claudemem/` directory in project root
+## CLI reference
 
-## Supported Languages
+```
+claudemem init              # setup wizard
+claudemem index [path]      # index codebase
+claudemem search <query>    # search (auto-reindexes changed files)
+claudemem status            # what's indexed
+claudemem clear             # nuke the index
+claudemem models            # list embedding models
+claudemem --mcp             # run as MCP server
+```
 
-- TypeScript / JavaScript / TSX / JSX
-- Python
-- Go
-- Rust
-- C / C++
-- Java
+Search flags:
+```
+-n, --limit <n>       # max results (default: 10)
+-l, --language <lang> # filter by language
+-y, --yes             # auto-create index without asking
+--no-reindex          # skip auto-reindex
+```
 
-## How It Works
+## Config
 
-1. **Parsing** - Code is parsed using tree-sitter to extract semantic chunks (functions, classes, methods)
-2. **Embedding** - Each chunk is converted to a vector using OpenRouter embedding models
-3. **Storage** - Vectors are stored locally in LanceDB per-project
-4. **Search** - Queries use hybrid search (BM25 + vector similarity) for best results
-5. **Auto-update** - Changed files are automatically re-indexed on search
+Env vars:
+- `OPENROUTER_API_KEY` — required
+- `CLAUDEMEM_MODEL` — override embedding model
+
+Files:
+- `~/.claudemem/config.json` — global config
+- `.claudemem/` — project index (add to .gitignore)
+
+## Limitations
+
+- Needs OpenRouter API key (free tier exists)
+- First index takes a minute on large codebases
+- Embedding quality depends on the model you pick
+- Not magic — sometimes grep is still faster for exact strings
 
 ## License
 
 MIT
 
-## Links
+---
 
-- [GitHub Repository](https://github.com/MadAppGang/claudemem)
-- [npm Package](https://www.npmjs.com/package/claude-codemem)
-- [OpenRouter](https://openrouter.ai) - Embedding API provider
+[GitHub](https://github.com/MadAppGang/claudemem) · [npm](https://www.npmjs.com/package/claude-codemem) · [OpenRouter](https://openrouter.ai)
