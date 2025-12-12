@@ -152,6 +152,8 @@ function createProgressRenderer() {
 	return {
 		start() {
 			interval = setInterval(render, 100); // Update every 100ms
+			// Allow the process to exit even if interval is running
+			if (interval.unref) interval.unref();
 		},
 		update(completed: number, total: number, detail: string, inProgress = 0) {
 			// Extract phase from detail (e.g., "[parsing] filename")

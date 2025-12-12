@@ -19,8 +19,8 @@ import type { EmbeddingProgressCallback, EmbeddingProvider, EmbeddingResponse, E
 // Constants
 // ============================================================================
 
-/** Maximum texts per batch request (OpenRouter) */
-const MAX_BATCH_SIZE = 100;
+/** Maximum texts per batch request (OpenRouter) - smaller = more granular progress */
+const MAX_BATCH_SIZE = 20;
 
 /** Maximum retries for failed requests */
 const MAX_RETRIES = 3;
@@ -139,8 +139,8 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 			batches.push(texts.slice(i, i + MAX_BATCH_SIZE));
 		}
 
-		// Process batches in parallel (up to PARALLEL_BATCHES at a time)
-		const PARALLEL_BATCHES = 5;
+		// Process batches in parallel (up to 3 at a time for good balance)
+		const PARALLEL_BATCHES = 3;
 		const results: number[][] = new Array(texts.length);
 		let resultIndex = 0;
 		let completedTexts = 0;
