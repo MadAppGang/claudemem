@@ -104,13 +104,76 @@ function formatElapsed(ms: number): string {
 	return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
-/** Create a progress bar string */
-function progressBar(current: number, total: number, width = 20): string {
-	if (total === 0) return "░".repeat(width);
-	const percent = Math.min(current / total, 1);
-	const filled = Math.round(percent * width);
-	const empty = width - filled;
-	return "█".repeat(filled) + "░".repeat(empty);
+/** Animation frames for "in progress" portion */
+const ANIM_FRAMES = ["▓", "▒", "░", "▒"];
+
+/** Progress state for continuous rendering */
+interface ProgressState {
+	completed: number;
+	total: number;
+	inProgress: number;
+	phase: string;
+	detail: string;
+}
+
+/** Create a progress renderer with continuous timer and animation */
+function createProgressRenderer() {
+	const startTime = Date.now();
+	let state: ProgressState = { completed: 0, total: 0, inProgress: 0, phase: "", detail: "" };
+	let animFrame = 0;
+	let interval: ReturnType<typeof setInterval> | null = null;
+	let lastPhase = "";
+
+	function render() {
+		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
+		const elapsed = formatElapsed(Date.now() - startTime);
+		const { completed, total, inProgress, phase, detail } = state;
+		const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+		// Build three-state progress bar
+		const width = 20;
+		const filledRatio = total > 0 ? completed / total : 0;
+		const inProgressRatio = total > 0 ? inProgress / total : 0;
+
+		const filledWidth = Math.round(filledRatio * width);
+		const inProgressWidth = Math.min(Math.round(inProgressRatio * width), width - filledWidth);
+		const emptyWidth = width - filledWidth - inProgressWidth;
+
+		const filled = "█".repeat(filledWidth);
+		const animated = inProgressWidth > 0 ? ANIM_FRAMES[animFrame].repeat(inProgressWidth) : "";
+		const empty = "░".repeat(emptyWidth);
+		const bar = filled + animated + empty;
+
+		process.stdout.write(
+			`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(9)} │ ${detail.padEnd(35)}`
+		);
+	}
+
+	return {
+		start() {
+			interval = setInterval(render, 100); // Update every 100ms
+		},
+		update(completed: number, total: number, detail: string, inProgress = 0) {
+			// Extract phase from detail (e.g., "[parsing] filename")
+			const phaseMatch = detail.match(/^\[(\w+)\]/);
+			const phase = phaseMatch ? phaseMatch[1] : "processing";
+			const cleanDetail = detail.replace(/^\[\w+\]\s*/, "").slice(0, 35);
+
+			// Show phase change
+			if (phase !== lastPhase && lastPhase !== "") {
+				process.stdout.write("\n");
+			}
+			lastPhase = phase;
+
+			state = { completed, total, inProgress, phase, detail: cleanDetail };
+		},
+		stop() {
+			if (interval) {
+				clearInterval(interval);
+				interval = null;
+			}
+		},
+	};
 }
 
 async function handleIndex(args: string[]): Promise<void> {
@@ -131,37 +194,22 @@ async function handleIndex(args: string[]): Promise<void> {
 		console.log("(Force mode: re-indexing all files)\n");
 	}
 
-	const startTime = Date.now();
-	let lastPhase = "";
+	// Create progress renderer with continuous timer and animation
+	const progress = createProgressRenderer();
+	progress.start();
 
 	const indexer = createIndexer({
 		projectPath,
-		onProgress: (current, total, file) => {
-			const elapsed = formatElapsed(Date.now() - startTime);
-			const bar = progressBar(current, total);
-			const percent = total > 0 ? Math.round((current / total) * 100) : 0;
-
-			// Extract phase from file string (e.g., "[parsing] filename" or "[embedding] 100 chunks...")
-			const phaseMatch = file.match(/^\[(\w+)\]/);
-			const phase = phaseMatch ? phaseMatch[1] : "processing";
-			const detail = file.replace(/^\[\w+\]\s*/, "").slice(0, 35);
-
-			// Show phase change
-			if (phase !== lastPhase && lastPhase !== "") {
-				process.stdout.write("\n");
-			}
-			lastPhase = phase;
-
-			process.stdout.write(
-				`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(9)} │ ${detail.padEnd(35)}`
-			);
+		onProgress: (current, total, file, inProgress) => {
+			progress.update(current, total, file, inProgress ?? 0);
 		},
 	});
 
 	try {
 		const result = await indexer.index(force);
 
-		// Clear progress line and show completion
+		// Stop progress renderer and clear line
+		progress.stop();
 		process.stdout.write("\r" + " ".repeat(100) + "\r");
 
 		const totalElapsed = formatElapsed(result.durationMs);
@@ -183,6 +231,7 @@ async function handleIndex(args: string[]): Promise<void> {
 			}
 		}
 	} finally {
+		progress.stop();
 		await indexer.close();
 	}
 }

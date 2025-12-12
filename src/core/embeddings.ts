@@ -149,6 +149,13 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 
 		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
 			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
+			const inProgressCount = batchGroup.reduce((sum, b) => sum + b.length, 0);
+
+			// Report "starting to process" with in-progress count (for animation)
+			if (onProgress) {
+				onProgress(completedTexts, texts.length, inProgressCount);
+			}
+
 			const batchPromises = batchGroup.map((batch) => this.embedBatch(batch));
 			const batchResults = await Promise.all(batchPromises);
 
@@ -160,11 +167,11 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 				if (batchResult.totalTokens) totalTokens += batchResult.totalTokens;
 				if (batchResult.cost) totalCost += batchResult.cost;
 			}
+		}
 
-			// Report progress after each parallel batch group
-			if (onProgress) {
-				onProgress(completedTexts, texts.length);
-			}
+		// Final progress report (all complete)
+		if (onProgress) {
+			onProgress(completedTexts, texts.length, 0);
 		}
 
 		return {
@@ -273,6 +280,11 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 		// Ollama processes one text at a time
 		const results: number[][] = [];
 		for (let i = 0; i < texts.length; i++) {
+			// Report "starting to process" (1 item at a time)
+			if (onProgress) {
+				onProgress(i, texts.length, 1);
+			}
+
 			const embedding = await this.embedSingle(texts[i]);
 			results.push(embedding);
 
@@ -280,11 +292,11 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 			if (!this.dimension && embedding.length > 0) {
 				this.dimension = embedding.length;
 			}
+		}
 
-			// Report progress
-			if (onProgress) {
-				onProgress(i + 1, texts.length);
-			}
+		// Final progress report
+		if (onProgress) {
+			onProgress(texts.length, texts.length, 0);
 		}
 
 		// Ollama doesn't report cost (local model)
@@ -359,6 +371,11 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 	async embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult> {
 		if (texts.length === 0) return { embeddings: [] };
 
+		// Report "starting to process" (all texts at once)
+		if (onProgress) {
+			onProgress(0, texts.length, texts.length);
+		}
+
 		let lastError: Error | undefined;
 
 		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -393,7 +410,7 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 
 					// Report completion
 					if (onProgress) {
-						onProgress(texts.length, texts.length);
+						onProgress(texts.length, texts.length, 0);
 					}
 
 					// Local server doesn't report cost

@@ -119,7 +119,12 @@ export interface FileState {
 export type EmbeddingProvider = "openrouter" | "ollama" | "local";
 
 /** Progress callback for embedding operations */
-export type EmbeddingProgressCallback = (completed: number, total: number) => void;
+export type EmbeddingProgressCallback = (
+	completed: number,
+	total: number,
+	/** Number of items currently being processed (for animation) */
+	inProgress?: number
+) => void;
 
 /** Result of embedding operation with usage stats */
 export interface EmbedResult {

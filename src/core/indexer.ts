@@ -49,8 +49,8 @@ interface IndexerOptions {
 	excludePatterns?: string[];
 	/** Include only these patterns */
 	includePatterns?: string[];
-	/** Progress callback */
-	onProgress?: (current: number, total: number, file: string) => void;
+	/** Progress callback (inProgress = items currently being processed, for animation) */
+	onProgress?: (current: number, total: number, file: string, inProgress?: number) => void;
 	/** Force re-index all files */
 	force?: boolean;
 }
@@ -66,7 +66,7 @@ export class Indexer {
 	private includePatterns: string[];
 	private includeExtensions: Set<string> | null;
 	private excludeExtensions: Set<string>;
-	private onProgress?: (current: number, total: number, file: string) => void;
+	private onProgress?: (current: number, total: number, file: string, inProgress?: number) => void;
 
 	private embeddingsClient: IEmbeddingsClient | null = null;
 	private vectorStore: VectorStore | null = null;
@@ -226,9 +226,9 @@ export class Indexer {
 
 			try {
 				// Pass progress callback to track embedding progress
-				embedResult = await this.embeddingsClient!.embed(texts, (completed, total) => {
+				embedResult = await this.embeddingsClient!.embed(texts, (completed, total, inProgress) => {
 					if (this.onProgress) {
-						this.onProgress(completed, total, `[embedding]${batchInfo} ${completed}/${total} chunks`);
+						this.onProgress(completed, total, `[embedding]${batchInfo} ${completed}/${total} chunks`, inProgress);
 					}
 				});
 			} catch (error) {
