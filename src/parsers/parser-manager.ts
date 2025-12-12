@@ -188,8 +188,12 @@ export class ParserManager {
 
 	constructor(grammarsPath?: string) {
 		// Default to grammars directory relative to this file
+		// In development: src/parsers/parser-manager.ts -> ../../grammars
+		// In bundled dist: dist/index.js -> ../grammars
 		const __dirname = fileURLToPath(new URL(".", import.meta.url));
-		this.grammarsPath = grammarsPath || join(__dirname, "../../grammars");
+		const isDist = __dirname.includes("/dist") || __dirname.endsWith("/dist/");
+		const relativePath = isDist ? "../grammars" : "../../grammars";
+		this.grammarsPath = grammarsPath || join(__dirname, relativePath);
 	}
 
 	/**
@@ -201,7 +205,15 @@ export class ParserManager {
 			return;
 		}
 
-		await Parser.init();
+		// Use locateFile to tell web-tree-sitter where to find tree-sitter.wasm
+		// This is critical for bundled distributions where the default path
+		// gets baked in at build time (e.g., GitHub Actions path)
+		await Parser.init({
+			locateFile: (scriptName: string) => {
+				// Return the path to tree-sitter.wasm in our grammars directory
+				return join(this.grammarsPath, scriptName);
+			},
+		});
 		this.initialized = true;
 	}
 

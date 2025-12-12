@@ -103,6 +103,35 @@ async function downloadGrammar(name: string): Promise<void> {
 	console.error(`  You may need to build it manually: npx tree-sitter build --wasm`);
 }
 
+async function copyTreeSitterRuntime(): Promise<void> {
+	// Copy the core tree-sitter.wasm from node_modules
+	// This is required because Bun bundles absolute paths at build time
+	const destPath = join(GRAMMARS_DIR, "tree-sitter.wasm");
+
+	if (existsSync(destPath)) {
+		console.log("✓ tree-sitter.wasm (cached)");
+		return;
+	}
+
+	// Try multiple possible locations for node_modules
+	const possibleSources = [
+		join(import.meta.dir, "../node_modules/web-tree-sitter/tree-sitter.wasm"),
+		// When installed globally, web-tree-sitter might be a peer
+		join(import.meta.dir, "../../web-tree-sitter/tree-sitter.wasm"),
+	];
+
+	for (const sourcePath of possibleSources) {
+		if (existsSync(sourcePath)) {
+			console.log("⬇ Copying tree-sitter.wasm runtime...");
+			copyFileSync(sourcePath, destPath);
+			console.log("✓ tree-sitter.wasm (from node_modules)");
+			return;
+		}
+	}
+
+	console.warn("⚠ tree-sitter.wasm not found in node_modules - will use default location");
+}
+
 async function main() {
 	console.log("\n📦 Downloading tree-sitter grammars...\n");
 
@@ -110,6 +139,9 @@ async function main() {
 	if (!existsSync(GRAMMARS_DIR)) {
 		mkdirSync(GRAMMARS_DIR, { recursive: true });
 	}
+
+	// Copy the core tree-sitter runtime WASM
+	await copyTreeSitterRuntime();
 
 	// Collect all WASM file names
 	const allWasmFiles = new Set<string>();
