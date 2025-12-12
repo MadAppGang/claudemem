@@ -51,24 +51,24 @@ interface ModelsCache {
 export const CURATED_PICKS = {
 	/** Best Quality - Top-tier code understanding */
 	bestQuality: {
-		id: "voyage/voyage-code-3",
-		name: "Voyage Code 3",
-		provider: "Voyage",
-		contextLength: 32000,
+		id: "mistralai/codestral-embed-2505",
+		name: "Codestral Embed",
+		provider: "Mistral",
+		contextLength: 8192,
 		dimension: 1024,
-		pricePerMillion: 0.18,
+		pricePerMillion: 0.15,
 		isFree: false,
 		isRecommended: true,
 	} as EmbeddingModel,
 
 	/** Best Value - Great quality at lowest cost */
 	bestValue: {
-		id: "qwen/qwen3-embedding-0.6b",
-		name: "Qwen3 Embedding 0.6B",
+		id: "qwen/qwen3-embedding-4b",
+		name: "Qwen3 Embedding 4B",
 		provider: "Qwen",
 		contextLength: 32768,
-		dimension: 1024,
-		pricePerMillion: 0.002,
+		dimension: 2048,
+		pricePerMillion: 0.02,
 		isFree: false,
 		isRecommended: true,
 	} as EmbeddingModel,
@@ -253,29 +253,23 @@ export async function discoverEmbeddingModels(
 	const apiModels = await fetchModelsFromAPI();
 
 	if (apiModels.length > 0) {
-		// Merge with recommended models (recommended first, then API models)
-		const recommendedIds = new Set(RECOMMENDED_MODELS.map((m) => m.id));
-		const uniqueApiModels = apiModels.filter((m) => !recommendedIds.has(m.id));
-
-		const merged = [...RECOMMENDED_MODELS, ...uniqueApiModels];
-
 		// Sort: free first, then by price
-		merged.sort((a, b) => {
+		apiModels.sort((a, b) => {
 			if (a.isFree && !b.isFree) return -1;
 			if (!a.isFree && b.isFree) return 1;
 			return a.pricePerMillion - b.pricePerMillion;
 		});
 
 		// Cache the result
-		saveToCache(merged);
+		saveToCache(apiModels);
 
-		console.error(`✅ Found ${merged.length} embedding models`);
-		return merged;
+		console.error(`✅ Found ${apiModels.length} embedding models`);
+		return apiModels;
 	}
 
-	// Fall back to recommended models
-	console.warn("⚠️  Using cached recommended models");
-	return RECOMMENDED_MODELS;
+	// Fall back to empty (no hardcoded fallback)
+	console.warn("⚠️  No embedding models found from API");
+	return [];
 }
 
 /**

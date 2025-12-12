@@ -273,6 +273,27 @@ export class VectorStore {
 	}
 
 	/**
+	 * Get chunk contents for benchmarking
+	 */
+	async getChunkContents(limit?: number): Promise<string[]> {
+		const table = await this.ensureTableOpen();
+		if (!table) {
+			return [];
+		}
+
+		try {
+			let query = table.query();
+			if (limit) {
+				query = query.limit(limit);
+			}
+			const allData = await query.toArray();
+			return allData.map((row) => row.content as string);
+		} catch {
+			return [];
+		}
+	}
+
+	/**
 	 * Get statistics about the store
 	 */
 	async getStats(): Promise<{

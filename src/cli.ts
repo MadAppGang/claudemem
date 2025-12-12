@@ -4,7 +4,7 @@
  * Command-line interface for code indexing and search.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import inquirerSearch from "@inquirer/search";
@@ -12,12 +12,14 @@ import { confirm, input, select } from "@inquirer/prompts";
 import {
 	ENV,
 	getApiKey,
+	getVectorStorePath,
 	hasApiKey,
 	loadGlobalConfig,
 	saveGlobalConfig,
 } from "./config.js";
 import { createIndexer } from "./core/indexer.js";
 import { OpenRouterEmbeddingsClient } from "./core/embeddings.js";
+import { VectorStore } from "./core/store.js";
 import {
 	CURATED_PICKS,
 	discoverEmbeddingModels,
@@ -83,6 +85,9 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "benchmark":
 			await handleBenchmark(args.slice(1));
+			break;
+		case "test":
+			await handleTest(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -701,11 +706,8 @@ async function handleModels(args: string[]): Promise<void> {
 	if (otherPaid.length > 0) {
 		console.log(`${c.cyan}${c.bold}💰 OTHER PAID MODELS${c.reset}\n`);
 		printHeader();
-		for (const model of otherPaid.slice(0, 10)) {
+		for (const model of otherPaid) {
 			printModel(model);
-		}
-		if (otherPaid.length > 10) {
-			console.log(`  ${c.dim}... and ${otherPaid.length - 10} more paid models${c.reset}`);
 		}
 		console.log("");
 	}
@@ -781,6 +783,133 @@ interface BenchmarkResult {
 	error?: string;
 }
 
+/** Multi-line progress renderer for benchmark */
+function createBenchmarkProgress(modelIds: string[]) {
+	const globalStartTime = Date.now();
+	const ANIM_FRAMES = ["▓", "▒", "░", "▒"];
+	let animFrame = 0;
+	let interval: ReturnType<typeof setInterval> | null = null;
+
+	// State for each model (with individual timing)
+	const modelState = new Map<string, {
+		completed: number;
+		total: number;
+		inProgress: number;
+		done: boolean;
+		error?: string;
+		startTime: number;
+		endTime?: number;
+	}>();
+	for (const id of modelIds) {
+		modelState.set(id, { completed: 0, total: 0, inProgress: 0, done: false, startTime: globalStartTime });
+	}
+
+	function render() {
+		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
+
+		// Move cursor up to overwrite previous lines
+		if (modelIds.length > 0) {
+			process.stdout.write(`\x1b[${modelIds.length}A`);
+		}
+
+		for (const modelId of modelIds) {
+			const state = modelState.get(modelId)!;
+			const { completed, total, inProgress, done, error, startTime, endTime } = state;
+
+			// Calculate elapsed time (frozen when done/error)
+			const elapsedMs = (endTime || Date.now()) - startTime;
+			const elapsed = formatElapsed(elapsedMs);
+
+			// Short model name (last part after /)
+			const shortName = modelId.split("/").pop() || modelId;
+			const displayName = shortName.length > 25 ? shortName.slice(0, 22) + "..." : shortName;
+
+			// Build progress bar and status
+			const width = 20;
+			let bar: string;
+			let percent: number;
+			let status: string;
+
+			if (error) {
+				// Error state - red X bar
+				bar = "\x1b[31m" + "✗".repeat(width) + "\x1b[0m";
+				percent = 0;
+				status = `\x1b[31m${"✗ error".padEnd(20)}\x1b[0m`;
+			} else if (done) {
+				// Done state - full green bar
+				bar = "█".repeat(width);
+				percent = 100;
+				status = `\x1b[38;5;78m${"✓ done".padEnd(20)}\x1b[0m`;
+			} else {
+				// In progress
+				percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+				const filledRatio = total > 0 ? completed / total : 0;
+				const inProgressRatio = total > 0 ? inProgress / total : 0;
+
+				const filledWidth = Math.round(filledRatio * width);
+				const inProgressWidth = Math.min(Math.round(inProgressRatio * width), width - filledWidth);
+				const emptyWidth = width - filledWidth - inProgressWidth;
+
+				const filled = "█".repeat(filledWidth);
+				let animated = "";
+				for (let i = 0; i < inProgressWidth; i++) {
+					const charIndex = (animFrame + i) % ANIM_FRAMES.length;
+					animated += ANIM_FRAMES[charIndex];
+				}
+				const empty = "░".repeat(emptyWidth);
+				bar = filled + animated + empty;
+				status = `${completed}/${total} chunks`.padEnd(20);
+			}
+
+			process.stdout.write(`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${displayName.padEnd(25)} │ ${status}\n`);
+		}
+	}
+
+	return {
+		start() {
+			// Print initial empty lines
+			for (let i = 0; i < modelIds.length; i++) {
+				console.log("");
+			}
+			interval = setInterval(render, 100);
+			if (interval.unref) interval.unref();
+			render();
+		},
+		update(modelId: string, completed: number, total: number, inProgress: number) {
+			const state = modelState.get(modelId);
+			if (state) {
+				state.completed = completed;
+				state.total = total;
+				state.inProgress = inProgress;
+			}
+		},
+		finish(modelId: string) {
+			const state = modelState.get(modelId);
+			if (state) {
+				state.done = true;
+				state.inProgress = 0;
+				state.completed = state.total;
+				state.endTime = Date.now();
+			}
+		},
+		setError(modelId: string, error: string) {
+			const state = modelState.get(modelId);
+			if (state) {
+				state.error = error;
+				state.done = true;
+				state.endTime = Date.now();
+			}
+		},
+		stop() {
+			if (interval) {
+				clearInterval(interval);
+				interval = null;
+			}
+			render(); // Final render
+		},
+	};
+}
+
 async function handleBenchmark(args: string[]): Promise<void> {
 	// Colors
 	const c = {
@@ -801,62 +930,92 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		process.exit(1);
 	}
 
-	// Parse model list from args
+	// Parse flags
+	const useRealData = args.includes("--real");
 	const modelsArg = args.find((a) => a.startsWith("--models="));
 	const modelIds = modelsArg
 		? modelsArg.replace("--models=", "").split(",").map((s) => s.trim())
 		: [
-			CURATED_PICKS.bestQuality.id,
-			CURATED_PICKS.bestBalanced.id,
-			CURATED_PICKS.bestValue.id,
-			CURATED_PICKS.fastest.id,
+			CURATED_PICKS.bestBalanced.id,  // qwen/qwen3-embedding-8b (works)
+			"openai/text-embedding-3-small",
+			"openai/text-embedding-3-large",
+			CURATED_PICKS.fastest.id,       // sentence-transformers/all-minilm-l6-v2
 		];
 
 	console.log(`\n${c.orange}${c.bold}🏁 EMBEDDING MODEL BENCHMARK${c.reset}\n`);
-	console.log(`${c.dim}Testing ${modelIds.length} models with ${QUALITY_TEST_PAIRS.length} quality test pairs${c.reset}\n`);
 
-	// Collect all unique texts for embedding
-	const uniqueTexts = new Set<string>();
-	for (const pair of QUALITY_TEST_PAIRS) {
-		uniqueTexts.add(pair.a);
-		uniqueTexts.add(pair.b);
+	// Get test data
+	let textsArray: string[];
+
+	if (useRealData) {
+		// Load chunks from existing index
+		const projectPath = process.cwd();
+		const dbPath = getVectorStorePath(projectPath);
+		const store = new VectorStore(dbPath);
+		await store.initialize();
+
+		const chunks = await store.getChunkContents(100); // Max 100 chunks
+		await store.close();
+
+		if (chunks.length === 0) {
+			console.error("No indexed data found. Run 'claudemem index' first.");
+			process.exit(1);
+		}
+
+		textsArray = chunks;
+		console.log(`${c.dim}Testing ${modelIds.length} models with ${textsArray.length} real code chunks${c.reset}\n`);
+	} else {
+		// Use synthetic test pairs
+		const uniqueTexts = new Set<string>();
+		for (const pair of QUALITY_TEST_PAIRS) {
+			uniqueTexts.add(pair.a);
+			uniqueTexts.add(pair.b);
+		}
+		textsArray = Array.from(uniqueTexts);
+		console.log(`${c.dim}Testing ${modelIds.length} models with ${QUALITY_TEST_PAIRS.length} quality test pairs${c.reset}`);
+		console.log(`${c.dim}Use --real to test with actual indexed code chunks${c.reset}\n`);
 	}
-	const textsArray = Array.from(uniqueTexts);
 
-	console.log(`${c.cyan}Running benchmarks in parallel...${c.reset}\n`);
+	// Create multi-line progress display
+	const progress = createBenchmarkProgress(modelIds);
+	progress.start();
 
-	// Run all models in parallel
+	// Run all models in parallel with progress updates
 	const benchmarkPromises = modelIds.map(async (modelId): Promise<BenchmarkResult> => {
 		const startTime = Date.now();
 		try {
 			const client = new OpenRouterEmbeddingsClient({ model: modelId });
-			const result = await client.embed(textsArray);
+
+			// Embed with progress callback
+			const result = await client.embed(textsArray, (completed, total, inProgress) => {
+				progress.update(modelId, completed, total, inProgress);
+			});
+
+			progress.finish(modelId);
 			const speedMs = Date.now() - startTime;
 
-			// Build text -> embedding map
-			const embeddingMap = new Map<string, number[]>();
-			for (let i = 0; i < textsArray.length; i++) {
-				embeddingMap.set(textsArray[i], result.embeddings[i]);
-			}
-
-			// Calculate quality score
-			let correct = 0;
-			const similarities: { pair: typeof QUALITY_TEST_PAIRS[0]; similarity: number }[] = [];
-
-			for (const pair of QUALITY_TEST_PAIRS) {
-				const embA = embeddingMap.get(pair.a)!;
-				const embB = embeddingMap.get(pair.b)!;
-				const similarity = cosineSimilarity(embA, embB);
-				similarities.push({ pair, similarity });
-
-				// Threshold: 0.5 for similar, < 0.5 for dissimilar
-				const predictedSimilar = similarity > 0.5;
-				if (predictedSimilar === pair.similar) {
-					correct++;
+			// Calculate quality score (only for synthetic data)
+			let qualityScore = 0;
+			if (!useRealData) {
+				const embeddingMap = new Map<string, number[]>();
+				for (let i = 0; i < textsArray.length; i++) {
+					embeddingMap.set(textsArray[i], result.embeddings[i]);
 				}
-			}
 
-			const qualityScore = (correct / QUALITY_TEST_PAIRS.length) * 100;
+				let correct = 0;
+				for (const pair of QUALITY_TEST_PAIRS) {
+					const embA = embeddingMap.get(pair.a);
+					const embB = embeddingMap.get(pair.b);
+					if (embA && embB) {
+						const similarity = cosineSimilarity(embA, embB);
+						const predictedSimilar = similarity > 0.5;
+						if (predictedSimilar === pair.similar) {
+							correct++;
+						}
+					}
+				}
+				qualityScore = (correct / QUALITY_TEST_PAIRS.length) * 100;
+			}
 
 			return {
 				model: modelId,
@@ -866,49 +1025,92 @@ async function handleBenchmark(args: string[]): Promise<void> {
 				qualityScore,
 			};
 		} catch (error) {
+			const errMsg = error instanceof Error ? error.message : String(error);
+			progress.setError(modelId, errMsg);
 			return {
 				model: modelId,
 				speedMs: Date.now() - startTime,
 				cost: undefined,
 				dimension: 0,
 				qualityScore: 0,
-				error: error instanceof Error ? error.message : String(error),
+				error: errMsg,
 			};
 		}
 	});
 
 	const results = await Promise.all(benchmarkPromises);
+	progress.stop();
 
-	// Sort by quality score (descending)
-	results.sort((a, b) => b.qualityScore - a.qualityScore);
+	// Sort by speed (fastest first) for real data, by quality for synthetic
+	if (useRealData) {
+		results.sort((a, b) => (a.error ? 1 : 0) - (b.error ? 1 : 0) || a.speedMs - b.speedMs);
+	} else {
+		results.sort((a, b) => (a.error ? 1 : 0) - (b.error ? 1 : 0) || b.qualityScore - a.qualityScore);
+	}
 
 	// Display results table
-	console.log(`${c.bold}Results (sorted by quality):${c.reset}\n`);
-	console.log(`  ${"Model".padEnd(40)} ${"Speed".padEnd(10)} ${"Cost".padEnd(12)} ${"Dim".padEnd(8)} ${"Quality"}`);
+	console.log(`\n${c.bold}Results (sorted by ${useRealData ? "speed" : "quality"}):${c.reset}\n`);
+
+	// Calculate best/worst for highlighting
+	const successResults = results.filter((r) => !r.error);
+	const minSpeed = Math.min(...successResults.map((r) => r.speedMs));
+	const maxSpeed = Math.max(...successResults.map((r) => r.speedMs));
+	const costsWithValues = successResults.filter((r) => r.cost !== undefined);
+	const minCost = costsWithValues.length > 0 ? Math.min(...costsWithValues.map((r) => r.cost!)) : undefined;
+	const maxCost = costsWithValues.length > 0 ? Math.max(...costsWithValues.map((r) => r.cost!)) : undefined;
+	const minQuality = Math.min(...successResults.map((r) => r.qualityScore));
+	const maxQuality = Math.max(...successResults.map((r) => r.qualityScore));
+
+	// Only highlight if there's meaningful difference (more than 1 result)
+	const shouldHighlight = successResults.length > 1;
+
+	if (useRealData) {
+		console.log(`  ${"Model".padEnd(40)} ${"Speed".padEnd(10)} ${"Cost".padEnd(12)} ${"Dim".padEnd(8)} ${"Chunks"}`);
+	} else {
+		console.log(`  ${"Model".padEnd(40)} ${"Speed".padEnd(10)} ${"Cost".padEnd(12)} ${"Dim".padEnd(8)} ${"Quality"}`);
+	}
 	console.log("  " + "─".repeat(85));
 
 	for (const r of results) {
 		if (r.error) {
-			console.log(`  ${c.red}${r.model.padEnd(40)} ERROR: ${r.error.slice(0, 40)}${c.reset}`);
+			console.log(`  ${c.red}${r.model.padEnd(40)} ERROR${c.reset}`);
+			console.log(`    ${c.dim}${r.error}${c.reset}`);
 			continue;
 		}
 
-		const speed = `${(r.speedMs / 1000).toFixed(2)}s`;
-		const cost = r.cost !== undefined ? `$${r.cost.toFixed(6)}` : "N/A";
-		const dim = `${r.dimension}d`;
-		const quality = `${r.qualityScore.toFixed(0)}%`;
-
-		// Color quality score
-		let qualityColored = quality;
-		if (r.qualityScore >= 80) {
-			qualityColored = `${c.green}${quality}${c.reset}`;
-		} else if (r.qualityScore >= 60) {
-			qualityColored = `${c.yellow}${quality}${c.reset}`;
-		} else {
-			qualityColored = `${c.red}${quality}${c.reset}`;
+		// Speed formatting with highlighting (pad BEFORE adding color)
+		const speedVal = `${(r.speedMs / 1000).toFixed(2)}s`;
+		let speed = speedVal.padEnd(10);
+		if (shouldHighlight && r.speedMs === minSpeed) {
+			speed = `${c.green}${speedVal.padEnd(10)}${c.reset}`;
+		} else if (shouldHighlight && r.speedMs === maxSpeed && minSpeed !== maxSpeed) {
+			speed = `${c.red}${speedVal.padEnd(10)}${c.reset}`;
 		}
 
-		console.log(`  ${r.model.padEnd(40)} ${speed.padEnd(10)} ${cost.padEnd(12)} ${dim.padEnd(8)} ${qualityColored}`);
+		// Cost formatting with highlighting (pad BEFORE adding color)
+		const costVal = r.cost !== undefined ? `$${r.cost.toFixed(6)}` : "N/A";
+		let cost = costVal.padEnd(12);
+		if (shouldHighlight && r.cost !== undefined && minCost !== undefined && r.cost === minCost) {
+			cost = `${c.green}${costVal.padEnd(12)}${c.reset}`;
+		} else if (shouldHighlight && r.cost !== undefined && maxCost !== undefined && r.cost === maxCost && minCost !== maxCost) {
+			cost = `${c.red}${costVal.padEnd(12)}${c.reset}`;
+		}
+
+		const dim = `${r.dimension}d`;
+
+		if (useRealData) {
+			console.log(`  ${r.model.padEnd(40)} ${speed} ${cost} ${dim.padEnd(8)} ${textsArray.length}`);
+		} else {
+			// Quality formatting with highlighting (higher is better)
+			const qualityVal = `${r.qualityScore.toFixed(0)}%`;
+			let quality = qualityVal;
+			if (shouldHighlight && r.qualityScore === maxQuality) {
+				quality = `${c.green}${qualityVal}${c.reset}`;
+			} else if (shouldHighlight && r.qualityScore === minQuality && minQuality !== maxQuality) {
+				quality = `${c.red}${qualityVal}${c.reset}`;
+			}
+			console.log(`  ${r.model.padEnd(40)} ${speed} ${cost} ${dim.padEnd(8)} ${quality}`);
+		}
 	}
 
 	// Summary
@@ -916,18 +1118,310 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	if (successfulResults.length > 0) {
 		const fastest = successfulResults.reduce((a, b) => a.speedMs < b.speedMs ? a : b);
 		const cheapest = successfulResults.filter((r) => r.cost !== undefined).reduce((a, b) => (a.cost || Infinity) < (b.cost || Infinity) ? a : b, successfulResults[0]);
-		const bestQuality = successfulResults[0]; // Already sorted
 
 		console.log(`\n${c.bold}Summary:${c.reset}`);
 		console.log(`  ${c.green}⚡ Fastest:${c.reset} ${fastest.model} (${(fastest.speedMs / 1000).toFixed(2)}s)`);
 		if (cheapest.cost !== undefined) {
 			console.log(`  ${c.green}💰 Cheapest:${c.reset} ${cheapest.model} ($${cheapest.cost.toFixed(6)})`);
 		}
-		console.log(`  ${c.green}🏆 Best Quality:${c.reset} ${bestQuality.model} (${bestQuality.qualityScore.toFixed(0)}%)`);
+
+		if (!useRealData) {
+			const bestQuality = successfulResults.reduce((a, b) => a.qualityScore > b.qualityScore ? a : b);
+			console.log(`  ${c.green}🏆 Best Quality:${c.reset} ${bestQuality.model} (${bestQuality.qualityScore.toFixed(0)}%)`);
+		}
 	}
 
 	console.log(`\n${c.dim}Note: Speed includes network latency to your location.${c.reset}`);
 	console.log(`${c.dim}Quality is measured by semantic similarity accuracy on code pairs.${c.reset}\n`);
+}
+
+// ============================================================================
+// Test Command - Comprehensive Model Quality Testing
+// ============================================================================
+
+interface TestQuery {
+	query: string;
+	/** Expected file(s) that should appear in top results */
+	expectedFiles: string[];
+	/** Description of what we're testing */
+	description: string;
+}
+
+interface TestResult {
+	model: string;
+	indexTimeMs: number;
+	queryResults: Array<{
+		query: string;
+		found: boolean;
+		rank: number | null;
+		topResult: string;
+	}>;
+	precision: number;
+	mrr: number; // Mean Reciprocal Rank
+	error?: string;
+}
+
+async function handleTest(args: string[]): Promise<void> {
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		red: "\x1b[31m",
+		orange: "\x1b[38;5;209m",
+	};
+
+	// Check for API key
+	if (!hasApiKey()) {
+		console.error("Error: OpenRouter API key required.");
+		process.exit(1);
+	}
+
+	// Parse args
+	let modelsArg = "";
+	for (const arg of args) {
+		if (arg.startsWith("--models=")) {
+			modelsArg = arg.replace("--models=", "");
+		}
+	}
+
+	// Default models for testing
+	const defaultModels = [
+		"qwen/qwen3-embedding-8b",
+		"openai/text-embedding-3-small",
+	];
+	const models = modelsArg ? modelsArg.split(",") : defaultModels;
+
+	// Define test queries with known expected results for this codebase
+	const testQueries: TestQuery[] = [
+		{
+			query: "embedding client openrouter api",
+			expectedFiles: ["embeddings.ts"],
+			description: "Find embedding API client",
+		},
+		{
+			query: "lancedb vector store search",
+			expectedFiles: ["store.ts"],
+			description: "Find vector store implementation",
+		},
+		{
+			query: "tree-sitter parser code chunk",
+			expectedFiles: ["parser-manager.ts", "chunker.ts"],
+			description: "Find parsing logic",
+		},
+		{
+			query: "sqlite database bun compatibility",
+			expectedFiles: ["sqlite.ts"],
+			description: "Find SQLite module",
+		},
+		{
+			query: "mcp server tool handler",
+			expectedFiles: ["mcp-server.ts"],
+			description: "Find MCP server",
+		},
+		{
+			query: "hybrid search bm25 reciprocal rank fusion",
+			expectedFiles: ["store.ts"],
+			description: "Find hybrid search logic",
+		},
+		{
+			query: "file hash change tracker",
+			expectedFiles: ["tracker.ts"],
+			description: "Find file tracker",
+		},
+		{
+			query: "progress bar animation render",
+			expectedFiles: ["cli.ts"],
+			description: "Find progress display",
+		},
+	];
+
+	console.log(`\n${c.orange}${c.bold}🧪 EMBEDDING MODEL QUALITY TEST${c.reset}\n`);
+	console.log(`${c.dim}Testing ${models.length} models with ${testQueries.length} known queries${c.reset}`);
+	console.log(`${c.dim}This will create separate databases and index the current codebase${c.reset}\n`);
+
+	// Get project path
+	const projectPath = process.cwd();
+	const testDbBase = join(projectPath, ".claudemem", "test");
+
+	// Ensure test directory exists
+	if (!existsSync(testDbBase)) {
+		mkdirSync(testDbBase, { recursive: true });
+	}
+
+	const results: TestResult[] = [];
+
+	// Process each model
+	for (const model of models) {
+		console.log(`\n${c.cyan}Testing: ${model}${c.reset}`);
+
+		const modelSlug = model.replace(/[^a-zA-Z0-9]/g, "-");
+		const modelDbPath = join(testDbBase, modelSlug);
+
+		try {
+			// Clear existing test database for this model
+			if (existsSync(modelDbPath)) {
+				const { rmSync } = await import("node:fs");
+				rmSync(modelDbPath, { recursive: true, force: true });
+			}
+
+			// Create indexer with this model
+			const indexer = createIndexer({
+				projectPath,
+				dbPath: modelDbPath,
+				model,
+			});
+
+			// Index the codebase
+			console.log(`  ${c.dim}Indexing...${c.reset}`);
+			const indexStart = Date.now();
+			await indexer.index({ force: true });
+			const indexTimeMs = Date.now() - indexStart;
+			console.log(`  ${c.green}✓${c.reset} Indexed in ${(indexTimeMs / 1000).toFixed(1)}s`);
+
+			// Run test queries
+			console.log(`  ${c.dim}Running ${testQueries.length} queries...${c.reset}`);
+			const queryResults: TestResult["queryResults"] = [];
+			let reciprocalRankSum = 0;
+			let foundCount = 0;
+
+			for (const tq of testQueries) {
+				const searchResults = await indexer.search(tq.query, { limit: 5 });
+
+				// Check if any expected file is in top results
+				let foundRank: number | null = null;
+				for (let i = 0; i < searchResults.length; i++) {
+					const resultFile = searchResults[i].chunk.filePath;
+					const fileName = resultFile.split("/").pop() || "";
+					if (tq.expectedFiles.some((ef) => fileName.includes(ef))) {
+						foundRank = i + 1;
+						break;
+					}
+				}
+
+				const topResult = searchResults[0]?.chunk.filePath.split("/").pop() || "none";
+				queryResults.push({
+					query: tq.query,
+					found: foundRank !== null,
+					rank: foundRank,
+					topResult,
+				});
+
+				if (foundRank !== null) {
+					foundCount++;
+					reciprocalRankSum += 1 / foundRank;
+				}
+			}
+
+			const precision = (foundCount / testQueries.length) * 100;
+			const mrr = (reciprocalRankSum / testQueries.length) * 100;
+
+			results.push({
+				model,
+				indexTimeMs,
+				queryResults,
+				precision,
+				mrr,
+			});
+
+			console.log(`  ${c.green}✓${c.reset} Precision: ${precision.toFixed(0)}%, MRR: ${mrr.toFixed(0)}%`);
+
+			// Cleanup
+			await indexer.close();
+		} catch (error) {
+			results.push({
+				model,
+				indexTimeMs: 0,
+				queryResults: [],
+				precision: 0,
+				mrr: 0,
+				error: error instanceof Error ? error.message : String(error),
+			});
+			console.log(`  ${c.red}✗ Error: ${error instanceof Error ? error.message : error}${c.reset}`);
+		}
+	}
+
+	// Display results table
+	console.log(`\n${c.bold}Results:${c.reset}\n`);
+	console.log(`  ${"Model".padEnd(40)} ${"Index".padEnd(10)} ${"Precision".padEnd(12)} ${"MRR"}`);
+	console.log("  " + "─".repeat(75));
+
+	// Calculate best/worst for highlighting
+	const validResults = results.filter((r) => !r.error);
+	const maxPrecision = Math.max(...validResults.map((r) => r.precision));
+	const minPrecision = Math.min(...validResults.map((r) => r.precision));
+	const maxMrr = Math.max(...validResults.map((r) => r.mrr));
+	const minMrr = Math.min(...validResults.map((r) => r.mrr));
+	const minIndex = Math.min(...validResults.map((r) => r.indexTimeMs));
+	const maxIndex = Math.max(...validResults.map((r) => r.indexTimeMs));
+	const shouldHighlight = validResults.length > 1;
+
+	for (const r of results) {
+		if (r.error) {
+			console.log(`  ${c.red}${r.model.padEnd(40)} ERROR${c.reset}`);
+			console.log(`    ${c.dim}${r.error}${c.reset}`);
+			continue;
+		}
+
+		// Index time with highlighting (pad BEFORE adding color)
+		const indexVal = `${(r.indexTimeMs / 1000).toFixed(1)}s`;
+		let indexStr = indexVal.padEnd(10);
+		if (shouldHighlight && r.indexTimeMs === minIndex) {
+			indexStr = `${c.green}${indexVal.padEnd(10)}${c.reset}`;
+		} else if (shouldHighlight && r.indexTimeMs === maxIndex && minIndex !== maxIndex) {
+			indexStr = `${c.red}${indexVal.padEnd(10)}${c.reset}`;
+		}
+
+		// Precision with highlighting (pad BEFORE adding color)
+		const precVal = `${r.precision.toFixed(0)}%`;
+		let precStr = precVal.padEnd(12);
+		if (shouldHighlight && r.precision === maxPrecision) {
+			precStr = `${c.green}${precVal.padEnd(12)}${c.reset}`;
+		} else if (shouldHighlight && r.precision === minPrecision && minPrecision !== maxPrecision) {
+			precStr = `${c.red}${precVal.padEnd(12)}${c.reset}`;
+		}
+
+		// MRR with highlighting
+		const mrrVal = `${r.mrr.toFixed(0)}%`;
+		let mrrStr = mrrVal;
+		if (shouldHighlight && r.mrr === maxMrr) {
+			mrrStr = `${c.green}${mrrVal}${c.reset}`;
+		} else if (shouldHighlight && r.mrr === minMrr && minMrr !== maxMrr) {
+			mrrStr = `${c.red}${mrrVal}${c.reset}`;
+		}
+
+		console.log(`  ${r.model.padEnd(40)} ${indexStr} ${precStr} ${mrrStr}`);
+	}
+
+	// Detailed query results
+	console.log(`\n${c.bold}Query Details:${c.reset}\n`);
+	for (const tq of testQueries) {
+		console.log(`  ${c.cyan}"${tq.query}"${c.reset}`);
+		console.log(`  ${c.dim}Expected: ${tq.expectedFiles.join(", ")}${c.reset}`);
+		for (const r of results) {
+			if (r.error) continue;
+			const qr = r.queryResults.find((q) => q.query === tq.query);
+			if (!qr) continue;
+			const modelShort = r.model.split("/").pop() || r.model;
+			if (qr.found) {
+				console.log(`    ${c.green}✓${c.reset} ${modelShort.padEnd(25)} rank #${qr.rank} (top: ${qr.topResult})`);
+			} else {
+				console.log(`    ${c.red}✗${c.reset} ${modelShort.padEnd(25)} not found (top: ${qr.topResult})`);
+			}
+		}
+		console.log();
+	}
+
+	// Summary
+	if (validResults.length > 0) {
+		const best = validResults.reduce((a, b) => a.mrr > b.mrr ? a : b);
+		console.log(`${c.bold}Best overall:${c.reset} ${c.green}${best.model}${c.reset} (MRR: ${best.mrr.toFixed(0)}%)`);
+	}
+
+	console.log(`\n${c.dim}Precision: % of queries where expected file was in top 5${c.reset}`);
+	console.log(`${c.dim}MRR: Mean Reciprocal Rank - higher rank = better score${c.reset}\n`);
 }
 
 function printHelp(): void {
@@ -968,6 +1462,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}init${c.reset}                   Interactive setup wizard
   ${c.green}models${c.reset}                 List available embedding models
   ${c.green}benchmark${c.reset}              Compare embedding models (speed, cost, quality)
+  ${c.green}test${c.reset}                   Test search quality with known queries
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
@@ -985,6 +1480,10 @@ ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
   ${c.cyan}--ollama${c.reset}               Show Ollama local models
 
 ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
+  ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
+  ${c.cyan}--real${c.reset}                 Use real indexed code chunks instead of synthetic
+
+${c.yellow}${c.bold}TEST OPTIONS${c.reset}
   ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
 
 ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
