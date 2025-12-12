@@ -971,6 +971,63 @@ async function discoverAndChunkFiles(projectPath: string, maxChunks: number): Pr
 	return allChunks;
 }
 
+/**
+ * Discover source files and parse them into chunks WITH file paths
+ * (needed for auto test query generation)
+ */
+async function discoverAndChunkFilesWithPaths(
+	projectPath: string,
+	maxChunks: number,
+): Promise<Array<{ content: string; fileName: string }>> {
+	const files: string[] = [];
+
+	// Walk directory to find source files
+	const walk = (dir: string) => {
+		try {
+			const entries = readdirSync(dir, { withFileTypes: true });
+			for (const entry of entries) {
+				const fullPath = join(dir, entry.name);
+
+				if (entry.isDirectory()) {
+					if (!EXCLUDE_DIRS.has(entry.name) && !entry.name.startsWith(".")) {
+						walk(fullPath);
+					}
+				} else if (entry.isFile()) {
+					if (canChunkFile(fullPath)) {
+						files.push(fullPath);
+					}
+				}
+			}
+		} catch {
+			// Ignore permission errors
+		}
+	};
+
+	walk(projectPath);
+
+	// Parse files into chunks with file paths
+	const allChunks: Array<{ content: string; fileName: string }> = [];
+	for (const filePath of files) {
+		if (allChunks.length >= maxChunks) break;
+
+		try {
+			const content = readFileSync(filePath, "utf-8");
+			const fileHash = createHash("md5").update(content).digest("hex");
+			const chunks = await chunkFileByPath(content, filePath, fileHash);
+			const fileName = filePath.split("/").pop() || "";
+
+			for (const chunk of chunks) {
+				if (allChunks.length >= maxChunks) break;
+				allChunks.push({ content: chunk.content, fileName });
+			}
+		} catch {
+			// Skip files that can't be read/parsed
+		}
+	}
+
+	return allChunks;
+}
+
 async function handleBenchmark(args: string[]): Promise<void> {
 	// Colors
 	const c = {
@@ -1197,26 +1254,214 @@ async function handleBenchmark(args: string[]): Promise<void> {
 // Test Command - Comprehensive Model Quality Testing
 // ============================================================================
 
+/**
+ * Query categories for comprehensive evaluation
+ */
+type QueryCategory = "semantic" | "keyword" | "natural" | "error" | "api";
+
+/**
+ * Test query with graded relevance (0-3 scale like CodeSearchNet)
+ * 0 = irrelevant, 1 = marginally relevant, 2 = relevant, 3 = highly relevant
+ */
 interface TestQuery {
 	query: string;
-	/** Expected file(s) that should appear in top results */
-	expectedFiles: string[];
+	/** Category of query for analysis */
+	category: QueryCategory;
+	/** Expected results with graded relevance scores */
+	expected: Array<{
+		file: string;
+		relevance: 0 | 1 | 2 | 3;
+	}>;
 	/** Description of what we're testing */
 	description: string;
+}
+
+interface QueryResult {
+	query: string;
+	category: QueryCategory;
+	/** Rank at which first relevant result was found (null if not found) */
+	firstRelevantRank: number | null;
+	/** Top 5 results with their relevance scores */
+	results: Array<{
+		file: string;
+		relevance: number;
+		rank: number;
+	}>;
+	/** DCG (Discounted Cumulative Gain) at K=5 */
+	dcg: number;
+	/** IDCG (Ideal DCG) - best possible DCG */
+	idcg: number;
+	/** NDCG = DCG / IDCG */
+	ndcg: number;
 }
 
 interface TestResult {
 	model: string;
 	indexTimeMs: number;
-	queryResults: Array<{
-		query: string;
-		found: boolean;
-		rank: number | null;
-		topResult: string;
-	}>;
-	precision: number;
-	mrr: number; // Mean Reciprocal Rank
+	queryResults: QueryResult[];
+	/** Metrics computed at different K values */
+	metrics: {
+		/** Hit Rate: % of queries with at least one relevant result in top K */
+		hitRate: { k1: number; k3: number; k5: number };
+		/** MRR: Mean Reciprocal Rank */
+		mrr: number;
+		/** Mean NDCG across all queries */
+		ndcg: number;
+		/** Precision: avg % of top K results that are relevant */
+		precision: { k1: number; k3: number; k5: number };
+	};
+	/** Metrics broken down by category */
+	byCategory: Record<QueryCategory, { count: number; mrr: number; ndcg: number }>;
 	error?: string;
+}
+
+/**
+ * Calculate DCG (Discounted Cumulative Gain)
+ * DCG = Σ (relevance_i / log2(i + 1))
+ */
+function calculateDCG(relevances: number[]): number {
+	return relevances.reduce((sum, rel, i) => {
+		return sum + rel / Math.log2(i + 2); // i+2 because rank starts at 1
+	}, 0);
+}
+
+/**
+ * Calculate NDCG (Normalized DCG)
+ */
+function calculateNDCG(actualRelevances: number[], idealRelevances: number[]): number {
+	const dcg = calculateDCG(actualRelevances);
+	const idcg = calculateDCG(idealRelevances.sort((a, b) => b - a));
+	return idcg === 0 ? 0 : dcg / idcg;
+}
+
+/**
+ * Extract test queries automatically from codebase docstrings
+ * Uses docstrings as queries and their source file as expected result
+ * This enables testing on ANY codebase, not just claudemem
+ */
+async function extractAutoTestQueries(projectPath: string): Promise<TestQuery[]> {
+	const queries: TestQuery[] = [];
+	const seenQueries = new Set<string>();
+
+	// Discover and chunk files WITH file paths
+	const chunksWithFiles = await discoverAndChunkFilesWithPaths(projectPath, 500);
+
+	// Regex patterns for extracting docstrings from different languages
+	const docstringPatterns = [
+		// JSDoc: /** ... */
+		/\/\*\*\s*\n?\s*\*?\s*([^@*][^\n*]+)/,
+		// Python docstring: """...""" or '''...'''
+		/^(?:def|class)\s+\w+[^:]*:\s*(?:"""([^"]+)"""|'''([^']+)''')/m,
+		// Single line comment describing function: // description
+		/^(?:export\s+)?(?:async\s+)?function\s+\w+[^{]*\{\s*\/\/\s*(.+)/m,
+		// TypeScript/JS: function with preceding comment
+		/\/\/\s*([A-Z][^.\n]{10,80}\.?)\s*\n(?:export\s+)?(?:async\s+)?function/,
+	];
+
+	// Regex to extract function/class name
+	const namePatterns = [
+		/(?:export\s+)?(?:async\s+)?function\s+(\w+)/,
+		/(?:export\s+)?class\s+(\w+)/,
+		/(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s*)?\(/,
+		/def\s+(\w+)\s*\(/,
+		/class\s+(\w+)/,
+	];
+
+	for (const { content, fileName } of chunksWithFiles) {
+		// Try to extract docstring
+		let docstring: string | null = null;
+		for (const pattern of docstringPatterns) {
+			const match = content.match(pattern);
+			if (match) {
+				docstring = (match[1] || match[2] || "").trim();
+				break;
+			}
+		}
+
+		// Try to extract name
+		let funcName: string | null = null;
+		for (const pattern of namePatterns) {
+			const match = content.match(pattern);
+			if (match) {
+				funcName = match[1];
+				break;
+			}
+		}
+
+		// Create queries from docstrings (semantic category)
+		if (docstring && docstring.length > 15 && docstring.length < 200 && fileName) {
+			// Clean up docstring
+			const cleanDoc = docstring
+				.replace(/\s+/g, " ")
+				.replace(/^[\s*-]+/, "")
+				.trim();
+
+			if (!seenQueries.has(cleanDoc.toLowerCase())) {
+				seenQueries.add(cleanDoc.toLowerCase());
+				queries.push({
+					query: cleanDoc,
+					category: "semantic",
+					expected: [{ file: fileName, relevance: 3 }],
+					description: `Docstring: ${funcName || "unknown"}`,
+				});
+			}
+		}
+
+		// Create queries from function names (keyword category)
+		if (funcName && funcName.length > 3 && fileName && !seenQueries.has(funcName.toLowerCase())) {
+			seenQueries.add(funcName.toLowerCase());
+
+			// Convert camelCase/snake_case to words for better semantic search
+			const words = funcName
+				.replace(/([a-z])([A-Z])/g, "$1 $2")
+				.replace(/_/g, " ")
+				.toLowerCase();
+
+			queries.push({
+				query: `${funcName} function`,
+				category: "keyword",
+				expected: [{ file: fileName, relevance: 3 }],
+				description: `Function: ${funcName}`,
+			});
+
+			// Also add semantic version if it produces meaningful words
+			if (words.split(" ").length >= 2) {
+				queries.push({
+					query: words,
+					category: "semantic",
+					expected: [{ file: fileName, relevance: 3 }],
+					description: `Semantic: ${funcName}`,
+				});
+			}
+		}
+	}
+
+	// Limit to reasonable number (too many makes test slow)
+	const maxQueries = 30;
+	if (queries.length > maxQueries) {
+		// Shuffle and take first N, ensuring mix of categories
+		const byCategory = new Map<QueryCategory, TestQuery[]>();
+		for (const q of queries) {
+			if (!byCategory.has(q.category)) {
+				byCategory.set(q.category, []);
+			}
+			byCategory.get(q.category)!.push(q);
+		}
+
+		const selected: TestQuery[] = [];
+		const perCategory = Math.ceil(maxQueries / byCategory.size);
+		for (const [_, catQueries] of byCategory) {
+			// Shuffle
+			for (let i = catQueries.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[catQueries[i], catQueries[j]] = [catQueries[j], catQueries[i]];
+			}
+			selected.push(...catQueries.slice(0, perCategory));
+		}
+		return selected.slice(0, maxQueries);
+	}
+
+	return queries;
 }
 
 async function handleTest(args: string[]): Promise<void> {
@@ -1239,9 +1484,17 @@ async function handleTest(args: string[]): Promise<void> {
 
 	// Parse args
 	let modelsArg = "";
+	let verbose = false;
+	let autoMode = false;
 	for (const arg of args) {
 		if (arg.startsWith("--models=")) {
 			modelsArg = arg.replace("--models=", "");
+		}
+		if (arg === "--verbose" || arg === "-v") {
+			verbose = true;
+		}
+		if (arg === "--auto") {
+			autoMode = true;
 		}
 	}
 
@@ -1252,53 +1505,165 @@ async function handleTest(args: string[]): Promise<void> {
 	];
 	const models = modelsArg ? modelsArg.split(",") : defaultModels;
 
-	// Define test queries with known expected results for this codebase
-	const testQueries: TestQuery[] = [
+	// Get test queries - either auto-generated or predefined
+	let testQueries: TestQuery[];
+
+	if (autoMode) {
+		// AUTO MODE: Extract docstrings and function names from codebase
+		console.log(`${c.dim}Auto-generating test queries from codebase...${c.reset}`);
+		testQueries = await extractAutoTestQueries(process.cwd());
+		if (testQueries.length === 0) {
+			console.error("No functions with docstrings found. Use predefined queries instead.");
+			process.exit(1);
+		}
+		console.log(`${c.dim}Generated ${testQueries.length} test queries from docstrings${c.reset}`);
+	} else {
+		// PREDEFINED: Comprehensive test queries with graded relevance (0-3 scale)
+		// Categories: semantic, keyword, natural, error, api
+		// NOTE: These are specific to claudemem codebase
+		testQueries = [
+		// SEMANTIC: Tests understanding of concepts, not just keywords
 		{
-			query: "embedding client openrouter api",
-			expectedFiles: ["embeddings.ts"],
-			description: "Find embedding API client",
+			query: "convert text to vector representation",
+			category: "semantic",
+			expected: [
+				{ file: "embeddings.ts", relevance: 3 },
+				{ file: "store.ts", relevance: 2 },
+			],
+			description: "Semantic: embedding concept",
 		},
 		{
-			query: "lancedb vector store search",
-			expectedFiles: ["store.ts"],
-			description: "Find vector store implementation",
+			query: "split code into smaller pieces for processing",
+			category: "semantic",
+			expected: [
+				{ file: "chunker.ts", relevance: 3 },
+				{ file: "parser-manager.ts", relevance: 2 },
+			],
+			description: "Semantic: chunking concept",
 		},
 		{
-			query: "tree-sitter parser code chunk",
-			expectedFiles: ["parser-manager.ts", "chunker.ts"],
-			description: "Find parsing logic",
+			query: "find similar code based on meaning",
+			category: "semantic",
+			expected: [
+				{ file: "store.ts", relevance: 3 },
+				{ file: "indexer.ts", relevance: 2 },
+			],
+			description: "Semantic: search concept",
+		},
+		// KEYWORD: Technical terms that should match directly
+		{
+			query: "LanceDB vector database",
+			category: "keyword",
+			expected: [
+				{ file: "store.ts", relevance: 3 },
+			],
+			description: "Keyword: LanceDB",
 		},
 		{
-			query: "sqlite database bun compatibility",
-			expectedFiles: ["sqlite.ts"],
-			description: "Find SQLite module",
+			query: "tree-sitter parser AST",
+			category: "keyword",
+			expected: [
+				{ file: "parser-manager.ts", relevance: 3 },
+				{ file: "chunker.ts", relevance: 2 },
+			],
+			description: "Keyword: tree-sitter",
 		},
 		{
-			query: "mcp server tool handler",
-			expectedFiles: ["mcp-server.ts"],
-			description: "Find MCP server",
+			query: "OpenRouter API embeddings endpoint",
+			category: "keyword",
+			expected: [
+				{ file: "embeddings.ts", relevance: 3 },
+				{ file: "config.ts", relevance: 2 },
+			],
+			description: "Keyword: OpenRouter",
 		},
 		{
-			query: "hybrid search bm25 reciprocal rank fusion",
-			expectedFiles: ["store.ts"],
-			description: "Find hybrid search logic",
+			query: "BM25 reciprocal rank fusion hybrid",
+			category: "keyword",
+			expected: [
+				{ file: "store.ts", relevance: 3 },
+			],
+			description: "Keyword: hybrid search",
+		},
+		// NATURAL: How developers actually ask questions
+		{
+			query: "how do I search for code in the index",
+			category: "natural",
+			expected: [
+				{ file: "indexer.ts", relevance: 3 },
+				{ file: "store.ts", relevance: 2 },
+				{ file: "cli.ts", relevance: 1 },
+			],
+			description: "Natural: search usage",
 		},
 		{
-			query: "file hash change tracker",
-			expectedFiles: ["tracker.ts"],
-			description: "Find file tracker",
+			query: "what files have changed since last index",
+			category: "natural",
+			expected: [
+				{ file: "tracker.ts", relevance: 3 },
+				{ file: "indexer.ts", relevance: 2 },
+			],
+			description: "Natural: change detection",
 		},
 		{
-			query: "progress bar animation render",
-			expectedFiles: ["cli.ts"],
-			description: "Find progress display",
+			query: "configure which files to ignore",
+			category: "natural",
+			expected: [
+				{ file: "config.ts", relevance: 3 },
+				{ file: "indexer.ts", relevance: 2 },
+			],
+			description: "Natural: ignore patterns",
 		},
-	];
+		// API: Looking for specific function/class usage
+		{
+			query: "createEmbeddingsClient function",
+			category: "api",
+			expected: [
+				{ file: "embeddings.ts", relevance: 3 },
+			],
+			description: "API: embeddings client",
+		},
+		{
+			query: "VectorStore search method",
+			category: "api",
+			expected: [
+				{ file: "store.ts", relevance: 3 },
+			],
+			description: "API: vector store",
+		},
+		{
+			query: "MCP server tool handler",
+			category: "api",
+			expected: [
+				{ file: "mcp-server.ts", relevance: 3 },
+			],
+			description: "API: MCP server",
+		},
+		// ERROR: Debugging/error scenarios
+		{
+			query: "handle API request timeout retry",
+			category: "error",
+			expected: [
+				{ file: "embeddings.ts", relevance: 3 },
+			],
+			description: "Error: retry logic",
+		},
+		{
+			query: "file parsing failed fallback",
+			category: "error",
+			expected: [
+				{ file: "chunker.ts", relevance: 3 },
+				{ file: "parser-manager.ts", relevance: 2 },
+			],
+			description: "Error: parse fallback",
+		},
+		];
+	}
 
 	console.log(`\n${c.orange}${c.bold}🧪 EMBEDDING MODEL QUALITY TEST${c.reset}\n`);
-	console.log(`${c.dim}Testing ${models.length} models with ${testQueries.length} known queries${c.reset}`);
-	console.log(`${c.dim}This will create separate databases and index the current codebase${c.reset}\n`);
+	const categoryCount = new Set(testQueries.map((q) => q.category)).size;
+	console.log(`${c.dim}Testing ${models.length} models with ${testQueries.length} queries across ${categoryCount} categories${c.reset}`);
+	console.log(`${c.dim}Metrics: Hit Rate, MRR, NDCG (graded relevance 0-3)${c.reset}\n`);
 
 	// Get project path
 	const projectPath = process.cwd();
@@ -1341,50 +1706,138 @@ async function handleTest(args: string[]): Promise<void> {
 
 			// Run test queries
 			console.log(`  ${c.dim}Running ${testQueries.length} queries...${c.reset}`);
-			const queryResults: TestResult["queryResults"] = [];
-			let reciprocalRankSum = 0;
-			let foundCount = 0;
+			const queryResults: QueryResult[] = [];
+
+			// Track metrics
+			let mrrSum = 0;
+			let ndcgSum = 0;
+			const hitCounts = { k1: 0, k3: 0, k5: 0 };
+			const precisionSums = { k1: 0, k3: 0, k5: 0 };
+
+			// Track by category
+			const byCategory: Record<QueryCategory, { count: number; mrrSum: number; ndcgSum: number }> = {
+				semantic: { count: 0, mrrSum: 0, ndcgSum: 0 },
+				keyword: { count: 0, mrrSum: 0, ndcgSum: 0 },
+				natural: { count: 0, mrrSum: 0, ndcgSum: 0 },
+				error: { count: 0, mrrSum: 0, ndcgSum: 0 },
+				api: { count: 0, mrrSum: 0, ndcgSum: 0 },
+			};
 
 			for (const tq of testQueries) {
-				const searchResults = await indexer.search(tq.query, { limit: 5 });
+				const searchResults = await indexer.search(tq.query, { limit: 10 });
 
-				// Check if any expected file is in top results
-				let foundRank: number | null = null;
-				for (let i = 0; i < searchResults.length; i++) {
+				// Build relevance map from expected results
+				const relevanceMap = new Map<string, number>();
+				for (const exp of tq.expected) {
+					relevanceMap.set(exp.file, exp.relevance);
+				}
+
+				// Score each result
+				const scoredResults: QueryResult["results"] = [];
+				let firstRelevantRank: number | null = null;
+				const actualRelevances: number[] = [];
+				const idealRelevances = tq.expected.map((e) => e.relevance);
+
+				for (let i = 0; i < Math.min(searchResults.length, 5); i++) {
 					const resultFile = searchResults[i].chunk.filePath;
 					const fileName = resultFile.split("/").pop() || "";
-					if (tq.expectedFiles.some((ef) => fileName.includes(ef))) {
-						foundRank = i + 1;
-						break;
+
+					// Check relevance against expected files
+					let relevance = 0;
+					for (const [expFile, expRel] of relevanceMap) {
+						if (fileName.includes(expFile)) {
+							relevance = expRel;
+							break;
+						}
+					}
+
+					scoredResults.push({ file: fileName, relevance, rank: i + 1 });
+					actualRelevances.push(relevance);
+
+					if (relevance > 0 && firstRelevantRank === null) {
+						firstRelevantRank = i + 1;
 					}
 				}
 
-				const topResult = searchResults[0]?.chunk.filePath.split("/").pop() || "none";
+				// Pad actualRelevances to length 5 if needed
+				while (actualRelevances.length < 5) {
+					actualRelevances.push(0);
+				}
+
+				// Calculate NDCG
+				const dcg = calculateDCG(actualRelevances);
+				const idcg = calculateDCG([...idealRelevances].sort((a, b) => b - a));
+				const ndcg = idcg === 0 ? 0 : dcg / idcg;
+
 				queryResults.push({
 					query: tq.query,
-					found: foundRank !== null,
-					rank: foundRank,
-					topResult,
+					category: tq.category,
+					firstRelevantRank,
+					results: scoredResults,
+					dcg,
+					idcg,
+					ndcg,
 				});
 
-				if (foundRank !== null) {
-					foundCount++;
-					reciprocalRankSum += 1 / foundRank;
+				// Update metrics
+				if (firstRelevantRank !== null) {
+					mrrSum += 1 / firstRelevantRank;
+					if (firstRelevantRank <= 1) hitCounts.k1++;
+					if (firstRelevantRank <= 3) hitCounts.k3++;
+					if (firstRelevantRank <= 5) hitCounts.k5++;
+				}
+				ndcgSum += ndcg;
+
+				// Precision at K
+				const relevantAtK = (k: number) => actualRelevances.slice(0, k).filter((r) => r > 0).length;
+				precisionSums.k1 += relevantAtK(1) / 1;
+				precisionSums.k3 += relevantAtK(3) / 3;
+				precisionSums.k5 += relevantAtK(5) / 5;
+
+				// Update category metrics
+				byCategory[tq.category].count++;
+				byCategory[tq.category].ndcgSum += ndcg;
+				if (firstRelevantRank !== null) {
+					byCategory[tq.category].mrrSum += 1 / firstRelevantRank;
 				}
 			}
 
-			const precision = (foundCount / testQueries.length) * 100;
-			const mrr = (reciprocalRankSum / testQueries.length) * 100;
+			const n = testQueries.length;
+			const metrics = {
+				hitRate: {
+					k1: (hitCounts.k1 / n) * 100,
+					k3: (hitCounts.k3 / n) * 100,
+					k5: (hitCounts.k5 / n) * 100,
+				},
+				mrr: (mrrSum / n) * 100,
+				ndcg: (ndcgSum / n) * 100,
+				precision: {
+					k1: (precisionSums.k1 / n) * 100,
+					k3: (precisionSums.k3 / n) * 100,
+					k5: (precisionSums.k5 / n) * 100,
+				},
+			};
+
+			// Compute category averages
+			const byCategoryFinal: TestResult["byCategory"] = {} as any;
+			for (const cat of Object.keys(byCategory) as QueryCategory[]) {
+				const data = byCategory[cat];
+				byCategoryFinal[cat] = {
+					count: data.count,
+					mrr: data.count > 0 ? (data.mrrSum / data.count) * 100 : 0,
+					ndcg: data.count > 0 ? (data.ndcgSum / data.count) * 100 : 0,
+				};
+			}
 
 			results.push({
 				model,
 				indexTimeMs,
 				queryResults,
-				precision,
-				mrr,
+				metrics,
+				byCategory: byCategoryFinal,
 			});
 
-			console.log(`  ${c.green}✓${c.reset} Precision: ${precision.toFixed(0)}%, MRR: ${mrr.toFixed(0)}%`);
+			console.log(`  ${c.green}✓${c.reset} NDCG: ${metrics.ndcg.toFixed(0)}%, MRR: ${metrics.mrr.toFixed(0)}%, Hit@5: ${metrics.hitRate.k5.toFixed(0)}%`);
 
 			// Cleanup
 			await indexer.close();
@@ -1393,8 +1846,19 @@ async function handleTest(args: string[]): Promise<void> {
 				model,
 				indexTimeMs: 0,
 				queryResults: [],
-				precision: 0,
-				mrr: 0,
+				metrics: {
+					hitRate: { k1: 0, k3: 0, k5: 0 },
+					mrr: 0,
+					ndcg: 0,
+					precision: { k1: 0, k3: 0, k5: 0 },
+				},
+				byCategory: {
+					semantic: { count: 0, mrr: 0, ndcg: 0 },
+					keyword: { count: 0, mrr: 0, ndcg: 0 },
+					natural: { count: 0, mrr: 0, ndcg: 0 },
+					error: { count: 0, mrr: 0, ndcg: 0 },
+					api: { count: 0, mrr: 0, ndcg: 0 },
+				},
 				error: error instanceof Error ? error.message : String(error),
 			});
 			console.log(`  ${c.red}✗ Error: ${error instanceof Error ? error.message : error}${c.reset}`);
@@ -1402,84 +1866,106 @@ async function handleTest(args: string[]): Promise<void> {
 	}
 
 	// Display results table
-	console.log(`\n${c.bold}Results:${c.reset}\n`);
-	console.log(`  ${"Model".padEnd(40)} ${"Index".padEnd(10)} ${"Precision".padEnd(12)} ${"MRR"}`);
-	console.log("  " + "─".repeat(75));
+	console.log(`\n${c.bold}Results Summary:${c.reset}\n`);
+	console.log(`  ${"Model".padEnd(35)} ${"NDCG".padEnd(8)} ${"MRR".padEnd(8)} ${"Hit@1".padEnd(8)} ${"Hit@3".padEnd(8)} ${"Hit@5".padEnd(8)} ${"Index"}`);
+	console.log("  " + "─".repeat(90));
 
 	// Calculate best/worst for highlighting
 	const validResults = results.filter((r) => !r.error);
-	const maxPrecision = Math.max(...validResults.map((r) => r.precision));
-	const minPrecision = Math.min(...validResults.map((r) => r.precision));
-	const maxMrr = Math.max(...validResults.map((r) => r.mrr));
-	const minMrr = Math.min(...validResults.map((r) => r.mrr));
-	const minIndex = Math.min(...validResults.map((r) => r.indexTimeMs));
-	const maxIndex = Math.max(...validResults.map((r) => r.indexTimeMs));
+	const maxNdcg = Math.max(...validResults.map((r) => r.metrics.ndcg));
+	const minNdcg = Math.min(...validResults.map((r) => r.metrics.ndcg));
+	const maxMrr = Math.max(...validResults.map((r) => r.metrics.mrr));
+	const minMrr = Math.min(...validResults.map((r) => r.metrics.mrr));
 	const shouldHighlight = validResults.length > 1;
 
 	for (const r of results) {
 		if (r.error) {
-			console.log(`  ${c.red}${r.model.padEnd(40)} ERROR${c.reset}`);
+			console.log(`  ${c.red}${r.model.padEnd(35)} ERROR${c.reset}`);
 			console.log(`    ${c.dim}${r.error}${c.reset}`);
 			continue;
 		}
 
-		// Index time with highlighting (pad BEFORE adding color)
-		const indexVal = `${(r.indexTimeMs / 1000).toFixed(1)}s`;
-		let indexStr = indexVal.padEnd(10);
-		if (shouldHighlight && r.indexTimeMs === minIndex) {
-			indexStr = `${c.green}${indexVal.padEnd(10)}${c.reset}`;
-		} else if (shouldHighlight && r.indexTimeMs === maxIndex && minIndex !== maxIndex) {
-			indexStr = `${c.red}${indexVal.padEnd(10)}${c.reset}`;
-		}
-
-		// Precision with highlighting (pad BEFORE adding color)
-		const precVal = `${r.precision.toFixed(0)}%`;
-		let precStr = precVal.padEnd(12);
-		if (shouldHighlight && r.precision === maxPrecision) {
-			precStr = `${c.green}${precVal.padEnd(12)}${c.reset}`;
-		} else if (shouldHighlight && r.precision === minPrecision && minPrecision !== maxPrecision) {
-			precStr = `${c.red}${precVal.padEnd(12)}${c.reset}`;
+		// NDCG with highlighting
+		const ndcgVal = `${r.metrics.ndcg.toFixed(0)}%`;
+		let ndcgStr = ndcgVal.padEnd(8);
+		if (shouldHighlight && r.metrics.ndcg === maxNdcg) {
+			ndcgStr = `${c.green}${ndcgVal.padEnd(8)}${c.reset}`;
+		} else if (shouldHighlight && r.metrics.ndcg === minNdcg && minNdcg !== maxNdcg) {
+			ndcgStr = `${c.red}${ndcgVal.padEnd(8)}${c.reset}`;
 		}
 
 		// MRR with highlighting
-		const mrrVal = `${r.mrr.toFixed(0)}%`;
-		let mrrStr = mrrVal;
-		if (shouldHighlight && r.mrr === maxMrr) {
-			mrrStr = `${c.green}${mrrVal}${c.reset}`;
-		} else if (shouldHighlight && r.mrr === minMrr && minMrr !== maxMrr) {
-			mrrStr = `${c.red}${mrrVal}${c.reset}`;
+		const mrrVal = `${r.metrics.mrr.toFixed(0)}%`;
+		let mrrStr = mrrVal.padEnd(8);
+		if (shouldHighlight && r.metrics.mrr === maxMrr) {
+			mrrStr = `${c.green}${mrrVal.padEnd(8)}${c.reset}`;
+		} else if (shouldHighlight && r.metrics.mrr === minMrr && minMrr !== maxMrr) {
+			mrrStr = `${c.red}${mrrVal.padEnd(8)}${c.reset}`;
 		}
 
-		console.log(`  ${r.model.padEnd(40)} ${indexStr} ${precStr} ${mrrStr}`);
+		const hit1 = `${r.metrics.hitRate.k1.toFixed(0)}%`.padEnd(8);
+		const hit3 = `${r.metrics.hitRate.k3.toFixed(0)}%`.padEnd(8);
+		const hit5 = `${r.metrics.hitRate.k5.toFixed(0)}%`.padEnd(8);
+		const indexTime = `${(r.indexTimeMs / 1000).toFixed(1)}s`;
+
+		console.log(`  ${r.model.padEnd(35)} ${ndcgStr} ${mrrStr} ${hit1} ${hit3} ${hit5} ${indexTime}`);
 	}
 
-	// Detailed query results
-	console.log(`\n${c.bold}Query Details:${c.reset}\n`);
-	for (const tq of testQueries) {
-		console.log(`  ${c.cyan}"${tq.query}"${c.reset}`);
-		console.log(`  ${c.dim}Expected: ${tq.expectedFiles.join(", ")}${c.reset}`);
-		for (const r of results) {
-			if (r.error) continue;
-			const qr = r.queryResults.find((q) => q.query === tq.query);
-			if (!qr) continue;
-			const modelShort = r.model.split("/").pop() || r.model;
-			if (qr.found) {
-				console.log(`    ${c.green}✓${c.reset} ${modelShort.padEnd(25)} rank #${qr.rank} (top: ${qr.topResult})`);
-			} else {
-				console.log(`    ${c.red}✗${c.reset} ${modelShort.padEnd(25)} not found (top: ${qr.topResult})`);
-			}
+	// Results by category
+	console.log(`\n${c.bold}Results by Query Category:${c.reset}\n`);
+	const categories: QueryCategory[] = ["semantic", "keyword", "natural", "api", "error"];
+	console.log(`  ${"Category".padEnd(12)} ${validResults.map((r) => r.model.split("/").pop()?.padEnd(20) || "").join(" ")}`);
+	console.log("  " + "─".repeat(12 + validResults.length * 21));
+
+	for (const cat of categories) {
+		const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
+		let row = `  ${catLabel.padEnd(12)}`;
+		for (const r of validResults) {
+			const catData = r.byCategory[cat];
+			const ndcg = `${catData.ndcg.toFixed(0)}%`;
+			row += ` ${ndcg.padEnd(20)}`;
 		}
-		console.log();
+		console.log(row);
+	}
+
+	// Detailed query results (if verbose)
+	if (verbose) {
+		console.log(`\n${c.bold}Query Details:${c.reset}\n`);
+		for (const tq of testQueries) {
+			const catLabel = `[${tq.category}]`;
+			console.log(`  ${c.cyan}"${tq.query}"${c.reset} ${c.dim}${catLabel}${c.reset}`);
+			const expectedStr = tq.expected.map((e) => `${e.file}(${e.relevance})`).join(", ");
+			console.log(`  ${c.dim}Expected: ${expectedStr}${c.reset}`);
+
+			for (const r of validResults) {
+				const qr = r.queryResults.find((q) => q.query === tq.query);
+				if (!qr) continue;
+				const modelShort = r.model.split("/").pop() || r.model;
+				const ndcgStr = `NDCG:${(qr.ndcg * 100).toFixed(0)}%`;
+				const rankStr = qr.firstRelevantRank ? `rank #${qr.firstRelevantRank}` : "not found";
+				const topResults = qr.results.slice(0, 3).map((r) => `${r.file}(${r.relevance})`).join(", ");
+
+				if (qr.firstRelevantRank !== null) {
+					console.log(`    ${c.green}✓${c.reset} ${modelShort.padEnd(20)} ${ndcgStr.padEnd(12)} ${rankStr.padEnd(12)} [${topResults}]`);
+				} else {
+					console.log(`    ${c.red}✗${c.reset} ${modelShort.padEnd(20)} ${ndcgStr.padEnd(12)} ${rankStr.padEnd(12)} [${topResults}]`);
+				}
+			}
+			console.log();
+		}
 	}
 
 	// Summary
 	if (validResults.length > 0) {
-		const best = validResults.reduce((a, b) => a.mrr > b.mrr ? a : b);
-		console.log(`${c.bold}Best overall:${c.reset} ${c.green}${best.model}${c.reset} (MRR: ${best.mrr.toFixed(0)}%)`);
+		const best = validResults.reduce((a, b) => a.metrics.ndcg > b.metrics.ndcg ? a : b);
+		console.log(`\n${c.bold}Best overall:${c.reset} ${c.green}${best.model}${c.reset} (NDCG: ${best.metrics.ndcg.toFixed(0)}%)`);
 	}
 
-	console.log(`\n${c.dim}Precision: % of queries where expected file was in top 5${c.reset}`);
-	console.log(`${c.dim}MRR: Mean Reciprocal Rank - higher rank = better score${c.reset}\n`);
+	console.log(`\n${c.dim}Metrics explanation:${c.reset}`);
+	console.log(`${c.dim}  NDCG  - Normalized Discounted Cumulative Gain (graded relevance, position-aware)${c.reset}`);
+	console.log(`${c.dim}  MRR   - Mean Reciprocal Rank (1/position of first relevant result)${c.reset}`);
+	console.log(`${c.dim}  Hit@K - % of queries with at least one relevant result in top K${c.reset}`);
+	console.log(`${c.dim}Use --verbose for detailed per-query results${c.reset}\n`);
 }
 
 function printHelp(): void {
@@ -1543,6 +2029,8 @@ ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
 
 ${c.yellow}${c.bold}TEST OPTIONS${c.reset}
   ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
+  ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (works on any codebase)
+  ${c.cyan}--verbose${c.reset}              Show detailed per-query results
 
 ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
