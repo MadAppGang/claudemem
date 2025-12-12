@@ -137,11 +137,21 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 			batches.push(texts.slice(i, i + MAX_BATCH_SIZE));
 		}
 
-		// Process batches
-		const results: number[][] = [];
-		for (const batch of batches) {
-			const batchResults = await this.embedBatch(batch);
-			results.push(...batchResults);
+		// Process batches in parallel (up to PARALLEL_BATCHES at a time)
+		const PARALLEL_BATCHES = 5;
+		const results: number[][] = new Array(texts.length);
+		let resultIndex = 0;
+
+		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
+			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
+			const batchPromises = batchGroup.map((batch) => this.embedBatch(batch));
+			const batchResults = await Promise.all(batchPromises);
+
+			for (const embeddings of batchResults) {
+				for (const embedding of embeddings) {
+					results[resultIndex++] = embedding;
+				}
+			}
 		}
 
 		return results;

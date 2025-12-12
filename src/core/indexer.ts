@@ -144,36 +144,90 @@ export class Indexer {
 			}
 		}
 
-		// Index files
-		let filesIndexed = 0;
-		let chunksCreated = 0;
+		// Phase 1: Parse and chunk all files (CPU-bound, fast)
 		const skippedFiles: string[] = [];
 		const errors: Array<{ file: string; error: string }> = [];
+		const allChunks: Array<{ chunk: CodeChunk; filePath: string; fileHash: string }> = [];
 
 		for (let i = 0; i < filesToIndex.length; i++) {
 			const filePath = filesToIndex[i];
 			const relativePath = relative(this.projectPath, filePath);
 
-			// Report progress
+			// Report progress (parsing phase)
 			if (this.onProgress) {
-				this.onProgress(i + 1, filesToIndex.length, relativePath);
+				this.onProgress(i + 1, filesToIndex.length, `[parsing] ${relativePath}`);
 			}
 
 			try {
-				const result = await this.indexFile(filePath);
+				const content = readFileSync(filePath, "utf-8");
+				const fileHash = computeFileHash(filePath);
+				const chunks = await chunkFileByPath(content, filePath, fileHash);
 
-				if (result.chunks.length > 0) {
-					filesIndexed++;
-					chunksCreated += result.chunks.length;
-				} else {
+				if (chunks.length === 0) {
 					skippedFiles.push(relativePath);
+				} else {
+					for (const chunk of chunks) {
+						allChunks.push({ chunk, filePath, fileHash });
+					}
 				}
 			} catch (error) {
-				const errorMsg =
-					error instanceof Error ? error.message : String(error);
+				const errorMsg = error instanceof Error ? error.message : String(error);
 				errors.push({ file: relativePath, error: errorMsg });
 			}
 		}
+
+		// Phase 2: Batch embed all chunks (network-bound, parallel batches)
+		if (this.onProgress) {
+			this.onProgress(0, allChunks.length, `[embedding] ${allChunks.length} chunks (parallel batches)...`);
+		}
+
+		const texts = allChunks.map((c) => c.chunk.content);
+		let embeddings: number[][] = [];
+
+		if (texts.length > 0) {
+			try {
+				embeddings = await this.embeddingsClient!.embed(texts);
+			} catch (error) {
+				const errorMsg = error instanceof Error ? error.message : String(error);
+				throw new Error(`Embedding generation failed: ${errorMsg}`);
+			}
+		}
+
+		// Verify we got embeddings for all chunks
+		if (embeddings.length !== texts.length) {
+			throw new Error(
+				`Embedding count mismatch: expected ${texts.length}, got ${embeddings.length}`,
+			);
+		}
+
+		// Phase 3: Store all chunks with embeddings
+		const chunksWithEmbeddings: ChunkWithEmbedding[] = allChunks.map((c, i) => ({
+			...c.chunk,
+			vector: embeddings[i],
+		}));
+
+		if (chunksWithEmbeddings.length > 0) {
+			if (this.onProgress) {
+				this.onProgress(0, chunksWithEmbeddings.length, `[storing] ${chunksWithEmbeddings.length} chunks...`);
+			}
+			await this.vectorStore!.addChunks(chunksWithEmbeddings);
+		}
+
+		// Phase 4: Update file tracker
+		const fileChunkMap = new Map<string, { fileHash: string; chunkIds: string[] }>();
+		for (const { chunk, filePath, fileHash } of allChunks) {
+			if (!fileChunkMap.has(filePath)) {
+				fileChunkMap.set(filePath, { fileHash, chunkIds: [] });
+			}
+			fileChunkMap.get(filePath)!.chunkIds.push(chunk.id);
+		}
+
+		for (const [filePath, { fileHash, chunkIds }] of fileChunkMap) {
+			this.fileTracker!.markIndexed(filePath, fileHash, chunkIds);
+		}
+
+		const filesIndexed = fileChunkMap.size;
+		const chunksCreated = allChunks.length;
 
 		// Save model info to project config
 		saveProjectConfig(this.projectPath, {
@@ -199,45 +253,6 @@ export class Indexer {
 			skippedFiles,
 			errors,
 		};
-	}
-
-	/**
-	 * Index a single file
-	 */
-	private async indexFile(
-		filePath: string,
-	): Promise<{ chunks: CodeChunk[] }> {
-		// Read file content
-		const content = readFileSync(filePath, "utf-8");
-		const fileHash = computeFileHash(filePath);
-
-		// Chunk the file
-		const chunks = await chunkFileByPath(content, filePath, fileHash);
-
-		if (chunks.length === 0) {
-			return { chunks: [] };
-		}
-
-		// Generate embeddings
-		const texts = chunks.map((c) => c.content);
-		const embeddings = await this.embeddingsClient!.embed(texts);
-
-		// Combine chunks with embeddings
-		const chunksWithEmbeddings: ChunkWithEmbedding[] = chunks.map(
-			(chunk, i) => ({
-				...chunk,
-				vector: embeddings[i],
-			}),
-		);
-
-		// Store in vector database
-		await this.vectorStore!.addChunks(chunksWithEmbeddings);
-
-		// Update file tracker
-		const chunkIds = chunks.map((c) => c.id);
-		this.fileTracker!.markIndexed(filePath, fileHash, chunkIds);
-
-		return { chunks };
 	}
 
 	/**

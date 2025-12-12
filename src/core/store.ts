@@ -39,9 +39,9 @@ interface StoredChunk {
 	endLine: number;
 	language: string;
 	chunkType: string;
-	name: string | null;
-	parentName: string | null;
-	signature: string | null;
+	name: string;
+	parentName: string;
+	signature: string;
 	fileHash: string;
 	vector: number[];
 }
@@ -79,33 +79,25 @@ export class VectorStore {
 	}
 
 	/**
-	 * Ensure the table exists
+	 * Ensure the table exists, opening it if available
 	 */
-	private async ensureTable(dimension: number): Promise<lancedb.Table> {
+	private async ensureTableOpen(): Promise<lancedb.Table | null> {
 		if (!this.db) {
 			await this.initialize();
 		}
 
-		if (this.table && this.dimension === dimension) {
+		if (this.table) {
 			return this.table;
 		}
 
-		this.dimension = dimension;
-
 		// Check if table exists
 		const tables = await this.db!.tableNames();
-
 		if (tables.includes(CHUNKS_TABLE)) {
 			this.table = await this.db!.openTable(CHUNKS_TABLE);
-		} else {
-			// Create table with schema
-			const emptyData: StoredChunk[] = [];
-			this.table = await this.db!.createTable(CHUNKS_TABLE, emptyData, {
-				mode: "create",
-			});
+			return this.table;
 		}
 
-		return this.table;
+		return null;
 	}
 
 	/**
@@ -116,10 +108,8 @@ export class VectorStore {
 			return;
 		}
 
-		const dimension = chunks[0].vector.length;
-		const table = await this.ensureTable(dimension);
-
 		// Convert to stored format
+		// Use empty strings instead of null for optional fields to avoid Arrow type inference issues
 		const data: StoredChunk[] = chunks.map((chunk) => ({
 			id: chunk.id,
 			content: chunk.content,
@@ -128,14 +118,33 @@ export class VectorStore {
 			endLine: chunk.endLine,
 			language: chunk.language,
 			chunkType: chunk.chunkType,
-			name: chunk.name || null,
-			parentName: chunk.parentName || null,
-			signature: chunk.signature || null,
+			name: chunk.name || "",
+			parentName: chunk.parentName || "",
+			signature: chunk.signature || "",
 			fileHash: chunk.fileHash,
 			vector: chunk.vector,
 		}));
 
-		await table.add(data);
+		// Try to open existing table
+		let table = await this.ensureTableOpen();
+
+		if (table) {
+			// Table exists, add to it
+			await table.add(data);
+		} else {
+			// Create table with the first batch of data
+			if (!this.db) {
+				await this.initialize();
+			}
+			this.table = await this.db!.createTable(CHUNKS_TABLE, data, {
+				mode: "create",
+			});
+		}
+
+		// Store dimension for later
+		if (data.length > 0 && !this.dimension) {
+			this.dimension = data[0].vector.length;
+		}
 	}
 
 	/**
@@ -148,8 +157,11 @@ export class VectorStore {
 	): Promise<SearchResult[]> {
 		const { limit = DEFAULT_LIMIT, language, filePath } = options;
 
-		const dimension = queryVector.length;
-		const table = await this.ensureTable(dimension);
+		const table = await this.ensureTableOpen();
+		if (!table) {
+			// No index yet, return empty results
+			return [];
+		}
 
 		// Build filter string
 		const filters: string[] = [];
