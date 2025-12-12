@@ -20,6 +20,7 @@ import {
 import { createIndexer } from "./core/indexer.js";
 import { OpenRouterEmbeddingsClient } from "./core/embeddings.js";
 import { chunkFileByPath, canChunkFile } from "./core/chunker.js";
+import { createVectorStore } from "./core/store.js";
 import {
 	CURATED_PICKS,
 	discoverEmbeddingModels,
@@ -85,9 +86,6 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "benchmark":
 			await handleBenchmark(args.slice(1));
-			break;
-		case "test":
-			await handleTest(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -746,42 +744,12 @@ async function promptForApiKey(): Promise<void> {
 // Benchmark Command
 // ============================================================================
 
-/** Test pairs for quality validation */
-const QUALITY_TEST_PAIRS = [
-	// Similar pairs (should have high cosine similarity)
-	{ a: "function getUserById(id) { return db.users.find(id); }", b: "const fetchUser = (userId) => database.users.get(userId);", similar: true },
-	{ a: "class AuthenticationService { login(user, pass) {} }", b: "export const authenticate = async (username, password) => {}", similar: true },
-	{ a: "try { await api.request(); } catch (err) { log(err); }", b: "const result = await fetch(url).catch(handleError);", similar: true },
-	{ a: "const config = { host: 'localhost', port: 3000 };", b: "export default { server: 'localhost', port: 3000 };", similar: true },
-	// Dissimilar pairs (should have low cosine similarity)
-	{ a: "function getUserById(id) { return db.users.find(id); }", b: "const PI = 3.14159; function calculateArea(r) { return PI * r * r; }", similar: false },
-	{ a: "class AuthenticationService { login(user, pass) {} }", b: "SELECT * FROM products WHERE price < 100 ORDER BY name;", similar: false },
-	{ a: "try { await api.request(); } catch (err) { log(err); }", b: "The quick brown fox jumps over the lazy dog.", similar: false },
-	{ a: "const config = { host: 'localhost', port: 3000 };", b: "import numpy as np; arr = np.array([1, 2, 3])", similar: false },
-];
-
-/** Cosine similarity between two vectors */
-function cosineSimilarity(a: number[], b: number[]): number {
-	if (a.length !== b.length) return 0;
-	let dotProduct = 0;
-	let normA = 0;
-	let normB = 0;
-	for (let i = 0; i < a.length; i++) {
-		dotProduct += a[i] * b[i];
-		normA += a[i] * a[i];
-		normB += b[i] * b[i];
-	}
-	return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-}
-
-interface BenchmarkResult {
-	model: string;
-	speedMs: number;
-	cost: number | undefined;
-	dimension: number;
-	qualityScore: number;
-	error?: string;
-}
+/** Directories to always exclude when discovering files */
+const EXCLUDE_DIRS = new Set([
+	"node_modules", ".git", ".svn", ".hg", "dist", "build", "out",
+	".next", ".nuxt", ".output", "coverage", ".cache", ".claudemem",
+	"__pycache__", ".pytest_cache", "venv", ".venv", "target",
+]);
 
 /** Multi-line progress renderer for benchmark */
 function createBenchmarkProgress(modelIds: string[]) {
@@ -795,13 +763,14 @@ function createBenchmarkProgress(modelIds: string[]) {
 		completed: number;
 		total: number;
 		inProgress: number;
+		phase: string;
 		done: boolean;
 		error?: string;
 		startTime: number;
 		endTime?: number;
 	}>();
 	for (const id of modelIds) {
-		modelState.set(id, { completed: 0, total: 0, inProgress: 0, done: false, startTime: globalStartTime });
+		modelState.set(id, { completed: 0, total: 0, inProgress: 0, phase: "embed", done: false, startTime: globalStartTime });
 	}
 
 	function render() {
@@ -814,7 +783,7 @@ function createBenchmarkProgress(modelIds: string[]) {
 
 		for (const modelId of modelIds) {
 			const state = modelState.get(modelId)!;
-			const { completed, total, inProgress, done, error, startTime, endTime } = state;
+			const { completed, total, inProgress, phase, done, error, startTime, endTime } = state;
 
 			// Calculate elapsed time (frozen when done/error)
 			const elapsedMs = (endTime || Date.now()) - startTime;
@@ -831,17 +800,14 @@ function createBenchmarkProgress(modelIds: string[]) {
 			let status: string;
 
 			if (error) {
-				// Error state - red X bar
 				bar = "\x1b[31m" + "✗".repeat(width) + "\x1b[0m";
 				percent = 0;
 				status = `\x1b[31m${"✗ error".padEnd(20)}\x1b[0m`;
 			} else if (done) {
-				// Done state - full green bar
 				bar = "█".repeat(width);
 				percent = 100;
 				status = `\x1b[38;5;78m${"✓ done".padEnd(20)}\x1b[0m`;
 			} else {
-				// In progress
 				percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 				const filledRatio = total > 0 ? completed / total : 0;
 				const inProgressRatio = total > 0 ? inProgress / total : 0;
@@ -858,7 +824,7 @@ function createBenchmarkProgress(modelIds: string[]) {
 				}
 				const empty = "░".repeat(emptyWidth);
 				bar = filled + animated + empty;
-				status = `${completed}/${total} chunks`.padEnd(20);
+				status = `${phase}: ${completed}/${total}`.padEnd(20);
 			}
 
 			process.stdout.write(`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${displayName.padEnd(25)} │ ${status}\n`);
@@ -867,7 +833,6 @@ function createBenchmarkProgress(modelIds: string[]) {
 
 	return {
 		start() {
-			// Print initial empty lines
 			for (let i = 0; i < modelIds.length; i++) {
 				console.log("");
 			}
@@ -875,12 +840,13 @@ function createBenchmarkProgress(modelIds: string[]) {
 			if (interval.unref) interval.unref();
 			render();
 		},
-		update(modelId: string, completed: number, total: number, inProgress: number) {
+		update(modelId: string, completed: number, total: number, inProgress: number, phase = "embed") {
 			const state = modelState.get(modelId);
 			if (state) {
 				state.completed = completed;
 				state.total = total;
 				state.inProgress = inProgress;
+				state.phase = phase;
 			}
 		},
 		finish(modelId: string) {
@@ -905,17 +871,23 @@ function createBenchmarkProgress(modelIds: string[]) {
 				clearInterval(interval);
 				interval = null;
 			}
-			render(); // Final render
+			render();
 		},
 	};
 }
 
-/** Directories to always exclude when discovering files */
-const EXCLUDE_DIRS = new Set([
-	"node_modules", ".git", ".svn", ".hg", "dist", "build", "out",
-	".next", ".nuxt", ".output", "coverage", ".cache", ".claudemem",
-	"__pycache__", ".pytest_cache", "venv", ".venv", "target",
-]);
+interface BenchmarkResult {
+	model: string;
+	speedMs: number;
+	cost: number | undefined;
+	dimension: number;
+	chunks: number;
+	// Quality metrics
+	ndcg: number;
+	mrr: number;
+	hitRate: { k1: number; k3: number; k5: number };
+	error?: string;
+}
 
 /**
  * Discover source files and parse them into chunks for benchmarking
@@ -1005,6 +977,9 @@ async function discoverAndChunkFilesWithPaths(
 
 	walk(projectPath);
 
+	// Sort files for reproducible chunk selection
+	files.sort();
+
 	// Parse files into chunks with file paths
 	const allChunks: Array<{ content: string; fileName: string }> = [];
 	for (const filePath of files) {
@@ -1029,7 +1004,6 @@ async function discoverAndChunkFilesWithPaths(
 }
 
 async function handleBenchmark(args: string[]): Promise<void> {
-	// Colors
 	const c = {
 		reset: "\x1b[0m",
 		bold: "\x1b[1m",
@@ -1050,94 +1024,201 @@ async function handleBenchmark(args: string[]): Promise<void> {
 
 	// Parse flags
 	const useRealData = args.includes("--real");
-	const modelsArg = args.find((a) => a.startsWith("--models="));
-	const modelIds = modelsArg
-		? modelsArg.replace("--models=", "").split(",").map((s) => s.trim())
-		: [
-			CURATED_PICKS.bestBalanced.id,  // qwen/qwen3-embedding-8b (works)
+	const verbose = args.includes("--verbose") || args.includes("-v");
+	const autoMode = args.includes("--auto");
+
+	// Parse --models flag (support multiple formats)
+	let models: string[];
+	const modelsArgEquals = args.find((a) => a.startsWith("--models="));
+	const modelsArgNoEquals = args.find((a) => a.startsWith("--models") && a.length > 8 && !a.includes("="));
+	const modelsArgIndex = args.findIndex((a) => a === "--models");
+
+	if (modelsArgEquals) {
+		// --models=model1,model2
+		models = modelsArgEquals.replace("--models=", "").split(",").map((s) => s.trim());
+	} else if (modelsArgNoEquals) {
+		// --modelsmodel1,model2 (typo - missing =)
+		models = modelsArgNoEquals.replace("--models", "").split(",").map((s) => s.trim());
+		console.log(`${c.dim}(Note: use --models= for clarity)${c.reset}`);
+	} else if (modelsArgIndex !== -1 && args[modelsArgIndex + 1] && !args[modelsArgIndex + 1].startsWith("-")) {
+		// --models model1,model2 (space-separated)
+		models = args[modelsArgIndex + 1].split(",").map((s) => s.trim());
+	} else {
+		// Default models
+		models = [
+			CURATED_PICKS.bestBalanced.id,  // qwen/qwen3-embedding-8b
 			"openai/text-embedding-3-small",
-			"openai/text-embedding-3-large",
-			CURATED_PICKS.fastest.id,       // sentence-transformers/all-minilm-l6-v2
 		];
+	}
+
+	const projectPath = process.cwd();
 
 	console.log(`\n${c.orange}${c.bold}🏁 EMBEDDING MODEL BENCHMARK${c.reset}\n`);
 
-	// Get test data
-	let textsArray: string[];
-
-	if (useRealData) {
-		// Parse real source files from the project
-		const projectPath = process.cwd();
-		console.log(`${c.dim}Parsing source files...${c.reset}`);
-
-		const chunks = await discoverAndChunkFiles(projectPath, 100);
-
-		if (chunks.length === 0) {
-			console.error("No source files found in the current directory.");
-			process.exit(1);
-		}
-
-		textsArray = chunks;
-		console.log(`${c.dim}Testing ${modelIds.length} models with ${textsArray.length} real code chunks${c.reset}\n`);
-	} else {
-		// Use synthetic test pairs
-		const uniqueTexts = new Set<string>();
-		for (const pair of QUALITY_TEST_PAIRS) {
-			uniqueTexts.add(pair.a);
-			uniqueTexts.add(pair.b);
-		}
-		textsArray = Array.from(uniqueTexts);
-		console.log(`${c.dim}Testing ${modelIds.length} models with ${QUALITY_TEST_PAIRS.length} quality test pairs${c.reset}`);
-		console.log(`${c.dim}Use --real to test with actual source code from this project${c.reset}\n`);
+	// Get chunks with file paths (always needed for quality testing)
+	console.log(`${c.dim}Parsing source files...${c.reset}`);
+	const chunksWithPaths = await discoverAndChunkFilesWithPaths(projectPath, useRealData ? 100 : 50);
+	if (chunksWithPaths.length === 0) {
+		console.error("No source files found in the current directory.");
+		process.exit(1);
 	}
 
+	// Get test queries - either auto-generated or predefined
+	let testQueries: TestQuery[];
+	if (autoMode) {
+		testQueries = await extractAutoTestQueries(projectPath);
+		if (testQueries.length === 0) {
+			console.error("No functions with docstrings found. Run without --auto to use predefined queries.");
+			process.exit(1);
+		}
+	} else {
+		// Predefined queries for claudemem codebase
+		testQueries = [
+			{ query: "convert text to vector representation", category: "semantic", expected: [{ file: "embeddings.ts", relevance: 3 }, { file: "store.ts", relevance: 2 }], description: "embedding" },
+			{ query: "split code into smaller pieces", category: "semantic", expected: [{ file: "chunker.ts", relevance: 3 }, { file: "parser-manager.ts", relevance: 2 }], description: "chunking" },
+			{ query: "find similar code based on meaning", category: "semantic", expected: [{ file: "store.ts", relevance: 3 }, { file: "indexer.ts", relevance: 2 }], description: "search" },
+			{ query: "LanceDB vector database", category: "keyword", expected: [{ file: "store.ts", relevance: 3 }], description: "LanceDB" },
+			{ query: "tree-sitter parser AST", category: "keyword", expected: [{ file: "parser-manager.ts", relevance: 3 }, { file: "chunker.ts", relevance: 2 }], description: "tree-sitter" },
+			{ query: "OpenRouter API embeddings", category: "keyword", expected: [{ file: "embeddings.ts", relevance: 3 }, { file: "config.ts", relevance: 2 }], description: "OpenRouter" },
+			{ query: "how do I search for code", category: "natural", expected: [{ file: "indexer.ts", relevance: 3 }, { file: "store.ts", relevance: 2 }], description: "search usage" },
+			{ query: "createEmbeddingsClient function", category: "api", expected: [{ file: "embeddings.ts", relevance: 3 }], description: "embeddings API" },
+			{ query: "VectorStore search method", category: "api", expected: [{ file: "store.ts", relevance: 3 }], description: "vector store" },
+			{ query: "handle API timeout retry", category: "error", expected: [{ file: "embeddings.ts", relevance: 3 }], description: "retry logic" },
+		];
+	}
+
+	console.log(`${c.dim}Testing ${models.length} models with ${chunksWithPaths.length} chunks + ${testQueries.length} quality queries${c.reset}\n`);
+
 	// Create multi-line progress display
-	const progress = createBenchmarkProgress(modelIds);
+	const progress = createBenchmarkProgress(models);
 	progress.start();
 
-	// Run all models in parallel with progress updates
-	const benchmarkPromises = modelIds.map(async (modelId): Promise<BenchmarkResult> => {
+	// Benchmark directory for temp stores
+	const benchDbBase = join(projectPath, ".claudemem", "benchmark");
+	if (!existsSync(benchDbBase)) {
+		mkdirSync(benchDbBase, { recursive: true });
+	}
+
+	// Run all models in PARALLEL
+	const benchmarkPromises = models.map(async (modelId): Promise<BenchmarkResult> => {
 		const startTime = Date.now();
+		const modelSlug = modelId.replace(/[^a-zA-Z0-9]/g, "-");
+		const tempDbPath = join(benchDbBase, modelSlug);
+
 		try {
 			const client = new OpenRouterEmbeddingsClient({ model: modelId });
 
-			// Embed with progress callback
-			const result = await client.embed(textsArray, (completed, total, inProgress) => {
-				progress.update(modelId, completed, total, inProgress);
-			});
+			// Phase 1: Embed all chunks
+			const embedResult = await client.embed(
+				chunksWithPaths.map((c) => c.content),
+				(completed, total, inProgress) => {
+					progress.update(modelId, completed, total, inProgress, "embed");
+				},
+			);
 
-			progress.finish(modelId);
-			const speedMs = Date.now() - startTime;
+			const embedTimeMs = Date.now() - startTime;
 
-			// Calculate quality score (only for synthetic data)
-			let qualityScore = 0;
-			if (!useRealData) {
-				const embeddingMap = new Map<string, number[]>();
-				for (let i = 0; i < textsArray.length; i++) {
-					embeddingMap.set(textsArray[i], result.embeddings[i]);
+			// Phase 2: Build temp vector store and run quality queries
+			progress.update(modelId, 0, testQueries.length, testQueries.length, "quality");
+
+			// Clear existing temp db
+			if (existsSync(tempDbPath)) {
+				const { rmSync } = await import("node:fs");
+				rmSync(tempDbPath, { recursive: true, force: true });
+			}
+
+			const store = createVectorStore(tempDbPath);
+			await store.initialize();
+
+			// Add chunks with embeddings
+			const chunksForStore = chunksWithPaths.map((chunk, i) => ({
+				id: `chunk-${i}`,
+				content: chunk.content,
+				filePath: chunk.fileName,
+				startLine: 0,
+				endLine: 0,
+				language: "unknown",
+				chunkType: "code" as const,
+				fileHash: `hash-${i}`,
+				vector: embedResult.embeddings[i],
+			}));
+			await store.addChunks(chunksForStore);
+
+			// Run quality queries
+			let mrrSum = 0;
+			let ndcgSum = 0;
+			const hitCounts = { k1: 0, k3: 0, k5: 0 };
+
+			for (let qi = 0; qi < testQueries.length; qi++) {
+				const tq = testQueries[qi];
+				progress.update(modelId, qi, testQueries.length, 1, "quality");
+
+				// Embed query and search
+				const queryVector = await client.embedOne(tq.query);
+				const searchResults = await store.search(tq.query, queryVector, { limit: 5 });
+
+				// Build relevance map
+				const relevanceMap = new Map<string, number>();
+				for (const exp of tq.expected) {
+					relevanceMap.set(exp.file, exp.relevance);
 				}
 
-				let correct = 0;
-				for (const pair of QUALITY_TEST_PAIRS) {
-					const embA = embeddingMap.get(pair.a);
-					const embB = embeddingMap.get(pair.b);
-					if (embA && embB) {
-						const similarity = cosineSimilarity(embA, embB);
-						const predictedSimilar = similarity > 0.5;
-						if (predictedSimilar === pair.similar) {
-							correct++;
+				// Score results
+				let firstRelevantRank: number | null = null;
+				const actualRelevances: number[] = [];
+				const idealRelevances = tq.expected.map((e) => e.relevance);
+
+				for (let i = 0; i < Math.min(searchResults.length, 5); i++) {
+					const fileName = searchResults[i].chunk.filePath;
+					let relevance = 0;
+					for (const [expFile, expRel] of relevanceMap) {
+						if (fileName.includes(expFile)) {
+							relevance = expRel;
+							break;
 						}
 					}
+					actualRelevances.push(relevance);
+					if (relevance > 0 && firstRelevantRank === null) {
+						firstRelevantRank = i + 1;
+					}
 				}
-				qualityScore = (correct / QUALITY_TEST_PAIRS.length) * 100;
+
+				// Pad to 5
+				while (actualRelevances.length < 5) actualRelevances.push(0);
+
+				// Calculate NDCG
+				const dcg = calculateDCG(actualRelevances);
+				const idcg = calculateDCG([...idealRelevances].sort((a, b) => b - a));
+				const ndcg = idcg === 0 ? 0 : dcg / idcg;
+
+				ndcgSum += ndcg;
+				if (firstRelevantRank !== null) {
+					mrrSum += 1 / firstRelevantRank;
+					if (firstRelevantRank <= 1) hitCounts.k1++;
+					if (firstRelevantRank <= 3) hitCounts.k3++;
+					if (firstRelevantRank <= 5) hitCounts.k5++;
+				}
 			}
+
+			// Cleanup
+			await store.close();
+
+			const n = testQueries.length;
+			progress.finish(modelId);
 
 			return {
 				model: modelId,
-				speedMs,
-				cost: result.cost,
-				dimension: result.embeddings[0]?.length || 0,
-				qualityScore,
+				speedMs: embedTimeMs,
+				cost: embedResult.cost,
+				dimension: embedResult.embeddings[0]?.length || 0,
+				chunks: chunksWithPaths.length,
+				ndcg: (ndcgSum / n) * 100,
+				mrr: (mrrSum / n) * 100,
+				hitRate: {
+					k1: (hitCounts.k1 / n) * 100,
+					k3: (hitCounts.k3 / n) * 100,
+					k5: (hitCounts.k5 / n) * 100,
+				},
 			};
 		} catch (error) {
 			const errMsg = error instanceof Error ? error.message : String(error);
@@ -1147,7 +1228,10 @@ async function handleBenchmark(args: string[]): Promise<void> {
 				speedMs: Date.now() - startTime,
 				cost: undefined,
 				dimension: 0,
-				qualityScore: 0,
+				chunks: 0,
+				ndcg: 0,
+				mrr: 0,
+				hitRate: { k1: 0, k3: 0, k5: 0 },
 				error: errMsg,
 			};
 		}
@@ -1156,15 +1240,16 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	const results = await Promise.all(benchmarkPromises);
 	progress.stop();
 
-	// Sort by speed (fastest first) for real data, by quality for synthetic
-	if (useRealData) {
-		results.sort((a, b) => (a.error ? 1 : 0) - (b.error ? 1 : 0) || a.speedMs - b.speedMs);
-	} else {
-		results.sort((a, b) => (a.error ? 1 : 0) - (b.error ? 1 : 0) || b.qualityScore - a.qualityScore);
-	}
+	// Sort by NDCG (quality first)
+	results.sort((a, b) => (a.error ? 1 : 0) - (b.error ? 1 : 0) || b.ndcg - a.ndcg);
 
 	// Display results table
-	console.log(`\n${c.bold}Results (sorted by ${useRealData ? "speed" : "quality"}):${c.reset}\n`);
+	console.log(`\n${c.bold}Results (sorted by quality):${c.reset}\n`);
+	console.log(`  ${"Model".padEnd(32)} ${"Speed".padEnd(8)} ${"Cost".padEnd(12)} ${"Dim".padEnd(6)} ${"NDCG".padEnd(7)} ${"MRR".padEnd(7)} ${"Hit@5"}`);
+	console.log("  " + "─".repeat(87));
+
+	// Truncate long model names
+	const truncate = (s: string, max = 30) => s.length > max ? s.slice(0, max - 1) + "…" : s;
 
 	// Calculate best/worst for highlighting
 	const successResults = results.filter((r) => !r.error);
@@ -1173,36 +1258,28 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	const costsWithValues = successResults.filter((r) => r.cost !== undefined);
 	const minCost = costsWithValues.length > 0 ? Math.min(...costsWithValues.map((r) => r.cost!)) : undefined;
 	const maxCost = costsWithValues.length > 0 ? Math.max(...costsWithValues.map((r) => r.cost!)) : undefined;
-	const minQuality = Math.min(...successResults.map((r) => r.qualityScore));
-	const maxQuality = Math.max(...successResults.map((r) => r.qualityScore));
-
-	// Only highlight if there's meaningful difference (more than 1 result)
+	const maxNdcg = Math.max(...successResults.map((r) => r.ndcg));
+	const minNdcg = Math.min(...successResults.map((r) => r.ndcg));
 	const shouldHighlight = successResults.length > 1;
 
-	if (useRealData) {
-		console.log(`  ${"Model".padEnd(40)} ${"Speed".padEnd(10)} ${"Cost".padEnd(12)} ${"Dim".padEnd(8)} ${"Chunks"}`);
-	} else {
-		console.log(`  ${"Model".padEnd(40)} ${"Speed".padEnd(10)} ${"Cost".padEnd(12)} ${"Dim".padEnd(8)} ${"Quality"}`);
-	}
-	console.log("  " + "─".repeat(85));
-
 	for (const r of results) {
+		const displayName = truncate(r.model).padEnd(32);
 		if (r.error) {
-			console.log(`  ${c.red}${r.model.padEnd(40)} ERROR${c.reset}`);
+			console.log(`  ${c.red}${displayName} ERROR${c.reset}`);
 			console.log(`    ${c.dim}${r.error}${c.reset}`);
 			continue;
 		}
 
-		// Speed formatting with highlighting (pad BEFORE adding color)
+		// Speed with highlighting
 		const speedVal = `${(r.speedMs / 1000).toFixed(2)}s`;
-		let speed = speedVal.padEnd(10);
+		let speed = speedVal.padEnd(8);
 		if (shouldHighlight && r.speedMs === minSpeed) {
-			speed = `${c.green}${speedVal.padEnd(10)}${c.reset}`;
+			speed = `${c.green}${speedVal.padEnd(8)}${c.reset}`;
 		} else if (shouldHighlight && r.speedMs === maxSpeed && minSpeed !== maxSpeed) {
-			speed = `${c.red}${speedVal.padEnd(10)}${c.reset}`;
+			speed = `${c.red}${speedVal.padEnd(8)}${c.reset}`;
 		}
 
-		// Cost formatting with highlighting (pad BEFORE adding color)
+		// Cost with highlighting
 		const costVal = r.cost !== undefined ? `$${r.cost.toFixed(6)}` : "N/A";
 		let cost = costVal.padEnd(12);
 		if (shouldHighlight && r.cost !== undefined && minCost !== undefined && r.cost === minCost) {
@@ -1211,47 +1288,43 @@ async function handleBenchmark(args: string[]): Promise<void> {
 			cost = `${c.red}${costVal.padEnd(12)}${c.reset}`;
 		}
 
-		const dim = `${r.dimension}d`;
-
-		if (useRealData) {
-			console.log(`  ${r.model.padEnd(40)} ${speed} ${cost} ${dim.padEnd(8)} ${textsArray.length}`);
-		} else {
-			// Quality formatting with highlighting (higher is better)
-			const qualityVal = `${r.qualityScore.toFixed(0)}%`;
-			let quality = qualityVal;
-			if (shouldHighlight && r.qualityScore === maxQuality) {
-				quality = `${c.green}${qualityVal}${c.reset}`;
-			} else if (shouldHighlight && r.qualityScore === minQuality && minQuality !== maxQuality) {
-				quality = `${c.red}${qualityVal}${c.reset}`;
-			}
-			console.log(`  ${r.model.padEnd(40)} ${speed} ${cost} ${dim.padEnd(8)} ${quality}`);
+		// NDCG with highlighting
+		const ndcgVal = `${r.ndcg.toFixed(0)}%`;
+		let ndcg = ndcgVal.padEnd(7);
+		if (shouldHighlight && r.ndcg === maxNdcg) {
+			ndcg = `${c.green}${ndcgVal.padEnd(7)}${c.reset}`;
+		} else if (shouldHighlight && r.ndcg === minNdcg && minNdcg !== maxNdcg) {
+			ndcg = `${c.red}${ndcgVal.padEnd(7)}${c.reset}`;
 		}
+
+		const dim = `${r.dimension}d`.padEnd(6);
+		const mrr = `${r.mrr.toFixed(0)}%`.padEnd(7);
+		const hit5 = `${r.hitRate.k5.toFixed(0)}%`;
+
+		console.log(`  ${displayName} ${speed} ${cost} ${dim} ${ndcg} ${mrr} ${hit5}`);
 	}
 
 	// Summary
-	const successfulResults = results.filter((r) => !r.error);
-	if (successfulResults.length > 0) {
-		const fastest = successfulResults.reduce((a, b) => a.speedMs < b.speedMs ? a : b);
-		const cheapest = successfulResults.filter((r) => r.cost !== undefined).reduce((a, b) => (a.cost || Infinity) < (b.cost || Infinity) ? a : b, successfulResults[0]);
+	if (successResults.length > 0) {
+		const fastest = successResults.reduce((a, b) => a.speedMs < b.speedMs ? a : b);
+		const cheapest = costsWithValues.length > 0 ? costsWithValues.reduce((a, b) => (a.cost || Infinity) < (b.cost || Infinity) ? a : b) : null;
+		const bestQuality = successResults.reduce((a, b) => a.ndcg > b.ndcg ? a : b);
 
 		console.log(`\n${c.bold}Summary:${c.reset}`);
+		console.log(`  ${c.green}🏆 Best Quality:${c.reset} ${bestQuality.model} (NDCG: ${bestQuality.ndcg.toFixed(0)}%)`);
 		console.log(`  ${c.green}⚡ Fastest:${c.reset} ${fastest.model} (${(fastest.speedMs / 1000).toFixed(2)}s)`);
-		if (cheapest.cost !== undefined) {
-			console.log(`  ${c.green}💰 Cheapest:${c.reset} ${cheapest.model} ($${cheapest.cost.toFixed(6)})`);
-		}
-
-		if (!useRealData) {
-			const bestQuality = successfulResults.reduce((a, b) => a.qualityScore > b.qualityScore ? a : b);
-			console.log(`  ${c.green}🏆 Best Quality:${c.reset} ${bestQuality.model} (${bestQuality.qualityScore.toFixed(0)}%)`);
+		if (cheapest) {
+			console.log(`  ${c.green}💰 Cheapest:${c.reset} ${cheapest.model} ($${cheapest.cost?.toFixed(6)})`);
 		}
 	}
 
-	console.log(`\n${c.dim}Note: Speed includes network latency to your location.${c.reset}`);
-	console.log(`${c.dim}Quality is measured by semantic similarity accuracy on code pairs.${c.reset}\n`);
+	console.log(`\n${c.dim}Metrics: NDCG (quality), MRR (rank), Hit@5 (found in top 5)${c.reset}`);
+	console.log(`${c.dim}Use --auto to generate queries from docstrings (works on any codebase)${c.reset}`);
+	console.log(`${c.dim}Use --verbose for detailed per-query results${c.reset}\n`);
 }
 
 // ============================================================================
-// Test Command - Comprehensive Model Quality Testing
+// Quality Test Types
 // ============================================================================
 
 /**
@@ -1298,6 +1371,7 @@ interface QueryResult {
 interface TestResult {
 	model: string;
 	indexTimeMs: number;
+	indexCost?: number;
 	queryResults: QueryResult[];
 	/** Metrics computed at different K values */
 	metrics: {
@@ -1464,510 +1538,6 @@ async function extractAutoTestQueries(projectPath: string): Promise<TestQuery[]>
 	return queries;
 }
 
-async function handleTest(args: string[]): Promise<void> {
-	const c = {
-		reset: "\x1b[0m",
-		bold: "\x1b[1m",
-		dim: "\x1b[2m",
-		cyan: "\x1b[36m",
-		green: "\x1b[38;5;78m",
-		yellow: "\x1b[33m",
-		red: "\x1b[31m",
-		orange: "\x1b[38;5;209m",
-	};
-
-	// Check for API key
-	if (!hasApiKey()) {
-		console.error("Error: OpenRouter API key required.");
-		process.exit(1);
-	}
-
-	// Parse args
-	let modelsArg = "";
-	let verbose = false;
-	let autoMode = false;
-	for (const arg of args) {
-		if (arg.startsWith("--models=")) {
-			modelsArg = arg.replace("--models=", "");
-		}
-		if (arg === "--verbose" || arg === "-v") {
-			verbose = true;
-		}
-		if (arg === "--auto") {
-			autoMode = true;
-		}
-	}
-
-	// Default models for testing
-	const defaultModels = [
-		"qwen/qwen3-embedding-8b",
-		"openai/text-embedding-3-small",
-	];
-	const models = modelsArg ? modelsArg.split(",") : defaultModels;
-
-	// Get test queries - either auto-generated or predefined
-	let testQueries: TestQuery[];
-
-	if (autoMode) {
-		// AUTO MODE: Extract docstrings and function names from codebase
-		console.log(`${c.dim}Auto-generating test queries from codebase...${c.reset}`);
-		testQueries = await extractAutoTestQueries(process.cwd());
-		if (testQueries.length === 0) {
-			console.error("No functions with docstrings found. Use predefined queries instead.");
-			process.exit(1);
-		}
-		console.log(`${c.dim}Generated ${testQueries.length} test queries from docstrings${c.reset}`);
-	} else {
-		// PREDEFINED: Comprehensive test queries with graded relevance (0-3 scale)
-		// Categories: semantic, keyword, natural, error, api
-		// NOTE: These are specific to claudemem codebase
-		testQueries = [
-		// SEMANTIC: Tests understanding of concepts, not just keywords
-		{
-			query: "convert text to vector representation",
-			category: "semantic",
-			expected: [
-				{ file: "embeddings.ts", relevance: 3 },
-				{ file: "store.ts", relevance: 2 },
-			],
-			description: "Semantic: embedding concept",
-		},
-		{
-			query: "split code into smaller pieces for processing",
-			category: "semantic",
-			expected: [
-				{ file: "chunker.ts", relevance: 3 },
-				{ file: "parser-manager.ts", relevance: 2 },
-			],
-			description: "Semantic: chunking concept",
-		},
-		{
-			query: "find similar code based on meaning",
-			category: "semantic",
-			expected: [
-				{ file: "store.ts", relevance: 3 },
-				{ file: "indexer.ts", relevance: 2 },
-			],
-			description: "Semantic: search concept",
-		},
-		// KEYWORD: Technical terms that should match directly
-		{
-			query: "LanceDB vector database",
-			category: "keyword",
-			expected: [
-				{ file: "store.ts", relevance: 3 },
-			],
-			description: "Keyword: LanceDB",
-		},
-		{
-			query: "tree-sitter parser AST",
-			category: "keyword",
-			expected: [
-				{ file: "parser-manager.ts", relevance: 3 },
-				{ file: "chunker.ts", relevance: 2 },
-			],
-			description: "Keyword: tree-sitter",
-		},
-		{
-			query: "OpenRouter API embeddings endpoint",
-			category: "keyword",
-			expected: [
-				{ file: "embeddings.ts", relevance: 3 },
-				{ file: "config.ts", relevance: 2 },
-			],
-			description: "Keyword: OpenRouter",
-		},
-		{
-			query: "BM25 reciprocal rank fusion hybrid",
-			category: "keyword",
-			expected: [
-				{ file: "store.ts", relevance: 3 },
-			],
-			description: "Keyword: hybrid search",
-		},
-		// NATURAL: How developers actually ask questions
-		{
-			query: "how do I search for code in the index",
-			category: "natural",
-			expected: [
-				{ file: "indexer.ts", relevance: 3 },
-				{ file: "store.ts", relevance: 2 },
-				{ file: "cli.ts", relevance: 1 },
-			],
-			description: "Natural: search usage",
-		},
-		{
-			query: "what files have changed since last index",
-			category: "natural",
-			expected: [
-				{ file: "tracker.ts", relevance: 3 },
-				{ file: "indexer.ts", relevance: 2 },
-			],
-			description: "Natural: change detection",
-		},
-		{
-			query: "configure which files to ignore",
-			category: "natural",
-			expected: [
-				{ file: "config.ts", relevance: 3 },
-				{ file: "indexer.ts", relevance: 2 },
-			],
-			description: "Natural: ignore patterns",
-		},
-		// API: Looking for specific function/class usage
-		{
-			query: "createEmbeddingsClient function",
-			category: "api",
-			expected: [
-				{ file: "embeddings.ts", relevance: 3 },
-			],
-			description: "API: embeddings client",
-		},
-		{
-			query: "VectorStore search method",
-			category: "api",
-			expected: [
-				{ file: "store.ts", relevance: 3 },
-			],
-			description: "API: vector store",
-		},
-		{
-			query: "MCP server tool handler",
-			category: "api",
-			expected: [
-				{ file: "mcp-server.ts", relevance: 3 },
-			],
-			description: "API: MCP server",
-		},
-		// ERROR: Debugging/error scenarios
-		{
-			query: "handle API request timeout retry",
-			category: "error",
-			expected: [
-				{ file: "embeddings.ts", relevance: 3 },
-			],
-			description: "Error: retry logic",
-		},
-		{
-			query: "file parsing failed fallback",
-			category: "error",
-			expected: [
-				{ file: "chunker.ts", relevance: 3 },
-				{ file: "parser-manager.ts", relevance: 2 },
-			],
-			description: "Error: parse fallback",
-		},
-		];
-	}
-
-	console.log(`\n${c.orange}${c.bold}🧪 EMBEDDING MODEL QUALITY TEST${c.reset}\n`);
-	const categoryCount = new Set(testQueries.map((q) => q.category)).size;
-	console.log(`${c.dim}Testing ${models.length} models with ${testQueries.length} queries across ${categoryCount} categories${c.reset}`);
-	console.log(`${c.dim}Metrics: Hit Rate, MRR, NDCG (graded relevance 0-3)${c.reset}\n`);
-
-	// Get project path
-	const projectPath = process.cwd();
-	const testDbBase = join(projectPath, ".claudemem", "test");
-
-	// Ensure test directory exists
-	if (!existsSync(testDbBase)) {
-		mkdirSync(testDbBase, { recursive: true });
-	}
-
-	const results: TestResult[] = [];
-
-	// Process each model
-	for (const model of models) {
-		console.log(`\n${c.cyan}Testing: ${model}${c.reset}`);
-
-		const modelSlug = model.replace(/[^a-zA-Z0-9]/g, "-");
-		const modelDbPath = join(testDbBase, modelSlug);
-
-		try {
-			// Clear existing test database for this model
-			if (existsSync(modelDbPath)) {
-				const { rmSync } = await import("node:fs");
-				rmSync(modelDbPath, { recursive: true, force: true });
-			}
-
-			// Create indexer with this model
-			const indexer = createIndexer({
-				projectPath,
-				dbPath: modelDbPath,
-				model,
-			});
-
-			// Index the codebase
-			console.log(`  ${c.dim}Indexing...${c.reset}`);
-			const indexStart = Date.now();
-			await indexer.index({ force: true });
-			const indexTimeMs = Date.now() - indexStart;
-			console.log(`  ${c.green}✓${c.reset} Indexed in ${(indexTimeMs / 1000).toFixed(1)}s`);
-
-			// Run test queries
-			console.log(`  ${c.dim}Running ${testQueries.length} queries...${c.reset}`);
-			const queryResults: QueryResult[] = [];
-
-			// Track metrics
-			let mrrSum = 0;
-			let ndcgSum = 0;
-			const hitCounts = { k1: 0, k3: 0, k5: 0 };
-			const precisionSums = { k1: 0, k3: 0, k5: 0 };
-
-			// Track by category
-			const byCategory: Record<QueryCategory, { count: number; mrrSum: number; ndcgSum: number }> = {
-				semantic: { count: 0, mrrSum: 0, ndcgSum: 0 },
-				keyword: { count: 0, mrrSum: 0, ndcgSum: 0 },
-				natural: { count: 0, mrrSum: 0, ndcgSum: 0 },
-				error: { count: 0, mrrSum: 0, ndcgSum: 0 },
-				api: { count: 0, mrrSum: 0, ndcgSum: 0 },
-			};
-
-			for (const tq of testQueries) {
-				const searchResults = await indexer.search(tq.query, { limit: 10 });
-
-				// Build relevance map from expected results
-				const relevanceMap = new Map<string, number>();
-				for (const exp of tq.expected) {
-					relevanceMap.set(exp.file, exp.relevance);
-				}
-
-				// Score each result
-				const scoredResults: QueryResult["results"] = [];
-				let firstRelevantRank: number | null = null;
-				const actualRelevances: number[] = [];
-				const idealRelevances = tq.expected.map((e) => e.relevance);
-
-				for (let i = 0; i < Math.min(searchResults.length, 5); i++) {
-					const resultFile = searchResults[i].chunk.filePath;
-					const fileName = resultFile.split("/").pop() || "";
-
-					// Check relevance against expected files
-					let relevance = 0;
-					for (const [expFile, expRel] of relevanceMap) {
-						if (fileName.includes(expFile)) {
-							relevance = expRel;
-							break;
-						}
-					}
-
-					scoredResults.push({ file: fileName, relevance, rank: i + 1 });
-					actualRelevances.push(relevance);
-
-					if (relevance > 0 && firstRelevantRank === null) {
-						firstRelevantRank = i + 1;
-					}
-				}
-
-				// Pad actualRelevances to length 5 if needed
-				while (actualRelevances.length < 5) {
-					actualRelevances.push(0);
-				}
-
-				// Calculate NDCG
-				const dcg = calculateDCG(actualRelevances);
-				const idcg = calculateDCG([...idealRelevances].sort((a, b) => b - a));
-				const ndcg = idcg === 0 ? 0 : dcg / idcg;
-
-				queryResults.push({
-					query: tq.query,
-					category: tq.category,
-					firstRelevantRank,
-					results: scoredResults,
-					dcg,
-					idcg,
-					ndcg,
-				});
-
-				// Update metrics
-				if (firstRelevantRank !== null) {
-					mrrSum += 1 / firstRelevantRank;
-					if (firstRelevantRank <= 1) hitCounts.k1++;
-					if (firstRelevantRank <= 3) hitCounts.k3++;
-					if (firstRelevantRank <= 5) hitCounts.k5++;
-				}
-				ndcgSum += ndcg;
-
-				// Precision at K
-				const relevantAtK = (k: number) => actualRelevances.slice(0, k).filter((r) => r > 0).length;
-				precisionSums.k1 += relevantAtK(1) / 1;
-				precisionSums.k3 += relevantAtK(3) / 3;
-				precisionSums.k5 += relevantAtK(5) / 5;
-
-				// Update category metrics
-				byCategory[tq.category].count++;
-				byCategory[tq.category].ndcgSum += ndcg;
-				if (firstRelevantRank !== null) {
-					byCategory[tq.category].mrrSum += 1 / firstRelevantRank;
-				}
-			}
-
-			const n = testQueries.length;
-			const metrics = {
-				hitRate: {
-					k1: (hitCounts.k1 / n) * 100,
-					k3: (hitCounts.k3 / n) * 100,
-					k5: (hitCounts.k5 / n) * 100,
-				},
-				mrr: (mrrSum / n) * 100,
-				ndcg: (ndcgSum / n) * 100,
-				precision: {
-					k1: (precisionSums.k1 / n) * 100,
-					k3: (precisionSums.k3 / n) * 100,
-					k5: (precisionSums.k5 / n) * 100,
-				},
-			};
-
-			// Compute category averages
-			const byCategoryFinal: TestResult["byCategory"] = {} as any;
-			for (const cat of Object.keys(byCategory) as QueryCategory[]) {
-				const data = byCategory[cat];
-				byCategoryFinal[cat] = {
-					count: data.count,
-					mrr: data.count > 0 ? (data.mrrSum / data.count) * 100 : 0,
-					ndcg: data.count > 0 ? (data.ndcgSum / data.count) * 100 : 0,
-				};
-			}
-
-			results.push({
-				model,
-				indexTimeMs,
-				queryResults,
-				metrics,
-				byCategory: byCategoryFinal,
-			});
-
-			console.log(`  ${c.green}✓${c.reset} NDCG: ${metrics.ndcg.toFixed(0)}%, MRR: ${metrics.mrr.toFixed(0)}%, Hit@5: ${metrics.hitRate.k5.toFixed(0)}%`);
-
-			// Cleanup
-			await indexer.close();
-		} catch (error) {
-			results.push({
-				model,
-				indexTimeMs: 0,
-				queryResults: [],
-				metrics: {
-					hitRate: { k1: 0, k3: 0, k5: 0 },
-					mrr: 0,
-					ndcg: 0,
-					precision: { k1: 0, k3: 0, k5: 0 },
-				},
-				byCategory: {
-					semantic: { count: 0, mrr: 0, ndcg: 0 },
-					keyword: { count: 0, mrr: 0, ndcg: 0 },
-					natural: { count: 0, mrr: 0, ndcg: 0 },
-					error: { count: 0, mrr: 0, ndcg: 0 },
-					api: { count: 0, mrr: 0, ndcg: 0 },
-				},
-				error: error instanceof Error ? error.message : String(error),
-			});
-			console.log(`  ${c.red}✗ Error: ${error instanceof Error ? error.message : error}${c.reset}`);
-		}
-	}
-
-	// Display results table
-	console.log(`\n${c.bold}Results Summary:${c.reset}\n`);
-	console.log(`  ${"Model".padEnd(35)} ${"NDCG".padEnd(8)} ${"MRR".padEnd(8)} ${"Hit@1".padEnd(8)} ${"Hit@3".padEnd(8)} ${"Hit@5".padEnd(8)} ${"Index"}`);
-	console.log("  " + "─".repeat(90));
-
-	// Calculate best/worst for highlighting
-	const validResults = results.filter((r) => !r.error);
-	const maxNdcg = Math.max(...validResults.map((r) => r.metrics.ndcg));
-	const minNdcg = Math.min(...validResults.map((r) => r.metrics.ndcg));
-	const maxMrr = Math.max(...validResults.map((r) => r.metrics.mrr));
-	const minMrr = Math.min(...validResults.map((r) => r.metrics.mrr));
-	const shouldHighlight = validResults.length > 1;
-
-	for (const r of results) {
-		if (r.error) {
-			console.log(`  ${c.red}${r.model.padEnd(35)} ERROR${c.reset}`);
-			console.log(`    ${c.dim}${r.error}${c.reset}`);
-			continue;
-		}
-
-		// NDCG with highlighting
-		const ndcgVal = `${r.metrics.ndcg.toFixed(0)}%`;
-		let ndcgStr = ndcgVal.padEnd(8);
-		if (shouldHighlight && r.metrics.ndcg === maxNdcg) {
-			ndcgStr = `${c.green}${ndcgVal.padEnd(8)}${c.reset}`;
-		} else if (shouldHighlight && r.metrics.ndcg === minNdcg && minNdcg !== maxNdcg) {
-			ndcgStr = `${c.red}${ndcgVal.padEnd(8)}${c.reset}`;
-		}
-
-		// MRR with highlighting
-		const mrrVal = `${r.metrics.mrr.toFixed(0)}%`;
-		let mrrStr = mrrVal.padEnd(8);
-		if (shouldHighlight && r.metrics.mrr === maxMrr) {
-			mrrStr = `${c.green}${mrrVal.padEnd(8)}${c.reset}`;
-		} else if (shouldHighlight && r.metrics.mrr === minMrr && minMrr !== maxMrr) {
-			mrrStr = `${c.red}${mrrVal.padEnd(8)}${c.reset}`;
-		}
-
-		const hit1 = `${r.metrics.hitRate.k1.toFixed(0)}%`.padEnd(8);
-		const hit3 = `${r.metrics.hitRate.k3.toFixed(0)}%`.padEnd(8);
-		const hit5 = `${r.metrics.hitRate.k5.toFixed(0)}%`.padEnd(8);
-		const indexTime = `${(r.indexTimeMs / 1000).toFixed(1)}s`;
-
-		console.log(`  ${r.model.padEnd(35)} ${ndcgStr} ${mrrStr} ${hit1} ${hit3} ${hit5} ${indexTime}`);
-	}
-
-	// Results by category
-	console.log(`\n${c.bold}Results by Query Category:${c.reset}\n`);
-	const categories: QueryCategory[] = ["semantic", "keyword", "natural", "api", "error"];
-	console.log(`  ${"Category".padEnd(12)} ${validResults.map((r) => r.model.split("/").pop()?.padEnd(20) || "").join(" ")}`);
-	console.log("  " + "─".repeat(12 + validResults.length * 21));
-
-	for (const cat of categories) {
-		const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
-		let row = `  ${catLabel.padEnd(12)}`;
-		for (const r of validResults) {
-			const catData = r.byCategory[cat];
-			const ndcg = `${catData.ndcg.toFixed(0)}%`;
-			row += ` ${ndcg.padEnd(20)}`;
-		}
-		console.log(row);
-	}
-
-	// Detailed query results (if verbose)
-	if (verbose) {
-		console.log(`\n${c.bold}Query Details:${c.reset}\n`);
-		for (const tq of testQueries) {
-			const catLabel = `[${tq.category}]`;
-			console.log(`  ${c.cyan}"${tq.query}"${c.reset} ${c.dim}${catLabel}${c.reset}`);
-			const expectedStr = tq.expected.map((e) => `${e.file}(${e.relevance})`).join(", ");
-			console.log(`  ${c.dim}Expected: ${expectedStr}${c.reset}`);
-
-			for (const r of validResults) {
-				const qr = r.queryResults.find((q) => q.query === tq.query);
-				if (!qr) continue;
-				const modelShort = r.model.split("/").pop() || r.model;
-				const ndcgStr = `NDCG:${(qr.ndcg * 100).toFixed(0)}%`;
-				const rankStr = qr.firstRelevantRank ? `rank #${qr.firstRelevantRank}` : "not found";
-				const topResults = qr.results.slice(0, 3).map((r) => `${r.file}(${r.relevance})`).join(", ");
-
-				if (qr.firstRelevantRank !== null) {
-					console.log(`    ${c.green}✓${c.reset} ${modelShort.padEnd(20)} ${ndcgStr.padEnd(12)} ${rankStr.padEnd(12)} [${topResults}]`);
-				} else {
-					console.log(`    ${c.red}✗${c.reset} ${modelShort.padEnd(20)} ${ndcgStr.padEnd(12)} ${rankStr.padEnd(12)} [${topResults}]`);
-				}
-			}
-			console.log();
-		}
-	}
-
-	// Summary
-	if (validResults.length > 0) {
-		const best = validResults.reduce((a, b) => a.metrics.ndcg > b.metrics.ndcg ? a : b);
-		console.log(`\n${c.bold}Best overall:${c.reset} ${c.green}${best.model}${c.reset} (NDCG: ${best.metrics.ndcg.toFixed(0)}%)`);
-	}
-
-	console.log(`\n${c.dim}Metrics explanation:${c.reset}`);
-	console.log(`${c.dim}  NDCG  - Normalized Discounted Cumulative Gain (graded relevance, position-aware)${c.reset}`);
-	console.log(`${c.dim}  MRR   - Mean Reciprocal Rank (1/position of first relevant result)${c.reset}`);
-	console.log(`${c.dim}  Hit@K - % of queries with at least one relevant result in top K${c.reset}`);
-	console.log(`${c.dim}Use --verbose for detailed per-query results${c.reset}\n`);
-}
-
 function printHelp(): void {
 	// Colors (matching claudish style)
 	const c = {
@@ -2005,8 +1575,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}clear${c.reset} [path]           Clear the index
   ${c.green}init${c.reset}                   Interactive setup wizard
   ${c.green}models${c.reset}                 List available embedding models
-  ${c.green}benchmark${c.reset}              Compare embedding models (speed, cost, quality)
-  ${c.green}test${c.reset}                   Test search quality with known queries
+  ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
@@ -2025,11 +1594,8 @@ ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
 
 ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
   ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
-  ${c.cyan}--real${c.reset}                 Parse real source code from current project
-
-${c.yellow}${c.bold}TEST OPTIONS${c.reset}
-  ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
-  ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (works on any codebase)
+  ${c.cyan}--real${c.reset}                 Use 100 chunks (default: 50)
+  ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (any codebase)
   ${c.cyan}--verbose${c.reset}              Show detailed per-query results
 
 ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
@@ -2065,9 +1631,10 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.cyan}claudemem --models${c.reset}
   ${c.cyan}claudemem --models --free${c.reset}
 
-  ${c.dim}# Benchmark embedding models (speed, cost, quality)${c.reset}
+  ${c.dim}# Benchmark embedding models (index speed, search quality, cost)${c.reset}
   ${c.cyan}claudemem benchmark${c.reset}
-  ${c.cyan}claudemem benchmark --models=voyage/voyage-code-3,openai/text-embedding-3-small${c.reset}
+  ${c.cyan}claudemem benchmark --auto${c.reset}  ${c.dim}# works on any codebase${c.reset}
+  ${c.cyan}claudemem benchmark --models=qwen/qwen3-embedding-8b,openai/text-embedding-3-small${c.reset}
 
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}
