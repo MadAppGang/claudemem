@@ -182,11 +182,17 @@ export interface GlobalConfig {
 export interface ProjectConfig {
 	/** Override embedding model for this project */
 	model?: string;
-	/** Additional exclude patterns */
-	excludePatterns: string[];
-	/** Include only these patterns */
-	includePatterns: string[];
-	/** Last used embedding model */
+	/** Additional exclude patterns (glob patterns) */
+	excludePatterns?: string[];
+	/** Include only these patterns (glob patterns) */
+	includePatterns?: string[];
+	/** Use .gitignore patterns for exclusion (default: true) */
+	useGitignore?: boolean;
+	/** Enable auto-indexing on search (default: true) */
+	autoIndex?: boolean;
+	/** Custom index directory path (default: .claudemem) */
+	indexDir?: string;
+	/** Last used embedding model (internal use) */
 	lastModel?: string;
 }
 

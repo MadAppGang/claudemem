@@ -9,12 +9,12 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { minimatch } from "minimatch";
 import {
-	DEFAULT_EXCLUDE_PATTERNS,
 	ensureProjectDir,
 	getEmbeddingModel,
+	getExcludePatterns,
 	getIndexDbPath,
 	getVectorStorePath,
-	loadConfig,
+	loadProjectConfig,
 	saveProjectConfig,
 } from "../config.js";
 import { getParserManager } from "../parsers/parser-manager.js";
@@ -73,11 +73,14 @@ export class Indexer {
 	constructor(options: IndexerOptions) {
 		this.projectPath = options.projectPath;
 		this.model = options.model || getEmbeddingModel(options.projectPath);
+		// Get exclude patterns from config (includes defaults, gitignore, etc.)
 		this.excludePatterns = [
-			...DEFAULT_EXCLUDE_PATTERNS,
+			...getExcludePatterns(options.projectPath),
 			...(options.excludePatterns || []),
 		];
-		this.includePatterns = options.includePatterns || [];
+		// Get include patterns from config or options
+		const projectConfig = loadProjectConfig(options.projectPath);
+		this.includePatterns = options.includePatterns || projectConfig?.includePatterns || [];
 		this.onProgress = options.onProgress;
 	}
 
@@ -340,18 +343,52 @@ export class Indexer {
 		return files;
 	}
 
+	/** Directories to always exclude (fast path, no glob matching needed) */
+	private static readonly ALWAYS_EXCLUDE_DIRS = new Set([
+		"node_modules",
+		".git",
+		".svn",
+		".hg",
+		"dist",
+		"build",
+		"out",
+		".next",
+		".nuxt",
+		"coverage",
+		"__pycache__",
+		"venv",
+		".venv",
+		"target",
+		"vendor",
+		".idea",
+		".vscode",
+		".cache",
+		".claudemem",
+		".turbo",
+		".expo",
+	]);
+
 	/**
 	 * Check if a path should be excluded
 	 */
 	private shouldExclude(relativePath: string, isDirectory: boolean): boolean {
+		// Fast path: check if any path segment is in the always-exclude list
+		const segments = relativePath.split("/");
+		for (const segment of segments) {
+			if (Indexer.ALWAYS_EXCLUDE_DIRS.has(segment)) {
+				return true;
+			}
+		}
+
+		// Slow path: check glob patterns
 		const pathToCheck = isDirectory ? relativePath + "/" : relativePath;
 
 		for (const pattern of this.excludePatterns) {
 			if (minimatch(pathToCheck, pattern, { dot: true })) {
 				return true;
 			}
-			// Also check just the path without trailing slash for directories
-			if (isDirectory && minimatch(relativePath, pattern, { dot: true })) {
+			// Also check without trailing slash
+			if (minimatch(relativePath, pattern, { dot: true })) {
 				return true;
 			}
 		}

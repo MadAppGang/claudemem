@@ -23,8 +23,11 @@ export const GLOBAL_CONFIG_PATH = join(GLOBAL_CONFIG_DIR, "config.json");
 /** Project config directory name */
 export const PROJECT_CONFIG_DIR = ".claudemem";
 
-/** Project config file name */
+/** Project config file name (inside .claudemem/) */
 export const PROJECT_CONFIG_FILE = "config.json";
+
+/** Project config file at root (simpler alternative) */
+export const PROJECT_ROOT_CONFIG_FILE = "claudemem.json";
 
 /** Index database file name */
 export const INDEX_DB_FILE = "index.db";
@@ -38,31 +41,137 @@ export const MODELS_CACHE_FILE = "embedding-models.json";
 /** Cache max age in days */
 export const CACHE_MAX_AGE_DAYS = 2;
 
-/** Default exclude patterns */
+/** Default exclude patterns - comprehensive list of non-source directories
+ * Note: Patterns use ** prefix to match at any depth in the tree
+ */
 export const DEFAULT_EXCLUDE_PATTERNS = [
-	"node_modules/**",
-	".git/**",
-	"dist/**",
-	"build/**",
-	"out/**",
-	".next/**",
-	".nuxt/**",
-	"coverage/**",
-	"__pycache__/**",
-	"*.pyc",
-	"venv/**",
-	".venv/**",
-	"target/**",
-	"vendor/**",
-	"*.lock",
-	"package-lock.json",
-	"yarn.lock",
-	"pnpm-lock.yaml",
-	"bun.lockb",
-	"*.min.js",
-	"*.min.css",
-	"*.map",
-	".claudemem/**",
+	// ─── Package managers & dependencies ───
+	"**/node_modules/**",
+	"**/bower_components/**",
+	"**/jspm_packages/**",
+	"**/.pnpm/**",
+	"**/vendor/**",           // Go, PHP, Ruby
+	"**/Pods/**",             // iOS CocoaPods
+	"**/Carthage/**",         // iOS Carthage
+	"**/.bundle/**",          // Ruby bundler
+
+	// ─── Build outputs ───
+	"**/dist/**",
+	"**/build/**",
+	"**/out/**",
+	"**/output/**",
+	"**/target/**",           // Rust, Java/Maven
+	"**/bin/**",
+	"**/obj/**",              // .NET
+	"**/_build/**",           // Elixir
+	"**/.output/**",
+	"**/artifacts/**",
+
+	// ─── Framework-specific ───
+	"**/.next/**",
+	"**/.nuxt/**",
+	"**/.svelte-kit/**",
+	"**/.vercel/**",
+	"**/.netlify/**",
+	"**/.serverless/**",
+	"**/.turbo/**",
+	"**/.cache/**",
+	"**/.parcel-cache/**",
+	"**/.webpack/**",
+	"**/.rollup.cache/**",
+	"**/.vite/**",
+	"**/.angular/**",
+	"**/.expo/**",
+
+	// ─── Version control ───
+	"**/.git/**",
+	"**/.svn/**",
+	"**/.hg/**",
+	"**/.fossil/**",
+
+	// ─── IDE & editors ───
+	"**/.idea/**",
+	"**/.vscode/**",
+	"**/*.swp",
+	"**/*.swo",
+	"**/*~",
+	"**/.project",
+	"**/.classpath",
+	"**/.settings/**",
+	"**/*.xcworkspace/**",
+	"**/*.xcodeproj/**",
+
+	// ─── Testing & coverage ───
+	"**/coverage/**",
+	"**/.nyc_output/**",
+	"**/htmlcov/**",
+	"**/.pytest_cache/**",
+	"**/.tox/**",
+	"**/.nox/**",
+	"**/__tests__/**/__snapshots__/**",
+
+	// ─── Python ───
+	"**/__pycache__/**",
+	"**/*.pyc",
+	"**/*.pyo",
+	"**/*.pyd",
+	"**/.Python",
+	"**/venv/**",
+	"**/.venv/**",
+	"**/virtualenv/**",
+	"**/.eggs/**",
+	"**/*.egg-info/**",
+	"**/.mypy_cache/**",
+	"**/.ruff_cache/**",
+
+	// ─── Generated & compiled ───
+	"**/*.min.js",
+	"**/*.min.css",
+	"**/*.map",
+	"**/*.d.ts",              // TypeScript declarations (often generated)
+	"**/*.generated.*",
+	"**/generated/**",
+	"**/auto-generated/**",
+
+	// ─── Lock files ───
+	"**/*.lock",
+	"**/package-lock.json",
+	"**/yarn.lock",
+	"**/pnpm-lock.yaml",
+	"**/bun.lockb",
+	"**/Gemfile.lock",
+	"**/poetry.lock",
+	"**/Pipfile.lock",
+	"**/composer.lock",
+	"**/Cargo.lock",
+	"**/go.sum",
+	"**/mix.lock",
+	"**/pubspec.lock",
+
+	// ─── Logs & temp files ───
+	"**/*.log",
+	"**/logs/**",
+	"**/tmp/**",
+	"**/temp/**",
+	"**/.tmp/**",
+	"**/.temp/**",
+
+	// ─── Data & databases ───
+	"**/*.sqlite",
+	"**/*.sqlite3",
+	"**/*.db",
+
+	// ─── Documentation builds ───
+	"**/docs/_build/**",
+	"**/_site/**",            // Jekyll output
+
+	// ─── Misc ───
+	"**/.claudemem/**",
+	"**/.DS_Store",
+	"**/Thumbs.db",
+	"**/.terraform/**",
+	"**/.vagrant/**",
+	"**/.docker/**",
 ];
 
 /** Default recommended embedding model */
@@ -123,22 +232,130 @@ export function loadGlobalConfig(): GlobalConfig {
 }
 
 /**
- * Load project configuration from .claudemem/config.json
+ * Load project configuration
+ * Checks: 1) claudemem.json (root), 2) .claudemem/config.json
  */
 export function loadProjectConfig(projectPath: string): ProjectConfig | null {
-	const configPath = join(projectPath, PROJECT_CONFIG_DIR, PROJECT_CONFIG_FILE);
+	// First try claudemem.json at project root (preferred, simpler)
+	const rootConfigPath = join(projectPath, PROJECT_ROOT_CONFIG_FILE);
+	if (existsSync(rootConfigPath)) {
+		try {
+			const content = readFileSync(rootConfigPath, "utf-8");
+			return JSON.parse(content) as ProjectConfig;
+		} catch (error) {
+			console.warn("Failed to load claudemem.json:", error);
+		}
+	}
 
-	if (!existsSync(configPath)) {
-		return null;
+	// Fall back to .claudemem/config.json
+	const configPath = join(projectPath, PROJECT_CONFIG_DIR, PROJECT_CONFIG_FILE);
+	if (existsSync(configPath)) {
+		try {
+			const content = readFileSync(configPath, "utf-8");
+			return JSON.parse(content) as ProjectConfig;
+		} catch (error) {
+			console.warn("Failed to load .claudemem/config.json:", error);
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Parse .gitignore file and return glob patterns
+ */
+export function parseGitignore(projectPath: string): string[] {
+	const gitignorePath = join(projectPath, ".gitignore");
+
+	if (!existsSync(gitignorePath)) {
+		return [];
 	}
 
 	try {
-		const content = readFileSync(configPath, "utf-8");
-		return JSON.parse(content) as ProjectConfig;
+		const content = readFileSync(gitignorePath, "utf-8");
+		const patterns: string[] = [];
+
+		for (const line of content.split("\n")) {
+			const trimmed = line.trim();
+
+			// Skip empty lines and comments
+			if (!trimmed || trimmed.startsWith("#")) {
+				continue;
+			}
+
+			// Skip negation patterns (we don't support them yet)
+			if (trimmed.startsWith("!")) {
+				continue;
+			}
+
+			// Convert gitignore pattern to glob pattern
+			let pattern = trimmed;
+
+			// If pattern ends with /, it's a directory - add **
+			if (pattern.endsWith("/")) {
+				pattern = pattern + "**";
+			}
+			// If pattern doesn't contain /, it matches anywhere
+			else if (!pattern.includes("/")) {
+				// Could be a file or directory name
+				patterns.push(pattern);
+				patterns.push(`**/${pattern}`);
+				patterns.push(`${pattern}/**`);
+				patterns.push(`**/${pattern}/**`);
+				continue;
+			}
+			// If pattern starts with /, it's relative to root
+			else if (pattern.startsWith("/")) {
+				pattern = pattern.slice(1);
+			}
+
+			patterns.push(pattern);
+			// Also add with ** suffix if it looks like a directory
+			if (!pattern.includes(".") && !pattern.endsWith("**")) {
+				patterns.push(`${pattern}/**`);
+			}
+		}
+
+		return patterns;
 	} catch (error) {
-		console.warn("Failed to load project config:", error);
-		return null;
+		console.warn("Failed to parse .gitignore:", error);
+		return [];
 	}
+}
+
+/**
+ * Get all exclude patterns for a project
+ * Combines: defaults + global config + project config + gitignore (if enabled)
+ */
+export function getExcludePatterns(projectPath: string): string[] {
+	const patterns = new Set<string>(DEFAULT_EXCLUDE_PATTERNS);
+
+	// Add global config patterns
+	const globalConfig = loadGlobalConfig();
+	for (const p of globalConfig.excludePatterns) {
+		patterns.add(p);
+	}
+
+	// Load project config
+	const projectConfig = loadProjectConfig(projectPath);
+
+	// Add project-specific patterns
+	if (projectConfig?.excludePatterns) {
+		for (const p of projectConfig.excludePatterns) {
+			patterns.add(p);
+		}
+	}
+
+	// Add gitignore patterns (enabled by default)
+	const useGitignore = projectConfig?.useGitignore !== false;
+	if (useGitignore) {
+		const gitignorePatterns = parseGitignore(projectPath);
+		for (const p of gitignorePatterns) {
+			patterns.add(p);
+		}
+	}
+
+	return Array.from(patterns);
 }
 
 /**
@@ -200,17 +417,34 @@ export function saveProjectConfig(
 // ============================================================================
 
 /**
+ * Get the index directory for a project
+ * Respects custom indexDir from project config
+ */
+export function getIndexDir(projectPath: string): string {
+	const projectConfig = loadProjectConfig(projectPath);
+	if (projectConfig?.indexDir) {
+		// If indexDir is absolute, use it directly
+		if (projectConfig.indexDir.startsWith("/")) {
+			return projectConfig.indexDir;
+		}
+		// Otherwise, treat as relative to project root
+		return join(projectPath, projectConfig.indexDir);
+	}
+	return join(projectPath, PROJECT_CONFIG_DIR);
+}
+
+/**
  * Get the path to the project's index database
  */
 export function getIndexDbPath(projectPath: string): string {
-	return join(projectPath, PROJECT_CONFIG_DIR, INDEX_DB_FILE);
+	return join(getIndexDir(projectPath), INDEX_DB_FILE);
 }
 
 /**
  * Get the path to the project's vector store
  */
 export function getVectorStorePath(projectPath: string): string {
-	return join(projectPath, PROJECT_CONFIG_DIR, VECTORS_DIR);
+	return join(getIndexDir(projectPath), VECTORS_DIR);
 }
 
 /**
@@ -224,7 +458,7 @@ export function getModelsCachePath(): string {
  * Ensure project config directory exists
  */
 export function ensureProjectDir(projectPath: string): void {
-	const configDir = join(projectPath, PROJECT_CONFIG_DIR);
+	const configDir = getIndexDir(projectPath);
 	if (!existsSync(configDir)) {
 		mkdirSync(configDir, { recursive: true });
 	}
