@@ -4,22 +4,22 @@
  * Command-line interface for code indexing and search.
  */
 
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import inquirerSearch from "@inquirer/search";
 import { confirm, input, select } from "@inquirer/prompts";
 import {
 	ENV,
 	getApiKey,
-	getVectorStorePath,
 	hasApiKey,
 	loadGlobalConfig,
 	saveGlobalConfig,
 } from "./config.js";
 import { createIndexer } from "./core/indexer.js";
 import { OpenRouterEmbeddingsClient } from "./core/embeddings.js";
-import { VectorStore } from "./core/store.js";
+import { chunkFileByPath, canChunkFile } from "./core/chunker.js";
 import {
 	CURATED_PICKS,
 	discoverEmbeddingModels,
@@ -910,6 +910,67 @@ function createBenchmarkProgress(modelIds: string[]) {
 	};
 }
 
+/** Directories to always exclude when discovering files */
+const EXCLUDE_DIRS = new Set([
+	"node_modules", ".git", ".svn", ".hg", "dist", "build", "out",
+	".next", ".nuxt", ".output", "coverage", ".cache", ".claudemem",
+	"__pycache__", ".pytest_cache", "venv", ".venv", "target",
+]);
+
+/**
+ * Discover source files and parse them into chunks for benchmarking
+ */
+async function discoverAndChunkFiles(projectPath: string, maxChunks: number): Promise<string[]> {
+	const files: string[] = [];
+
+	// Walk directory to find source files
+	const walk = (dir: string) => {
+		try {
+			const entries = readdirSync(dir, { withFileTypes: true });
+			for (const entry of entries) {
+				const fullPath = join(dir, entry.name);
+
+				if (entry.isDirectory()) {
+					// Skip excluded directories
+					if (!EXCLUDE_DIRS.has(entry.name) && !entry.name.startsWith(".")) {
+						walk(fullPath);
+					}
+				} else if (entry.isFile()) {
+					// Check if file can be chunked (supported language)
+					if (canChunkFile(fullPath)) {
+						files.push(fullPath);
+					}
+				}
+			}
+		} catch {
+			// Ignore permission errors
+		}
+	};
+
+	walk(projectPath);
+
+	// Parse files into chunks
+	const allChunks: string[] = [];
+	for (const filePath of files) {
+		if (allChunks.length >= maxChunks) break;
+
+		try {
+			const content = readFileSync(filePath, "utf-8");
+			const fileHash = createHash("md5").update(content).digest("hex");
+			const chunks = await chunkFileByPath(content, filePath, fileHash);
+
+			for (const chunk of chunks) {
+				if (allChunks.length >= maxChunks) break;
+				allChunks.push(chunk.content);
+			}
+		} catch {
+			// Skip files that can't be read/parsed
+		}
+	}
+
+	return allChunks;
+}
+
 async function handleBenchmark(args: string[]): Promise<void> {
 	// Colors
 	const c = {
@@ -948,17 +1009,14 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	let textsArray: string[];
 
 	if (useRealData) {
-		// Load chunks from existing index
+		// Parse real source files from the project
 		const projectPath = process.cwd();
-		const dbPath = getVectorStorePath(projectPath);
-		const store = new VectorStore(dbPath);
-		await store.initialize();
+		console.log(`${c.dim}Parsing source files...${c.reset}`);
 
-		const chunks = await store.getChunkContents(100); // Max 100 chunks
-		await store.close();
+		const chunks = await discoverAndChunkFiles(projectPath, 100);
 
 		if (chunks.length === 0) {
-			console.error("No indexed data found. Run 'claudemem index' first.");
+			console.error("No source files found in the current directory.");
 			process.exit(1);
 		}
 
@@ -973,7 +1031,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		}
 		textsArray = Array.from(uniqueTexts);
 		console.log(`${c.dim}Testing ${modelIds.length} models with ${QUALITY_TEST_PAIRS.length} quality test pairs${c.reset}`);
-		console.log(`${c.dim}Use --real to test with actual indexed code chunks${c.reset}\n`);
+		console.log(`${c.dim}Use --real to test with actual source code from this project${c.reset}\n`);
 	}
 
 	// Create multi-line progress display
@@ -1481,7 +1539,7 @@ ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
 
 ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
   ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
-  ${c.cyan}--real${c.reset}                 Use real indexed code chunks instead of synthetic
+  ${c.cyan}--real${c.reset}                 Parse real source code from current project
 
 ${c.yellow}${c.bold}TEST OPTIONS${c.reset}
   ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
