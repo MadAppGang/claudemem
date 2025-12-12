@@ -280,12 +280,14 @@ export class VectorStore {
 		uniqueFiles: number;
 		languages: string[];
 	}> {
-		if (!this.db || !this.table) {
+		// Ensure table is opened before querying
+		const table = await this.ensureTableOpen();
+		if (!table) {
 			return { totalChunks: 0, uniqueFiles: 0, languages: [] };
 		}
 
 		try {
-			const allData = await this.table.query().toArray();
+			const allData = await table.query().toArray();
 
 			const files = new Set<string>();
 			const languages = new Set<string>();

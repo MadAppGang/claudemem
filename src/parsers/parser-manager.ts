@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import Parser from "web-tree-sitter";
+import { Language, Parser } from "web-tree-sitter";
 import type { LanguageConfig, SupportedLanguage } from "../types.js";
 
 // ============================================================================
@@ -183,7 +183,7 @@ for (const [language, config] of Object.entries(LANGUAGE_CONFIGS)) {
 export class ParserManager {
 	private initialized = false;
 	private parsers: Map<SupportedLanguage, Parser> = new Map();
-	private languages: Map<SupportedLanguage, Parser.Language> = new Map();
+	private languages: Map<SupportedLanguage, Language> = new Map();
 	private grammarsPath: string;
 
 	constructor(grammarsPath?: string) {
@@ -270,7 +270,7 @@ export class ParserManager {
 	 */
 	private async loadLanguage(
 		language: SupportedLanguage,
-	): Promise<Parser.Language | null> {
+	): Promise<Language | null> {
 		// Return cached language if available
 		if (this.languages.has(language)) {
 			return this.languages.get(language)!;
@@ -287,7 +287,7 @@ export class ParserManager {
 
 		try {
 			const wasmBuffer = readFileSync(grammarPath);
-			const lang = await Parser.Language.load(wasmBuffer);
+			const lang = await Language.load(wasmBuffer);
 
 			// Cache it
 			this.languages.set(language, lang);
