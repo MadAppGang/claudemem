@@ -21,13 +21,14 @@ import { getParserManager } from "../parsers/parser-manager.js";
 import type {
 	ChunkWithEmbedding,
 	CodeChunk,
+	IEmbeddingsClient,
 	IndexResult,
 	IndexStatus,
 	SearchOptions,
 	SearchResult,
 } from "../types.js";
 import { chunkFileByPath } from "./chunker.js";
-import { createEmbeddingsClient, type EmbeddingsClient } from "./embeddings.js";
+import { createEmbeddingsClient } from "./embeddings.js";
 import { createVectorStore, type VectorStore } from "./store.js";
 import {
 	computeFileHash,
@@ -65,7 +66,7 @@ export class Indexer {
 	private includePatterns: string[];
 	private onProgress?: (current: number, total: number, file: string) => void;
 
-	private embeddingsClient: EmbeddingsClient | null = null;
+	private embeddingsClient: IEmbeddingsClient | null = null;
 	private vectorStore: VectorStore | null = null;
 	private fileTracker: FileTracker | null = null;
 

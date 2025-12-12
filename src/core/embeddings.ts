@@ -1,22 +1,25 @@
 /**
- * OpenRouter Embeddings Client
+ * Embeddings Client
  *
- * Handles embedding generation through OpenRouter's API,
- * with batching, retry logic, and rate limiting.
+ * Multi-provider embedding generation supporting:
+ * - OpenRouter (cloud API)
+ * - Ollama (local)
+ * - Custom endpoints (local HTTP servers)
  */
 
 import {
 	OPENROUTER_EMBEDDINGS_URL,
 	OPENROUTER_HEADERS,
 	getApiKey,
+	loadGlobalConfig,
 } from "../config.js";
-import type { EmbeddingResponse } from "../types.js";
+import type { EmbeddingProvider, EmbeddingResponse, IEmbeddingsClient } from "../types.js";
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-/** Maximum texts per batch request */
+/** Maximum texts per batch request (OpenRouter) */
 const MAX_BATCH_SIZE = 100;
 
 /** Maximum retries for failed requests */
@@ -25,8 +28,16 @@ const MAX_RETRIES = 3;
 /** Base delay for exponential backoff (ms) */
 const BASE_RETRY_DELAY = 1000;
 
-/** Default embedding model */
-const DEFAULT_MODEL = "qwen/qwen3-embedding-8b";
+/** Default embedding model per provider */
+const DEFAULT_MODELS: Record<EmbeddingProvider, string> = {
+	openrouter: "qwen/qwen3-embedding-8b",
+	ollama: "nomic-embed-text",
+	local: "all-minilm-l6-v2",
+};
+
+/** Default endpoints */
+const DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434";
+const DEFAULT_LOCAL_ENDPOINT = "http://localhost:8000";
 
 // ============================================================================
 // Types
@@ -44,69 +55,81 @@ interface OpenRouterEmbeddingResponse {
 	};
 }
 
-interface EmbeddingsClientOptions {
+interface OllamaEmbeddingResponse {
+	embedding: number[];
+}
+
+export interface EmbeddingsClientOptions {
+	/** Embedding provider */
+	provider?: EmbeddingProvider;
 	/** Model to use for embeddings */
 	model?: string;
-	/** API key (defaults to env/config) */
+	/** API key (for OpenRouter) */
 	apiKey?: string;
+	/** Endpoint URL (for Ollama/local) */
+	endpoint?: string;
 	/** Request timeout in ms */
 	timeout?: number;
 }
 
 // ============================================================================
-// Embeddings Client Class
+// Base Client Class
 // ============================================================================
 
-export class EmbeddingsClient {
-	private model: string;
-	private apiKey: string;
-	private timeout: number;
-	private dimension?: number;
+abstract class BaseEmbeddingsClient implements IEmbeddingsClient {
+	protected model: string;
+	protected timeout: number;
+	protected dimension?: number;
 
-	constructor(options: EmbeddingsClientOptions = {}) {
-		this.model = options.model || DEFAULT_MODEL;
-		this.timeout = options.timeout || 60000;
-
-		const apiKey = options.apiKey || getApiKey();
-		if (!apiKey) {
-			throw new Error(
-				"OpenRouter API key required. Set OPENROUTER_API_KEY environment variable or configure in ~/.claudemem/config.json",
-			);
-		}
-		this.apiKey = apiKey;
+	constructor(model: string, timeout = 60000) {
+		this.model = model;
+		this.timeout = timeout;
 	}
 
-	/**
-	 * Get the model being used
-	 */
 	getModel(): string {
 		return this.model;
 	}
 
-	/**
-	 * Get the embedding dimension (discovered after first request)
-	 */
 	getDimension(): number | undefined {
 		return this.dimension;
 	}
 
-	/**
-	 * Generate embeddings for a single text
-	 */
+	abstract embed(texts: string[]): Promise<number[][]>;
+
 	async embedOne(text: string): Promise<number[]> {
 		const result = await this.embed([text]);
 		return result[0];
 	}
 
-	/**
-	 * Generate embeddings for multiple texts
-	 *
-	 * Automatically batches requests if input exceeds MAX_BATCH_SIZE
-	 */
-	async embed(texts: string[]): Promise<number[][]> {
-		if (texts.length === 0) {
-			return [];
+	protected sleep(ms: number): Promise<void> {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+}
+
+// ============================================================================
+// OpenRouter Client
+// ============================================================================
+
+export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
+	private apiKey: string;
+
+	constructor(options: EmbeddingsClientOptions = {}) {
+		super(
+			options.model || DEFAULT_MODELS.openrouter,
+			options.timeout,
+		);
+
+		const apiKey = options.apiKey || getApiKey();
+		if (!apiKey) {
+			throw new Error(
+				"OpenRouter API key required. Set OPENROUTER_API_KEY environment variable or run 'claudemem init'",
+			);
 		}
+		this.apiKey = apiKey;
+	}
+
+	async embed(texts: string[]): Promise<number[][]> {
+		if (texts.length === 0) return [];
 
 		// Split into batches
 		const batches: string[][] = [];
@@ -124,9 +147,6 @@ export class EmbeddingsClient {
 		return results;
 	}
 
-	/**
-	 * Process a single batch of texts
-	 */
 	private async embedBatch(texts: string[]): Promise<number[][]> {
 		let lastError: Error | undefined;
 
@@ -134,7 +154,6 @@ export class EmbeddingsClient {
 			try {
 				const response = await this.makeRequest(texts);
 
-				// Store dimension for later reference
 				if (response.embeddings.length > 0 && !this.dimension) {
 					this.dimension = response.embeddings[0].length;
 				}
@@ -144,14 +163,10 @@ export class EmbeddingsClient {
 				lastError = error instanceof Error ? error : new Error(String(error));
 
 				// Don't retry on authentication errors
-				if (
-					lastError.message.includes("401") ||
-					lastError.message.includes("403")
-				) {
+				if (lastError.message.includes("401") || lastError.message.includes("403")) {
 					throw lastError;
 				}
 
-				// Exponential backoff
 				if (attempt < MAX_RETRIES - 1) {
 					const delay = BASE_RETRY_DELAY * Math.pow(2, attempt);
 					await this.sleep(delay);
@@ -162,9 +177,6 @@ export class EmbeddingsClient {
 		throw lastError || new Error("Failed to generate embeddings");
 	}
 
-	/**
-	 * Make a single API request
-	 */
 	private async makeRequest(texts: string[]): Promise<EmbeddingResponse> {
 		const controller = new AbortController();
 		const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -186,14 +198,10 @@ export class EmbeddingsClient {
 
 			if (!response.ok) {
 				const errorText = await response.text();
-				throw new Error(
-					`OpenRouter API error: ${response.status} - ${errorText}`,
-				);
+				throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
 			}
 
 			const data: OpenRouterEmbeddingResponse = await response.json();
-
-			// Sort by index to maintain order
 			const sorted = [...data.data].sort((a, b) => a.index - b.index);
 
 			return {
@@ -210,12 +218,162 @@ export class EmbeddingsClient {
 			clearTimeout(timeoutId);
 		}
 	}
+}
 
-	/**
-	 * Sleep for a given duration
-	 */
-	private sleep(ms: number): Promise<void> {
-		return new Promise((resolve) => setTimeout(resolve, ms));
+// ============================================================================
+// Ollama Client
+// ============================================================================
+
+export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
+	private endpoint: string;
+
+	constructor(options: EmbeddingsClientOptions = {}) {
+		super(
+			options.model || DEFAULT_MODELS.ollama,
+			options.timeout,
+		);
+		this.endpoint = options.endpoint || DEFAULT_OLLAMA_ENDPOINT;
+	}
+
+	async embed(texts: string[]): Promise<number[][]> {
+		if (texts.length === 0) return [];
+
+		// Ollama processes one text at a time
+		const results: number[][] = [];
+		for (const text of texts) {
+			const embedding = await this.embedSingle(text);
+			results.push(embedding);
+
+			// Store dimension on first result
+			if (!this.dimension && embedding.length > 0) {
+				this.dimension = embedding.length;
+			}
+		}
+
+		return results;
+	}
+
+	private async embedSingle(text: string): Promise<number[]> {
+		let lastError: Error | undefined;
+
+		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+				try {
+					const response = await fetch(`${this.endpoint}/api/embeddings`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							model: this.model,
+							prompt: text,
+						}),
+						signal: controller.signal,
+					});
+
+					if (!response.ok) {
+						const errorText = await response.text();
+						throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
+					}
+
+					const data: OllamaEmbeddingResponse = await response.json();
+					return data.embedding;
+				} finally {
+					clearTimeout(timeoutId);
+				}
+			} catch (error) {
+				lastError = error instanceof Error ? error : new Error(String(error));
+
+				// Check if Ollama is not running
+				if (lastError.message.includes("ECONNREFUSED")) {
+					throw new Error(
+						`Cannot connect to Ollama at ${this.endpoint}. Is Ollama running? Try: ollama serve`,
+					);
+				}
+
+				if (attempt < MAX_RETRIES - 1) {
+					const delay = BASE_RETRY_DELAY * Math.pow(2, attempt);
+					await this.sleep(delay);
+				}
+			}
+		}
+
+		throw lastError || new Error("Failed to generate embeddings");
+	}
+}
+
+// ============================================================================
+// Local/Custom Endpoint Client
+// ============================================================================
+
+export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
+	private endpoint: string;
+
+	constructor(options: EmbeddingsClientOptions = {}) {
+		super(
+			options.model || DEFAULT_MODELS.local,
+			options.timeout,
+		);
+		this.endpoint = options.endpoint || DEFAULT_LOCAL_ENDPOINT;
+	}
+
+	async embed(texts: string[]): Promise<number[][]> {
+		if (texts.length === 0) return [];
+
+		let lastError: Error | undefined;
+
+		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+				try {
+					// OpenAI-compatible format
+					const response = await fetch(`${this.endpoint}/embeddings`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							model: this.model,
+							input: texts,
+						}),
+						signal: controller.signal,
+					});
+
+					if (!response.ok) {
+						const errorText = await response.text();
+						throw new Error(`Local API error: ${response.status} - ${errorText}`);
+					}
+
+					const data: OpenRouterEmbeddingResponse = await response.json();
+					const sorted = [...data.data].sort((a, b) => a.index - b.index);
+					const embeddings = sorted.map((item) => item.embedding);
+
+					if (embeddings.length > 0 && !this.dimension) {
+						this.dimension = embeddings[0].length;
+					}
+
+					return embeddings;
+				} finally {
+					clearTimeout(timeoutId);
+				}
+			} catch (error) {
+				lastError = error instanceof Error ? error : new Error(String(error));
+
+				if (lastError.message.includes("ECONNREFUSED")) {
+					throw new Error(
+						`Cannot connect to local embedding server at ${this.endpoint}. Is it running?`,
+					);
+				}
+
+				if (attempt < MAX_RETRIES - 1) {
+					const delay = BASE_RETRY_DELAY * Math.pow(2, attempt);
+					await this.sleep(delay);
+				}
+			}
+		}
+
+		throw lastError || new Error("Failed to generate embeddings");
 	}
 }
 
@@ -224,12 +382,32 @@ export class EmbeddingsClient {
 // ============================================================================
 
 /**
- * Create an embeddings client with the given options
+ * Create an embeddings client based on provider
  */
 export function createEmbeddingsClient(
 	options?: EmbeddingsClientOptions,
-): EmbeddingsClient {
-	return new EmbeddingsClient(options);
+): IEmbeddingsClient {
+	// Determine provider from options or config
+	const config = loadGlobalConfig();
+	const provider = options?.provider || config.embeddingProvider || "openrouter";
+
+	switch (provider) {
+		case "ollama":
+			return new OllamaEmbeddingsClient({
+				...options,
+				endpoint: options?.endpoint || config.ollamaEndpoint,
+			});
+
+		case "local":
+			return new LocalEmbeddingsClient({
+				...options,
+				endpoint: options?.endpoint || config.localEndpoint,
+			});
+
+		case "openrouter":
+		default:
+			return new OpenRouterEmbeddingsClient(options);
+	}
 }
 
 // ============================================================================
@@ -238,7 +416,6 @@ export function createEmbeddingsClient(
 
 /**
  * Estimate the number of tokens in a text
- *
  * Simple approximation: ~4 characters per token for code
  */
 export function estimateTokens(text: string): number {
@@ -261,4 +438,26 @@ export function truncateToTokenLimit(text: string, maxTokens: number): string {
 		return text;
 	}
 	return text.slice(0, maxChars - 3) + "...";
+}
+
+/**
+ * Test connection to an embedding provider
+ */
+export async function testProviderConnection(
+	provider: EmbeddingProvider,
+	endpoint?: string,
+): Promise<{ ok: boolean; error?: string }> {
+	try {
+		const client = createEmbeddingsClient({
+			provider,
+			endpoint,
+		});
+		await client.embedOne("test");
+		return { ok: true };
+	} catch (error) {
+		return {
+			ok: false,
+			error: error instanceof Error ? error.message : String(error),
+		};
+	}
 }

@@ -8,7 +8,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import {
 	CACHE_MAX_AGE_DAYS,
-	OPENROUTER_MODELS_URL,
+	OPENROUTER_EMBEDDING_MODELS_URL,
 	getModelsCachePath,
 } from "../config.js";
 import type { EmbeddingModel } from "../types.js";
@@ -42,24 +42,27 @@ interface ModelsCache {
 }
 
 // ============================================================================
-// Recommended Models
+// Curated Model Picks
 // ============================================================================
 
 /**
- * Curated list of recommended embedding models for code
- * Priority order: code-optimized, then by cost
+ * 4 Curated embedding model picks for different use cases
  */
-export const RECOMMENDED_MODELS: EmbeddingModel[] = [
-	{
-		id: "qwen/qwen3-embedding-8b",
-		name: "Qwen3 Embedding 8B",
-		provider: "Qwen",
-		contextLength: 32768,
-		dimension: 4096,
-		pricePerMillion: 0.01,
+export const CURATED_PICKS = {
+	/** Best Quality - Top-tier code understanding */
+	bestQuality: {
+		id: "voyage/voyage-code-3",
+		name: "Voyage Code 3",
+		provider: "Voyage",
+		contextLength: 32000,
+		dimension: 1024,
+		pricePerMillion: 0.18,
 		isFree: false,
-	},
-	{
+		isRecommended: true,
+	} as EmbeddingModel,
+
+	/** Best Value - Great quality at lowest cost */
+	bestValue: {
 		id: "qwen/qwen3-embedding-0.6b",
 		name: "Qwen3 Embedding 0.6B",
 		provider: "Qwen",
@@ -67,34 +70,45 @@ export const RECOMMENDED_MODELS: EmbeddingModel[] = [
 		dimension: 1024,
 		pricePerMillion: 0.002,
 		isFree: false,
-	},
-	{
-		id: "google/gemini-embedding-001",
-		name: "Gemini Embedding 001",
-		provider: "Google",
-		contextLength: 20000,
-		dimension: 768,
-		pricePerMillion: 0.15,
+		isRecommended: true,
+	} as EmbeddingModel,
+
+	/** Best Balanced - Excellent quality/price ratio */
+	bestBalanced: {
+		id: "qwen/qwen3-embedding-8b",
+		name: "Qwen3 Embedding 8B",
+		provider: "Qwen",
+		contextLength: 32768,
+		dimension: 4096,
+		pricePerMillion: 0.01,
 		isFree: false,
-	},
-	{
-		id: "openai/text-embedding-3-small",
-		name: "Text Embedding 3 Small",
-		provider: "OpenAI",
-		contextLength: 8191,
-		dimension: 1536,
-		pricePerMillion: 0.02,
+		isRecommended: true,
+	} as EmbeddingModel,
+
+	/** Fastest - Optimized for speed */
+	fastest: {
+		id: "sentence-transformers/all-minilm-l6-v2",
+		name: "all-MiniLM-L6-v2",
+		provider: "Sentence Transformers",
+		contextLength: 512,
+		dimension: 384,
+		pricePerMillion: 0.005,
 		isFree: false,
-	},
-	{
-		id: "openai/text-embedding-3-large",
-		name: "Text Embedding 3 Large",
-		provider: "OpenAI",
-		contextLength: 8191,
-		dimension: 3072,
-		pricePerMillion: 0.13,
-		isFree: false,
-	},
+		isRecommended: true,
+	} as EmbeddingModel,
+};
+
+/** Legacy export for compatibility */
+export const TOP_RECOMMENDED_MODEL = CURATED_PICKS.bestQuality;
+
+/**
+ * All curated models as array
+ */
+export const RECOMMENDED_MODELS: EmbeddingModel[] = [
+	CURATED_PICKS.bestQuality,
+	CURATED_PICKS.bestBalanced,
+	CURATED_PICKS.bestValue,
+	CURATED_PICKS.fastest,
 ];
 
 // ============================================================================
@@ -178,10 +192,11 @@ function saveToCache(models: EmbeddingModel[]): void {
 
 /**
  * Fetch embedding models from OpenRouter API
+ * Uses the dedicated /embeddings/models endpoint
  */
 async function fetchModelsFromAPI(): Promise<EmbeddingModel[]> {
 	try {
-		const response = await fetch(OPENROUTER_MODELS_URL);
+		const response = await fetch(OPENROUTER_EMBEDDING_MODELS_URL);
 
 		if (!response.ok) {
 			throw new Error(`API returned ${response.status}`);
@@ -190,21 +205,8 @@ async function fetchModelsFromAPI(): Promise<EmbeddingModel[]> {
 		const data = (await response.json()) as { data: OpenRouterModel[] };
 		const allModels = data.data || [];
 
-		// Filter for embedding models
-		const embeddingModels = allModels.filter((model) => {
-			const outputModalities = model.architecture?.output_modalities || [];
-			const modality = model.architecture?.modality || "";
-
-			// Check if it's an embedding model
-			return (
-				outputModalities.includes("embedding") ||
-				modality.includes("embedding") ||
-				model.id.toLowerCase().includes("embed")
-			);
-		});
-
-		// Transform to our format
-		return embeddingModels.map((model): EmbeddingModel => {
+		// Transform to our format (all models from this endpoint are embedding models)
+		return allModels.map((model): EmbeddingModel => {
 			const promptPrice = parseFloat(model.pricing?.prompt || "0");
 			const pricePerMillion = promptPrice * 1000000;
 

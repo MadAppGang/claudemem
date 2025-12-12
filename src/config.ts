@@ -72,6 +72,7 @@ export const DEFAULT_EMBEDDING_MODEL = "qwen/qwen3-embedding-8b";
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
 export const OPENROUTER_EMBEDDINGS_URL = `${OPENROUTER_API_URL}/embeddings`;
 export const OPENROUTER_MODELS_URL = `${OPENROUTER_API_URL}/models`;
+export const OPENROUTER_EMBEDDING_MODELS_URL = `${OPENROUTER_API_URL}/embeddings/models`;
 
 /** OpenRouter request headers */
 export const OPENROUTER_HEADERS = {

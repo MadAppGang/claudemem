@@ -13,10 +13,12 @@ import {
 	ENV,
 	getApiKey,
 	hasApiKey,
+	loadGlobalConfig,
 	saveGlobalConfig,
 } from "./config.js";
 import { createIndexer } from "./core/indexer.js";
 import {
+	CURATED_PICKS,
 	discoverEmbeddingModels,
 	formatModelInfo,
 	RECOMMENDED_MODELS,
@@ -48,6 +50,13 @@ export async function runCli(args: string[]): Promise<void> {
 
 	if (args.includes("--help") || args.includes("-h") || !command) {
 		printHelp();
+		return;
+	}
+
+	// Handle --models as global flag
+	if (args.includes("--models")) {
+		const remainingArgs = args.filter((a) => a !== "--models");
+		await handleModels(remainingArgs);
 		return;
 	}
 
@@ -310,50 +319,135 @@ async function handleClear(args: string[]): Promise<void> {
 async function handleInit(): Promise<void> {
 	console.log("\n🔧 claudemem Setup\n");
 
-	// Check for existing API key
-	const existingKey = getApiKey();
-	if (existingKey) {
-		const useExisting = await confirm({
-			message: "OpenRouter API key already configured. Keep it?",
-			default: true,
-		});
+	// Step 1: Select embedding provider
+	const provider = await select({
+		message: "Select embedding provider:",
+		choices: [
+			{
+				name: "OpenRouter (cloud API, requires API key)",
+				value: "openrouter",
+			},
+			{
+				name: "Ollama (local, free, requires Ollama installed)",
+				value: "ollama",
+			},
+			{
+				name: "Custom endpoint (local HTTP server)",
+				value: "local",
+			},
+		],
+	}) as "openrouter" | "ollama" | "local";
 
-		if (useExisting) {
-			console.log("\n✅ Using existing API key.");
+	let modelId: string;
+	let endpoint: string | undefined;
+
+	if (provider === "openrouter") {
+		// OpenRouter setup
+		const existingKey = getApiKey();
+		if (existingKey) {
+			const useExisting = await confirm({
+				message: "OpenRouter API key already configured. Keep it?",
+				default: true,
+			});
+
+			if (!useExisting) {
+				await promptForApiKey();
+			}
 		} else {
 			await promptForApiKey();
 		}
+
+		// Select OpenRouter model
+		console.log("\n📦 Selecting embedding model...\n");
+		const models = await discoverEmbeddingModels();
+
+		modelId = await inquirerSearch({
+			message: "Choose default embedding model:",
+			source: async (term: string | undefined) => {
+				const filtered = term
+					? models.filter(
+							(m) =>
+								m.id.toLowerCase().includes(term.toLowerCase()) ||
+								m.name.toLowerCase().includes(term.toLowerCase()),
+						)
+					: models.slice(0, 10);
+
+				return filtered.map((m) => ({
+					name: formatModelInfo(m),
+					value: m.id,
+				}));
+			},
+		});
+
+	} else if (provider === "ollama") {
+		// Ollama setup
+		endpoint = await input({
+			message: "Ollama endpoint URL:",
+			default: "http://localhost:11434",
+		});
+
+		// Test connection
+		console.log("\n🔄 Testing Ollama connection...");
+		try {
+			const response = await fetch(`${endpoint}/api/tags`);
+			if (response.ok) {
+				const data = await response.json() as { models?: Array<{ name: string }> };
+				const installedModels = data.models || [];
+				const embeddingModels = installedModels.filter((m: { name: string }) =>
+					m.name.includes("embed") || m.name.includes("nomic") || m.name.includes("minilm") || m.name.includes("bge")
+				);
+
+				if (embeddingModels.length > 0) {
+					console.log(`✅ Found ${embeddingModels.length} embedding model(s)`);
+					modelId = await select({
+						message: "Select embedding model:",
+						choices: embeddingModels.map((m: { name: string }) => ({
+							name: m.name,
+							value: m.name.replace(":latest", ""),
+						})),
+					});
+				} else {
+					console.log("⚠️  No embedding models found. Installing nomic-embed-text...");
+					console.log("   Run: ollama pull nomic-embed-text");
+					modelId = "nomic-embed-text";
+				}
+			} else {
+				throw new Error("Connection failed");
+			}
+		} catch {
+			console.log("⚠️  Could not connect to Ollama. Make sure it's running.");
+			console.log("   Start with: ollama serve");
+			modelId = await input({
+				message: "Enter embedding model name:",
+				default: "nomic-embed-text",
+			});
+		}
+
 	} else {
-		await promptForApiKey();
+		// Custom endpoint setup
+		endpoint = await input({
+			message: "Custom endpoint URL:",
+			default: "http://localhost:8000",
+		});
+
+		modelId = await input({
+			message: "Model name:",
+			default: "all-minilm-l6-v2",
+		});
 	}
 
-	// Select default model
-	console.log("\n📦 Selecting embedding model...\n");
-
-	const models = await discoverEmbeddingModels();
-
-	const modelId = await inquirerSearch({
-		message: "Choose default embedding model:",
-		source: async (term: string | undefined) => {
-			const filtered = term
-				? models.filter(
-						(m) =>
-							m.id.toLowerCase().includes(term.toLowerCase()) ||
-							m.name.toLowerCase().includes(term.toLowerCase()),
-					)
-				: models.slice(0, 10);
-
-			return filtered.map((m) => ({
-				name: formatModelInfo(m),
-				value: m.id,
-			}));
-		},
+	// Save configuration
+	saveGlobalConfig({
+		embeddingProvider: provider,
+		defaultModel: modelId,
+		...(provider === "ollama" && endpoint ? { ollamaEndpoint: endpoint } : {}),
+		...(provider === "local" && endpoint ? { localEndpoint: endpoint } : {}),
 	});
 
-	saveGlobalConfig({ defaultModel: modelId });
-
 	console.log("\n✅ Setup complete!");
-	console.log(`\nDefault model: ${modelId}`);
+	console.log(`\nProvider: ${provider}`);
+	console.log(`Model: ${modelId}`);
+	if (endpoint) console.log(`Endpoint: ${endpoint}`);
 	console.log("\nYou can now index your codebase:");
 	console.log("  claudemem index\n");
 }
@@ -361,32 +455,149 @@ async function handleInit(): Promise<void> {
 async function handleModels(args: string[]): Promise<void> {
 	const freeOnly = args.includes("--free");
 	const forceRefresh = args.includes("--refresh");
+	const showOllama = args.includes("--ollama");
 
-	console.log("\n📦 Fetching embedding models...\n");
+	// Colors for output
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		magenta: "\x1b[35m",
+		orange: "\x1b[38;5;209m",
+	};
 
-	const models = await discoverEmbeddingModels(forceRefresh);
-	const filtered = freeOnly ? models.filter((m) => m.isFree) : models;
+	// Check current provider
+	const config = loadGlobalConfig();
+	const currentProvider = config.embeddingProvider || "openrouter";
 
-	console.log("Available Embedding Models:\n");
-	console.log("  Model                              Provider    Price        Context");
-	console.log("  " + "─".repeat(74));
+	// Show Ollama models if requested or if using Ollama provider
+	if (showOllama || currentProvider === "ollama") {
+		console.log("\n📦 Ollama Embedding Models\n");
 
-	for (const model of filtered.slice(0, 20)) {
+		// Show recommended Ollama models
+		console.log(`${c.orange}${c.bold}⭐ RECOMMENDED OLLAMA MODELS${c.reset}\n`);
+
+		const ollamaModels = [
+			{ id: "nomic-embed-text", dim: 768, size: "274MB", desc: "Best quality, multilingual" },
+			{ id: "mxbai-embed-large", dim: 1024, size: "670MB", desc: "Large context, high quality" },
+			{ id: "all-minilm", dim: 384, size: "46MB", desc: "Fastest, lightweight" },
+			{ id: "snowflake-arctic-embed", dim: 1024, size: "670MB", desc: "Optimized for retrieval" },
+		];
+
+		for (const m of ollamaModels) {
+			console.log(`  ${c.cyan}${m.id}${c.reset}`);
+			console.log(`     ${m.desc} | ${m.dim}d | ${m.size}`);
+		}
+
+		console.log(`\n${c.bold}Install:${c.reset} ollama pull nomic-embed-text`);
+		console.log(`${c.bold}Current provider:${c.reset} ${currentProvider}`);
+		if (config.ollamaEndpoint) {
+			console.log(`${c.bold}Endpoint:${c.reset} ${config.ollamaEndpoint}`);
+		}
+		console.log("");
+		return;
+	}
+
+	// Show current provider info
+	console.log(`\n${c.dim}Current provider: ${currentProvider}${c.reset}`);
+	console.log("📦 Fetching embedding models from OpenRouter...\n");
+
+	const allModels = await discoverEmbeddingModels(forceRefresh);
+
+	// Categorize models
+	const freeModels = allModels.filter((m) => m.isFree);
+	const paidModels = allModels.filter((m) => !m.isFree);
+	const recommendedIds = new Set(RECOMMENDED_MODELS.map((m) => m.id));
+
+	// Helper to print a model row
+	const printModel = (model: typeof allModels[0], prefix = "  ") => {
 		const id = model.id.length > 35 ? model.id.slice(0, 32) + "..." : model.id;
-		const price = model.isFree ? "FREE" : `$${model.pricePerMillion.toFixed(3)}/1M`;
+		const price = model.isFree ? `${c.green}FREE${c.reset}` : `$${model.pricePerMillion.toFixed(3)}/1M`;
 		const context = `${Math.round(model.contextLength / 1000)}K`;
-
+		const dim = model.dimension ? `${model.dimension}d` : "N/A";
 		console.log(
-			`  ${id.padEnd(36)} ${model.provider.padEnd(11)} ${price.padEnd(12)} ${context}`,
+			`${prefix}${id.padEnd(36)} ${model.provider.padEnd(10)} ${price.padEnd(20)} ${context.padEnd(6)} ${dim}`,
 		);
+	};
+
+	// Print header
+	const printHeader = () => {
+		console.log(`  ${"Model".padEnd(36)} ${"Provider".padEnd(10)} ${"Price".padEnd(12)} ${"Context".padEnd(6)} Dim`);
+		console.log("  " + "─".repeat(78));
+	};
+
+	if (freeOnly) {
+		// Show only free models
+		console.log(`${c.yellow}${c.bold}FREE EMBEDDING MODELS${c.reset}\n`);
+		printHeader();
+
+		if (freeModels.length === 0) {
+			console.log(`  ${c.dim}No free models currently available${c.reset}`);
+		} else {
+			for (const model of freeModels) {
+				printModel(model);
+			}
+		}
+		console.log("");
+		console.log(`${c.dim}Note: Free model availability changes frequently.${c.reset}`);
+		console.log(`${c.dim}Use --refresh to fetch the latest list.${c.reset}\n`);
+		return;
 	}
 
-	if (filtered.length > 20) {
-		console.log(`\n  ... and ${filtered.length - 20} more models`);
+	// Show all categories
+
+	// 1. Curated Picks (4 categories)
+	console.log(`${c.orange}${c.bold}⭐ CURATED PICKS${c.reset}\n`);
+
+	const picks = [
+		{ label: "Best Quality", emoji: "🏆", model: CURATED_PICKS.bestQuality, desc: "Top-tier code understanding" },
+		{ label: "Best Balanced", emoji: "⚖️", model: CURATED_PICKS.bestBalanced, desc: "Excellent quality/price ratio" },
+		{ label: "Best Value", emoji: "💰", model: CURATED_PICKS.bestValue, desc: "Great quality, lowest cost" },
+		{ label: "Fastest", emoji: "⚡", model: CURATED_PICKS.fastest, desc: "Optimized for speed" },
+	];
+
+	for (const pick of picks) {
+		const price = pick.model.isFree ? `${c.green}FREE${c.reset}` : `$${pick.model.pricePerMillion.toFixed(3)}/1M`;
+		const context = `${Math.round(pick.model.contextLength / 1000)}K`;
+		const dim = pick.model.dimension ? `${pick.model.dimension}d` : "";
+		console.log(`  ${pick.emoji} ${c.bold}${pick.label}${c.reset}: ${c.cyan}${pick.model.id}${c.reset}`);
+		console.log(`     ${pick.desc} | ${price} | ${context} ctx | ${dim}`);
+	}
+	console.log("");
+
+	// 3. Free Models (if any)
+	if (freeModels.length > 0) {
+		console.log(`${c.green}${c.bold}🆓 FREE MODELS${c.reset} ${c.dim}(Currently available)${c.reset}\n`);
+		printHeader();
+		for (const model of freeModels.slice(0, 10)) {
+			printModel(model);
+		}
+		if (freeModels.length > 10) {
+			console.log(`  ${c.dim}... and ${freeModels.length - 10} more free models${c.reset}`);
+		}
+		console.log("");
 	}
 
-	console.log("\n💡 Recommended for code: qwen/qwen3-embedding-8b");
-	console.log("   Best price/quality for code embeddings.\n");
+	// 4. Other Paid Models
+	const otherPaid = paidModels.filter((m) => !recommendedIds.has(m.id));
+	if (otherPaid.length > 0) {
+		console.log(`${c.cyan}${c.bold}💰 OTHER PAID MODELS${c.reset}\n`);
+		printHeader();
+		for (const model of otherPaid.slice(0, 10)) {
+			printModel(model);
+		}
+		if (otherPaid.length > 10) {
+			console.log(`  ${c.dim}... and ${otherPaid.length - 10} more paid models${c.reset}`);
+		}
+		console.log("");
+	}
+
+	// Summary
+	console.log(`${c.bold}Summary:${c.reset} ${allModels.length} total models (${freeModels.length} free, ${paidModels.length} paid)`);
+	console.log(`\n${c.dim}Use --free to show only free models, --refresh to update from API${c.reset}\n`);
 }
 
 // ============================================================================
@@ -465,10 +676,12 @@ ${c.yellow}${c.bold}SEARCH OPTIONS${c.reset}
 ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
   ${c.cyan}--free${c.reset}                 Show only free models
   ${c.cyan}--refresh${c.reset}              Force refresh from API
+  ${c.cyan}--ollama${c.reset}               Show Ollama local models
 
 ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
   ${c.cyan}-h, --help${c.reset}             Show this help
+  ${c.cyan}--models${c.reset}               List available embedding models (with --free, --refresh)
 
 ${c.yellow}${c.bold}MCP SERVER${c.reset}
   ${c.cyan}claudemem --mcp${c.reset}        Start as MCP server (for Claude Code)
@@ -493,6 +706,10 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
 
   ${c.dim}# Auto-create index on first search${c.reset}
   ${c.cyan}claudemem search "something" -y${c.reset}
+
+  ${c.dim}# Show available embedding models${c.reset}
+  ${c.cyan}claudemem --models${c.reset}
+  ${c.cyan}claudemem --models --free${c.reset}
 
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}

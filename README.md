@@ -26,8 +26,7 @@ The search combines keyword matching with vector similarity. Works surprisingly 
 ## Quick start
 
 ```bash
-# first time setup - grabs your OpenRouter API key
-# (free tier works fine, or pay ~$0.01 per 1M tokens)
+# first time setup
 claudemem init
 
 # index your project
@@ -39,6 +38,42 @@ claudemem search "where do we validate user input"
 ```
 
 That's it. Changed some files? Just search again — it auto-reindexes modified files before searching.
+
+## Embedding providers
+
+claudemem supports three embedding providers:
+
+### OpenRouter (cloud, default)
+```bash
+claudemem init  # select "OpenRouter"
+# requires API key from https://openrouter.ai/keys
+# ~$0.01 per 1M tokens
+```
+
+### Ollama (local, free)
+```bash
+# install Ollama first: https://ollama.ai
+ollama pull nomic-embed-text
+
+claudemem init  # select "Ollama"
+```
+
+Recommended Ollama models:
+- `nomic-embed-text` — best quality, 768d, 274MB
+- `mxbai-embed-large` — large context, 1024d, 670MB
+- `all-minilm` — fastest, 384d, 46MB
+
+### Custom endpoint (local server)
+```bash
+claudemem init  # select "Custom endpoint"
+# expects OpenAI-compatible /embeddings endpoint
+```
+
+View available models:
+```bash
+claudemem --models           # OpenRouter models
+claudemem --models --ollama  # Ollama models
+```
 
 ## Using with Claude Code
 
@@ -90,17 +125,17 @@ Search flags:
 ## Config
 
 Env vars:
-- `OPENROUTER_API_KEY` — required
+- `OPENROUTER_API_KEY` — for OpenRouter provider
 - `CLAUDEMEM_MODEL` — override embedding model
 
 Files:
-- `~/.claudemem/config.json` — global config
+- `~/.claudemem/config.json` — global config (provider, model, endpoints)
 - `.claudemem/` — project index (add to .gitignore)
 
 ## Limitations
 
-- Needs OpenRouter API key (free tier exists)
 - First index takes a minute on large codebases
+- Ollama is slower than cloud (runs locally, no batching)
 - Embedding quality depends on the model you pick
 - Not magic — sometimes grep is still faster for exact strings
 

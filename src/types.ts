@@ -111,6 +111,24 @@ export interface FileState {
 // Embedding Types
 // ============================================================================
 
+/** Supported embedding providers */
+export type EmbeddingProvider = "openrouter" | "ollama" | "local";
+
+/**
+ * Embeddings client interface
+ * All embedding providers must implement this interface
+ */
+export interface IEmbeddingsClient {
+	/** Generate embeddings for multiple texts */
+	embed(texts: string[]): Promise<number[][]>;
+	/** Generate embedding for a single text */
+	embedOne(text: string): Promise<number[]>;
+	/** Get the model being used */
+	getModel(): string;
+	/** Get the embedding dimension (discovered after first request) */
+	getDimension(): number | undefined;
+}
+
 export interface EmbeddingModel {
 	/** Model ID (e.g., "qwen/qwen3-embedding-8b") */
 	id: string;
@@ -126,6 +144,8 @@ export interface EmbeddingModel {
 	pricePerMillion: number;
 	/** Whether model is free */
 	isFree: boolean;
+	/** Whether this is a top recommended model */
+	isRecommended?: boolean;
 }
 
 export interface EmbeddingResponse {
@@ -151,6 +171,12 @@ export interface GlobalConfig {
 	openrouterApiKey?: string;
 	/** Global exclude patterns */
 	excludePatterns: string[];
+	/** Embedding provider (openrouter, ollama, local) */
+	embeddingProvider?: EmbeddingProvider;
+	/** Ollama endpoint URL (default: http://localhost:11434) */
+	ollamaEndpoint?: string;
+	/** Custom local endpoint URL */
+	localEndpoint?: string;
 }
 
 export interface ProjectConfig {
