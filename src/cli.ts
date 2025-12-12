@@ -165,7 +165,11 @@ async function handleSearch(args: string[]): Promise<void> {
 	const autoYes = args.includes("-y") || args.includes("--yes");
 
 	// Get query (everything that's not a flag)
-	const flagIndices = new Set([limitIdx, limitIdx + 1, langIdx, langIdx + 1, pathIdx, pathIdx + 1]);
+	// Only add indices to flagIndices if the flag was actually found (>= 0)
+	const flagIndices = new Set<number>();
+	if (limitIdx >= 0) { flagIndices.add(limitIdx); flagIndices.add(limitIdx + 1); }
+	if (langIdx >= 0) { flagIndices.add(langIdx); flagIndices.add(langIdx + 1); }
+	if (pathIdx >= 0) { flagIndices.add(pathIdx); flagIndices.add(pathIdx + 1); }
 	const queryParts = args.filter((_, i) => !flagIndices.has(i) && !args[i].startsWith("-"));
 	const query = queryParts.join(" ");
 

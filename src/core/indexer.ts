@@ -64,6 +64,8 @@ export class Indexer {
 	private model: string;
 	private excludePatterns: string[];
 	private includePatterns: string[];
+	private includeExtensions: Set<string> | null;
+	private excludeExtensions: Set<string>;
 	private onProgress?: (current: number, total: number, file: string) => void;
 
 	private embeddingsClient: IEmbeddingsClient | null = null;
@@ -78,9 +80,20 @@ export class Indexer {
 			...getExcludePatterns(options.projectPath),
 			...(options.excludePatterns || []),
 		];
-		// Get include patterns from config or options
+		// Get config options
 		const projectConfig = loadProjectConfig(options.projectPath);
 		this.includePatterns = options.includePatterns || projectConfig?.includePatterns || [];
+
+		// Extension filters from config
+		// includeExtensions: if set, ONLY index these extensions
+		// excludeExtensions: never index these extensions
+		this.includeExtensions = projectConfig?.includeExtensions
+			? new Set(projectConfig.includeExtensions.map(e => e.startsWith('.') ? e : `.${e}`))
+			: null;
+		this.excludeExtensions = new Set(
+			(projectConfig?.excludeExtensions || []).map(e => e.startsWith('.') ? e : `.${e}`)
+		);
+
 		this.onProgress = options.onProgress;
 	}
 
@@ -107,6 +120,9 @@ export class Indexer {
 		const indexDbPath = getIndexDbPath(this.projectPath);
 		this.fileTracker = createFileTracker(indexDbPath, this.projectPath);
 	}
+
+	/** Maximum files to process per batch (limits memory usage) */
+	private static readonly FILES_PER_BATCH = 500;
 
 	/**
 	 * Index the codebase
@@ -144,90 +160,110 @@ export class Indexer {
 			}
 		}
 
-		// Phase 1: Parse and chunk all files (CPU-bound, fast)
+		// Process files in batches to limit memory usage
+		// Each batch: parse → embed → store → release memory
 		const skippedFiles: string[] = [];
 		const errors: Array<{ file: string; error: string }> = [];
-		const allChunks: Array<{ chunk: CodeChunk; filePath: string; fileHash: string }> = [];
+		let totalFilesIndexed = 0;
+		let totalChunksCreated = 0;
 
-		for (let i = 0; i < filesToIndex.length; i++) {
-			const filePath = filesToIndex[i];
-			const relativePath = relative(this.projectPath, filePath);
+		const totalBatches = Math.ceil(filesToIndex.length / Indexer.FILES_PER_BATCH);
 
-			// Report progress (parsing phase)
-			if (this.onProgress) {
-				this.onProgress(i + 1, filesToIndex.length, `[parsing] ${relativePath}`);
-			}
+		for (let batchNum = 0; batchNum < totalBatches; batchNum++) {
+			const batchStart = batchNum * Indexer.FILES_PER_BATCH;
+			const batchEnd = Math.min(batchStart + Indexer.FILES_PER_BATCH, filesToIndex.length);
+			const batchFiles = filesToIndex.slice(batchStart, batchEnd);
 
-			try {
-				const content = readFileSync(filePath, "utf-8");
-				const fileHash = computeFileHash(filePath);
-				const chunks = await chunkFileByPath(content, filePath, fileHash);
+			// Phase 1: Parse and chunk batch of files
+			const batchChunks: Array<{ chunk: CodeChunk; filePath: string; fileHash: string }> = [];
 
-				if (chunks.length === 0) {
-					skippedFiles.push(relativePath);
-				} else {
-					for (const chunk of chunks) {
-						allChunks.push({ chunk, filePath, fileHash });
-					}
+			for (let i = 0; i < batchFiles.length; i++) {
+				const filePath = batchFiles[i];
+				const relativePath = relative(this.projectPath, filePath);
+				const globalIndex = batchStart + i + 1;
+
+				// Report progress (parsing phase)
+				if (this.onProgress) {
+					const batchInfo = totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
+					this.onProgress(globalIndex, filesToIndex.length, `[parsing]${batchInfo} ${relativePath}`);
 				}
-			} catch (error) {
-				const errorMsg = error instanceof Error ? error.message : String(error);
-				errors.push({ file: relativePath, error: errorMsg });
+
+				try {
+					const content = readFileSync(filePath, "utf-8");
+					const fileHash = computeFileHash(filePath);
+					const chunks = await chunkFileByPath(content, filePath, fileHash);
+
+					if (chunks.length === 0) {
+						skippedFiles.push(relativePath);
+					} else {
+						for (const chunk of chunks) {
+							batchChunks.push({ chunk, filePath, fileHash });
+						}
+					}
+				} catch (error) {
+					const errorMsg = error instanceof Error ? error.message : String(error);
+					errors.push({ file: relativePath, error: errorMsg });
+				}
 			}
-		}
 
-		// Phase 2: Batch embed all chunks (network-bound, parallel batches)
-		if (this.onProgress) {
-			this.onProgress(0, allChunks.length, `[embedding] ${allChunks.length} chunks (parallel batches)...`);
-		}
+			// Skip embedding/storing if no chunks in this batch
+			if (batchChunks.length === 0) {
+				continue;
+			}
 
-		const texts = allChunks.map((c) => c.chunk.content);
-		let embeddings: number[][] = [];
+			// Phase 2: Embed batch chunks
+			if (this.onProgress) {
+				const batchInfo = totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
+				this.onProgress(0, batchChunks.length, `[embedding]${batchInfo} ${batchChunks.length} chunks...`);
+			}
 
-		if (texts.length > 0) {
+			const texts = batchChunks.map((c) => c.chunk.content);
+			let embeddings: number[][] = [];
+
 			try {
 				embeddings = await this.embeddingsClient!.embed(texts);
 			} catch (error) {
 				const errorMsg = error instanceof Error ? error.message : String(error);
 				throw new Error(`Embedding generation failed: ${errorMsg}`);
 			}
-		}
 
-		// Verify we got embeddings for all chunks
-		if (embeddings.length !== texts.length) {
-			throw new Error(
-				`Embedding count mismatch: expected ${texts.length}, got ${embeddings.length}`,
-			);
-		}
+			// Verify we got embeddings for all chunks
+			if (embeddings.length !== texts.length) {
+				throw new Error(
+					`Embedding count mismatch: expected ${texts.length}, got ${embeddings.length}`,
+				);
+			}
 
-		// Phase 3: Store all chunks with embeddings
-		const chunksWithEmbeddings: ChunkWithEmbedding[] = allChunks.map((c, i) => ({
-			...c.chunk,
-			vector: embeddings[i],
-		}));
+			// Phase 3: Store batch chunks with embeddings
+			const chunksWithEmbeddings: ChunkWithEmbedding[] = batchChunks.map((c, i) => ({
+				...c.chunk,
+				vector: embeddings[i],
+			}));
 
-		if (chunksWithEmbeddings.length > 0) {
 			if (this.onProgress) {
-				this.onProgress(0, chunksWithEmbeddings.length, `[storing] ${chunksWithEmbeddings.length} chunks...`);
+				const batchInfo = totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
+				this.onProgress(0, chunksWithEmbeddings.length, `[storing]${batchInfo} ${chunksWithEmbeddings.length} chunks...`);
 			}
 			await this.vectorStore!.addChunks(chunksWithEmbeddings);
-		}
 
-		// Phase 4: Update file tracker
-		const fileChunkMap = new Map<string, { fileHash: string; chunkIds: string[] }>();
-		for (const { chunk, filePath, fileHash } of allChunks) {
-			if (!fileChunkMap.has(filePath)) {
-				fileChunkMap.set(filePath, { fileHash, chunkIds: [] });
+			// Phase 4: Update file tracker for this batch
+			const fileChunkMap = new Map<string, { fileHash: string; chunkIds: string[] }>();
+			for (const { chunk, filePath, fileHash } of batchChunks) {
+				if (!fileChunkMap.has(filePath)) {
+					fileChunkMap.set(filePath, { fileHash, chunkIds: [] });
+				}
+				fileChunkMap.get(filePath)!.chunkIds.push(chunk.id);
 			}
-			fileChunkMap.get(filePath)!.chunkIds.push(chunk.id);
-		}
 
-		for (const [filePath, { fileHash, chunkIds }] of fileChunkMap) {
-			this.fileTracker!.markIndexed(filePath, fileHash, chunkIds);
-		}
+			for (const [filePath, { fileHash, chunkIds }] of fileChunkMap) {
+				this.fileTracker!.markIndexed(filePath, fileHash, chunkIds);
+			}
 
-		const filesIndexed = fileChunkMap.size;
-		const chunksCreated = allChunks.length;
+			totalFilesIndexed += fileChunkMap.size;
+			totalChunksCreated += batchChunks.length;
+
+			// Memory is released when batchChunks, embeddings, chunksWithEmbeddings go out of scope
+		}
 
 		// Save model info to project config
 		saveProjectConfig(this.projectPath, {
@@ -247,8 +283,8 @@ export class Indexer {
 		const durationMs = Date.now() - startTime;
 
 		return {
-			filesIndexed,
-			chunksCreated,
+			filesIndexed: totalFilesIndexed,
+			chunksCreated: totalChunksCreated,
 			durationMs,
 			skippedFiles,
 			errors,
@@ -345,8 +381,18 @@ export class Indexer {
 						continue;
 					}
 
-					// Check if file extension is supported
-					const ext = "." + entry.name.split(".").pop();
+					// Get file extension
+					const ext = "." + entry.name.split(".").pop()?.toLowerCase();
+
+					// Check extension filters from config
+					if (this.excludeExtensions.has(ext)) {
+						continue; // Skip excluded extensions
+					}
+					if (this.includeExtensions && !this.includeExtensions.has(ext)) {
+						continue; // Skip if not in include list (when include list is specified)
+					}
+
+					// Check if file extension is supported by parser
 					if (supportedExtensions.has(ext)) {
 						files.push(fullPath);
 					}

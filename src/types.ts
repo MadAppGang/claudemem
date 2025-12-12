@@ -186,6 +186,10 @@ export interface ProjectConfig {
 	excludePatterns?: string[];
 	/** Include only these patterns (glob patterns) */
 	includePatterns?: string[];
+	/** Only index files with these extensions (e.g., [".ts", ".tsx"]) */
+	includeExtensions?: string[];
+	/** Exclude files with these extensions from indexing */
+	excludeExtensions?: string[];
 	/** Use .gitignore patterns for exclusion (default: true) */
 	useGitignore?: boolean;
 	/** Enable auto-indexing on search (default: true) */
