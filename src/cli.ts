@@ -96,6 +96,23 @@ export async function runCli(args: string[]): Promise<void> {
 // Command Handlers
 // ============================================================================
 
+/** Format elapsed time as mm:ss */
+function formatElapsed(ms: number): string {
+	const seconds = Math.floor(ms / 1000);
+	const mins = Math.floor(seconds / 60);
+	const secs = seconds % 60;
+	return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
+/** Create a progress bar string */
+function progressBar(current: number, total: number, width = 20): string {
+	if (total === 0) return "░".repeat(width);
+	const percent = Math.min(current / total, 1);
+	const filled = Math.round(percent * width);
+	const empty = width - filled;
+	return "█".repeat(filled) + "░".repeat(empty);
+}
+
 async function handleIndex(args: string[]): Promise<void> {
 	// Parse arguments
 	const force = args.includes("--force") || args.includes("-f");
@@ -114,23 +131,44 @@ async function handleIndex(args: string[]): Promise<void> {
 		console.log("(Force mode: re-indexing all files)\n");
 	}
 
+	const startTime = Date.now();
+	let lastPhase = "";
+
 	const indexer = createIndexer({
 		projectPath,
 		onProgress: (current, total, file) => {
-			process.stdout.write(`\r[${current}/${total}] ${file.slice(0, 60).padEnd(60)}`);
+			const elapsed = formatElapsed(Date.now() - startTime);
+			const bar = progressBar(current, total);
+			const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+
+			// Extract phase from file string (e.g., "[parsing] filename" or "[embedding] 100 chunks...")
+			const phaseMatch = file.match(/^\[(\w+)\]/);
+			const phase = phaseMatch ? phaseMatch[1] : "processing";
+			const detail = file.replace(/^\[\w+\]\s*/, "").slice(0, 35);
+
+			// Show phase change
+			if (phase !== lastPhase && lastPhase !== "") {
+				process.stdout.write("\n");
+			}
+			lastPhase = phase;
+
+			process.stdout.write(
+				`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(9)} │ ${detail.padEnd(35)}`
+			);
 		},
 	});
 
 	try {
 		const result = await indexer.index(force);
 
-		// Clear progress line
-		process.stdout.write("\r" + " ".repeat(80) + "\r");
+		// Clear progress line and show completion
+		process.stdout.write("\r" + " ".repeat(100) + "\r");
 
-		console.log("\n✅ Indexing complete!\n");
-		console.log(`  Files indexed: ${result.filesIndexed}`);
+		const totalElapsed = formatElapsed(result.durationMs);
+		console.log(`\n✅ Indexing complete in ${totalElapsed}!\n`);
+		console.log(`  Files indexed:  ${result.filesIndexed}`);
 		console.log(`  Chunks created: ${result.chunksCreated}`);
-		console.log(`  Duration: ${(result.durationMs / 1000).toFixed(2)}s`);
+		console.log(`  Duration:       ${(result.durationMs / 1000).toFixed(2)}s`);
 
 		if (result.errors.length > 0) {
 			console.log(`\n⚠️  Errors (${result.errors.length}):`);
