@@ -79,6 +79,10 @@ export interface IndexResult {
 	skippedFiles: string[];
 	/** Any errors encountered */
 	errors: Array<{ file: string; error: string }>;
+	/** Total cost in USD (if reported by provider) */
+	cost?: number;
+	/** Total tokens used (if reported by provider) */
+	totalTokens?: number;
 }
 
 export interface IndexStatus {
@@ -114,13 +118,25 @@ export interface FileState {
 /** Supported embedding providers */
 export type EmbeddingProvider = "openrouter" | "ollama" | "local";
 
+/** Progress callback for embedding operations */
+export type EmbeddingProgressCallback = (completed: number, total: number) => void;
+
+/** Result of embedding operation with usage stats */
+export interface EmbedResult {
+	embeddings: number[][];
+	/** Total tokens used (if reported by provider) */
+	totalTokens?: number;
+	/** Cost in USD (if reported by provider) */
+	cost?: number;
+}
+
 /**
  * Embeddings client interface
  * All embedding providers must implement this interface
  */
 export interface IEmbeddingsClient {
 	/** Generate embeddings for multiple texts */
-	embed(texts: string[]): Promise<number[][]>;
+	embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult>;
 	/** Generate embedding for a single text */
 	embedOne(text: string): Promise<number[]>;
 	/** Get the model being used */
@@ -153,10 +169,12 @@ export interface EmbeddingResponse {
 	embeddings: number[][];
 	/** Model used */
 	model: string;
-	/** Token usage */
+	/** Token usage and cost */
 	usage?: {
 		promptTokens: number;
 		totalTokens: number;
+		/** Cost in USD (if reported by provider) */
+		cost?: number;
 	};
 }
 

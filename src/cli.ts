@@ -169,6 +169,9 @@ async function handleIndex(args: string[]): Promise<void> {
 		console.log(`  Files indexed:  ${result.filesIndexed}`);
 		console.log(`  Chunks created: ${result.chunksCreated}`);
 		console.log(`  Duration:       ${(result.durationMs / 1000).toFixed(2)}s`);
+		if (result.cost !== undefined) {
+			console.log(`  Cost:           $${result.cost.toFixed(6)}`);
+		}
 
 		if (result.errors.length > 0) {
 			console.log(`\n⚠️  Errors (${result.errors.length}):`);

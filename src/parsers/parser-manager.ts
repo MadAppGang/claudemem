@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Language, Parser } from "web-tree-sitter";
+import { Language, Parser, Tree } from "web-tree-sitter";
 import type { LanguageConfig, SupportedLanguage } from "../types.js";
 
 // ============================================================================
@@ -304,7 +304,7 @@ export class ParserManager {
 	async parse(
 		source: string,
 		language: SupportedLanguage,
-	): Promise<Parser.Tree | null> {
+	): Promise<Tree | null> {
 		const parser = await this.getParser(language);
 		if (!parser) {
 			return null;

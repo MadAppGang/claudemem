@@ -13,7 +13,7 @@ import {
 	getApiKey,
 	loadGlobalConfig,
 } from "../config.js";
-import type { EmbeddingProvider, EmbeddingResponse, IEmbeddingsClient } from "../types.js";
+import type { EmbeddingProgressCallback, EmbeddingProvider, EmbeddingResponse, EmbedResult, IEmbeddingsClient } from "../types.js";
 
 // ============================================================================
 // Constants
@@ -52,6 +52,8 @@ interface OpenRouterEmbeddingResponse {
 	usage?: {
 		prompt_tokens: number;
 		total_tokens: number;
+		/** Cost in USD (OpenRouter provides this directly) */
+		cost?: number;
 	};
 }
 
@@ -94,11 +96,11 @@ abstract class BaseEmbeddingsClient implements IEmbeddingsClient {
 		return this.dimension;
 	}
 
-	abstract embed(texts: string[]): Promise<number[][]>;
+	abstract embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult>;
 
 	async embedOne(text: string): Promise<number[]> {
 		const result = await this.embed([text]);
-		return result[0];
+		return result.embeddings[0];
 	}
 
 	protected sleep(ms: number): Promise<void> {
@@ -128,8 +130,8 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 		this.apiKey = apiKey;
 	}
 
-	async embed(texts: string[]): Promise<number[][]> {
-		if (texts.length === 0) return [];
+	async embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult> {
+		if (texts.length === 0) return { embeddings: [] };
 
 		// Split into batches
 		const batches: string[][] = [];
@@ -141,23 +143,38 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 		const PARALLEL_BATCHES = 5;
 		const results: number[][] = new Array(texts.length);
 		let resultIndex = 0;
+		let completedTexts = 0;
+		let totalTokens = 0;
+		let totalCost = 0;
 
 		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
 			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
 			const batchPromises = batchGroup.map((batch) => this.embedBatch(batch));
 			const batchResults = await Promise.all(batchPromises);
 
-			for (const embeddings of batchResults) {
-				for (const embedding of embeddings) {
+			for (const batchResult of batchResults) {
+				for (const embedding of batchResult.embeddings) {
 					results[resultIndex++] = embedding;
 				}
+				completedTexts += batchResult.embeddings.length;
+				if (batchResult.totalTokens) totalTokens += batchResult.totalTokens;
+				if (batchResult.cost) totalCost += batchResult.cost;
+			}
+
+			// Report progress after each parallel batch group
+			if (onProgress) {
+				onProgress(completedTexts, texts.length);
 			}
 		}
 
-		return results;
+		return {
+			embeddings: results,
+			totalTokens: totalTokens > 0 ? totalTokens : undefined,
+			cost: totalCost > 0 ? totalCost : undefined,
+		};
 	}
 
-	private async embedBatch(texts: string[]): Promise<number[][]> {
+	private async embedBatch(texts: string[]): Promise<EmbedResult> {
 		let lastError: Error | undefined;
 
 		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -168,7 +185,11 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 					this.dimension = response.embeddings[0].length;
 				}
 
-				return response.embeddings;
+				return {
+					embeddings: response.embeddings,
+					totalTokens: response.usage?.totalTokens,
+					cost: response.usage?.cost,
+				};
 			} catch (error) {
 				lastError = error instanceof Error ? error : new Error(String(error));
 
@@ -221,6 +242,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 					? {
 							promptTokens: data.usage.prompt_tokens,
 							totalTokens: data.usage.total_tokens,
+							cost: data.usage.cost,
 						}
 					: undefined,
 			};
@@ -245,22 +267,28 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 		this.endpoint = options.endpoint || DEFAULT_OLLAMA_ENDPOINT;
 	}
 
-	async embed(texts: string[]): Promise<number[][]> {
-		if (texts.length === 0) return [];
+	async embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult> {
+		if (texts.length === 0) return { embeddings: [] };
 
 		// Ollama processes one text at a time
 		const results: number[][] = [];
-		for (const text of texts) {
-			const embedding = await this.embedSingle(text);
+		for (let i = 0; i < texts.length; i++) {
+			const embedding = await this.embedSingle(texts[i]);
 			results.push(embedding);
 
 			// Store dimension on first result
 			if (!this.dimension && embedding.length > 0) {
 				this.dimension = embedding.length;
 			}
+
+			// Report progress
+			if (onProgress) {
+				onProgress(i + 1, texts.length);
+			}
 		}
 
-		return results;
+		// Ollama doesn't report cost (local model)
+		return { embeddings: results };
 	}
 
 	private async embedSingle(text: string): Promise<number[]> {
@@ -328,8 +356,8 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 		this.endpoint = options.endpoint || DEFAULT_LOCAL_ENDPOINT;
 	}
 
-	async embed(texts: string[]): Promise<number[][]> {
-		if (texts.length === 0) return [];
+	async embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult> {
+		if (texts.length === 0) return { embeddings: [] };
 
 		let lastError: Error | undefined;
 
@@ -363,7 +391,13 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 						this.dimension = embeddings[0].length;
 					}
 
-					return embeddings;
+					// Report completion
+					if (onProgress) {
+						onProgress(texts.length, texts.length);
+					}
+
+					// Local server doesn't report cost
+					return { embeddings };
 				} finally {
 					clearTimeout(timeoutId);
 				}

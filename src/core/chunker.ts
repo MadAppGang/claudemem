@@ -6,7 +6,7 @@
  */
 
 import { createHash } from "node:crypto";
-import type Parser from "web-tree-sitter";
+import type { Node, Tree } from "web-tree-sitter";
 import { getParserManager } from "../parsers/parser-manager.js";
 import type {
 	ChunkType,
@@ -82,7 +82,7 @@ export async function chunkFile(
  * Extract semantic chunks from AST
  */
 function extractChunks(
-	tree: Parser.Tree,
+	tree: Tree,
 	source: string,
 	language: SupportedLanguage,
 ): ParsedChunk[] {
@@ -135,8 +135,8 @@ function extractChunks(
  * Walk tree recursively
  */
 function walkTree(
-	node: Parser.SyntaxNode,
-	callback: (node: Parser.SyntaxNode) => boolean,
+	node: Node,
+	callback: (node: Node) => boolean,
 ): void {
 	const shouldContinue = callback(node);
 	if (shouldContinue) {
@@ -205,7 +205,7 @@ function getChunkType(
  * Extract name from AST node
  */
 function extractName(
-	node: Parser.SyntaxNode,
+	node: Node,
 	language: SupportedLanguage,
 ): string | undefined {
 	// Try different name field patterns
@@ -240,7 +240,7 @@ function extractName(
  * Extract parent class name for methods
  */
 function extractParentName(
-	node: Parser.SyntaxNode,
+	node: Node,
 	language: SupportedLanguage,
 ): string | undefined {
 	// For method definitions inside classes
@@ -291,7 +291,7 @@ function extractParentName(
  * Extract function/method signature
  */
 function extractSignature(
-	node: Parser.SyntaxNode,
+	node: Node,
 	source: string,
 	language: SupportedLanguage,
 ): string | undefined {

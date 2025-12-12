@@ -166,6 +166,8 @@ export class Indexer {
 		const errors: Array<{ file: string; error: string }> = [];
 		let totalFilesIndexed = 0;
 		let totalChunksCreated = 0;
+		let totalCost = 0;
+		let totalTokens = 0;
 
 		const totalBatches = Math.ceil(filesToIndex.length / Indexer.FILES_PER_BATCH);
 
@@ -182,10 +184,12 @@ export class Indexer {
 				const relativePath = relative(this.projectPath, filePath);
 				const globalIndex = batchStart + i + 1;
 
-				// Report progress (parsing phase)
+				// Report progress (parsing phase) - show "X/Y" with filename, or just "X/Y files" at completion
 				if (this.onProgress) {
 					const batchInfo = totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
-					this.onProgress(globalIndex, filesToIndex.length, `[parsing]${batchInfo} ${relativePath}`);
+					const isLast = globalIndex === filesToIndex.length;
+					const detail = isLast ? `${globalIndex}/${filesToIndex.length} files` : `${globalIndex}/${filesToIndex.length} ${relativePath}`;
+					this.onProgress(globalIndex, filesToIndex.length, `[parsing]${batchInfo} ${detail}`);
 				}
 
 				try {
@@ -212,32 +216,41 @@ export class Indexer {
 			}
 
 			// Phase 2: Embed batch chunks
+			const batchInfo = totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
 			if (this.onProgress) {
-				const batchInfo = totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
 				this.onProgress(0, batchChunks.length, `[embedding]${batchInfo} ${batchChunks.length} chunks...`);
 			}
 
 			const texts = batchChunks.map((c) => c.chunk.content);
-			let embeddings: number[][] = [];
+			let embedResult: { embeddings: number[][]; cost?: number; totalTokens?: number };
 
 			try {
-				embeddings = await this.embeddingsClient!.embed(texts);
+				// Pass progress callback to track embedding progress
+				embedResult = await this.embeddingsClient!.embed(texts, (completed, total) => {
+					if (this.onProgress) {
+						this.onProgress(completed, total, `[embedding]${batchInfo} ${completed}/${total} chunks`);
+					}
+				});
 			} catch (error) {
 				const errorMsg = error instanceof Error ? error.message : String(error);
 				throw new Error(`Embedding generation failed: ${errorMsg}`);
 			}
 
+			// Track cost and tokens
+			if (embedResult.cost) totalCost += embedResult.cost;
+			if (embedResult.totalTokens) totalTokens += embedResult.totalTokens;
+
 			// Verify we got embeddings for all chunks
-			if (embeddings.length !== texts.length) {
+			if (embedResult.embeddings.length !== texts.length) {
 				throw new Error(
-					`Embedding count mismatch: expected ${texts.length}, got ${embeddings.length}`,
+					`Embedding count mismatch: expected ${texts.length}, got ${embedResult.embeddings.length}`,
 				);
 			}
 
 			// Phase 3: Store batch chunks with embeddings
 			const chunksWithEmbeddings: ChunkWithEmbedding[] = batchChunks.map((c, i) => ({
 				...c.chunk,
-				vector: embeddings[i],
+				vector: embedResult.embeddings[i],
 			}));
 
 			if (this.onProgress) {
@@ -288,6 +301,8 @@ export class Indexer {
 			durationMs,
 			skippedFiles,
 			errors,
+			cost: totalCost > 0 ? totalCost : undefined,
+			totalTokens: totalTokens > 0 ? totalTokens : undefined,
 		};
 	}
 

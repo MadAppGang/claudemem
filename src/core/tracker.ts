@@ -8,8 +8,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, relative } from "node:path";
-import Database from "better-sqlite3";
 import type { FileState } from "../types.js";
+import { createDatabaseSync, type SQLiteDatabase } from "./sqlite.js";
 
 // ============================================================================
 // Types
@@ -31,7 +31,7 @@ export interface FileChanges {
 // ============================================================================
 
 export class FileTracker {
-	private db: Database.Database;
+	private db: SQLiteDatabase;
 	private projectRoot: string;
 
 	constructor(dbPath: string, projectRoot: string) {
@@ -42,7 +42,7 @@ export class FileTracker {
 		}
 
 		this.projectRoot = projectRoot;
-		this.db = new Database(dbPath);
+		this.db = createDatabaseSync(dbPath);
 		this.initializeSchema();
 	}
 
