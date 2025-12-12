@@ -175,7 +175,7 @@ export const DEFAULT_EXCLUDE_PATTERNS = [
 ];
 
 /** Default recommended embedding model */
-export const DEFAULT_EMBEDDING_MODEL = "qwen/qwen3-embedding-8b";
+export const DEFAULT_EMBEDDING_MODEL = "voyage-3.5-lite";
 
 /** OpenRouter API endpoints */
 export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
@@ -189,12 +189,17 @@ export const OPENROUTER_HEADERS = {
 	"X-Title": "claudemem",
 };
 
+/** Voyage AI API endpoint */
+export const VOYAGE_API_URL = "https://api.voyageai.com/v1";
+export const VOYAGE_EMBEDDINGS_URL = `${VOYAGE_API_URL}/embeddings`;
+
 // ============================================================================
 // Environment Variables
 // ============================================================================
 
 export const ENV = {
 	OPENROUTER_API_KEY: "OPENROUTER_API_KEY",
+	VOYAGE_API_KEY: "VOYAGE_API_KEY",
 	CLAUDE_MEM_MODEL: "CLAUDE_MEM_MODEL",
 } as const;
 
@@ -498,6 +503,28 @@ export function getApiKey(): string | undefined {
  */
 export function hasApiKey(): boolean {
 	return !!getApiKey();
+}
+
+/**
+ * Get Voyage AI API key from environment or config
+ */
+export function getVoyageApiKey(): string | undefined {
+	// First check environment variable
+	const envKey = process.env[ENV.VOYAGE_API_KEY];
+	if (envKey) {
+		return envKey;
+	}
+
+	// Then check global config
+	const config = loadGlobalConfig();
+	return config.voyageApiKey;
+}
+
+/**
+ * Check if Voyage API key is configured
+ */
+export function hasVoyageApiKey(): boolean {
+	return !!getVoyageApiKey();
 }
 
 /**

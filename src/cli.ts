@@ -18,7 +18,7 @@ import {
 	saveGlobalConfig,
 } from "./config.js";
 import { createIndexer } from "./core/indexer.js";
-import { OpenRouterEmbeddingsClient } from "./core/embeddings.js";
+import { createEmbeddingsClient, getModelContextLength, truncateForModel } from "./core/embeddings.js";
 import { chunkFileByPath, canChunkFile } from "./core/chunker.js";
 import { createVectorStore } from "./core/store.js";
 import {
@@ -765,12 +765,13 @@ function createBenchmarkProgress(modelIds: string[]) {
 		inProgress: number;
 		phase: string;
 		done: boolean;
+		started: boolean;  // Track if model has actually started
 		error?: string;
 		startTime: number;
 		endTime?: number;
 	}>();
 	for (const id of modelIds) {
-		modelState.set(id, { completed: 0, total: 0, inProgress: 0, phase: "embed", done: false, startTime: globalStartTime });
+		modelState.set(id, { completed: 0, total: 0, inProgress: 0, phase: "embed", done: false, started: false, startTime: globalStartTime });
 	}
 
 	function render() {
@@ -783,10 +784,10 @@ function createBenchmarkProgress(modelIds: string[]) {
 
 		for (const modelId of modelIds) {
 			const state = modelState.get(modelId)!;
-			const { completed, total, inProgress, phase, done, error, startTime, endTime } = state;
+			const { completed, total, inProgress, phase, done, started, error, startTime, endTime } = state;
 
-			// Calculate elapsed time (frozen when done/error)
-			const elapsedMs = (endTime || Date.now()) - startTime;
+			// Calculate elapsed time (frozen when done/error, or show 00:00 if not started)
+			const elapsedMs = started ? (endTime || Date.now()) - startTime : 0;
 			const elapsed = formatElapsed(elapsedMs);
 
 			// Short model name (last part after /)
@@ -807,6 +808,11 @@ function createBenchmarkProgress(modelIds: string[]) {
 				bar = "█".repeat(width);
 				percent = 100;
 				status = `\x1b[38;5;78m${"✓ done".padEnd(20)}\x1b[0m`;
+			} else if (!started) {
+				// Model is waiting to start (sequential queue)
+				bar = "\x1b[90m" + "░".repeat(width) + "\x1b[0m";
+				percent = 0;
+				status = `\x1b[90m${"⏳ waiting...".padEnd(20)}\x1b[0m`;
 			} else {
 				percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 				const filledRatio = total > 0 ? completed / total : 0;
@@ -843,6 +849,11 @@ function createBenchmarkProgress(modelIds: string[]) {
 		update(modelId: string, completed: number, total: number, inProgress: number, phase = "embed") {
 			const state = modelState.get(modelId);
 			if (state) {
+				// Start the timer on first update (when model actually begins)
+				if (!state.started) {
+					state.started = true;
+					state.startTime = Date.now();
+				}
 				state.completed = completed;
 				state.total = total;
 				state.inProgress = inProgress;
@@ -881,6 +892,7 @@ interface BenchmarkResult {
 	speedMs: number;
 	cost: number | undefined;
 	dimension: number;
+	contextLength: number;
 	chunks: number;
 	// Quality metrics
 	ndcg: number;
@@ -1099,18 +1111,28 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		mkdirSync(benchDbBase, { recursive: true });
 	}
 
-	// Run all models in PARALLEL
-	const benchmarkPromises = models.map(async (modelId): Promise<BenchmarkResult> => {
+	// Separate local (Ollama) and cloud models
+	const ollamaModels = models.filter((m) => m.startsWith("ollama/"));
+	const cloudModels = models.filter((m) => !m.startsWith("ollama/"));
+
+	// Helper to benchmark a single model
+	const benchmarkModel = async (modelId: string): Promise<BenchmarkResult> => {
 		const startTime = Date.now();
 		const modelSlug = modelId.replace(/[^a-zA-Z0-9]/g, "-");
 		const tempDbPath = join(benchDbBase, modelSlug);
 
 		try {
-			const client = new OpenRouterEmbeddingsClient({ model: modelId });
+			const client = createEmbeddingsClient({ model: modelId });
+
+			// Truncate chunks to fit model's context window
+			const chunkTexts = truncateForModel(
+				chunksWithPaths.map((c) => c.content),
+				modelId,
+			);
 
 			// Phase 1: Embed all chunks
 			const embedResult = await client.embed(
-				chunksWithPaths.map((c) => c.content),
+				chunkTexts,
 				(completed, total, inProgress) => {
 					progress.update(modelId, completed, total, inProgress, "embed");
 				},
@@ -1211,6 +1233,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 				speedMs: embedTimeMs,
 				cost: embedResult.cost,
 				dimension: embedResult.embeddings[0]?.length || 0,
+				contextLength: getModelContextLength(modelId),
 				chunks: chunksWithPaths.length,
 				ndcg: (ndcgSum / n) * 100,
 				mrr: (mrrSum / n) * 100,
@@ -1228,6 +1251,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 				speedMs: Date.now() - startTime,
 				cost: undefined,
 				dimension: 0,
+				contextLength: getModelContextLength(modelId),
 				chunks: 0,
 				ndcg: 0,
 				mrr: 0,
@@ -1235,9 +1259,20 @@ async function handleBenchmark(args: string[]): Promise<void> {
 				error: errMsg,
 			};
 		}
-	});
+	};
 
-	const results = await Promise.all(benchmarkPromises);
+	// Run cloud models in PARALLEL (they use different APIs)
+	const cloudPromises = cloudModels.map((modelId) => benchmarkModel(modelId));
+	const cloudResults = await Promise.all(cloudPromises);
+
+	// Run Ollama models SEQUENTIALLY (they share local GPU/CPU)
+	const ollamaResults: BenchmarkResult[] = [];
+	for (const modelId of ollamaModels) {
+		const result = await benchmarkModel(modelId);
+		ollamaResults.push(result);
+	}
+
+	const results = [...cloudResults, ...ollamaResults];
 	progress.stop();
 
 	// Sort by NDCG (quality first)
@@ -1245,11 +1280,14 @@ async function handleBenchmark(args: string[]): Promise<void> {
 
 	// Display results table
 	console.log(`\n${c.bold}Results (sorted by quality):${c.reset}\n`);
-	console.log(`  ${"Model".padEnd(32)} ${"Speed".padEnd(8)} ${"Cost".padEnd(12)} ${"Dim".padEnd(6)} ${"NDCG".padEnd(7)} ${"MRR".padEnd(7)} ${"Hit@5"}`);
-	console.log("  " + "─".repeat(87));
+	console.log(`  ${"Model".padEnd(28)} ${"Speed".padEnd(7)} ${"Cost".padEnd(11)} ${"Ctx".padEnd(6)} ${"Dim".padEnd(6)} ${"NDCG".padEnd(6)} ${"MRR".padEnd(6)} ${"Hit@5"}`);
+	console.log("  " + "─".repeat(82));
 
 	// Truncate long model names
-	const truncate = (s: string, max = 30) => s.length > max ? s.slice(0, max - 1) + "…" : s;
+	const truncate = (s: string, max = 26) => s.length > max ? s.slice(0, max - 1) + "…" : s;
+
+	// Format context length (e.g., 32000 -> "32K")
+	const fmtCtx = (ctx: number) => ctx >= 1000 ? `${Math.round(ctx / 1000)}K` : String(ctx);
 
 	// Calculate best/worst for highlighting
 	const successResults = results.filter((r) => !r.error);
@@ -1263,7 +1301,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	const shouldHighlight = successResults.length > 1;
 
 	for (const r of results) {
-		const displayName = truncate(r.model).padEnd(32);
+		const displayName = truncate(r.model).padEnd(28);
 		if (r.error) {
 			console.log(`  ${c.red}${displayName} ERROR${c.reset}`);
 			console.log(`    ${c.dim}${r.error}${c.reset}`);
@@ -1271,37 +1309,43 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		}
 
 		// Speed with highlighting
-		const speedVal = `${(r.speedMs / 1000).toFixed(2)}s`;
-		let speed = speedVal.padEnd(8);
+		const speedVal = `${(r.speedMs / 1000).toFixed(1)}s`;
+		let speed = speedVal.padEnd(7);
 		if (shouldHighlight && r.speedMs === minSpeed) {
-			speed = `${c.green}${speedVal.padEnd(8)}${c.reset}`;
+			speed = `${c.green}${speedVal.padEnd(7)}${c.reset}`;
 		} else if (shouldHighlight && r.speedMs === maxSpeed && minSpeed !== maxSpeed) {
-			speed = `${c.red}${speedVal.padEnd(8)}${c.reset}`;
+			speed = `${c.red}${speedVal.padEnd(7)}${c.reset}`;
 		}
 
-		// Cost with highlighting
-		const costVal = r.cost !== undefined ? `$${r.cost.toFixed(6)}` : "N/A";
-		let cost = costVal.padEnd(12);
-		if (shouldHighlight && r.cost !== undefined && minCost !== undefined && r.cost === minCost) {
-			cost = `${c.green}${costVal.padEnd(12)}${c.reset}`;
+		// Cost with highlighting (FREE for local/ollama models)
+		const isLocal = r.model.startsWith("ollama/");
+		const costVal = isLocal ? "FREE" : (r.cost !== undefined ? `$${r.cost.toFixed(5)}` : "N/A");
+		let cost = costVal.padEnd(11);
+		if (isLocal) {
+			cost = `${c.green}${costVal.padEnd(11)}${c.reset}`;
+		} else if (shouldHighlight && r.cost !== undefined && minCost !== undefined && r.cost === minCost) {
+			cost = `${c.green}${costVal.padEnd(11)}${c.reset}`;
 		} else if (shouldHighlight && r.cost !== undefined && maxCost !== undefined && r.cost === maxCost && minCost !== maxCost) {
-			cost = `${c.red}${costVal.padEnd(12)}${c.reset}`;
+			cost = `${c.red}${costVal.padEnd(11)}${c.reset}`;
 		}
+
+		// Context length
+		const ctx = fmtCtx(r.contextLength).padEnd(6);
 
 		// NDCG with highlighting
 		const ndcgVal = `${r.ndcg.toFixed(0)}%`;
-		let ndcg = ndcgVal.padEnd(7);
+		let ndcg = ndcgVal.padEnd(6);
 		if (shouldHighlight && r.ndcg === maxNdcg) {
-			ndcg = `${c.green}${ndcgVal.padEnd(7)}${c.reset}`;
+			ndcg = `${c.green}${ndcgVal.padEnd(6)}${c.reset}`;
 		} else if (shouldHighlight && r.ndcg === minNdcg && minNdcg !== maxNdcg) {
-			ndcg = `${c.red}${ndcgVal.padEnd(7)}${c.reset}`;
+			ndcg = `${c.red}${ndcgVal.padEnd(6)}${c.reset}`;
 		}
 
 		const dim = `${r.dimension}d`.padEnd(6);
-		const mrr = `${r.mrr.toFixed(0)}%`.padEnd(7);
+		const mrr = `${r.mrr.toFixed(0)}%`.padEnd(6);
 		const hit5 = `${r.hitRate.k5.toFixed(0)}%`;
 
-		console.log(`  ${displayName} ${speed} ${cost} ${dim} ${ndcg} ${mrr} ${hit5}`);
+		console.log(`  ${displayName} ${speed} ${cost} ${ctx} ${dim} ${ndcg} ${mrr} ${hit5}`);
 	}
 
 	// Summary

@@ -3,6 +3,7 @@
  *
  * Multi-provider embedding generation supporting:
  * - OpenRouter (cloud API)
+ * - Voyage AI (cloud API for code/legal/finance)
  * - Ollama (local)
  * - Custom endpoints (local HTTP servers)
  */
@@ -10,7 +11,9 @@
 import {
 	OPENROUTER_EMBEDDINGS_URL,
 	OPENROUTER_HEADERS,
+	VOYAGE_EMBEDDINGS_URL,
 	getApiKey,
+	getVoyageApiKey,
 	loadGlobalConfig,
 } from "../config.js";
 import type { EmbeddingProgressCallback, EmbeddingProvider, EmbeddingResponse, EmbedResult, IEmbeddingsClient } from "../types.js";
@@ -33,11 +36,44 @@ const DEFAULT_MODELS: Record<EmbeddingProvider, string> = {
 	openrouter: "qwen/qwen3-embedding-8b",
 	ollama: "nomic-embed-text",
 	local: "all-minilm-l6-v2",
+	voyage: "voyage-code-3",
 };
 
 /** Default endpoints */
 const DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434";
 const DEFAULT_LOCAL_ENDPOINT = "http://localhost:8000";
+
+/** Known context lengths (in tokens) for common models */
+const MODEL_CONTEXT_LENGTHS: Record<string, number> = {
+	// Voyage models - 32K context
+	"voyage-code-3": 32000,
+	"voyage-3-large": 32000,
+	"voyage-3.5": 32000,
+	"voyage-3.5-lite": 32000,
+	"voyage-finance-2": 32000,
+	"voyage-law-2": 16000,
+	"voyage-code-2": 16000,
+	// OpenAI via OpenRouter - 8K context
+	"openai/text-embedding-3-small": 8191,
+	"openai/text-embedding-3-large": 8191,
+	"text-embedding-3-small": 8191,
+	"text-embedding-3-large": 8191,
+	// Mistral
+	"mistralai/mistral-embed-2312": 8192,
+	// Google
+	"google/gemini-embedding-001": 2048,
+	// Sentence Transformers - small context
+	"sentence-transformers/all-minilm-l6-v2": 512,
+	"all-minilm-l6-v2": 512,
+	// Ollama models
+	"nomic-embed-text": 8192,
+	"mxbai-embed-large": 512,
+	"snowflake-arctic-embed": 512,
+	"snowflake-arctic-embed2": 8192,
+	"bge-m3": 8192,
+	"bge-large": 512,
+	"embeddinggemma": 2048,
+};
 
 // ============================================================================
 // Types
@@ -439,35 +475,244 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 }
 
 // ============================================================================
+// Voyage AI Client
+// ============================================================================
+
+/** Voyage model pricing per million tokens (USD) */
+const VOYAGE_PRICING: Record<string, number> = {
+	"voyage-3-large": 0.18,
+	"voyage-context-3": 0.18,
+	"voyage-3.5": 0.06,
+	"voyage-3.5-lite": 0.02,
+	"voyage-code-3": 0.18,
+	"voyage-finance-2": 0.12,
+	"voyage-law-2": 0.12,
+	"voyage-code-2": 0.12,
+	"voyage-multilingual-2": 0.12,
+	"voyage-3": 0.06,
+	"voyage-3-lite": 0.02,
+	// Older models
+	"voyage-large-2": 0.12,
+	"voyage-2": 0.10,
+};
+
+export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
+	private apiKey: string;
+
+	constructor(options: EmbeddingsClientOptions = {}) {
+		super(
+			options.model || DEFAULT_MODELS.voyage,
+			options.timeout,
+		);
+
+		const apiKey = options.apiKey || getVoyageApiKey();
+		if (!apiKey) {
+			throw new Error(
+				"Voyage API key required. Set VOYAGE_API_KEY environment variable or get one at:\nhttps://dashboard.voyageai.com/organization/api-keys",
+			);
+		}
+		this.apiKey = apiKey;
+	}
+
+	async embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult> {
+		if (texts.length === 0) return { embeddings: [] };
+
+		// Voyage supports batching up to 128 texts, use smaller batches for progress
+		const batches: string[][] = [];
+		for (let i = 0; i < texts.length; i += MAX_BATCH_SIZE) {
+			batches.push(texts.slice(i, i + MAX_BATCH_SIZE));
+		}
+
+		// Process batches in parallel (5 at a time)
+		const PARALLEL_BATCHES = 5;
+		const results: number[][] = new Array(texts.length);
+		let resultIndex = 0;
+		let completedTexts = 0;
+		let totalTokens = 0;
+
+		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
+			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
+			const inProgressCount = batchGroup.reduce((sum, b) => sum + b.length, 0);
+
+			if (onProgress) {
+				onProgress(completedTexts, texts.length, inProgressCount);
+			}
+
+			const batchPromises = batchGroup.map((batch) => this.embedBatch(batch));
+			const batchResults = await Promise.all(batchPromises);
+
+			for (const batchResult of batchResults) {
+				for (const embedding of batchResult.embeddings) {
+					results[resultIndex++] = embedding;
+				}
+				completedTexts += batchResult.embeddings.length;
+				if (batchResult.totalTokens) totalTokens += batchResult.totalTokens;
+			}
+		}
+
+		if (onProgress) {
+			onProgress(completedTexts, texts.length, 0);
+		}
+
+		// Calculate cost from tokens using pricing table
+		const cost = totalTokens > 0 ? this.calculateCost(totalTokens) : undefined;
+
+		return {
+			embeddings: results,
+			totalTokens: totalTokens > 0 ? totalTokens : undefined,
+			cost,
+		};
+	}
+
+	/** Calculate cost in USD from token count */
+	private calculateCost(tokens: number): number {
+		const pricePerMillion = VOYAGE_PRICING[this.model] ?? 0.12; // Default to $0.12/M
+		return (tokens / 1_000_000) * pricePerMillion;
+	}
+
+	private async embedBatch(texts: string[]): Promise<EmbedResult> {
+		let lastError: Error | undefined;
+
+		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+			try {
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+				try {
+					const response = await fetch(VOYAGE_EMBEDDINGS_URL, {
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${this.apiKey}`,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							model: this.model,
+							input: texts,
+						}),
+						signal: controller.signal,
+					});
+
+					if (!response.ok) {
+						const errorText = await response.text();
+						throw new Error(`Voyage API error: ${response.status} - ${errorText}`);
+					}
+
+					const data = await response.json() as {
+						data: Array<{ embedding: number[]; index: number }>;
+						usage?: { total_tokens: number };
+					};
+
+					const sorted = [...data.data].sort((a, b) => a.index - b.index);
+					const embeddings = sorted.map((item) => item.embedding);
+
+					if (embeddings.length > 0 && !this.dimension) {
+						this.dimension = embeddings[0].length;
+					}
+
+					return {
+						embeddings,
+						totalTokens: data.usage?.total_tokens,
+					};
+				} finally {
+					clearTimeout(timeoutId);
+				}
+			} catch (error) {
+				lastError = error instanceof Error ? error : new Error(String(error));
+
+				// Don't retry on authentication errors
+				if (lastError.message.includes("401") || lastError.message.includes("403")) {
+					throw lastError;
+				}
+
+				if (attempt < MAX_RETRIES - 1) {
+					const delay = BASE_RETRY_DELAY * Math.pow(2, attempt);
+					await this.sleep(delay);
+				}
+			}
+		}
+
+		throw lastError || new Error("Failed to generate embeddings");
+	}
+}
+
+// ============================================================================
 // Factory Function
 // ============================================================================
 
 /**
+ * Check if a model ID is a Voyage model
+ */
+export function isVoyageModel(modelId: string): boolean {
+	return modelId.startsWith("voyage-");
+}
+
+/**
+ * Check if a model ID is an Ollama model (ollama/ prefix)
+ */
+export function isOllamaModel(modelId: string): boolean {
+	return modelId.startsWith("ollama/");
+}
+
+/**
+ * Extract actual model name from prefixed model ID
+ * e.g., "ollama/nomic-embed-code" -> "nomic-embed-code"
+ */
+function extractModelName(modelId: string): string {
+	if (modelId.includes("/")) {
+		const parts = modelId.split("/");
+		// For ollama/model, return just the model part
+		if (parts[0] === "ollama") {
+			return parts.slice(1).join("/");
+		}
+	}
+	return modelId;
+}
+
+/**
  * Create an embeddings client based on provider
+ * Auto-detects:
+ * - Voyage models (voyage-*) -> Voyage provider
+ * - Ollama models (ollama/*) -> Ollama provider
  */
 export function createEmbeddingsClient(
 	options?: EmbeddingsClientOptions,
 ): IEmbeddingsClient {
 	// Determine provider from options or config
 	const config = loadGlobalConfig();
-	const provider = options?.provider || config.embeddingProvider || "openrouter";
+	let provider = options?.provider || config.embeddingProvider || "openrouter";
+	let model = options?.model;
+
+	// Auto-detect provider from model prefix
+	if (model) {
+		if (isVoyageModel(model)) {
+			provider = "voyage";
+		} else if (isOllamaModel(model)) {
+			provider = "ollama";
+			model = extractModelName(model); // Strip "ollama/" prefix
+		}
+	}
 
 	switch (provider) {
 		case "ollama":
 			return new OllamaEmbeddingsClient({
 				...options,
+				model,
 				endpoint: options?.endpoint || config.ollamaEndpoint,
 			});
 
 		case "local":
 			return new LocalEmbeddingsClient({
 				...options,
+				model,
 				endpoint: options?.endpoint || config.localEndpoint,
 			});
 
+		case "voyage":
+			return new VoyageEmbeddingsClient({ ...options, model });
+
 		case "openrouter":
 		default:
-			return new OpenRouterEmbeddingsClient(options);
+			return new OpenRouterEmbeddingsClient({ ...options, model });
 	}
 }
 
@@ -477,10 +722,11 @@ export function createEmbeddingsClient(
 
 /**
  * Estimate the number of tokens in a text
- * Simple approximation: ~4 characters per token for code
+ * Conservative approximation: ~3 characters per token for code
+ * (code has more special chars/keywords that tokenize individually)
  */
 export function estimateTokens(text: string): number {
-	return Math.ceil(text.length / 4);
+	return Math.ceil(text.length / 3);
 }
 
 /**
@@ -492,13 +738,40 @@ export function isTextTooLong(text: string, maxTokens: number): boolean {
 
 /**
  * Truncate text to fit within token limit
+ * Uses 2 chars per token as a safe estimate for code (tokenizers vary)
  */
 export function truncateToTokenLimit(text: string, maxTokens: number): string {
-	const maxChars = maxTokens * 4;
+	const maxChars = maxTokens * 2; // Safe: 2 chars per token for code
 	if (text.length <= maxChars) {
 		return text;
 	}
 	return text.slice(0, maxChars - 3) + "...";
+}
+
+/**
+ * Get the context length (in tokens) for a model
+ * Returns default of 8192 if unknown
+ */
+export function getModelContextLength(modelId: string): number {
+	// Check direct match
+	if (MODEL_CONTEXT_LENGTHS[modelId]) {
+		return MODEL_CONTEXT_LENGTHS[modelId];
+	}
+	// Check without provider prefix (e.g., "ollama/nomic-embed-text" -> "nomic-embed-text")
+	const modelName = modelId.includes("/") ? modelId.split("/").pop()! : modelId;
+	if (MODEL_CONTEXT_LENGTHS[modelName]) {
+		return MODEL_CONTEXT_LENGTHS[modelName];
+	}
+	// Default context length
+	return 8192;
+}
+
+/**
+ * Truncate texts to fit within model's context window
+ */
+export function truncateForModel(texts: string[], modelId: string): string[] {
+	const maxTokens = getModelContextLength(modelId);
+	return texts.map(text => truncateToTokenLimit(text, maxTokens));
 }
 
 /**

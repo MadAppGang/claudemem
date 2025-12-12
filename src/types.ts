@@ -116,7 +116,7 @@ export interface FileState {
 // ============================================================================
 
 /** Supported embedding providers */
-export type EmbeddingProvider = "openrouter" | "ollama" | "local";
+export type EmbeddingProvider = "openrouter" | "ollama" | "local" | "voyage";
 
 /** Progress callback for embedding operations */
 export type EmbeddingProgressCallback = (
@@ -192,9 +192,11 @@ export interface GlobalConfig {
 	defaultModel?: string;
 	/** OpenRouter API key */
 	openrouterApiKey?: string;
+	/** Voyage AI API key */
+	voyageApiKey?: string;
 	/** Global exclude patterns */
 	excludePatterns: string[];
-	/** Embedding provider (openrouter, ollama, local) */
+	/** Embedding provider (openrouter, ollama, local, voyage) */
 	embeddingProvider?: EmbeddingProvider;
 	/** Ollama endpoint URL (default: http://localhost:11434) */
 	ollamaEndpoint?: string;
