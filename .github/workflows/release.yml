@@ -162,7 +162,7 @@ jobs:
       - name: Update Homebrew tap
         uses: actions/checkout@v4
         with:
-          repository: MadAppGang/homebrew-claudemem
+          repository: MadAppGang/homebrew-claude-mem
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: tap
 
