@@ -131,6 +131,17 @@ export class Indexer {
 		const startTime = Date.now();
 		await this.initialize();
 
+		// Check if embedding model changed - requires full reindex
+		const previousModel = this.fileTracker!.getMetadata("embeddingModel");
+		const modelChanged = previousModel && previousModel !== this.model;
+		if (modelChanged) {
+			console.log(`\n⚠️  Embedding model changed: ${previousModel} → ${this.model}`);
+			console.log("   Clearing old index (vector dimensions may differ)...\n");
+			await this.vectorStore!.clear();
+			this.fileTracker!.clear();
+			force = true; // Treat as force reindex
+		}
+
 		// Discover files
 		const allFiles = this.discoverFiles();
 
@@ -141,9 +152,11 @@ export class Indexer {
 		if (force) {
 			// Force re-index all files
 			filesToIndex = allFiles;
-			// Clear existing data
-			await this.vectorStore!.clear();
-			this.fileTracker!.clear();
+			// Clear existing data (skip if already cleared due to model change)
+			if (!modelChanged) {
+				await this.vectorStore!.clear();
+				this.fileTracker!.clear();
+			}
 		} else {
 			// Incremental indexing
 			const changes = this.fileTracker!.getChanges(allFiles);
@@ -248,9 +261,17 @@ export class Indexer {
 			}
 
 			// Phase 3: Store batch chunks with embeddings
-			const chunksWithEmbeddings: ChunkWithEmbedding[] = batchChunks.map((c, i) => ({
+			// Filter out chunks with empty embeddings (from failed batches)
+			const validChunks = batchChunks
+				.map((c, i) => ({
+					...c,
+					vector: embedResult.embeddings[i],
+				}))
+				.filter((c) => c.vector.length > 0);
+
+			const chunksWithEmbeddings: ChunkWithEmbedding[] = validChunks.map((c) => ({
 				...c.chunk,
-				vector: embedResult.embeddings[i],
+				vector: c.vector,
 			}));
 
 			if (this.onProgress) {
@@ -259,9 +280,9 @@ export class Indexer {
 			}
 			await this.vectorStore!.addChunks(chunksWithEmbeddings);
 
-			// Phase 4: Update file tracker for this batch
+			// Phase 4: Update file tracker for this batch (only for successfully stored chunks)
 			const fileChunkMap = new Map<string, { fileHash: string; chunkIds: string[] }>();
-			for (const { chunk, filePath, fileHash } of batchChunks) {
+			for (const { chunk, filePath, fileHash } of validChunks) {
 				if (!fileChunkMap.has(filePath)) {
 					fileChunkMap.set(filePath, { fileHash, chunkIds: [] });
 				}
@@ -273,7 +294,7 @@ export class Indexer {
 			}
 
 			totalFilesIndexed += fileChunkMap.size;
-			totalChunksCreated += batchChunks.length;
+			totalChunksCreated += chunksWithEmbeddings.length;
 
 			// Memory is released when batchChunks, embeddings, chunksWithEmbeddings go out of scope
 		}
