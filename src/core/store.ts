@@ -61,9 +61,19 @@ export class VectorStore {
 	private db: lancedb.Connection | null = null;
 	private table: lancedb.Table | null = null;
 	private dimension: number | null = null;
+	private tableDimension: number | null = null;
+	private _dimensionMismatchCleared = false;
 
 	constructor(dbPath: string) {
 		this.dbPath = dbPath;
+	}
+
+	/**
+	 * Returns true if vectors were auto-cleared due to dimension mismatch
+	 * during this session. Used by indexer to also clear file tracker.
+	 */
+	get dimensionMismatchCleared(): boolean {
+		return this._dimensionMismatchCleared;
 	}
 
 	/**
@@ -94,6 +104,18 @@ export class VectorStore {
 		const tables = await this.db!.tableNames();
 		if (tables.includes(CHUNKS_TABLE)) {
 			this.table = await this.db!.openTable(CHUNKS_TABLE);
+
+			// Extract vector dimension from schema for compatibility checks
+			try {
+				const schema = await this.table.schema();
+				const vectorField = schema.fields.find((f: { name: string }) => f.name === "vector");
+				if (vectorField && vectorField.type && "listSize" in vectorField.type) {
+					this.tableDimension = (vectorField.type as { listSize: number }).listSize;
+				}
+			} catch {
+				// Ignore schema read errors - dimension check will be skipped
+			}
+
 			return this.table;
 		}
 
@@ -128,6 +150,21 @@ export class VectorStore {
 		// Try to open existing table
 		let table = await this.ensureTableOpen();
 
+		// Check for dimension mismatch with existing table
+		const incomingDimension = data[0].vector.length;
+		if (table && this.tableDimension && this.tableDimension !== incomingDimension) {
+			// Dimension mismatch - clear the table and recreate
+			// This happens when embedding model changes but tracker metadata wasn't updated properly
+			console.warn(
+				`⚠️  Vector dimension mismatch: table has ${this.tableDimension}d, new embeddings are ${incomingDimension}d`,
+			);
+			console.warn("   Clearing existing vectors to match new embedding model...\n");
+			await this.clear();
+			table = null;
+			this.tableDimension = null;
+			this._dimensionMismatchCleared = true;
+		}
+
 		if (table) {
 			// Table exists, add to it
 			await table.add(data);
@@ -139,6 +176,7 @@ export class VectorStore {
 			this.table = await this.db!.createTable(CHUNKS_TABLE, data, {
 				mode: "create",
 			});
+			this.tableDimension = incomingDimension;
 		}
 
 		// Store dimension for later

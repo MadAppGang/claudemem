@@ -280,6 +280,12 @@ export class Indexer {
 			}
 			await this.vectorStore!.addChunks(chunksWithEmbeddings);
 
+			// Check if vector store auto-cleared due to dimension mismatch
+			// If so, we need to also clear file tracker for consistency
+			if (this.vectorStore!.dimensionMismatchCleared) {
+				this.fileTracker!.clear();
+			}
+
 			// Phase 4: Update file tracker for this batch (only for successfully stored chunks)
 			const fileChunkMap = new Map<string, { fileHash: string; chunkIds: string[] }>();
 			for (const { chunk, filePath, fileHash } of validChunks) {
