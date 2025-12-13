@@ -1,4 +1,23 @@
-# claudemem
+```
+  ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗███╗   ███╗███████╗███╗   ███╗
+ ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝████╗ ████║██╔════╝████╗ ████║
+ ██║     ██║     ███████║██║   ██║██║  ██║█████╗  ██╔████╔██║█████╗  ██╔████╔██║
+ ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  ██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║
+ ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║
+  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝
+```
+
+<p align="center">
+  <b>Semantic code search powered by embeddings</b>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/claude-codemem"><img src="https://img.shields.io/npm/v/claude-codemem.svg" alt="npm version"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://github.com/MadAppGang/claudemem"><img src="https://img.shields.io/github/stars/MadAppGang/claudemem?style=social" alt="GitHub stars"></a>
+</p>
+
+---
 
 Local semantic code search for Claude Code. Index your codebase once, search it with natural language.
 
@@ -38,6 +57,24 @@ claudemem search "where do we validate user input"
 ```
 
 That's it. Changed some files? Just search again — it auto-reindexes modified files before searching.
+
+## Embedding Model Benchmark
+
+We benchmarked popular embedding models on real code search tasks. Quality score measures how well the model ranks relevant code chunks (higher is better).
+
+| Model | Quality | Speed | Cost | Notes |
+|-------|---------|-------|------|-------|
+| **voyage-code-3** | 10/10 | 4s | $0.18/1M | Best for code, recommended |
+| **voyage-3.5** | 10/10 | 4s | $0.06/1M | Great balance |
+| **voyage-3.5-lite** | 10/10 | 4s | $0.02/1M | Best value |
+| **voyage-3-large** | 10/10 | 4s | $0.18/1M | High quality |
+| text-embedding-3-small | 6/10 | 7s | $0.02/1M | Decent, cheap |
+| gemini-embedding-001 | 5/10 | 7s | FREE | Free option |
+| text-embedding-3-large | 4/10 | 7s | $0.13/1M | Surprisingly weak |
+| all-minilm-l6-v2 | 4/10 | 7s | FREE | Local, fast |
+| mistral-embed-2312 | 0/10 | 7s | $0.10/1M | Failed to embed |
+
+> Voyage models dominate code search. The lite variant offers identical quality at 1/9th the price.
 
 ## Embedding providers
 
@@ -92,7 +129,7 @@ Then Claude Code can use these tools:
 ## What it actually does
 
 1. **Parses code** with tree-sitter — extracts functions, classes, methods as chunks (not dumb line splits)
-2. **Generates embeddings** via OpenRouter (default: qwen3-embedding-8b, good quality, cheap)
+2. **Generates embeddings** via OpenRouter (default: voyage-3.5-lite, best value)
 3. **Stores locally** in LanceDB — everything stays in `.claudemem/` in your project
 4. **Hybrid search** — BM25 for exact matches + vector similarity for semantic. Combines both.
 
@@ -111,6 +148,7 @@ claudemem search <query>    # search (auto-reindexes changed files)
 claudemem status            # what's indexed
 claudemem clear             # nuke the index
 claudemem models            # list embedding models
+claudemem benchmark         # benchmark embedding models
 claudemem --mcp             # run as MCP server
 ```
 
