@@ -1,26 +1,86 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 120">
-  <style>
-    .claude { fill: #FF8066; font-family: monospace; font-size: 14px; font-weight: bold; }
-    .mem { fill: #66FFAA; font-family: monospace; font-size: 14px; font-weight: bold; }
-  </style>
-  <rect width="820" height="120" fill="#1a1a2e"/>
-  <text y="20">
-    <tspan x="10" class="claude"> ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗</tspan><tspan class="mem">███╗   ███╗███████╗███╗   ███╗</tspan>
-  </text>
-  <text y="36">
-    <tspan x="10" class="claude">██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝</tspan><tspan class="mem">████╗ ████║██╔════╝████╗ ████║</tspan>
-  </text>
-  <text y="52">
-    <tspan x="10" class="claude">██║     ██║     ███████║██║   ██║██║  ██║█████╗  </tspan><tspan class="mem">██╔████╔██║█████╗  ██╔████╔██║</tspan>
-  </text>
-  <text y="68">
-    <tspan x="10" class="claude">██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  </tspan><tspan class="mem">██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║</tspan>
-  </text>
-  <text y="84">
-    <tspan x="10" class="claude">╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗</tspan><tspan class="mem">██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║</tspan>
-  </text>
-  <text y="100">
-    <tspan x="10" class="claude"> ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝</tspan><tspan class="mem">╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝</tspan>
-  </text>
-  <text x="410" y="115" text-anchor="middle" fill="#888888" font-family="monospace" font-size="12">Semantic code search powered by embeddings</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 100">
+  <defs>
+    <style>
+      .bg { fill: #1e1e2e; }
+      .claude { fill: #f38ba8; }
+      .mem { fill: #a6e3a1; }
+      .tag { fill: #6c7086; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="680" height="100" rx="8"/>
+
+  <!-- C -->
+  <g class="claude">
+    <rect x="20" y="15" width="8" height="40"/>
+    <rect x="28" y="15" width="24" height="8"/>
+    <rect x="28" y="47" width="24" height="8"/>
+  </g>
+
+  <!-- L -->
+  <g class="claude">
+    <rect x="60" y="15" width="8" height="40"/>
+    <rect x="68" y="47" width="24" height="8"/>
+  </g>
+
+  <!-- A -->
+  <g class="claude">
+    <rect x="100" y="15" width="8" height="40"/>
+    <rect x="132" y="15" width="8" height="40"/>
+    <rect x="108" y="15" width="24" height="8"/>
+    <rect x="108" y="31" width="24" height="8"/>
+  </g>
+
+  <!-- U -->
+  <g class="claude">
+    <rect x="148" y="15" width="8" height="40"/>
+    <rect x="180" y="15" width="8" height="40"/>
+    <rect x="156" y="47" width="24" height="8"/>
+  </g>
+
+  <!-- D -->
+  <g class="claude">
+    <rect x="196" y="15" width="8" height="40"/>
+    <rect x="204" y="15" width="16" height="8"/>
+    <rect x="204" y="47" width="16" height="8"/>
+    <rect x="220" y="23" width="8" height="24"/>
+  </g>
+
+  <!-- E -->
+  <g class="claude">
+    <rect x="236" y="15" width="8" height="40"/>
+    <rect x="244" y="15" width="24" height="8"/>
+    <rect x="244" y="31" width="16" height="8"/>
+    <rect x="244" y="47" width="24" height="8"/>
+  </g>
+
+  <!-- M -->
+  <g class="mem">
+    <rect x="290" y="15" width="8" height="40"/>
+    <rect x="330" y="15" width="8" height="40"/>
+    <rect x="298" y="15" width="8" height="8"/>
+    <rect x="306" y="23" width="8" height="8"/>
+    <rect x="314" y="23" width="8" height="8"/>
+    <rect x="322" y="15" width="8" height="8"/>
+  </g>
+
+  <!-- E -->
+  <g class="mem">
+    <rect x="346" y="15" width="8" height="40"/>
+    <rect x="354" y="15" width="24" height="8"/>
+    <rect x="354" y="31" width="16" height="8"/>
+    <rect x="354" y="47" width="24" height="8"/>
+  </g>
+
+  <!-- M -->
+  <g class="mem">
+    <rect x="386" y="15" width="8" height="40"/>
+    <rect x="426" y="15" width="8" height="40"/>
+    <rect x="394" y="15" width="8" height="8"/>
+    <rect x="402" y="23" width="8" height="8"/>
+    <rect x="410" y="23" width="8" height="8"/>
+    <rect x="418" y="15" width="8" height="8"/>
+  </g>
+
+  <text class="tag" x="340" y="75" text-anchor="middle">Semantic code search powered by embeddings</text>
 </svg>
