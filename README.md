@@ -1,5 +1,9 @@
+<h1 align="center">
+  <code>CLAUDE</code><code>MEM</code>
+</h1>
+
 <p align="center">
-  <img src="assets/logo.svg" alt="CLAUDEMEM" width="700">
+  <b>Semantic code search powered by embeddings</b>
 </p>
 
 <p align="center">
@@ -51,21 +55,28 @@ That's it. Changed some files? Just search again — it auto-reindexes modified 
 
 ## Embedding Model Benchmark
 
-We benchmarked popular embedding models on real code search tasks. Quality score measures how well the model ranks relevant code chunks (higher is better).
+Run your own benchmark with `claudemem benchmark`. Here are results on real code search tasks:
 
-| Model | Quality | Speed | Cost | Notes |
-|-------|---------|-------|------|-------|
-| **voyage-code-3** | 10/10 | 4s | $0.18/1M | Best for code, recommended |
-| **voyage-3.5** | 10/10 | 4s | $0.06/1M | Great balance |
-| **voyage-3.5-lite** | 10/10 | 4s | $0.02/1M | Best value |
-| **voyage-3-large** | 10/10 | 4s | $0.18/1M | High quality |
-| text-embedding-3-small | 6/10 | 7s | $0.02/1M | Decent, cheap |
-| gemini-embedding-001 | 5/10 | 7s | FREE | Free option |
-| text-embedding-3-large | 4/10 | 7s | $0.13/1M | Surprisingly weak |
-| all-minilm-l6-v2 | 4/10 | 7s | FREE | Local, fast |
-| mistral-embed-2312 | 0/10 | 7s | $0.10/1M | Failed to embed |
+<p align="center">
+  <img src="assets/benchmark.png" alt="Embedding Model Benchmark" width="700">
+</p>
 
-> Voyage models dominate code search. The lite variant offers identical quality at 1/9th the price.
+| Model | Speed | NDCG | Cost | Notes |
+|-------|-------|------|------|-------|
+| **voyage-code-3** | 4.5s | 175% | $0.007 | Best quality |
+| **gemini-embedding-001** | 2.9s | 170% | $0.007 | Great free option |
+| **voyage-3-large** | 1.8s | 164% | $0.007 | Fast & accurate |
+| **voyage-3.5-lite** | 1.2s | 163% | $0.001 | Best value |
+| voyage-3.5 | 1.2s | 150% | $0.002 | Fastest |
+| mistral-embed | 16.6s | 150% | $0.006 | Slow |
+| text-embedding-3-small | 3.0s | 141% | $0.001 | Decent |
+| text-embedding-3-large | 3.1s | 141% | $0.005 | Not worth it |
+| all-minilm-l6-v2 | 2.7s | 128% | $0.0001 | Cheapest (local) |
+
+**Summary:**
+- 🏆 **Best Quality:** voyage-code-3 (175% NDCG)
+- ⚡ **Fastest:** voyage-3.5 (1.2s)
+- 💰 **Cheapest:** all-minilm-l6-v2 (local, free)
 
 ## Embedding providers
 
