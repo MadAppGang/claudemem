@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 120">
+  <style>
+    .claude { fill: #FF8066; font-family: monospace; font-size: 14px; font-weight: bold; }
+    .mem { fill: #66FFAA; font-family: monospace; font-size: 14px; font-weight: bold; }
+  </style>
+  <rect width="820" height="120" fill="#1a1a2e"/>
+  <text y="20">
+    <tspan x="10" class="claude"> ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗</tspan><tspan class="mem">███╗   ███╗███████╗███╗   ███╗</tspan>
+  </text>
+  <text y="36">
+    <tspan x="10" class="claude">██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝</tspan><tspan class="mem">████╗ ████║██╔════╝████╗ ████║</tspan>
+  </text>
+  <text y="52">
+    <tspan x="10" class="claude">██║     ██║     ███████║██║   ██║██║  ██║█████╗  </tspan><tspan class="mem">██╔████╔██║█████╗  ██╔████╔██║</tspan>
+  </text>
+  <text y="68">
+    <tspan x="10" class="claude">██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  </tspan><tspan class="mem">██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║</tspan>
+  </text>
+  <text y="84">
+    <tspan x="10" class="claude">╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗</tspan><tspan class="mem">██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║</tspan>
+  </text>
+  <text y="100">
+    <tspan x="10" class="claude"> ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝</tspan><tspan class="mem">╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝</tspan>
+  </text>
+  <text x="410" y="115" text-anchor="middle" fill="#888888" font-family="monospace" font-size="12">Semantic code search powered by embeddings</text>
+</svg>
