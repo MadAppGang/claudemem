@@ -27,9 +27,24 @@ import {
 	formatModelInfo,
 	RECOMMENDED_MODELS,
 } from "./models/model-discovery.js";
+import {
+	type AgentRole,
+	VALID_ROLES,
+	getInstructions,
+	getCompactInstructions,
+	listRoles,
+} from "./ai-instructions.js";
+import {
+	CLAUDEMEM_SKILL,
+	CLAUDEMEM_SKILL_COMPACT,
+	CLAUDEMEM_MCP_SKILL,
+	CLAUDEMEM_QUICK_REF,
+	getFullSkillWithRole,
+	getCompactSkillWithRole,
+} from "./ai-skill.js";
 
 // ============================================================================
-// Version
+// Version & Branding
 // ============================================================================
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -38,11 +53,36 @@ const packageJson = JSON.parse(
 );
 const VERSION = packageJson.version;
 
+/** ASCII logo for interactive commands (matches help logo) */
+const LOGO = `
+\x1b[38;5;209m   ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗\x1b[0m\x1b[38;5;78m███╗   ███╗███████╗███╗   ███╗\x1b[0m
+\x1b[38;5;209m  ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝\x1b[0m\x1b[38;5;78m████╗ ████║██╔════╝████╗ ████║\x1b[0m
+\x1b[38;5;209m  ██║     ██║     ███████║██║   ██║██║  ██║█████╗  \x1b[0m\x1b[38;5;78m██╔████╔██║█████╗  ██╔████╔██║\x1b[0m
+\x1b[38;5;209m  ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  \x1b[0m\x1b[38;5;78m██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║\x1b[0m
+\x1b[38;5;209m  ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗\x1b[0m\x1b[38;5;78m██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║\x1b[0m
+\x1b[38;5;209m   ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝\x1b[0m\x1b[38;5;78m╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝\x1b[0m
+\x1b[2m  Semantic code search powered by embeddings          v${VERSION}\x1b[0m
+`;
+
+/** Print logo for interactive commands */
+function printLogo(): void {
+	console.log(LOGO);
+}
+
+/** Global flag to suppress logo */
+let noLogo = false;
+
 // ============================================================================
 // CLI Entry Point
 // ============================================================================
 
 export async function runCli(args: string[]): Promise<void> {
+	// Parse global flags first
+	if (args.includes("--nologo")) {
+		noLogo = true;
+		args = args.filter((a) => a !== "--nologo");
+	}
+
 	// Parse command
 	const command = args[0];
 
@@ -86,6 +126,9 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "benchmark":
 			await handleBenchmark(args.slice(1));
+			break;
+		case "ai":
+			handleAiInstructions(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -376,6 +419,8 @@ async function handleSearch(args: string[]): Promise<void> {
 }
 
 async function handleStatus(args: string[]): Promise<void> {
+	if (!noLogo) printLogo();
+
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
 
@@ -407,6 +452,8 @@ async function handleStatus(args: string[]): Promise<void> {
 }
 
 async function handleClear(args: string[]): Promise<void> {
+	if (!noLogo) printLogo();
+
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
 
@@ -435,7 +482,9 @@ async function handleClear(args: string[]): Promise<void> {
 }
 
 async function handleInit(): Promise<void> {
-	console.log("\n🔧 claudemem Setup\n");
+	if (!noLogo) printLogo();
+
+	console.log("🔧 Setup\n");
 
 	// Step 1: Select embedding provider
 	const provider = await select({
@@ -571,6 +620,8 @@ async function handleInit(): Promise<void> {
 }
 
 async function handleModels(args: string[]): Promise<void> {
+	if (!noLogo) printLogo();
+
 	const freeOnly = args.includes("--free");
 	const forceRefresh = args.includes("--refresh");
 	const showOllama = args.includes("--ollama");
@@ -1016,6 +1067,8 @@ async function discoverAndChunkFilesWithPaths(
 }
 
 async function handleBenchmark(args: string[]): Promise<void> {
+	if (!noLogo) printLogo();
+
 	const c = {
 		reset: "\x1b[0m",
 		bold: "\x1b[1m",
@@ -1152,18 +1205,24 @@ async function handleBenchmark(args: string[]): Promise<void> {
 			const store = createVectorStore(tempDbPath);
 			await store.initialize();
 
-			// Add chunks with embeddings
-			const chunksForStore = chunksWithPaths.map((chunk, i) => ({
-				id: `chunk-${i}`,
-				content: chunk.content,
-				filePath: chunk.fileName,
-				startLine: 0,
-				endLine: 0,
-				language: "unknown",
-				chunkType: "code" as const,
-				fileHash: `hash-${i}`,
-				vector: embedResult.embeddings[i],
-			}));
+			// Add chunks with embeddings (filter out failed ones with empty vectors)
+			const chunksForStore = chunksWithPaths
+				.map((chunk, i) => ({
+					id: `chunk-${i}`,
+					content: chunk.content,
+					filePath: chunk.fileName,
+					startLine: 0,
+					endLine: 0,
+					language: "unknown",
+					chunkType: "code" as const,
+					fileHash: `hash-${i}`,
+					vector: embedResult.embeddings[i],
+				}))
+				.filter((chunk) => chunk.vector && chunk.vector.length > 0);
+
+			if (chunksForStore.length === 0) {
+				throw new Error("All chunks failed to embed");
+			}
 			await store.addChunks(chunksForStore);
 
 			// Run quality queries
@@ -1228,11 +1287,14 @@ async function handleBenchmark(args: string[]): Promise<void> {
 			const n = testQueries.length;
 			progress.finish(modelId);
 
+			// Find first non-empty embedding for dimension
+			const firstValidEmbedding = embedResult.embeddings.find((e) => e && e.length > 0);
+
 			return {
 				model: modelId,
 				speedMs: embedTimeMs,
 				cost: embedResult.cost,
-				dimension: embedResult.embeddings[0]?.length || 0,
+				dimension: firstValidEmbedding?.length || 0,
 				contextLength: getModelContextLength(modelId),
 				chunks: chunksWithPaths.length,
 				ndcg: (ndcgSum / n) * 100,
@@ -1582,6 +1644,108 @@ async function extractAutoTestQueries(projectPath: string): Promise<TestQuery[]>
 	return queries;
 }
 
+// ============================================================================
+// AI Instructions Command
+// ============================================================================
+
+function handleAiInstructions(args: string[]): void {
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		orange: "\x1b[38;5;209m",
+	};
+
+	const compact = args.includes("--compact") || args.includes("-c");
+	const raw = args.includes("--raw") || args.includes("-r");
+	const mcp = args.includes("--mcp-format") || args.includes("-m");
+	const quick = args.includes("--quick") || args.includes("-q");
+	const targetArg = args.find((a) => !a.startsWith("-"));
+
+	// No target specified - show help
+	if (!targetArg) {
+		if (!noLogo) printLogo();
+		console.log(`\n${c.orange}${c.bold}AI AGENT INSTRUCTIONS${c.reset}\n`);
+		console.log("Print instructions for AI agents using claudemem.\n");
+		console.log(`${c.yellow}${c.bold}USAGE${c.reset}`);
+		console.log(`  ${c.cyan}claudemem ai <target>${c.reset} [options]\n`);
+		console.log(`${c.yellow}${c.bold}TARGETS${c.reset}`);
+		console.log(`  ${c.green}skill${c.reset}       Full claudemem skill (all capabilities)`);
+		console.log(`  ${c.green}architect${c.reset}   System design, codebase structure`);
+		console.log(`  ${c.green}developer${c.reset}   Implementation, code navigation`);
+		console.log(`  ${c.green}tester${c.reset}      Test coverage, quality assurance`);
+		console.log(`  ${c.green}debugger${c.reset}    Error tracing, diagnostics\n`);
+		console.log(`${c.yellow}${c.bold}OPTIONS${c.reset}`);
+		console.log(`  ${c.cyan}-c, --compact${c.reset}       Minimal version (~50 tokens)`);
+		console.log(`  ${c.cyan}-q, --quick${c.reset}         Quick reference (~30 tokens)`);
+		console.log(`  ${c.cyan}-m, --mcp-format${c.reset}    MCP tools format`);
+		console.log(`  ${c.cyan}-r, --raw${c.reset}           No colors (for piping)\n`);
+		console.log(`${c.yellow}${c.bold}EXAMPLES${c.reset}`);
+		console.log(`  ${c.dim}# Full skill document for CLAUDE.md${c.reset}`);
+		console.log(`  ${c.cyan}claudemem ai skill --raw >> CLAUDE.md${c.reset}\n`);
+		console.log(`  ${c.dim}# Compact skill + role for system prompt${c.reset}`);
+		console.log(`  ${c.cyan}claudemem ai developer --compact --raw${c.reset}\n`);
+		console.log(`  ${c.dim}# MCP tools reference${c.reset}`);
+		console.log(`  ${c.cyan}claudemem ai skill -m${c.reset}\n`);
+		console.log(`  ${c.dim}# Quick reference (minimal tokens)${c.reset}`);
+		console.log(`  ${c.cyan}claudemem ai skill --quick${c.reset}\n`);
+		return;
+	}
+
+	const target = targetArg.toLowerCase();
+	let output: string;
+	let title: string;
+
+	// Handle "skill" target
+	if (target === "skill") {
+		if (quick) {
+			output = CLAUDEMEM_QUICK_REF;
+			title = "QUICK REFERENCE";
+		} else if (mcp) {
+			output = CLAUDEMEM_MCP_SKILL;
+			title = "MCP SKILL";
+		} else if (compact) {
+			output = CLAUDEMEM_SKILL_COMPACT;
+			title = "SKILL (COMPACT)";
+		} else {
+			output = CLAUDEMEM_SKILL;
+			title = "SKILL";
+		}
+	}
+	// Handle role targets
+	else if (VALID_ROLES.includes(target as AgentRole)) {
+		const role = target as AgentRole;
+		if (compact) {
+			output = getCompactSkillWithRole(role);
+			title = `${role.toUpperCase()} SKILL (COMPACT)`;
+		} else {
+			output = getFullSkillWithRole(role);
+			title = `${role.toUpperCase()} SKILL`;
+		}
+	}
+	// Unknown target
+	else {
+		console.error(`Error: Unknown target "${targetArg}"`);
+		console.error(`Valid targets: skill, ${VALID_ROLES.join(", ")}`);
+		process.exit(1);
+	}
+
+	// Output
+	if (raw) {
+		console.log(output);
+	} else {
+		if (!noLogo) printLogo();
+		console.log(`\n${c.orange}${c.bold}${title}${c.reset}`);
+		console.log(`${c.dim}${"─".repeat(60)}${c.reset}\n`);
+		console.log(output);
+		console.log(`\n${c.dim}${"─".repeat(60)}${c.reset}`);
+		console.log(`${c.dim}Use --raw for clipboard: claudemem ai ${target} --raw | pbcopy${c.reset}\n`);
+	}
+}
+
 function printHelp(): void {
 	// Colors (matching claudish style)
 	const c = {
@@ -1620,6 +1784,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}init${c.reset}                   Interactive setup wizard
   ${c.green}models${c.reset}                 List available embedding models
   ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
+  ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
@@ -1642,9 +1807,16 @@ ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
   ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (any codebase)
   ${c.cyan}--verbose${c.reset}              Show detailed per-query results
 
+${c.yellow}${c.bold}AI OPTIONS${c.reset}
+  ${c.cyan}-c, --compact${c.reset}          Minimal version (~50 tokens)
+  ${c.cyan}-q, --quick${c.reset}            Quick reference (~30 tokens)
+  ${c.cyan}-m, --mcp-format${c.reset}       MCP tools format
+  ${c.cyan}-r, --raw${c.reset}              No colors (for piping)
+
 ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
   ${c.cyan}-h, --help${c.reset}             Show this help
+  ${c.cyan}--nologo${c.reset}               Suppress ASCII logo (for scripts/agents)
   ${c.cyan}--models${c.reset}               List available embedding models (with --free, --refresh)
 
 ${c.yellow}${c.bold}MCP SERVER${c.reset}
@@ -1679,6 +1851,12 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.cyan}claudemem benchmark${c.reset}
   ${c.cyan}claudemem benchmark --auto${c.reset}  ${c.dim}# works on any codebase${c.reset}
   ${c.cyan}claudemem benchmark --models=qwen/qwen3-embedding-8b,openai/text-embedding-3-small${c.reset}
+
+  ${c.dim}# Get AI agent instructions${c.reset}
+  ${c.cyan}claudemem ai${c.reset}                          ${c.dim}# show help${c.reset}
+  ${c.cyan}claudemem ai skill${c.reset}                    ${c.dim}# full skill document${c.reset}
+  ${c.cyan}claudemem ai skill --raw >> CLAUDE.md${c.reset} ${c.dim}# append to CLAUDE.md${c.reset}
+  ${c.cyan}claudemem ai developer --compact${c.reset}      ${c.dim}# role + skill (minimal)${c.reset}
 
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}

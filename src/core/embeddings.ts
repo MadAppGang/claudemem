@@ -183,6 +183,8 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 		let totalTokens = 0;
 		let totalCost = 0;
 
+		let failedCount = 0;
+
 		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
 			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
 			const inProgressCount = batchGroup.reduce((sum, b) => sum + b.length, 0);
@@ -192,7 +194,22 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 				onProgress(completedTexts, texts.length, inProgressCount);
 			}
 
-			const batchPromises = batchGroup.map((batch) => this.embedBatch(batch));
+			// Wrap each batch in try-catch to continue on failure
+			const batchPromises = batchGroup.map(async (batch) => {
+				try {
+					return await this.embedBatch(batch);
+				} catch (error) {
+					// Return empty embeddings for failed batch
+					const msg = error instanceof Error ? error.message : String(error);
+					// Auth errors should fail fast
+					if (msg.includes("401") || msg.includes("403")) {
+						throw error;
+					}
+					console.error(`  ⚠️  Batch failed: ${msg.slice(0, 60)}...`);
+					failedCount += batch.length;
+					return { embeddings: batch.map(() => [] as number[]) };
+				}
+			});
 			const batchResults = await Promise.all(batchPromises);
 
 			for (const batchResult of batchResults) {
@@ -203,6 +220,10 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 				if (batchResult.totalTokens) totalTokens += batchResult.totalTokens;
 				if (batchResult.cost) totalCost += batchResult.cost;
 			}
+		}
+
+		if (failedCount > 0) {
+			console.error(`  ⚠️  ${failedCount}/${texts.length} chunks skipped`);
 		}
 
 		// Final progress report (all complete)
@@ -315,24 +336,45 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 
 		// Ollama processes one text at a time
 		const results: number[][] = [];
+		let failedCount = 0;
+
 		for (let i = 0; i < texts.length; i++) {
 			// Report "starting to process" (1 item at a time)
 			if (onProgress) {
 				onProgress(i, texts.length, 1);
 			}
 
-			const embedding = await this.embedSingle(texts[i]);
-			results.push(embedding);
+			try {
+				const embedding = await this.embedSingle(texts[i]);
+				results.push(embedding);
 
-			// Store dimension on first result
-			if (!this.dimension && embedding.length > 0) {
-				this.dimension = embedding.length;
+				// Store dimension on first result
+				if (!this.dimension && embedding.length > 0) {
+					this.dimension = embedding.length;
+				}
+			} catch (error) {
+				// Skip failed chunks instead of stopping entire process
+				// Return empty embedding - caller should filter these out
+				results.push([]);
+				failedCount++;
+
+				// Connection errors should fail fast
+				const msg = error instanceof Error ? error.message : String(error);
+				if (msg.includes("ECONNREFUSED") || msg.includes("Cannot connect")) {
+					throw error;
+				}
+				// Log warning but continue for other errors
+				console.error(`  ⚠️  Chunk ${i + 1} failed: ${msg.slice(0, 60)}...`);
 			}
 		}
 
 		// Final progress report
 		if (onProgress) {
 			onProgress(texts.length, texts.length, 0);
+		}
+
+		if (failedCount > 0) {
+			console.error(`  ⚠️  ${failedCount}/${texts.length} chunks skipped`);
 		}
 
 		// Ollama doesn't report cost (local model)
@@ -530,6 +572,8 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 		let completedTexts = 0;
 		let totalTokens = 0;
 
+		let failedCount = 0;
+
 		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
 			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
 			const inProgressCount = batchGroup.reduce((sum, b) => sum + b.length, 0);
@@ -538,7 +582,21 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 				onProgress(completedTexts, texts.length, inProgressCount);
 			}
 
-			const batchPromises = batchGroup.map((batch) => this.embedBatch(batch));
+			// Wrap each batch in try-catch to continue on failure
+			const batchPromises = batchGroup.map(async (batch) => {
+				try {
+					return await this.embedBatch(batch);
+				} catch (error) {
+					const msg = error instanceof Error ? error.message : String(error);
+					// Auth errors should fail fast
+					if (msg.includes("401") || msg.includes("403")) {
+						throw error;
+					}
+					console.error(`  ⚠️  Batch failed: ${msg.slice(0, 60)}...`);
+					failedCount += batch.length;
+					return { embeddings: batch.map(() => [] as number[]) };
+				}
+			});
 			const batchResults = await Promise.all(batchPromises);
 
 			for (const batchResult of batchResults) {
@@ -548,6 +606,10 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 				completedTexts += batchResult.embeddings.length;
 				if (batchResult.totalTokens) totalTokens += batchResult.totalTokens;
 			}
+		}
+
+		if (failedCount > 0) {
+			console.error(`  ⚠️  ${failedCount}/${texts.length} chunks skipped`);
 		}
 
 		if (onProgress) {
