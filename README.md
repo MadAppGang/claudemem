@@ -1,9 +1,5 @@
-<h1 align="center">
-  <code>CLAUDE</code><code>MEM</code>
-</h1>
-
 <p align="center">
-  <b>Semantic code search powered by embeddings</b>
+  <img src="assets/logo.png" alt="CLAUDEMEM" width="600">
 </p>
 
 <p align="center">
