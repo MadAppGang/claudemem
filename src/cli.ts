@@ -379,18 +379,39 @@ async function handleIndex(args: string[]): Promise<void> {
 		if (result.enrichment) {
 			console.log(`\n  Enrichment:`);
 			console.log(`    Documents:    ${result.enrichment.documentsCreated}`);
-			if (result.enrichment.cost !== undefined) {
-				console.log(`    LLM cost:     $${result.enrichment.cost.toFixed(6)}`);
-				if (result.enrichment.costBreakdown) {
-					const { fileSummaries, symbolSummaries } = result.enrichment.costBreakdown;
-					if (fileSummaries !== undefined) {
-						console.log(`      - file summaries:   $${fileSummaries.toFixed(6)}`);
+
+			// Show LLM calls and cost
+			if (result.enrichment.llmCalls) {
+				const { fileSummaries, symbolSummaries, total } = result.enrichment.llmCalls;
+				const provider = result.enrichment.llmProvider;
+
+				// For subscription/local providers, show "Subscription" or "Free" instead of cost
+				if (provider === "claude-code") {
+					console.log(`    LLM calls:    ${total} (Subscription)`);
+					console.log(`      - file summaries:   ${fileSummaries} calls`);
+					console.log(`      - symbol summaries: ${symbolSummaries} calls`);
+				} else if (provider === "local") {
+					console.log(`    LLM calls:    ${total} (Free - local)`);
+					console.log(`      - file summaries:   ${fileSummaries} calls`);
+					console.log(`      - symbol summaries: ${symbolSummaries} calls`);
+				} else if (result.enrichment.cost !== undefined) {
+					console.log(`    LLM cost:     $${result.enrichment.cost.toFixed(6)} (${total} calls)`);
+					if (result.enrichment.costBreakdown) {
+						const breakdown = result.enrichment.costBreakdown;
+						if (breakdown.fileSummaries !== undefined) {
+							console.log(`      - file summaries:   $${breakdown.fileSummaries.toFixed(6)} (${fileSummaries} calls)`);
+						}
+						if (breakdown.symbolSummaries !== undefined) {
+							console.log(`      - symbol summaries: $${breakdown.symbolSummaries.toFixed(6)} (${symbolSummaries} calls)`);
+						}
 					}
-					if (symbolSummaries !== undefined) {
-						console.log(`      - symbol summaries: $${symbolSummaries.toFixed(6)}`);
-					}
+				} else {
+					console.log(`    LLM calls:    ${total}`);
+					console.log(`      - file summaries:   ${fileSummaries} calls`);
+					console.log(`      - symbol summaries: ${symbolSummaries} calls`);
 				}
 			}
+
 			if (result.enrichment.errors.length > 0) {
 				console.log(`    Errors:       ${result.enrichment.errors.length}`);
 			}
@@ -1543,6 +1564,126 @@ async function handleBenchmark(args: string[]): Promise<void> {
 }
 
 // ============================================================================
+// LLM Benchmark Handler
+// ============================================================================
+
+async function handleBenchmarkLLM(args: string[]): Promise<void> {
+	if (!noLogo) printLogo();
+
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		red: "\x1b[31m",
+		orange: "\x1b[38;5;209m",
+	};
+
+	// Parse flags
+	const getFlag = (name: string): string | undefined => {
+		const idx = args.findIndex((a) => a.startsWith(`--${name}=`));
+		if (idx !== -1) return args[idx].split("=")[1];
+		const idxSpace = args.findIndex((a) => a === `--${name}`);
+		if (idxSpace !== -1 && args[idxSpace + 1] && !args[idxSpace + 1].startsWith("-")) {
+			return args[idxSpace + 1];
+		}
+		return undefined;
+	};
+
+	const generatorsStr = getFlag("generators") || "anthropic";
+	const judgesStr = getFlag("judges");
+	const casesStr = getFlag("cases") || "10";
+	const testCaseCount = casesStr.toLowerCase() === "all" ? Infinity : parseInt(casesStr, 10);
+	const outputFormat = getFlag("format") || "cli";
+
+	// Parse generator specs
+	const { parseGeneratorSpec } = await import("./benchmark/generators/index.js");
+	const generatorSpecs = generatorsStr.split(",").map((s) => s.trim());
+	const generatorConfigs = generatorSpecs.map((spec) => {
+		const parsed = parseGeneratorSpec(spec);
+		return {
+			provider: parsed.provider,
+			model: parsed.model || "default",
+			displayName: spec,
+		};
+	});
+
+	// Parse judge specs
+	const judgeModels = judgesStr ? judgesStr.split(",").map((s) => s.trim()) : [];
+
+	console.log(`\n${c.orange}${c.bold}🏁 LLM BENCHMARK${c.reset}\n`);
+	console.log(`${c.dim}Generators: ${generatorSpecs.join(", ")}${c.reset}`);
+	console.log(`${c.dim}Judges: ${judgeModels.length > 0 ? judgeModels.join(", ") : "none (AST only)"}${c.reset}`);
+	console.log(`${c.dim}Test cases: ${testCaseCount === Infinity ? "all" : testCaseCount}${c.reset}\n`);
+
+	// Import benchmark module
+	const { runBenchmark, createReporter } = await import("./benchmark/index.js");
+
+	// Types (inline to avoid compile-time dependency on dynamic import)
+	type BenchmarkPhase = "preparing" | "generating" | "judging" | "scoring" | "reporting";
+	type ReportFormat = "cli" | "json" | "detailed";
+	type TestCaseType = "file_summary" | "symbol_summary";
+	type LLMProvider = "claude-code" | "anthropic" | "openrouter" | "local";
+	type BenchmarkConfig = {
+		generators: Array<{ provider: LLMProvider; model: string; displayName: string }>;
+		judges: string[];
+		testCaseCount: number;
+		testCaseTypes: TestCaseType[];
+		projectPath: string;
+		outputFormats: ReportFormat[];
+		onProgress?: (phase: BenchmarkPhase, completed: number, total: number, details?: string) => void;
+	};
+
+	// Progress tracking
+	let currentPhase = "";
+	const onProgress = (phase: BenchmarkPhase, completed: number, total: number, details?: string) => {
+		if (phase !== currentPhase) {
+			if (currentPhase) console.log(""); // New line after previous phase
+			currentPhase = phase;
+		}
+		process.stdout.write(`\r${c.cyan}[${phase}]${c.reset} ${completed}/${total} ${details || ""}`);
+	};
+
+	// Run benchmark
+	const config: BenchmarkConfig = {
+		generators: generatorConfigs,
+		judges: judgeModels,
+		testCaseCount,
+		testCaseTypes: ["file_summary", "symbol_summary"],
+		projectPath: process.cwd(),
+		outputFormats: [outputFormat as ReportFormat],
+		onProgress,
+	};
+
+	try {
+		const results = await runBenchmark(config);
+
+		console.log("\n"); // Clear progress line
+
+		// Generate report
+		const reporter = createReporter(outputFormat as ReportFormat);
+		const report = await reporter.report(results);
+		console.log(report);
+
+		// Save JSON if requested
+		if (outputFormat === "json" || args.includes("--save")) {
+			const { writeFileSync } = await import("node:fs");
+			const { join } = await import("node:path");
+			const outputPath = join(process.cwd(), ".claudemem", "llm-benchmark.json");
+			const jsonReporter = createReporter("json");
+			const jsonReport = await jsonReporter.report(results);
+			writeFileSync(outputPath, jsonReport);
+			console.log(`\n${c.dim}Results saved to ${outputPath}${c.reset}`);
+		}
+	} catch (error) {
+		console.error(`\n${c.red}Benchmark failed: ${error instanceof Error ? error.message : error}${c.reset}`);
+		process.exit(1);
+	}
+}
+
+// ============================================================================
 // Quality Test Types
 // ============================================================================
 
@@ -2307,6 +2448,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}init${c.reset}                   Interactive setup wizard
   ${c.green}models${c.reset}                 List available embedding models
   ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
+  ${c.green}benchmark-llm${c.reset}          Compare LLM models for summary generation quality
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
 
 ${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(for AI agents - use --raw for parsing)${c.reset}
@@ -2333,11 +2475,17 @@ ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
   ${c.cyan}--refresh${c.reset}              Force refresh from API
   ${c.cyan}--ollama${c.reset}               Show Ollama local models
 
-${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
+${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset} ${c.dim}(embedding benchmark)${c.reset}
   ${c.cyan}--models=${c.reset}<list>        Comma-separated model IDs to test
   ${c.cyan}--real${c.reset}                 Use 100 chunks (default: 50)
   ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (any codebase)
   ${c.cyan}--verbose${c.reset}              Show detailed per-query results
+
+${c.yellow}${c.bold}BENCHMARK-LLM OPTIONS${c.reset} ${c.dim}(LLM summary benchmark)${c.reset}
+  ${c.cyan}--generators=${c.reset}<list>    LLM providers to test ${c.dim}(anthropic,openrouter/gpt-4o,ollama/llama3)${c.reset}
+  ${c.cyan}--judges=${c.reset}<list>        LLM models to judge quality ${c.dim}(optional, enables blind eval)${c.reset}
+  ${c.cyan}--cases=${c.reset}<n|all>        Number of test cases or "all" for entire codebase
+  ${c.cyan}--format=${c.reset}<fmt>         Output format: cli | json | detailed
 
 ${c.yellow}${c.bold}SYMBOL GRAPH OPTIONS${c.reset}
   ${c.cyan}--raw${c.reset}                  Machine-readable output (line-based, for parsing)

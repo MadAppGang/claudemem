@@ -798,12 +798,20 @@ export interface EnrichmentResult {
 	durationMs: number;
 	/** Errors encountered during enrichment */
 	errors: Array<{ file: string; documentType: DocumentType; error: string }>;
-	/** Total LLM cost in USD (if available) */
+	/** LLM provider used */
+	llmProvider?: LLMProvider;
+	/** Total LLM cost in USD (if available, undefined for subscription/local) */
 	cost?: number;
 	/** Cost breakdown by phase */
 	costBreakdown?: {
 		fileSummaries?: number;
 		symbolSummaries?: number;
+	};
+	/** LLM call counts by phase */
+	llmCalls?: {
+		fileSummaries: number;
+		symbolSummaries: number;
+		total: number;
 	};
 	/** Total LLM tokens used */
 	totalTokens?: number;

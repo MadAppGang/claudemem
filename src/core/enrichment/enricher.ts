@@ -213,9 +213,11 @@ export class Enricher {
 		let totalUpdated = 0;
 		const allErrors: EnrichmentResult["errors"] = [];
 
-		// Cost tracking per phase
+		// Cost and call tracking per phase
 		let fileSummariesCost = 0;
 		let symbolSummariesCost = 0;
+		let fileSummariesCalls = 0;
+		let symbolSummariesCalls = 0;
 
 		// Get LLM provider label for display
 		const provider = this.llmClient.getProvider();
@@ -302,8 +304,10 @@ export class Enricher {
 			reportProgress("file summaries", total, total, `${total}/${total} via ${providerLabel}`, 0);
 		}
 
-		// Capture file summaries cost and reset for next phase
-		fileSummariesCost = this.llmClient.getAccumulatedUsage().cost;
+		// Capture file summaries stats and reset for next phase
+		const fileSummariesUsage = this.llmClient.getAccumulatedUsage();
+		fileSummariesCost = fileSummariesUsage.cost;
+		fileSummariesCalls = fileSummariesUsage.calls;
 		this.llmClient.resetAccumulatedUsage();
 
 		// Step 2: Extract symbol summaries in PARALLEL
@@ -374,8 +378,10 @@ export class Enricher {
 			reportProgress("symbol summaries", total, total, `${total}/${total} done`, 0);
 		}
 
-		// Capture symbol summaries cost
-		symbolSummariesCost = this.llmClient.getAccumulatedUsage().cost;
+		// Capture symbol summaries stats
+		const symbolSummariesUsage = this.llmClient.getAccumulatedUsage();
+		symbolSummariesCost = symbolSummariesUsage.cost;
+		symbolSummariesCalls = symbolSummariesUsage.calls;
 
 		// Step 3: Embed all documents in batch
 		const docCount = allDocuments.length;
@@ -413,18 +419,25 @@ export class Enricher {
 			reportProgress("store vectors", docCount, docCount, `${docCount} stored`, 0);
 		}
 
-		// Calculate total cost
+		// Calculate totals
 		const totalCost = fileSummariesCost + symbolSummariesCost;
+		const totalCalls = fileSummariesCalls + symbolSummariesCalls;
 
 		return {
 			documentsCreated: totalCreated,
 			documentsUpdated: totalUpdated,
 			durationMs: Date.now() - startTime,
 			errors: allErrors,
+			llmProvider: provider,
 			cost: totalCost > 0 ? totalCost : undefined,
 			costBreakdown: totalCost > 0 ? {
 				fileSummaries: fileSummariesCost > 0 ? fileSummariesCost : undefined,
 				symbolSummaries: symbolSummariesCost > 0 ? symbolSummariesCost : undefined,
+			} : undefined,
+			llmCalls: totalCalls > 0 ? {
+				fileSummaries: fileSummariesCalls,
+				symbolSummaries: symbolSummariesCalls,
+				total: totalCalls,
 			} : undefined,
 		};
 	}
