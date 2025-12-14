@@ -222,6 +222,7 @@ export class Enricher {
 		const providerLabel = provider === "claude-code" ? "Claude CLI"
 			: provider === "anthropic" ? "Anthropic API"
 			: provider === "openrouter" ? "OpenRouter"
+			: provider === "local" ? "Local LLM"
 			: provider;
 
 		// Report progress helper - phase is used by CLI to show distinct progress bars
