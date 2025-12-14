@@ -130,6 +130,9 @@ export async function runCli(args: string[]): Promise<void> {
 		case "benchmark":
 			await handleBenchmark(args.slice(1));
 			break;
+		case "benchmark-llm":
+			await handleBenchmarkLLM(args.slice(1));
+			break;
 		case "ai":
 			handleAiInstructions(args.slice(1));
 			break;
@@ -203,7 +206,7 @@ function createProgressRenderer() {
 	let linesWritten = 0; // Track how many lines we've written
 
 	function renderLine(elapsed: string, bar: string, percent: number, phase: string, detail: string) {
-		return `⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(9)} │ ${detail.padEnd(35)}`;
+		return `⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(16)} │ ${detail}`;
 	}
 
 	function buildBar(completed: number, total: number, inProgress: number) {
@@ -263,9 +266,10 @@ function createProgressRenderer() {
 			if (interval.unref) interval.unref();
 		},
 		update(completed: number, total: number, detail: string, inProgress = 0) {
-			const phaseMatch = detail.match(/^\[(\w+)\]/);
+			// Match phase names including spaces, e.g. [file summaries]
+			const phaseMatch = detail.match(/^\[([^\]]+)\]/);
 			const phase = phaseMatch ? phaseMatch[1] : "processing";
-			const cleanDetail = detail.replace(/^\[\w+\]\s*/, "").slice(0, 35);
+			const cleanDetail = detail.replace(/^\[[^\]]+\]\s*/, "");
 
 			// On phase change: record completed phase and reset timer
 			if (phase !== lastPhase && lastPhase !== "") {
