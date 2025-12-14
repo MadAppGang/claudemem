@@ -6,7 +6,8 @@
  */
 
 import { createHash } from "node:crypto";
-import type { Node, Tree, Query, QueryCapture } from "web-tree-sitter";
+import type { Node, Tree, QueryCapture } from "web-tree-sitter";
+import { Query } from "web-tree-sitter";
 import { getParserManager, type ParserManager } from "../parsers/parser-manager.js";
 import type {
 	SymbolDefinition,
@@ -171,7 +172,7 @@ export class SymbolExtractor {
 			const lang = await this.parserManager.getLanguageObject(language);
 			if (!lang) return [];
 
-			const query = lang.query(config.referenceQuery);
+			const query = new Query(lang, config.referenceQuery);
 
 			// Execute query
 			const captures = query.captures(tree.rootNode);
