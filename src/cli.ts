@@ -1265,7 +1265,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 			const embedResult = await client.embed(
 				chunkTexts,
 				(completed, total, inProgress) => {
-					progress.update(modelId, completed, total, inProgress, "embed");
+					progress.update(modelId, completed, total, inProgress ?? 0, "embed");
 				},
 			);
 
@@ -1292,7 +1292,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 					startLine: 0,
 					endLine: 0,
 					language: "unknown",
-					chunkType: "code" as const,
+					chunkType: "block" as const,
 					fileHash: `hash-${i}`,
 					vector: embedResult.embeddings[i],
 				}))
