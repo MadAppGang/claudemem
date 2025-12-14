@@ -1,11 +1,13 @@
 /**
  * Comprehensive AI Agent Skill for claudemem
  *
- * Token-efficient instruction format based on:
- * - Anthropic context engineering research
- * - XML tags for Claude compatibility
- * - Declarative phrasing
- * - Inline anti-patterns with alternatives
+ * Updated to incorporate symbol graph commands:
+ * - map: structural overview with PageRank ranking
+ * - symbol: find symbol definitions
+ * - callers/callees: dependency tracking
+ * - context: full symbol context
+ *
+ * Core principle: STRUCTURE FIRST, then targeted reads
  */
 
 import { getInstructions, getCompactInstructions, type AgentRole, VALID_ROLES } from "./ai-instructions.js";
@@ -14,185 +16,192 @@ import { getInstructions, getCompactInstructions, type AgentRole, VALID_ROLES } 
  * Full agentic skill document for claudemem
  * Designed for embedding in CLAUDE.md or system prompts
  */
-export const CLAUDEMEM_SKILL = `<skill name="claudemem" version="0.1">
+export const CLAUDEMEM_SKILL = `<skill name="claudemem" version="0.2">
 <purpose>
-Semantic code search using vector embeddings.
-Finds code by MEANING, not just text matching.
-Use INSTEAD of grep/find for: architecture discovery, pattern matching, understanding codebases.
+Code intelligence via symbol graph + semantic search.
+Provides STRUCTURE FIRST understanding before reading code.
+
+Primary use: Navigate code by SYMBOLS and DEPENDENCIES, not text.
+Use INSTEAD of grep/find for: architecture discovery, impact analysis, dependency tracing.
 </purpose>
 
 <capabilities>
+SYMBOL GRAPH:
+  Extract symbols (functions, classes, types) from AST
+  Track cross-file references (calls, imports, type usage)
+  Compute PageRank = symbol importance score
+  Generate token-budgeted repo maps
+
+SEMANTIC SEARCH:
+  Natural language → vector similarity + BM25
+  Searches raw code AND LLM-enriched summaries
+  Use AFTER structure is understood (not first step!)
+
 INDEXING:
-  Parse code → AST chunking (functions/classes/methods) → embed → LanceDB
-
-ENRICHMENT (LLM-powered):
-  File summaries: Purpose, key exports, dependencies (1 LLM call/file)
-  Symbol summaries: Function/class docs (batched: 1 LLM call for all symbols/file)
-
-SEARCH:
-  Natural language → vector similarity + BM25 → ranked results (file:line)
-  Searches BOTH raw code AND enriched summaries for better semantic matching
-
-AUTO-INDEX: Changed files re-indexed + re-enriched before search
+  Parse code → AST chunking → embed → vector store
+  Auto-reindex on file changes before search/map
 </capabilities>
 
 <tools>
-CLI:
-  claudemem index [path] [-f] [--enrich]  # Index codebase (force with -f, enrich with LLM)
-  claudemem enrich [path] [--concurrency N]  # Run LLM enrichment on indexed files
-  claudemem search "query" [-n N]  # Search (auto-indexes changes)
-  claudemem status                 # Show index info + enrichment progress
-  claudemem clear                  # Remove index
-  claudemem ai <role>              # Get role instructions
+SYMBOL GRAPH COMMANDS (primary - always use --nologo --raw):
+  claudemem map [query]       # Repo structure, symbols ranked by PageRank
+  claudemem symbol <name>     # Find symbol definition (file:line, signature)
+  claudemem callers <name>    # What depends on this symbol
+  claudemem callees <name>    # What this symbol depends on
+  claudemem context <name>    # Full context: symbol + callers + callees
 
-MCP (Claude Code integration):
-  search_code        query, limit?, language?, autoIndex?
-  index_codebase     path?, force?, model?
-  get_status         path?
-  clear_index        path?
-  list_embedding_models  freeOnly?
+SEARCH (secondary - after structure understood):
+  claudemem search "query"    # Semantic search, returns file:line + code
+  claudemem search "q" --map  # Search + include repo map context
+
+INDEX/STATUS:
+  claudemem index [path] [-f] # Index codebase (force with -f)
+  claudemem status            # Show index info
+  claudemem clear             # Remove index
+
+AI INSTRUCTIONS:
+  claudemem ai <role>         # Role instructions (architect|developer|tester|debugger)
 </tools>
 
-<search-patterns>
-SEMANTIC (find by meaning):
-  "authentication flow user login"
-  "data validation before save"
-  "error handling with retry"
-  "convert request to response"
+<output-format>
+Raw output (--raw flag) for reliable parsing:
 
-STRUCTURAL (find by architecture):
-  "service layer business logic"
-  "repository pattern data access"
-  "factory creation pattern"
-  "dependency injection setup"
+file: src/core/indexer.ts
+line: 75-758
+kind: class
+name: Indexer
+signature: export class Indexer
+pagerank: 0.0842
+exported: true
+---
+file: src/core/store.ts
+line: 12-89
+kind: class
+name: VectorStore
+...
 
-FUNCTIONAL (find by purpose):
-  "parse JSON configuration"
-  "send HTTP request"
-  "handle database connection"
-  "validate user input"
-
-KEYWORD-ENHANCED (specific terms):
-  "stripe webhook payment"
-  "JWT token authentication"
-  "redis cache invalidation"
-  "graphql resolver mutation"
-</search-patterns>
-
-<document-types>
-Results may come from different document types:
-
-code_chunk (raw code):
-  Direct AST-extracted code blocks (functions, classes, methods)
-  Best for: exact implementation, signatures, syntax
-
-file_summary (LLM-enriched):
-  AI-generated summary: purpose, key exports, architecture role
-  Best for: understanding file purpose, finding entry points
-
-symbol_summary (LLM-enriched):
-  AI-generated docs: purpose, parameters, return values, side effects
-  Best for: API understanding, finding functions by behavior
-
-SEARCH STRATEGY:
-  Generic queries → match enriched summaries (meaning-based)
-  Specific code → match raw chunks (implementation details)
-  Both types searched simultaneously for best results
-</document-types>
+Records separated by "---". Each field: "key: value" on own line.
+</output-format>
 
 <workflow>
-1. CHECK STATUS
-   claudemem status
-   → Verify index exists, see file/chunk counts
+1. MAP STRUCTURE (always start here)
+   claudemem --nologo map "task keywords" --raw
+   → See relevant symbols ranked by PageRank
+   → High PageRank (>0.05) = heavily used, understand first
+   → Low PageRank (<0.01) = utilities, defer
 
-2. SEARCH SEMANTICALLY
-   claudemem search "what you're looking for"
-   → Returns: file:line, score, code snippet
+2. LOCATE SYMBOL
+   claudemem --nologo symbol TargetClass --raw
+   → Get exact file:line, signature, export status
+   → Only read what you found, not entire files
 
-3. READ FULL CONTEXT
-   After search → read returned file:line for full understanding
+3. CHECK IMPACT (before modifying!)
+   claudemem --nologo callers TargetClass --raw
+   → These will break if you change the interface
+   → Include these files in your review
 
-4. CHAIN SEARCHES (narrow down)
-   Broad: claudemem search "authentication"
-   Specific: claudemem search "JWT token validation middleware"
+4. UNDERSTAND DEPENDENCIES
+   claudemem --nologo callees TargetClass --raw
+   → What this code can use
+   → Available utilities and interfaces
+
+5. GET FULL CONTEXT (complex changes)
+   claudemem --nologo context TargetClass --raw
+   → Symbol + all callers + all callees at once
+
+6. SEARCH (when needed)
+   claudemem --nologo search "specific query" --raw
+   → Use for natural language discovery
+   → After structure is understood
 </workflow>
 
-<result-format>
-Each result contains:
-  filePath:startLine-endLine    # Location
-  chunkType: function|class|method|module|block
-  name: functionName            # If extractable
-  parentName: ClassName         # For methods
-  score: 85% (vector: 80%, keyword: 90%)
-  content: [code snippet]
-</result-format>
+<pagerank-guide>
+PageRank indicates symbol importance in the codebase:
+
+HIGH (>0.05):
+  Core abstractions everyone depends on
+  Understand these FIRST - changes have wide impact
+  Examples: main entry points, core services, key interfaces
+
+MEDIUM (0.01-0.05):
+  Feature implementations, business logic
+  Important for specific functionality
+  Moderate impact radius
+
+LOW (<0.01):
+  Utilities, helpers, leaf nodes
+  Safe to read later, low impact
+  Often implementation details
+</pagerank-guide>
+
+<best-practices>
+✓ STRUCTURE FIRST: map → symbol → callers → then read code
+✓ Check PageRank before reading files (high = important)
+✓ Check callers BEFORE modifying anything
+✓ Use exact file:line from symbol output (not whole files)
+✓ Trace full caller chain before complex changes
+✓ Use --nologo --raw for all agent commands
+</best-practices>
+
+<avoid>
+× grep for code discovery
+  grep "auth" → 500 matches, no ranking, no relationships
+  INSTEAD: claudemem map "authentication" --raw
+
+× Reading entire files
+  cat src/auth.ts → 80% irrelevant, token waste
+  INSTEAD: claudemem symbol → read exact line range
+
+× Modifying without checking callers
+  Change signature → break unknown callers
+  INSTEAD: claudemem callers <symbol> BEFORE changes
+
+× Ignoring PageRank
+  Low PageRank = probably utility, not core
+  INSTEAD: Focus on high PageRank symbols first
+
+× Starting with search
+  Search returns snippets, not structure
+  INSTEAD: map → understand → then search if needed
+
+× Not using --raw for parsing
+  Decorated output breaks parsing
+  INSTEAD: Always use --nologo --raw
+</avoid>
+
+<scenarios>
+BUG FIX:
+  1. claudemem map "error keywords" --raw
+  2. claudemem symbol FunctionFromStackTrace --raw
+  3. claudemem callers FunctionFromStackTrace --raw
+  4. Read identified file:line ranges
+  5. Fix bug, verify callers still work
+
+NEW FEATURE:
+  1. claudemem map "feature area" --raw
+  2. claudemem callees ExistingFeature --raw (see patterns)
+  3. claudemem context ModificationPoint --raw
+  4. Implement following existing patterns
+  5. Check no callers broken
+
+REFACTORING:
+  1. claudemem symbol SymbolToRename --raw
+  2. claudemem callers SymbolToRename --raw
+  3. Update all caller locations from output
+  4. Verify each file:line updated
+
+UNDERSTANDING CODEBASE:
+  1. claudemem map --raw (overall structure)
+  2. Identify top 5 by PageRank
+  3. claudemem context <top-symbol> --raw for each
+  4. Trace flow via callees
+</scenarios>
 
 <supported-languages>
 TypeScript (.ts, .tsx), JavaScript (.js, .jsx)
 Python (.py), Go (.go), Rust (.rs)
 C (.c, .h), C++ (.cpp, .hpp), Java (.java)
 </supported-languages>
-
-<best-practices>
-✓ Use natural language queries (not regex)
-✓ Include context: "error handling IN payment flow"
-✓ Chain searches: broad → specific
-✓ Trust high scores (>70%), verify low scores
-✓ Combine with file reads: search → read → understand
-✓ Re-index after major changes: claudemem index -f
-</best-practices>
-
-<avoid>
-× grep/find for semantic discovery
-  grep "auth" → 500 matches, no ranking
-  INSTEAD: claudemem search "authentication flow"
-
-× Single-word queries
-  "error" → too broad
-  INSTEAD: "error handling database connection"
-
-× Reading all files sequentially
-  cat src/**/*.ts → context overload
-  INSTEAD: claudemem search → targeted reads
-
-× Ignoring search scores
-  Low score (<50%) = weak semantic match
-  INSTEAD: Verify manually or refine query
-
-× Skipping auto-index
-  Files changed but not searching fresh data
-  INSTEAD: Let auto-index run (default: on)
-</avoid>
-
-<configuration>
-Project: .claudemem/config.json
-  model: "qwen/qwen3-embedding-8b"
-  excludePatterns: ["*.test.ts", "dist/**"]
-  includeExtensions: [".ts", ".tsx"]
-
-Global: ~/.claudemem/config.json
-  openrouterApiKey: "sk-or-..."
-  embeddingProvider: "openrouter" | "ollama" | "voyage"
-  defaultModel: "..."
-
-Environment:
-  OPENROUTER_API_KEY    # API key
-  CLAUDEMEM_MODEL       # Override model
-</configuration>
-
-<providers>
-OpenRouter (cloud, default):
-  Models: qwen3-embedding-8b (recommended), text-embedding-3-small
-  Cost: ~$0.01/1M tokens
-
-Ollama (local, free):
-  Models: nomic-embed-text, mxbai-embed-large
-  Requires: ollama pull nomic-embed-text
-
-Voyage AI (specialized):
-  Models: voyage-code-3 (best for code)
-  Cost: ~$0.06/1M tokens
-</providers>
 </skill>`;
 
 /**
@@ -211,28 +220,25 @@ ${roleInstructions}
  * Compact skill for tight context budgets
  */
 export const CLAUDEMEM_SKILL_COMPACT = `<skill name="claudemem">
-SEMANTIC CODE SEARCH via embeddings + LLM enrichment.
-Use INSTEAD of grep for meaning-based discovery.
+CODE INTELLIGENCE via symbol graph + semantic search.
+STRUCTURE FIRST: map → symbol → callers → then read code.
 
-COMMANDS:
-  claudemem search "query"   # Natural language → ranked results (file:line, score)
-  claudemem index [-f]       # Index codebase (auto-runs before search)
-  claudemem enrich           # LLM enrichment (file + symbol summaries)
-  claudemem status           # Check index + enrichment state
-  claudemem ai <role>        # Role instructions (architect|developer|tester|debugger)
+SYMBOL GRAPH (primary - use --nologo --raw):
+  claudemem map [query]       # Repo structure, PageRank ranking
+  claudemem symbol <name>     # Find definition (file:line)
+  claudemem callers <name>    # What depends on this (BEFORE modifying!)
+  claudemem callees <name>    # What this depends on
+  claudemem context <name>    # Full context at once
 
-DOCUMENT TYPES:
-  code_chunk     Raw AST-extracted code (implementation)
-  file_summary   LLM: file purpose, exports, architecture
-  symbol_summary LLM: function docs, params, side effects
+SEARCH (after structure understood):
+  claudemem search "query"    # Semantic search → file:line results
 
-QUERY PATTERNS:
-  "authentication flow login" (semantic)
-  "stripe webhook handler" (keyword-enhanced)
-  "service layer business logic" (structural)
+PAGERANK = importance:
+  High (>0.05) = core abstractions, read first
+  Low (<0.01) = utilities, defer
 
-BEST: Natural language, chain broad→specific, trust high scores (>70%)
-AVOID: grep (no semantics), single words ("error"), reading all files
+WORKFLOW: map → identify high PageRank → symbol → callers → implement
+AVOID: grep (no ranking), reading whole files, modifying without callers check
 </skill>`;
 
 /**
@@ -247,39 +253,45 @@ ${roleCompact}`;
 
 /**
  * MCP-specific instruction for Claude Code integration
+ * Note: CLI commands preferred for agent workflows
  */
 export const CLAUDEMEM_MCP_SKILL = `<mcp-skill name="claudemem">
-TOOLS AVAILABLE:
-  search_code(query, limit?, language?)     # Semantic search, returns file:line + code
-  index_codebase(path?, force?)             # Index project (usually auto-runs)
-  get_status(path?)                         # Check index exists
-  clear_index(path?)                        # Reset index
-  list_embedding_models(freeOnly?)          # See available models
+NOTE: For AI agents, CLI commands with --nologo --raw are preferred.
+MCP tools available for Claude Code integration:
 
-USAGE PATTERN:
-  1. search_code("authentication middleware") → get results
-  2. Read returned file:line for full context
-  3. Chain: search_code("jwt validation") for specifics
+TOOLS:
+  search_code(query, limit?, language?)  # Semantic search
+  index_codebase(path?, force?)          # Index project
+  get_status(path?)                      # Check index
+  clear_index(path?)                     # Reset index
 
-WHEN TO USE:
-  ✓ Finding code by purpose/meaning
-  ✓ Architecture discovery
-  ✓ Understanding unfamiliar codebase
-  ✓ Locating patterns across files
+PREFERRED CLI WORKFLOW:
+  claudemem map "task" --raw             # Structure first
+  claudemem symbol <name> --raw          # Find definition
+  claudemem callers <name> --raw         # Check impact
+  claudemem callees <name> --raw         # Dependencies
+  claudemem search "query" --raw         # When needed
 
-WHEN NOT TO USE:
-  × Exact string search (use grep)
-  × Known file path (use read)
-  × Simple filename search (use glob)
+WHEN TO USE MCP:
+  ✓ Quick semantic searches
+  ✓ Integration with Claude Code
+
+WHEN TO USE CLI:
+  ✓ Structure discovery (map, symbol, callers, callees)
+  ✓ Impact analysis before modifications
+  ✓ Dependency tracing
+  ✓ Any workflow requiring parsed output
 </mcp-skill>`;
 
 /**
  * Quick reference card (minimal tokens)
  */
-export const CLAUDEMEM_QUICK_REF = `claudemem: semantic code search + LLM enrichment
-  search "query"  → file:line results (code + enriched summaries)
-  index -f        → rebuild index
-  enrich          → LLM summaries (file + symbol)
-  ai <role>       → architect|developer|tester|debugger
-Use for: meaning-based discovery, architecture, patterns
-Avoid: grep (no semantics), single-word queries`;
+export const CLAUDEMEM_QUICK_REF = `claudemem: symbol graph + semantic search (--nologo --raw)
+  map [query]      # Structure overview, PageRank ranked
+  symbol <name>    # Find definition (file:line)
+  callers <name>   # What depends on this (BEFORE modifying!)
+  callees <name>   # What this depends on
+  context <name>   # Symbol + callers + callees
+  search "query"   # Semantic search (after structure understood)
+WORKFLOW: map → symbol → callers → implement
+AVOID: grep, whole file reads, modifying without callers`;

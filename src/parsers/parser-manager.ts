@@ -33,6 +33,29 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (type_alias_declaration
         name: (type_identifier) @name) @chunk
     `,
+		referenceQuery: `
+      ; Function/method calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (member_expression
+          property: (property_identifier) @ref.call))
+      ; Type references
+      (type_identifier) @ref.type
+      ; Import statements
+      (import_specifier
+        name: (identifier) @ref.import)
+      (import_clause
+        (identifier) @ref.import)
+      ; Extends/implements
+      (extends_clause
+        value: (identifier) @ref.extends)
+      (class_heritage
+        (extends_clause
+          (identifier) @ref.extends))
+      (implements_clause
+        (type_identifier) @ref.implements)
+    `,
 	},
 	javascript: {
 		id: "javascript",
@@ -46,6 +69,22 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (method_definition
         name: (property_identifier) @name) @chunk
       (arrow_function) @chunk
+    `,
+		referenceQuery: `
+      ; Function/method calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (member_expression
+          property: (property_identifier) @ref.call))
+      ; Import statements
+      (import_specifier
+        name: (identifier) @ref.import)
+      (import_clause
+        (identifier) @ref.import)
+      ; Extends clause
+      (class_heritage
+        (identifier) @ref.extends)
     `,
 	},
 	tsx: {
@@ -63,6 +102,26 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (interface_declaration
         name: (type_identifier) @name) @chunk
     `,
+		referenceQuery: `
+      ; Function/method calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (member_expression
+          property: (property_identifier) @ref.call))
+      ; Type references
+      (type_identifier) @ref.type
+      ; Import statements
+      (import_specifier
+        name: (identifier) @ref.import)
+      (import_clause
+        (identifier) @ref.import)
+      ; Extends/implements
+      (extends_clause
+        value: (identifier) @ref.extends)
+      (implements_clause
+        (type_identifier) @ref.implements)
+    `,
 	},
 	jsx: {
 		id: "jsx",
@@ -77,6 +136,22 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
         name: (property_identifier) @name) @chunk
       (arrow_function) @chunk
     `,
+		referenceQuery: `
+      ; Function/method calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (member_expression
+          property: (property_identifier) @ref.call))
+      ; Import statements
+      (import_specifier
+        name: (identifier) @ref.import)
+      (import_clause
+        (identifier) @ref.import)
+      ; Extends clause
+      (class_heritage
+        (identifier) @ref.extends)
+    `,
 	},
 	python: {
 		id: "python",
@@ -87,6 +162,30 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
         name: (identifier) @name) @chunk
       (class_definition
         name: (identifier) @name) @chunk
+    `,
+		referenceQuery: `
+      ; Function calls
+      (call
+        function: (identifier) @ref.call)
+      (call
+        function: (attribute
+          attribute: (identifier) @ref.call))
+      ; Import statements
+      (import_from_statement
+        name: (dotted_name
+          (identifier) @ref.import))
+      (aliased_import
+        name: (identifier) @ref.import)
+      (import_statement
+        name: (dotted_name
+          (identifier) @ref.import))
+      ; Class inheritance
+      (class_definition
+        superclasses: (argument_list
+          (identifier) @ref.extends))
+      ; Type annotations (Python 3.5+)
+      (type
+        (identifier) @ref.type)
     `,
 	},
 	go: {
@@ -101,6 +200,26 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (type_declaration
         (type_spec
           name: (type_identifier) @name)) @chunk
+    `,
+		referenceQuery: `
+      ; Function calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (selector_expression
+          field: (field_identifier) @ref.call))
+      ; Type references
+      (type_identifier) @ref.type
+      ; Qualified type references (package.Type)
+      (qualified_type
+        package: (package_identifier) @ref.import
+        name: (type_identifier) @ref.type)
+      ; Import statements
+      (import_spec
+        path: (interpreted_string_literal) @ref.import)
+      ; Interface embedding
+      (interface_type
+        (type_identifier) @ref.implements)
     `,
 	},
 	rust: {
@@ -118,6 +237,30 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (trait_item
         name: (type_identifier) @name) @chunk
     `,
+		referenceQuery: `
+      ; Function calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (scoped_identifier
+          name: (identifier) @ref.call))
+      (call_expression
+        function: (field_expression
+          field: (field_identifier) @ref.call))
+      ; Type references
+      (type_identifier) @ref.type
+      ; Use statements
+      (use_declaration
+        argument: (scoped_identifier) @ref.import)
+      (use_declaration
+        argument: (identifier) @ref.import)
+      ; Trait bounds
+      (trait_bounds
+        (type_identifier) @ref.implements)
+      ; Impl for type
+      (impl_item
+        trait: (type_identifier) @ref.implements)
+    `,
 	},
 	c: {
 		id: "c",
@@ -131,6 +274,21 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
         name: (type_identifier) @name) @chunk
       (enum_specifier
         name: (type_identifier) @name) @chunk
+    `,
+		referenceQuery: `
+      ; Function calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (field_expression
+          field: (field_identifier) @ref.call))
+      ; Type references
+      (type_identifier) @ref.type
+      ; Include statements
+      (preproc_include
+        path: (string_literal) @ref.import)
+      (preproc_include
+        path: (system_lib_string) @ref.import)
     `,
 	},
 	cpp: {
@@ -146,6 +304,27 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (struct_specifier
         name: (type_identifier) @name) @chunk
     `,
+		referenceQuery: `
+      ; Function calls
+      (call_expression
+        function: (identifier) @ref.call)
+      (call_expression
+        function: (field_expression
+          field: (field_identifier) @ref.call))
+      (call_expression
+        function: (qualified_identifier
+          name: (identifier) @ref.call))
+      ; Type references
+      (type_identifier) @ref.type
+      ; Include statements
+      (preproc_include
+        path: (string_literal) @ref.import)
+      (preproc_include
+        path: (system_lib_string) @ref.import)
+      ; Base class specifier
+      (base_class_clause
+        (type_identifier) @ref.extends)
+    `,
 	},
 	java: {
 		id: "java",
@@ -160,6 +339,25 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
         name: (identifier) @name) @chunk
       (enum_declaration
         name: (identifier) @name) @chunk
+    `,
+		referenceQuery: `
+      ; Method calls
+      (method_invocation
+        name: (identifier) @ref.call)
+      (method_invocation
+        object: (identifier) @ref.call)
+      ; Type references
+      (type_identifier) @ref.type
+      ; Import statements
+      (import_declaration
+        (scoped_identifier) @ref.import)
+      ; Extends clause
+      (superclass
+        (type_identifier) @ref.extends)
+      ; Implements clause
+      (super_interfaces
+        (type_list
+          (type_identifier) @ref.implements))
     `,
 	},
 };
@@ -263,6 +461,14 @@ export class ParserManager {
 		// Cache it
 		this.parsers.set(language, parser);
 		return parser;
+	}
+
+	/**
+	 * Get a Language object for query execution
+	 * This is needed because web-tree-sitter Parser doesn't expose its Language
+	 */
+	async getLanguageObject(language: SupportedLanguage): Promise<Language | null> {
+		return this.loadLanguage(language);
 	}
 
 	/**

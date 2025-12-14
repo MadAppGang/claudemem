@@ -21,6 +21,9 @@ import { createIndexer } from "./core/indexer.js";
 import { createEmbeddingsClient, getModelContextLength, truncateForModel } from "./core/embeddings.js";
 import { chunkFileByPath, canChunkFile } from "./core/chunker.js";
 import { createVectorStore } from "./core/store.js";
+import { createRepoMapGenerator } from "./core/repo-map.js";
+import { createReferenceGraphManager } from "./core/reference-graph.js";
+import { FileTracker } from "./core/tracker.js";
 import {
 	CURATED_PICKS,
 	discoverEmbeddingModels,
@@ -129,6 +132,22 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "ai":
 			handleAiInstructions(args.slice(1));
+			break;
+		// Symbol graph commands for AI agents
+		case "map":
+			await handleMap(args.slice(1));
+			break;
+		case "symbol":
+			await handleSymbol(args.slice(1));
+			break;
+		case "callers":
+			await handleCallers(args.slice(1));
+			break;
+		case "callees":
+			await handleCallees(args.slice(1));
+			break;
+		case "context":
+			await handleContext(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -1723,6 +1742,416 @@ async function extractAutoTestQueries(projectPath: string): Promise<TestQuery[]>
 }
 
 // ============================================================================
+// Symbol Graph Commands (for AI Agents)
+// ============================================================================
+
+/**
+ * Format a symbol for raw output
+ */
+function formatSymbolRaw(symbol: {
+	id?: string;
+	name: string;
+	kind: string;
+	filePath: string;
+	startLine: number;
+	endLine: number;
+	signature?: string;
+	docstring?: string;
+	isExported?: boolean;
+	pagerankScore?: number;
+}): string {
+	const lines = [
+		`file: ${symbol.filePath}`,
+		`line: ${symbol.startLine}-${symbol.endLine}`,
+		`kind: ${symbol.kind}`,
+		`name: ${symbol.name}`,
+	];
+	if (symbol.signature) lines.push(`signature: ${symbol.signature}`);
+	if (symbol.pagerankScore !== undefined) lines.push(`pagerank: ${symbol.pagerankScore.toFixed(4)}`);
+	if (symbol.isExported !== undefined) lines.push(`exported: ${symbol.isExported}`);
+	if (symbol.docstring) lines.push(`docstring: ${symbol.docstring.split('\n')[0]}`);
+	return lines.join('\n');
+}
+
+/**
+ * Get file tracker for a project path
+ */
+function getFileTracker(projectPath: string): FileTracker | null {
+	const claudememDir = join(projectPath, ".claudemem");
+	const dbPath = join(claudememDir, "index.db");
+
+	if (!existsSync(dbPath)) {
+		return null;
+	}
+
+	return new FileTracker(dbPath);
+}
+
+/**
+ * Handle 'map' command - generate repo map
+ */
+async function handleMap(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+
+	// Parse --tokens flag
+	let maxTokens = 2000;
+	const tokensIdx = args.findIndex(a => a === "--tokens");
+	if (tokensIdx !== -1 && args[tokensIdx + 1]) {
+		maxTokens = parseInt(args[tokensIdx + 1], 10) || 2000;
+	}
+
+	// Parse --path flag for project path
+	let projectPath = ".";
+	const pathIdx = args.findIndex(a => a === "--path" || a === "-p");
+	if (pathIdx !== -1 && args[pathIdx + 1]) {
+		projectPath = args[pathIdx + 1];
+	}
+	projectPath = resolve(projectPath);
+
+	// Get query (first non-flag argument)
+	const nonFlagArgs = args.filter(a => !a.startsWith("-"));
+	// Skip args that are values for flags
+	const flagValues = new Set<string>();
+	if (tokensIdx !== -1 && args[tokensIdx + 1]) flagValues.add(args[tokensIdx + 1]);
+	if (pathIdx !== -1 && args[pathIdx + 1]) flagValues.add(args[pathIdx + 1]);
+	const query = nonFlagArgs.find(a => !flagValues.has(a));
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const repoMapGen = createRepoMapGenerator(tracker);
+
+		let output: string;
+		if (query) {
+			output = repoMapGen.generateForQuery(query, { maxTokens });
+		} else {
+			output = repoMapGen.generate({ maxTokens });
+		}
+
+		if (raw) {
+			// Convert to raw format
+			const structured = repoMapGen.generateStructured({ maxTokens: maxTokens * 2 });
+			const rawOutput = structured.map(entry => {
+				return entry.symbols.map(sym => [
+					`file: ${entry.filePath}`,
+					`line: ${sym.line}`,
+					`kind: ${sym.kind}`,
+					`name: ${sym.name}`,
+					sym.signature ? `signature: ${sym.signature}` : null,
+					`pagerank: ${sym.pagerankScore.toFixed(4)}`,
+				].filter(Boolean).join('\n')).join('\n---\n');
+			}).join('\n---\n');
+			console.log(rawOutput);
+		} else {
+			if (!noLogo) printLogo();
+			console.log("\n📊 Repository Map\n");
+			console.log(output);
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'symbol' command - find symbol by name
+ */
+async function handleSymbol(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const projectPath = resolve(".");
+
+	// Get symbol name
+	const symbolName = args.find(a => !a.startsWith("-"));
+	if (!symbolName) {
+		console.error("Usage: claudemem symbol <name> [--file <hint>] [--raw]");
+		process.exit(1);
+	}
+
+	// Get file hint
+	let fileHint: string | undefined;
+	const fileIdx = args.findIndex(a => a === "--file");
+	if (fileIdx !== -1 && args[fileIdx + 1]) {
+		fileHint = args[fileIdx + 1];
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const graphManager = createReferenceGraphManager(tracker);
+		const symbol = graphManager.findSymbol(symbolName, {
+			preferExported: true,
+			fileHint
+		});
+
+		if (!symbol) {
+			console.error(`Symbol '${symbolName}' not found.`);
+			process.exit(1);
+		}
+
+		if (raw) {
+			console.log(formatSymbolRaw(symbol));
+		} else {
+			if (!noLogo) printLogo();
+			console.log("\n🔍 Symbol Found\n");
+			console.log(`  Name:      ${symbol.name}`);
+			console.log(`  Kind:      ${symbol.kind}`);
+			console.log(`  File:      ${symbol.filePath}:${symbol.startLine}-${symbol.endLine}`);
+			if (symbol.signature) console.log(`  Signature: ${symbol.signature}`);
+			console.log(`  PageRank:  ${symbol.pagerankScore.toFixed(4)}`);
+			console.log(`  Exported:  ${symbol.isExported}`);
+			if (symbol.docstring) console.log(`  Docstring: ${symbol.docstring.split('\n')[0]}`);
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'callers' command - find what calls a symbol
+ */
+async function handleCallers(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const projectPath = resolve(".");
+
+	const symbolName = args.find(a => !a.startsWith("-"));
+	if (!symbolName) {
+		console.error("Usage: claudemem callers <name> [--raw]");
+		process.exit(1);
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const graphManager = createReferenceGraphManager(tracker);
+		const symbol = graphManager.findSymbol(symbolName, { preferExported: true });
+
+		if (!symbol) {
+			console.error(`Symbol '${symbolName}' not found.`);
+			process.exit(1);
+		}
+
+		const callers = graphManager.getCallers(symbol.id);
+
+		if (raw) {
+			if (callers.length === 0) {
+				console.log("# No callers found");
+			} else {
+				const output = callers.map(caller => [
+					`caller: ${caller.name}`,
+					`file: ${caller.filePath}`,
+					`line: ${caller.startLine}`,
+					`kind: ${caller.kind}`,
+				].join('\n')).join('\n---\n');
+				console.log(output);
+			}
+		} else {
+			if (!noLogo) printLogo();
+			console.log(`\n📞 Callers of '${symbolName}'\n`);
+			if (callers.length === 0) {
+				console.log("  No callers found.");
+			} else {
+				for (const caller of callers) {
+					console.log(`  ${caller.name}`);
+					console.log(`     ${caller.filePath}:${caller.startLine} (${caller.kind})`);
+				}
+			}
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'callees' command - find what a symbol calls
+ */
+async function handleCallees(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const projectPath = resolve(".");
+
+	const symbolName = args.find(a => !a.startsWith("-"));
+	if (!symbolName) {
+		console.error("Usage: claudemem callees <name> [--raw]");
+		process.exit(1);
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const graphManager = createReferenceGraphManager(tracker);
+		const symbol = graphManager.findSymbol(symbolName, { preferExported: true });
+
+		if (!symbol) {
+			console.error(`Symbol '${symbolName}' not found.`);
+			process.exit(1);
+		}
+
+		const callees = graphManager.getCallees(symbol.id);
+
+		if (raw) {
+			if (callees.length === 0) {
+				console.log("# No callees found");
+			} else {
+				const output = callees.map(callee => [
+					`callee: ${callee.name}`,
+					`file: ${callee.filePath}`,
+					`line: ${callee.startLine}`,
+					`kind: ${callee.kind}`,
+				].join('\n')).join('\n---\n');
+				console.log(output);
+			}
+		} else {
+			if (!noLogo) printLogo();
+			console.log(`\n📤 Callees of '${symbolName}'\n`);
+			if (callees.length === 0) {
+				console.log("  No callees found.");
+			} else {
+				for (const callee of callees) {
+					console.log(`  ${callee.name}`);
+					console.log(`     ${callee.filePath}:${callee.startLine} (${callee.kind})`);
+				}
+			}
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'context' command - get full symbol context
+ */
+async function handleContext(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const projectPath = resolve(".");
+
+	const symbolName = args.find(a => !a.startsWith("-"));
+	if (!symbolName) {
+		console.error("Usage: claudemem context <name> [--callers N] [--callees N] [--raw]");
+		process.exit(1);
+	}
+
+	// Parse limits
+	let maxCallers = 10;
+	let maxCallees = 15;
+	const callersIdx = args.findIndex(a => a === "--callers");
+	if (callersIdx !== -1 && args[callersIdx + 1]) {
+		maxCallers = parseInt(args[callersIdx + 1], 10) || 10;
+	}
+	const calleesIdx = args.findIndex(a => a === "--callees");
+	if (calleesIdx !== -1 && args[calleesIdx + 1]) {
+		maxCallees = parseInt(args[calleesIdx + 1], 10) || 15;
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const graphManager = createReferenceGraphManager(tracker);
+		const symbol = graphManager.findSymbol(symbolName, { preferExported: true });
+
+		if (!symbol) {
+			console.error(`Symbol '${symbolName}' not found.`);
+			process.exit(1);
+		}
+
+		const context = graphManager.getSymbolContext(symbol.id, {
+			includeCallers: true,
+			includeCallees: true,
+			maxCallers,
+			maxCallees,
+		});
+
+		if (raw) {
+			const sections: string[] = [];
+
+			// Symbol section
+			sections.push("[symbol]");
+			sections.push(formatSymbolRaw(symbol));
+
+			// Callers section
+			sections.push("[callers]");
+			if (context.callers.length === 0) {
+				sections.push("# No callers");
+			} else {
+				sections.push(context.callers.map(caller => [
+					`caller: ${caller.name}`,
+					`file: ${caller.filePath}`,
+					`line: ${caller.startLine}`,
+					`kind: ${caller.kind}`,
+				].join('\n')).join('\n---\n'));
+			}
+
+			// Callees section
+			sections.push("[callees]");
+			if (context.callees.length === 0) {
+				sections.push("# No callees");
+			} else {
+				sections.push(context.callees.map(callee => [
+					`callee: ${callee.name}`,
+					`file: ${callee.filePath}`,
+					`line: ${callee.startLine}`,
+					`kind: ${callee.kind}`,
+				].join('\n')).join('\n---\n'));
+			}
+
+			console.log(sections.join('\n'));
+		} else {
+			if (!noLogo) printLogo();
+			console.log(`\n🔮 Context for '${symbolName}'\n`);
+
+			// Symbol
+			console.log("  Symbol:");
+			console.log(`    ${symbol.name} (${symbol.kind})`);
+			console.log(`    ${symbol.filePath}:${symbol.startLine}-${symbol.endLine}`);
+			if (symbol.signature) console.log(`    ${symbol.signature}`);
+
+			// Callers
+			console.log(`\n  Callers (${context.callers.length}):`);
+			if (context.callers.length === 0) {
+				console.log("    None");
+			} else {
+				for (const caller of context.callers) {
+					console.log(`    ${caller.name} (${caller.filePath}:${caller.startLine})`);
+				}
+			}
+
+			// Callees
+			console.log(`\n  Callees (${context.callees.length}):`);
+			if (context.callees.length === 0) {
+				console.log("    None");
+			} else {
+				for (const callee of context.callees) {
+					console.log(`    ${callee.name} (${callee.filePath}:${callee.startLine})`);
+				}
+			}
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+// ============================================================================
 // AI Instructions Command
 // ============================================================================
 
@@ -1864,6 +2293,13 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
 
+${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(for AI agents - use --raw for parsing)${c.reset}
+  ${c.green}map${c.reset} [query]            Get repo structure ${c.dim}(optionally filtered by query)${c.reset}
+  ${c.green}symbol${c.reset} <name>          Find symbol definition
+  ${c.green}callers${c.reset} <name>         Find what calls a symbol
+  ${c.green}callees${c.reset} <name>         Find what a symbol calls
+  ${c.green}context${c.reset} <name>         Get symbol with its callers and callees
+
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
   ${c.cyan}--no-llm${c.reset}               Disable LLM enrichment (summaries, idioms, etc.)
@@ -1886,6 +2322,13 @@ ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset}
   ${c.cyan}--real${c.reset}                 Use 100 chunks (default: 50)
   ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (any codebase)
   ${c.cyan}--verbose${c.reset}              Show detailed per-query results
+
+${c.yellow}${c.bold}SYMBOL GRAPH OPTIONS${c.reset}
+  ${c.cyan}--raw${c.reset}                  Machine-readable output (line-based, for parsing)
+  ${c.cyan}--tokens${c.reset} <n>           Max tokens for map output (default: 2000)
+  ${c.cyan}--file${c.reset} <hint>          Disambiguate symbol by file path
+  ${c.cyan}--callers${c.reset} <n>          Max callers to show (default: 10)
+  ${c.cyan}--callees${c.reset} <n>          Max callees to show (default: 15)
 
 ${c.yellow}${c.bold}AI OPTIONS${c.reset}
   ${c.cyan}-c, --compact${c.reset}          Minimal version (~50 tokens)
@@ -1942,6 +2385,14 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.cyan}claudemem ai skill${c.reset}                    ${c.dim}# full skill document${c.reset}
   ${c.cyan}claudemem ai skill --raw >> CLAUDE.md${c.reset} ${c.dim}# append to CLAUDE.md${c.reset}
   ${c.cyan}claudemem ai developer --compact${c.reset}      ${c.dim}# role + skill (minimal)${c.reset}
+
+  ${c.dim}# Symbol graph commands (for AI agents)${c.reset}
+  ${c.cyan}claudemem --nologo map --raw${c.reset}                      ${c.dim}# repo structure${c.reset}
+  ${c.cyan}claudemem --nologo map "auth" --raw${c.reset}               ${c.dim}# focused on query${c.reset}
+  ${c.cyan}claudemem --nologo symbol Indexer --raw${c.reset}           ${c.dim}# find symbol${c.reset}
+  ${c.cyan}claudemem --nologo callers VectorStore --raw${c.reset}      ${c.dim}# what uses it?${c.reset}
+  ${c.cyan}claudemem --nologo callees VectorStore --raw${c.reset}      ${c.dim}# what it uses?${c.reset}
+  ${c.cyan}claudemem --nologo context VectorStore --raw${c.reset}      ${c.dim}# full context${c.reset}
 
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}

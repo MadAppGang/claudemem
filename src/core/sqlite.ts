@@ -10,8 +10,13 @@
 const isBun = typeof globalThis.Bun !== "undefined";
 
 // Type definitions for our abstraction
+export interface RunResult {
+	changes: number;
+	lastInsertRowid: number | bigint;
+}
+
 export interface Statement {
-	run(...params: unknown[]): void;
+	run(...params: unknown[]): RunResult;
 	get(...params: unknown[]): unknown;
 	all(...params: unknown[]): unknown[];
 }
@@ -20,6 +25,8 @@ export interface SQLiteDatabase {
 	exec(sql: string): void;
 	prepare(sql: string): Statement;
 	close(): void;
+	/** Execute a function within a transaction (auto-commits or rolls back) */
+	transaction<T>(fn: () => T): T;
 }
 
 /**
@@ -38,12 +45,31 @@ export function createDatabaseSync(path: string): SQLiteDatabase {
 			prepare: (sql: string) => {
 				const stmt = db.prepare(sql);
 				return {
-					run: (...params: unknown[]) => stmt.run(...params),
+					run: (...params: unknown[]): RunResult => {
+						stmt.run(...params);
+						// Bun's sqlite doesn't return changes directly from run()
+						// Use the database's changes() method
+						return {
+							changes: db.query("SELECT changes() as c").get().c as number,
+							lastInsertRowid: db.query("SELECT last_insert_rowid() as id").get().id as number,
+						};
+					},
 					get: (...params: unknown[]) => stmt.get(...params),
 					all: (...params: unknown[]) => stmt.all(...params),
 				};
 			},
 			close: () => db.close(),
+			transaction: <T>(fn: () => T): T => {
+				db.exec("BEGIN");
+				try {
+					const result = fn();
+					db.exec("COMMIT");
+					return result;
+				} catch (error) {
+					db.exec("ROLLBACK");
+					throw error;
+				}
+			},
 		};
 	} else {
 		// Use better-sqlite3 for Node.js
@@ -56,12 +82,22 @@ export function createDatabaseSync(path: string): SQLiteDatabase {
 			prepare: (sql: string) => {
 				const stmt = db.prepare(sql);
 				return {
-					run: (...params: unknown[]) => stmt.run(...params),
+					run: (...params: unknown[]): RunResult => {
+						const result = stmt.run(...params);
+						return {
+							changes: result.changes,
+							lastInsertRowid: result.lastInsertRowid,
+						};
+					},
 					get: (...params: unknown[]) => stmt.get(...params),
-					all: () => stmt.all(),
+					all: (...params: unknown[]) => stmt.all(...params),
 				};
 			},
 			close: () => db.close(),
+			transaction: <T>(fn: () => T): T => {
+				// better-sqlite3 has native transaction support
+				return db.transaction(fn)();
+			},
 		};
 	}
 }

@@ -8,7 +8,16 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, relative } from "node:path";
-import type { DocumentType, EnrichmentState, FileState } from "../types.js";
+import type {
+	DocumentType,
+	EnrichmentState,
+	FileState,
+	SymbolDefinition,
+	SymbolReference,
+	SymbolKind,
+	ReferenceKind,
+	SymbolGraphStats,
+} from "../types.js";
 import { createDatabaseSync, type SQLiteDatabase } from "./sqlite.js";
 
 // ============================================================================
@@ -92,6 +101,9 @@ export class FileTracker {
       CREATE INDEX IF NOT EXISTS idx_documents_file_path ON documents(file_path);
       CREATE INDEX IF NOT EXISTS idx_documents_type ON documents(document_type);
     `);
+
+		// Symbol graph tables
+		this.initializeSymbolGraphSchema();
 
 		// Migration: Add enrichment columns if they don't exist (for existing databases)
 		this.migrateSchema();
@@ -634,6 +646,538 @@ export class FileTracker {
 	private computeFileHash(filePath: string): string {
 		const content = readFileSync(filePath);
 		return createHash("sha256").update(content).digest("hex");
+	}
+
+	// ========================================================================
+	// Symbol Graph Schema
+	// ========================================================================
+
+	/**
+	 * Initialize symbol graph tables
+	 */
+	private initializeSymbolGraphSchema(): void {
+		this.db.exec(`
+			-- Symbols table
+			CREATE TABLE IF NOT EXISTS symbols (
+				id TEXT PRIMARY KEY,
+				name TEXT NOT NULL,
+				kind TEXT NOT NULL,
+				file_path TEXT NOT NULL,
+				start_line INTEGER NOT NULL,
+				end_line INTEGER NOT NULL,
+				signature TEXT,
+				docstring TEXT,
+				parent_id TEXT,
+				is_exported INTEGER DEFAULT 0,
+				language TEXT NOT NULL,
+				pagerank REAL DEFAULT 0.0,
+				in_degree INTEGER DEFAULT 0,
+				out_degree INTEGER DEFAULT 0,
+				created_at TEXT NOT NULL,
+				updated_at TEXT NOT NULL,
+				FOREIGN KEY (parent_id) REFERENCES symbols(id) ON DELETE SET NULL
+			);
+
+			-- References table
+			CREATE TABLE IF NOT EXISTS symbol_references (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				from_symbol_id TEXT NOT NULL,
+				to_symbol_name TEXT NOT NULL,
+				to_symbol_id TEXT,
+				kind TEXT NOT NULL,
+				file_path TEXT NOT NULL,
+				line INTEGER NOT NULL,
+				is_resolved INTEGER DEFAULT 0,
+				created_at TEXT NOT NULL,
+				FOREIGN KEY (from_symbol_id) REFERENCES symbols(id) ON DELETE CASCADE,
+				FOREIGN KEY (to_symbol_id) REFERENCES symbols(id) ON DELETE SET NULL
+			);
+
+			-- Graph metadata table
+			CREATE TABLE IF NOT EXISTS graph_metadata (
+				key TEXT PRIMARY KEY,
+				value TEXT NOT NULL,
+				updated_at TEXT NOT NULL
+			);
+
+			-- Indexes for symbols
+			CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
+			CREATE INDEX IF NOT EXISTS idx_symbols_file ON symbols(file_path);
+			CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind);
+			CREATE INDEX IF NOT EXISTS idx_symbols_pagerank ON symbols(pagerank DESC);
+			CREATE INDEX IF NOT EXISTS idx_symbols_parent ON symbols(parent_id);
+			CREATE INDEX IF NOT EXISTS idx_symbols_exported ON symbols(is_exported) WHERE is_exported = 1;
+
+			-- Indexes for references
+			CREATE INDEX IF NOT EXISTS idx_refs_from ON symbol_references(from_symbol_id);
+			CREATE INDEX IF NOT EXISTS idx_refs_to ON symbol_references(to_symbol_id);
+			CREATE INDEX IF NOT EXISTS idx_refs_to_name ON symbol_references(to_symbol_name);
+			CREATE INDEX IF NOT EXISTS idx_refs_file ON symbol_references(file_path);
+			CREATE INDEX IF NOT EXISTS idx_refs_kind ON symbol_references(kind);
+		`);
+	}
+
+	// ========================================================================
+	// Symbol CRUD Methods
+	// ========================================================================
+
+	/**
+	 * Insert a single symbol
+	 */
+	insertSymbol(symbol: SymbolDefinition): void {
+		const stmt = this.db.prepare(`
+			INSERT OR REPLACE INTO symbols
+			(id, name, kind, file_path, start_line, end_line, signature, docstring,
+			 parent_id, is_exported, language, pagerank, in_degree, out_degree, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`);
+
+		stmt.run(
+			symbol.id,
+			symbol.name,
+			symbol.kind,
+			symbol.filePath,
+			symbol.startLine,
+			symbol.endLine,
+			symbol.signature || null,
+			symbol.docstring || null,
+			symbol.parentId || null,
+			symbol.isExported ? 1 : 0,
+			symbol.language,
+			symbol.pagerankScore,
+			symbol.inDegree || 0,
+			symbol.outDegree || 0,
+			symbol.createdAt,
+			symbol.updatedAt,
+		);
+	}
+
+	/**
+	 * Insert multiple symbols in a transaction (batched)
+	 */
+	insertSymbols(symbols: SymbolDefinition[]): void {
+		if (symbols.length === 0) return;
+
+		const stmt = this.db.prepare(`
+			INSERT OR REPLACE INTO symbols
+			(id, name, kind, file_path, start_line, end_line, signature, docstring,
+			 parent_id, is_exported, language, pagerank, in_degree, out_degree, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`);
+
+		this.db.transaction(() => {
+			for (const symbol of symbols) {
+				stmt.run(
+					symbol.id,
+					symbol.name,
+					symbol.kind,
+					symbol.filePath,
+					symbol.startLine,
+					symbol.endLine,
+					symbol.signature || null,
+					symbol.docstring || null,
+					symbol.parentId || null,
+					symbol.isExported ? 1 : 0,
+					symbol.language,
+					symbol.pagerankScore,
+					symbol.inDegree || 0,
+					symbol.outDegree || 0,
+					symbol.createdAt,
+					symbol.updatedAt,
+				);
+			}
+		});
+	}
+
+	/**
+	 * Get a symbol by ID
+	 */
+	getSymbol(id: string): SymbolDefinition | null {
+		const stmt = this.db.prepare("SELECT * FROM symbols WHERE id = ?");
+		const row = stmt.get(id) as Record<string, unknown> | undefined;
+		return row ? this.rowToSymbol(row) : null;
+	}
+
+	/**
+	 * Get all symbols for a file
+	 */
+	getSymbolsByFile(filePath: string): SymbolDefinition[] {
+		const relativePath = filePath.startsWith(this.projectRoot)
+			? relative(this.projectRoot, filePath)
+			: filePath;
+
+		const stmt = this.db.prepare("SELECT * FROM symbols WHERE file_path = ?");
+		const rows = stmt.all(relativePath) as Array<Record<string, unknown>>;
+		return rows.map((row) => this.rowToSymbol(row));
+	}
+
+	/**
+	 * Get symbols by name (with optional kind filter)
+	 */
+	getSymbolByName(name: string, kind?: SymbolKind): SymbolDefinition[] {
+		let stmt;
+		let rows: Array<Record<string, unknown>>;
+
+		if (kind) {
+			stmt = this.db.prepare(
+				"SELECT * FROM symbols WHERE name = ? AND kind = ?",
+			);
+			rows = stmt.all(name, kind) as Array<Record<string, unknown>>;
+		} else {
+			stmt = this.db.prepare("SELECT * FROM symbols WHERE name = ?");
+			rows = stmt.all(name) as Array<Record<string, unknown>>;
+		}
+
+		return rows.map((row) => this.rowToSymbol(row));
+	}
+
+	/**
+	 * Get all symbols
+	 */
+	getAllSymbols(): SymbolDefinition[] {
+		const stmt = this.db.prepare("SELECT * FROM symbols");
+		const rows = stmt.all() as Array<Record<string, unknown>>;
+		return rows.map((row) => this.rowToSymbol(row));
+	}
+
+	/**
+	 * Get top symbols by PageRank score
+	 */
+	getTopSymbols(limit: number): SymbolDefinition[] {
+		const stmt = this.db.prepare(
+			"SELECT * FROM symbols ORDER BY pagerank DESC LIMIT ?",
+		);
+		const rows = stmt.all(limit) as Array<Record<string, unknown>>;
+		return rows.map((row) => this.rowToSymbol(row));
+	}
+
+	/**
+	 * Delete all symbols for a file
+	 */
+	deleteSymbolsByFile(filePath: string): void {
+		const relativePath = filePath.startsWith(this.projectRoot)
+			? relative(this.projectRoot, filePath)
+			: filePath;
+
+		// Delete references first (cascade would handle this, but be explicit)
+		this.db.prepare(
+			"DELETE FROM symbol_references WHERE file_path = ?",
+		).run(relativePath);
+
+		// Delete symbols
+		this.db.prepare("DELETE FROM symbols WHERE file_path = ?").run(relativePath);
+	}
+
+	/**
+	 * Convert database row to SymbolDefinition
+	 */
+	private rowToSymbol(row: Record<string, unknown>): SymbolDefinition {
+		return {
+			id: row.id as string,
+			name: row.name as string,
+			kind: row.kind as SymbolKind,
+			filePath: row.file_path as string,
+			startLine: row.start_line as number,
+			endLine: row.end_line as number,
+			signature: (row.signature as string) || undefined,
+			docstring: (row.docstring as string) || undefined,
+			parentId: (row.parent_id as string) || undefined,
+			isExported: (row.is_exported as number) === 1,
+			language: row.language as string,
+			pagerankScore: row.pagerank as number,
+			inDegree: row.in_degree as number,
+			outDegree: row.out_degree as number,
+			createdAt: row.created_at as string,
+			updatedAt: row.updated_at as string,
+		};
+	}
+
+	// ========================================================================
+	// Reference CRUD Methods
+	// ========================================================================
+
+	/**
+	 * Insert a single reference
+	 */
+	insertReference(ref: SymbolReference): void {
+		const stmt = this.db.prepare(`
+			INSERT INTO symbol_references
+			(from_symbol_id, to_symbol_name, to_symbol_id, kind, file_path, line, is_resolved, created_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		`);
+
+		stmt.run(
+			ref.fromSymbolId,
+			ref.toSymbolName,
+			ref.toSymbolId || null,
+			ref.kind,
+			ref.filePath,
+			ref.line,
+			ref.isResolved ? 1 : 0,
+			ref.createdAt,
+		);
+	}
+
+	/**
+	 * Insert multiple references in a transaction (batched)
+	 */
+	insertReferences(refs: SymbolReference[]): void {
+		if (refs.length === 0) return;
+
+		const stmt = this.db.prepare(`
+			INSERT INTO symbol_references
+			(from_symbol_id, to_symbol_name, to_symbol_id, kind, file_path, line, is_resolved, created_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		`);
+
+		this.db.transaction(() => {
+			for (const ref of refs) {
+				stmt.run(
+					ref.fromSymbolId,
+					ref.toSymbolName,
+					ref.toSymbolId || null,
+					ref.kind,
+					ref.filePath,
+					ref.line,
+					ref.isResolved ? 1 : 0,
+					ref.createdAt,
+				);
+			}
+		});
+	}
+
+	/**
+	 * Get all references from a symbol
+	 */
+	getReferencesFrom(symbolId: string): SymbolReference[] {
+		const stmt = this.db.prepare(
+			"SELECT * FROM symbol_references WHERE from_symbol_id = ?",
+		);
+		const rows = stmt.all(symbolId) as Array<Record<string, unknown>>;
+		return rows.map((row) => this.rowToReference(row));
+	}
+
+	/**
+	 * Get all references to a symbol
+	 */
+	getReferencesTo(symbolId: string): SymbolReference[] {
+		const stmt = this.db.prepare(
+			"SELECT * FROM symbol_references WHERE to_symbol_id = ?",
+		);
+		const rows = stmt.all(symbolId) as Array<Record<string, unknown>>;
+		return rows.map((row) => this.rowToReference(row));
+	}
+
+	/**
+	 * Get all unresolved references
+	 */
+	getUnresolvedReferences(): SymbolReference[] {
+		const stmt = this.db.prepare(
+			"SELECT * FROM symbol_references WHERE is_resolved = 0",
+		);
+		const rows = stmt.all() as Array<Record<string, unknown>>;
+		return rows.map((row) => this.rowToReference(row));
+	}
+
+	/**
+	 * Get all references
+	 */
+	getAllReferences(): SymbolReference[] {
+		const stmt = this.db.prepare("SELECT * FROM symbol_references");
+		const rows = stmt.all() as Array<Record<string, unknown>>;
+		return rows.map((row) => this.rowToReference(row));
+	}
+
+	/**
+	 * Resolve a reference to a symbol
+	 */
+	resolveReference(refId: number, toSymbolId: string): void {
+		const stmt = this.db.prepare(
+			"UPDATE symbol_references SET to_symbol_id = ?, is_resolved = 1 WHERE id = ?",
+		);
+		stmt.run(toSymbolId, refId);
+	}
+
+	/**
+	 * Bulk resolve references by name
+	 * Resolves all unresolved references matching a symbol name
+	 */
+	resolveReferencesByName(): number {
+		// Resolve references where target_name matches a symbol name exactly
+		const result = this.db.prepare(`
+			UPDATE symbol_references
+			SET to_symbol_id = (
+				SELECT s.id FROM symbols s
+				WHERE s.name = symbol_references.to_symbol_name
+				AND s.is_exported = 1
+				LIMIT 1
+			),
+			is_resolved = 1
+			WHERE is_resolved = 0
+			AND EXISTS (
+				SELECT 1 FROM symbols s
+				WHERE s.name = symbol_references.to_symbol_name
+				AND s.is_exported = 1
+			)
+		`).run();
+
+		return result.changes;
+	}
+
+	/**
+	 * Delete all references for a file
+	 */
+	deleteReferencesByFile(filePath: string): void {
+		const relativePath = filePath.startsWith(this.projectRoot)
+			? relative(this.projectRoot, filePath)
+			: filePath;
+
+		this.db.prepare(
+			"DELETE FROM symbol_references WHERE file_path = ?",
+		).run(relativePath);
+	}
+
+	/**
+	 * Convert database row to SymbolReference
+	 */
+	private rowToReference(row: Record<string, unknown>): SymbolReference {
+		return {
+			id: row.id as number,
+			fromSymbolId: row.from_symbol_id as string,
+			toSymbolName: row.to_symbol_name as string,
+			toSymbolId: (row.to_symbol_id as string) || undefined,
+			kind: row.kind as ReferenceKind,
+			filePath: row.file_path as string,
+			line: row.line as number,
+			isResolved: (row.is_resolved as number) === 1,
+			createdAt: row.created_at as string,
+		};
+	}
+
+	// ========================================================================
+	// PageRank and Graph Metadata Methods
+	// ========================================================================
+
+	/**
+	 * Update PageRank scores for all symbols
+	 */
+	updatePageRankScores(scores: Map<string, number>): void {
+		const stmt = this.db.prepare(
+			"UPDATE symbols SET pagerank = ? WHERE id = ?",
+		);
+
+		this.db.transaction(() => {
+			for (const [id, score] of scores) {
+				stmt.run(score, id);
+			}
+		});
+
+		// Update metadata
+		this.setGraphMetadata("pagerank_last_computed", new Date().toISOString());
+	}
+
+	/**
+	 * Update in/out degree counts for all symbols
+	 */
+	updateDegreeCounts(): void {
+		// Update in_degree
+		this.db.exec(`
+			UPDATE symbols SET in_degree = (
+				SELECT COUNT(*) FROM symbol_references r
+				WHERE r.to_symbol_id = symbols.id
+			)
+		`);
+
+		// Update out_degree
+		this.db.exec(`
+			UPDATE symbols SET out_degree = (
+				SELECT COUNT(*) FROM symbol_references r
+				WHERE r.from_symbol_id = symbols.id
+			)
+		`);
+	}
+
+	/**
+	 * Get graph metadata value
+	 */
+	getGraphMetadata(key: string): string | null {
+		const stmt = this.db.prepare(
+			"SELECT value FROM graph_metadata WHERE key = ?",
+		);
+		const row = stmt.get(key) as { value: string } | undefined;
+		return row?.value || null;
+	}
+
+	/**
+	 * Set graph metadata value
+	 */
+	setGraphMetadata(key: string, value: string): void {
+		const stmt = this.db.prepare(`
+			INSERT OR REPLACE INTO graph_metadata (key, value, updated_at)
+			VALUES (?, ?, ?)
+		`);
+		stmt.run(key, value, new Date().toISOString());
+	}
+
+	/**
+	 * Get symbol graph statistics
+	 */
+	getSymbolGraphStats(): SymbolGraphStats {
+		const symbolCount = (
+			this.db.prepare("SELECT COUNT(*) as count FROM symbols").get() as {
+				count: number;
+			}
+		).count;
+
+		const refCount = (
+			this.db.prepare("SELECT COUNT(*) as count FROM symbol_references").get() as {
+				count: number;
+			}
+		).count;
+
+		const resolvedCount = (
+			this.db.prepare(
+				"SELECT COUNT(*) as count FROM symbol_references WHERE is_resolved = 1",
+			).get() as { count: number }
+		).count;
+
+		// Symbols by kind
+		const symbolsByKind: Partial<Record<SymbolKind, number>> = {};
+		const kindRows = this.db
+			.prepare("SELECT kind, COUNT(*) as count FROM symbols GROUP BY kind")
+			.all() as Array<{ kind: string; count: number }>;
+		for (const row of kindRows) {
+			symbolsByKind[row.kind as SymbolKind] = row.count;
+		}
+
+		// References by kind
+		const referencesByKind: Partial<Record<ReferenceKind, number>> = {};
+		const refKindRows = this.db
+			.prepare(
+				"SELECT kind, COUNT(*) as count FROM symbol_references GROUP BY kind",
+			)
+			.all() as Array<{ kind: string; count: number }>;
+		for (const row of refKindRows) {
+			referencesByKind[row.kind as ReferenceKind] = row.count;
+		}
+
+		return {
+			totalSymbols: symbolCount,
+			totalReferences: refCount,
+			resolvedReferences: resolvedCount,
+			symbolsByKind,
+			referencesByKind,
+			pagerankComputedAt: this.getGraphMetadata("pagerank_last_computed") || undefined,
+		};
+	}
+
+	/**
+	 * Clear all symbol graph data
+	 */
+	clearSymbolGraph(): void {
+		this.db.exec("DELETE FROM symbol_references");
+		this.db.exec("DELETE FROM symbols");
+		this.db.exec("DELETE FROM graph_metadata");
 	}
 }
 

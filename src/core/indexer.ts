@@ -31,6 +31,7 @@ import type {
 	IndexStatus,
 	SearchOptions,
 	SearchResult,
+	SupportedLanguage,
 } from "../types.js";
 import { chunkFileByPath } from "./chunker.js";
 import { createEmbeddingsClient } from "./embeddings.js";
@@ -40,6 +41,9 @@ import {
 	createFileTracker,
 	type FileTracker,
 } from "./tracker.js";
+import { createSymbolExtractor } from "./symbol-extractor.js";
+import { createReferenceGraphManager } from "./reference-graph.js";
+import { createRepoMapGenerator } from "./repo-map.js";
 
 // ============================================================================
 // Types
@@ -381,6 +385,11 @@ export class Indexer {
 			// Memory is released when batchChunks, embeddings, chunksWithEmbeddings go out of scope
 		}
 
+		// Phase 4.5: AST Symbol Extraction and Reference Graph
+		if (filesToIndex.length > 0) {
+			await this.extractSymbolGraph(filesToIndex, force);
+		}
+
 		// Phase 5: Enrichment (if enabled and files were indexed)
 		let enrichmentResult = undefined;
 		if (this.enableEnrichment && this.enricher && fileChunksForEnrichment.length > 0) {
@@ -627,6 +636,112 @@ export class Indexer {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Extract symbol graph from indexed files
+	 * Phase 4.5 of the indexing pipeline
+	 */
+	private async extractSymbolGraph(filesToIndex: string[], force: boolean): Promise<void> {
+		const symbolExtractor = createSymbolExtractor();
+		const graphManager = createReferenceGraphManager(this.fileTracker!);
+		const parserManager = getParserManager();
+
+		// Delete old symbols/references for files being re-indexed
+		if (!force) {
+			for (const filePath of filesToIndex) {
+				this.fileTracker!.deleteSymbolsByFile(filePath);
+			}
+		} else {
+			// Full reindex - clear all symbol data
+			this.fileTracker!.clearSymbolGraph();
+		}
+
+		// Extract symbols and references from each file
+		if (this.onProgress) {
+			this.onProgress(0, filesToIndex.length, "[analyzing] extracting symbols...");
+		}
+
+		let processedFiles = 0;
+		for (const filePath of filesToIndex) {
+			const language = parserManager.getLanguage(filePath);
+			if (!language) {
+				continue;
+			}
+
+			try {
+				const content = readFileSync(filePath, "utf-8");
+				const relativePath = relative(this.projectPath, filePath);
+
+				// Extract symbols
+				const symbols = await symbolExtractor.extractSymbols(
+					content,
+					relativePath,
+					language as SupportedLanguage,
+				);
+
+				if (symbols.length > 0) {
+					this.fileTracker!.insertSymbols(symbols);
+
+					// Extract references
+					const references = await symbolExtractor.extractReferences(
+						content,
+						relativePath,
+						language as SupportedLanguage,
+						symbols,
+					);
+
+					if (references.length > 0) {
+						this.fileTracker!.insertReferences(references);
+					}
+				}
+			} catch (error) {
+				// Symbol extraction errors shouldn't fail indexing
+				console.warn(
+					`Warning: Failed to extract symbols from ${filePath}:`,
+					error instanceof Error ? error.message : error,
+				);
+			}
+
+			processedFiles++;
+			if (this.onProgress && processedFiles % 50 === 0) {
+				this.onProgress(
+					processedFiles,
+					filesToIndex.length,
+					`[analyzing] ${processedFiles}/${filesToIndex.length} files`,
+				);
+			}
+		}
+
+		// Resolve cross-file references
+		if (this.onProgress) {
+			this.onProgress(0, 1, "[analyzing] resolving references...");
+		}
+		const resolvedCount = await graphManager.resolveReferences();
+
+		// Compute PageRank scores
+		if (this.onProgress) {
+			this.onProgress(0, 1, "[analyzing] computing importance scores...");
+		}
+		await graphManager.computeAndStorePageRank();
+
+		// Generate and cache repo map
+		const repoMapGen = createRepoMapGenerator(this.fileTracker!);
+		const repoMap = repoMapGen.generate({ maxTokens: 4000 });
+		this.fileTracker!.setMetadata("repoMap", repoMap);
+		this.fileTracker!.setMetadata("repoMapGeneratedAt", new Date().toISOString());
+
+		// Store graph stats
+		const stats = this.fileTracker!.getSymbolGraphStats();
+		this.fileTracker!.setMetadata("symbolGraphStats", JSON.stringify(stats));
+
+		if (this.onProgress) {
+			this.onProgress(
+				filesToIndex.length,
+				filesToIndex.length,
+				`[analyzing] ${stats.totalSymbols} symbols, ${resolvedCount} refs resolved`,
+			);
+		}
 	}
 
 	/**

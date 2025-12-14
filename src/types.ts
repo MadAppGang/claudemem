@@ -314,6 +314,8 @@ export interface LanguageConfig {
 	grammarFile: string;
 	/** Tree-sitter query for extracting chunks */
 	chunkQuery: string;
+	/** Tree-sitter query for extracting symbol references (optional) */
+	referenceQuery?: string;
 }
 
 // ============================================================================
@@ -335,6 +337,132 @@ export interface ParsedChunk {
 	parentName?: string;
 	/** Signature if extractable */
 	signature?: string;
+}
+
+// ============================================================================
+// AST Symbol Types (Symbol Graph)
+// ============================================================================
+
+/** Symbol kinds for AST extraction */
+export type SymbolKind =
+	| "function"
+	| "class"
+	| "method"
+	| "type"
+	| "interface"
+	| "enum"
+	| "variable"
+	| "struct"
+	| "trait"
+	| "impl";
+
+/** Reference kinds for symbol graph edges */
+export type ReferenceKind =
+	| "call"
+	| "type_usage"
+	| "import"
+	| "extends"
+	| "implements"
+	| "field_access";
+
+/** Symbol definition extracted from AST */
+export interface SymbolDefinition {
+	/** Unique identifier (SHA256 hash) */
+	id: string;
+	/** Symbol name */
+	name: string;
+	/** Type of symbol */
+	kind: SymbolKind;
+	/** File path (relative to project root) */
+	filePath: string;
+	/** Starting line number (1-indexed) */
+	startLine: number;
+	/** Ending line number (1-indexed) */
+	endLine: number;
+	/** Full signature (e.g., "async function foo(x: number): Promise<void>") */
+	signature?: string;
+	/** Docstring/JSDoc comment */
+	docstring?: string;
+	/** Parent symbol ID (for methods inside classes) */
+	parentId?: string;
+	/** Whether symbol is exported/public */
+	isExported: boolean;
+	/** Programming language */
+	language: string;
+	/** PageRank importance score */
+	pagerankScore: number;
+	/** Number of incoming references */
+	inDegree?: number;
+	/** Number of outgoing references */
+	outDegree?: number;
+	/** When symbol was created */
+	createdAt: string;
+	/** When symbol was last updated */
+	updatedAt: string;
+}
+
+/** Reference between symbols (edge in the graph) */
+export interface SymbolReference {
+	/** Auto-increment ID (optional, from database) */
+	id?: number;
+	/** Symbol making the reference */
+	fromSymbolId: string;
+	/** Name being referenced (always stored for fallback) */
+	toSymbolName: string;
+	/** Resolved symbol ID (null if unresolved) */
+	toSymbolId?: string;
+	/** Type of reference */
+	kind: ReferenceKind;
+	/** File where reference occurs */
+	filePath: string;
+	/** Line number of reference */
+	line: number;
+	/** Whether reference has been resolved to a symbol */
+	isResolved: boolean;
+	/** When reference was created */
+	createdAt: string;
+}
+
+/** Options for repo map generation */
+export interface RepoMapOptions {
+	/** Maximum tokens for the map (default: 2000) */
+	maxTokens?: number;
+	/** Include full signatures (default: true) */
+	includeSignatures?: boolean;
+	/** Filter by file path pattern */
+	pathPattern?: string;
+	/** Include top N symbols by PageRank */
+	topNByPagerank?: number;
+}
+
+/** Entry in structured repo map */
+export interface RepoMapEntry {
+	/** File path */
+	filePath: string;
+	/** Symbols in this file */
+	symbols: Array<{
+		name: string;
+		kind: SymbolKind;
+		signature?: string;
+		line: number;
+		pagerankScore: number;
+	}>;
+}
+
+/** Symbol graph statistics */
+export interface SymbolGraphStats {
+	/** Total symbols in graph */
+	totalSymbols: number;
+	/** Total references in graph */
+	totalReferences: number;
+	/** Number of resolved references */
+	resolvedReferences: number;
+	/** Symbols by kind */
+	symbolsByKind: Partial<Record<SymbolKind, number>>;
+	/** References by kind */
+	referencesByKind: Partial<Record<ReferenceKind, number>>;
+	/** When PageRank was last computed */
+	pagerankComputedAt?: string;
 }
 
 // ============================================================================
@@ -625,6 +753,23 @@ export interface EnrichedSearchOptions extends SearchOptions {
 	useCase?: SearchUseCase;
 	/** Include code chunks in results (default: true) */
 	includeCodeChunks?: boolean;
+}
+
+/** Response from retriever with optional repo map context */
+export interface RetrieverSearchResponse {
+	/** Search results ranked by relevance */
+	results: EnrichedSearchResult[];
+	/** Token-budgeted repo map context relevant to the query */
+	repoMapContext?: string;
+	/** Search metadata */
+	metadata?: {
+		/** Total documents searched */
+		totalDocuments?: number;
+		/** Time taken in milliseconds */
+		durationMs?: number;
+		/** Whether repo map was included */
+		includesRepoMap?: boolean;
+	};
 }
 
 // ============================================================================
