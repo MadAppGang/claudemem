@@ -166,21 +166,28 @@ interface ProgressState {
 	detail: string;
 }
 
-/** Create a progress renderer with continuous timer and animation */
+/** Completed phase record */
+interface CompletedPhase {
+	phase: string;
+	durationMs: number;
+}
+
+/** Create a progress renderer with per-phase timers and overall timer */
 function createProgressRenderer() {
-	const startTime = Date.now();
+	const globalStartTime = Date.now();
+	let phaseStartTime = Date.now();
 	let state: ProgressState = { completed: 0, total: 0, inProgress: 0, phase: "starting", detail: "scanning files..." };
 	let animFrame = 0;
 	let interval: ReturnType<typeof setInterval> | null = null;
 	let lastPhase = "";
+	const completedPhases: CompletedPhase[] = [];
+	let linesWritten = 0; // Track how many lines we've written
 
-	function render() {
-		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
-		const elapsed = formatElapsed(Date.now() - startTime);
-		const { completed, total, inProgress, phase, detail } = state;
-		const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+	function renderLine(elapsed: string, bar: string, percent: number, phase: string, detail: string) {
+		return `⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(9)} │ ${detail.padEnd(35)}`;
+	}
 
-		// Build three-state progress bar
+	function buildBar(completed: number, total: number, inProgress: number) {
 		const width = 20;
 		const filledRatio = total > 0 ? completed / total : 0;
 		const inProgressRatio = total > 0 ? inProgress / total : 0;
@@ -190,38 +197,64 @@ function createProgressRenderer() {
 		const emptyWidth = width - filledWidth - inProgressWidth;
 
 		const filled = "█".repeat(filledWidth);
-		// Wave animation: each position has a different phase
 		let animated = "";
 		for (let i = 0; i < inProgressWidth; i++) {
 			const charIndex = (animFrame + i) % ANIM_FRAMES.length;
 			animated += ANIM_FRAMES[charIndex];
 		}
 		const empty = "░".repeat(emptyWidth);
-		const bar = filled + animated + empty;
+		return filled + animated + empty;
+	}
 
-		process.stdout.write(
-			`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(9)} │ ${detail.padEnd(35)}`
-		);
+	function render() {
+		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
+		const { completed, total, inProgress, phase, detail } = state;
+		const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+		const bar = buildBar(completed, total, inProgress);
+
+		// Phase elapsed time (from phase start)
+		const phaseElapsed = formatElapsed(Date.now() - phaseStartTime);
+		// Overall elapsed time
+		const totalElapsed = formatElapsed(Date.now() - globalStartTime);
+
+		// Move cursor up to redraw all lines we previously wrote
+		if (linesWritten > 0) {
+			process.stdout.write(`\x1b[${linesWritten}A`);
+		}
+
+		// Render completed phases (frozen times)
+		for (const cp of completedPhases) {
+			const cpBar = "█".repeat(20);
+			process.stdout.write(`\r${renderLine(formatElapsed(cp.durationMs), cpBar, 100, cp.phase, "done")}\x1b[K\n`);
+		}
+
+		// Render current phase
+		process.stdout.write(`\r${renderLine(phaseElapsed, bar, percent, phase, detail)}\x1b[K\n`);
+
+		// Render total line
+		process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
+
+		// Track how many lines we wrote (completed + current + total)
+		linesWritten = completedPhases.length + 2;
 	}
 
 	return {
 		start() {
-			interval = setInterval(render, 100); // Update every 100ms
-			// Allow the process to exit even if interval is running
+			interval = setInterval(render, 100);
 			if (interval.unref) interval.unref();
 		},
 		update(completed: number, total: number, detail: string, inProgress = 0) {
-			// Extract phase from detail (e.g., "[parsing] filename")
 			const phaseMatch = detail.match(/^\[(\w+)\]/);
 			const phase = phaseMatch ? phaseMatch[1] : "processing";
 			const cleanDetail = detail.replace(/^\[\w+\]\s*/, "").slice(0, 35);
 
-			// On phase change: render final state of previous phase before moving on
+			// On phase change: record completed phase and reset timer
 			if (phase !== lastPhase && lastPhase !== "") {
-				// Show previous phase at 100% completion
-				state = { ...state, completed: state.total, inProgress: 0 };
-				render();
-				process.stdout.write("\n");
+				completedPhases.push({
+					phase: lastPhase,
+					durationMs: Date.now() - phaseStartTime,
+				});
+				phaseStartTime = Date.now();
 			}
 			lastPhase = phase;
 
@@ -233,13 +266,31 @@ function createProgressRenderer() {
 				interval = null;
 			}
 		},
-		/** Render final 100% state before clearing */
 		finish() {
 			this.stop();
-			// Show final completed state
+			// Record final phase
+			if (lastPhase !== "") {
+				completedPhases.push({
+					phase: lastPhase,
+					durationMs: Date.now() - phaseStartTime,
+				});
+			}
+			// Final render
 			state = { ...state, completed: state.total, inProgress: 0 };
-			render();
-			process.stdout.write("\n");
+			animFrame = 0;
+
+			// Clear and redraw final state
+			if (linesWritten > 0) {
+				process.stdout.write(`\x1b[${linesWritten}A`);
+			}
+
+			for (const cp of completedPhases) {
+				const cpBar = "█".repeat(20);
+				process.stdout.write(`\r${renderLine(formatElapsed(cp.durationMs), cpBar, 100, cp.phase, "done")}\x1b[K\n`);
+			}
+
+			const totalElapsed = formatElapsed(Date.now() - globalStartTime);
+			process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
 		},
 	};
 }
@@ -247,8 +298,13 @@ function createProgressRenderer() {
 async function handleIndex(args: string[]): Promise<void> {
 	// Parse arguments
 	const force = args.includes("--force") || args.includes("-f");
+	const noLlm = args.includes("--no-llm") || args.includes("--no-enrichment");
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	// Parse concurrency (default 10 for parallel LLM requests)
+	const concurrencyArg = args.find((a) => a.startsWith("--concurrency="));
+	const concurrency = concurrencyArg ? parseInt(concurrencyArg.split("=")[1], 10) : 10;
 
 	// Check for API key
 	if (!hasApiKey()) {
@@ -259,8 +315,14 @@ async function handleIndex(args: string[]): Promise<void> {
 
 	console.log(`\nIndexing ${projectPath}...`);
 	if (force) {
-		console.log("(Force mode: re-indexing all files)\n");
+		console.log("(Force mode: re-indexing all files)");
 	}
+	if (noLlm) {
+		console.log("(LLM enrichment disabled)");
+	} else {
+		console.log(`(Enrichment: ${concurrency} parallel requests)`);
+	}
+	console.log("");
 
 	// Create progress renderer with continuous timer and animation
 	const progress = createProgressRenderer();
@@ -268,6 +330,8 @@ async function handleIndex(args: string[]): Promise<void> {
 
 	const indexer = createIndexer({
 		projectPath,
+		enableEnrichment: !noLlm,
+		enrichmentConcurrency: concurrency,
 		onProgress: (current, total, file, inProgress) => {
 			progress.update(current, total, file, inProgress ?? 0);
 		},
@@ -286,6 +350,15 @@ async function handleIndex(args: string[]): Promise<void> {
 		console.log(`  Duration:       ${(result.durationMs / 1000).toFixed(2)}s`);
 		if (result.cost !== undefined) {
 			console.log(`  Cost:           $${result.cost.toFixed(6)}`);
+		}
+
+		// Show enrichment results if available
+		if (result.enrichment) {
+			console.log(`\n  Enrichment:`);
+			console.log(`    Documents:    ${result.enrichment.documentsCreated}`);
+			if (result.enrichment.errors.length > 0) {
+				console.log(`    Errors:       ${result.enrichment.errors.length}`);
+			}
 		}
 
 		if (result.errors.length > 0) {
@@ -321,12 +394,17 @@ async function handleSearch(args: string[]): Promise<void> {
 	const noReindex = args.includes("--no-reindex");
 	const autoYes = args.includes("-y") || args.includes("--yes");
 
+	// Search use case (fim, search, navigation)
+	const useCaseIdx = args.findIndex((a) => a === "--use-case");
+	const useCase = useCaseIdx >= 0 ? args[useCaseIdx + 1] as "fim" | "search" | "navigation" : "search";
+
 	// Get query (everything that's not a flag)
 	// Only add indices to flagIndices if the flag was actually found (>= 0)
 	const flagIndices = new Set<number>();
 	if (limitIdx >= 0) { flagIndices.add(limitIdx); flagIndices.add(limitIdx + 1); }
 	if (langIdx >= 0) { flagIndices.add(langIdx); flagIndices.add(langIdx + 1); }
 	if (pathIdx >= 0) { flagIndices.add(pathIdx); flagIndices.add(pathIdx + 1); }
+	if (useCaseIdx >= 0) { flagIndices.add(useCaseIdx); flagIndices.add(useCaseIdx + 1); }
 	const queryParts = args.filter((_, i) => !flagIndices.has(i) && !args[i].startsWith("-"));
 	const query = queryParts.join(" ");
 
@@ -379,7 +457,7 @@ async function handleSearch(args: string[]): Promise<void> {
 
 		console.log(`Searching for: "${query}"\n`);
 
-		const results = await indexer.search(query, { limit, language });
+		const results = await indexer.search(query, { limit, language, useCase });
 
 		if (results.length === 0) {
 			console.log("No results found.");
@@ -1788,6 +1866,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
+  ${c.cyan}--no-llm${c.reset}               Disable LLM enrichment (summaries, idioms, etc.)
 
 ${c.yellow}${c.bold}SEARCH OPTIONS${c.reset}
   ${c.cyan}-n, --limit${c.reset} <n>        Maximum results (default: 10)
@@ -1795,6 +1874,7 @@ ${c.yellow}${c.bold}SEARCH OPTIONS${c.reset}
   ${c.cyan}-p, --path${c.reset} <path>      Project path (default: current directory)
   ${c.cyan}-y, --yes${c.reset}              Auto-create index if missing (no prompt)
   ${c.cyan}--no-reindex${c.reset}           Skip auto-reindexing changed files
+  ${c.cyan}--use-case${c.reset} <case>      Search preset: fim | search | navigation (default: search)
 
 ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
   ${c.cyan}--free${c.reset}                 Show only free models
@@ -1824,7 +1904,9 @@ ${c.yellow}${c.bold}MCP SERVER${c.reset}
 
 ${c.yellow}${c.bold}ENVIRONMENT${c.reset}
   ${c.magenta}OPENROUTER_API_KEY${c.reset}     API key for embeddings
+  ${c.magenta}ANTHROPIC_API_KEY${c.reset}      API key for LLM enrichment (Anthropic provider)
   ${c.magenta}CLAUDEMEM_MODEL${c.reset}        Override default embedding model
+  ${c.magenta}CLAUDEMEM_LLM_PROVIDER${c.reset} LLM provider: claude-code | anthropic | openrouter | local
 
 ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.dim}# First time setup${c.reset}
@@ -1832,6 +1914,9 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
 
   ${c.dim}# Index current project${c.reset}
   ${c.cyan}claudemem index${c.reset}
+
+  ${c.dim}# Index without LLM enrichment (faster, code-only)${c.reset}
+  ${c.cyan}claudemem index --no-llm${c.reset}
 
   ${c.dim}# Search (auto-indexes changes)${c.reset}
   ${c.cyan}claudemem search "authentication flow"${c.reset}

@@ -38,8 +38,13 @@ const INSTRUCTIONS: Record<AgentRole, string> = {
 	architect: `<role>SOFTWARE ARCHITECT</role>
 
 <memory>
-Tool: claudemem (semantic code search)
-Commands: search "query" | index | status
+Tool: claudemem (semantic code search + LLM enrichment)
+Commands: search "query" | index | enrich | status
+
+Document types searched:
+  file_summary   → LLM-generated: file purpose, exports, dependencies (best for architecture)
+  symbol_summary → LLM-generated: function/class docs (best for API surface)
+  code_chunk     → Raw AST code (best for implementation details)
 </memory>
 
 <workflow>
@@ -88,8 +93,13 @@ Format: file:line references for each finding
 	developer: `<role>SOFTWARE DEVELOPER</role>
 
 <memory>
-Tool: claudemem (semantic code search)
-Commands: search "query" [-n limit] [-l language] | index
+Tool: claudemem (semantic code search + LLM enrichment)
+Commands: search "query" [-n limit] [-l language] | index | enrich
+
+Document types searched:
+  symbol_summary → LLM: function docs, params, side effects (find by behavior)
+  file_summary   → LLM: file purpose, exports (find by architecture role)
+  code_chunk     → Raw AST code (find by implementation)
 </memory>
 
 <workflow>
@@ -154,8 +164,13 @@ After changes: verify with claudemem search
 	tester: `<role>SOFTWARE TESTER</role>
 
 <memory>
-Tool: claudemem (semantic code search)
-Commands: search "query" | status
+Tool: claudemem (semantic code search + LLM enrichment)
+Commands: search "query" | index | enrich | status
+
+Document types searched:
+  symbol_summary → LLM: function docs (find testable behaviors, edge cases)
+  file_summary   → LLM: file purpose (find test utilities, fixtures)
+  code_chunk     → Raw AST code (find test patterns, assertions)
 </memory>
 
 <workflow>
@@ -218,8 +233,13 @@ Format: implementation file:line → test file:line
 	debugger: `<role>SOFTWARE DEBUGGER</role>
 
 <memory>
-Tool: claudemem (semantic code search)
-Commands: search "query" | status
+Tool: claudemem (semantic code search + LLM enrichment)
+Commands: search "query" | index | enrich | status
+
+Document types searched:
+  symbol_summary → LLM: side effects, mutations, error handling (trace behavior)
+  file_summary   → LLM: file dependencies, data flow (trace architecture)
+  code_chunk     → Raw AST code (trace exact implementation)
 </memory>
 
 <workflow>
@@ -292,21 +312,25 @@ export function getCompactInstructions(role: AgentRole): string {
 
 const COMPACT_INSTRUCTIONS: Record<AgentRole, string> = {
 	architect: `ARCHITECT: Use claudemem search for semantic code discovery.
+Searches: file_summary (LLM purpose), symbol_summary (LLM docs), code_chunk (raw)
 Queries: "entry point" "module API" "service integration" "design pattern"
 Avoid: grep (no semantics), sequential file reads (wastes context)
 Output: component references as file:line`,
 
 	developer: `DEVELOPER: Use claudemem search before implementation.
+Searches: symbol_summary (LLM: params, side effects), file_summary, code_chunk
 Flow: search context → find patterns → locate deps → implement
 Best: semantic queries ("handle auth"), chain searches (broad→specific)
 Avoid: grep/find (syntax noise), vague queries ("error"), blind file reads`,
 
 	tester: `TESTER: Use claudemem search for test discovery.
+Searches: symbol_summary (LLM: edge cases), code_chunk (test patterns)
 Queries: "test suite [feature]" "mock [service]" "error scenario"
 Flow: find patterns → locate gaps → discover edges → find utilities
 Avoid: grep "test" (noise), missing integration/error tests`,
 
 	debugger: `DEBUGGER: Use claudemem search for error tracing.
+Searches: symbol_summary (LLM: side effects), file_summary (data flow), code_chunk
 Queries: "[error text]" "throw [Type]" "calls [func]" "modifies [state]"
 Flow: locate error → trace path → find mutations → check bounds
 Avoid: stack trace reading (use search), console.log without context`

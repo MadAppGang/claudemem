@@ -28,7 +28,7 @@ async function main() {
 	// ========================================================================
 	server.tool(
 		"index_codebase",
-		"Index a codebase for semantic code search. Creates vector embeddings of code chunks for later searching.",
+		"Index a codebase for semantic code search. Creates vector embeddings of code chunks and optionally generates LLM-powered enrichments (summaries, idioms, examples).",
 		{
 			path: z
 				.string()
@@ -42,14 +42,19 @@ async function main() {
 				.string()
 				.optional()
 				.describe("Embedding model to use (default: qwen/qwen3-embedding-8b)"),
+			enableEnrichment: z
+				.boolean()
+				.optional()
+				.describe("Enable LLM enrichment to generate summaries, idioms, and examples (default: true)"),
 		},
-		async ({ path, force, model }) => {
+		async ({ path, force, model, enableEnrichment }) => {
 			try {
 				const projectPath = path || process.cwd();
 
 				const indexer = createIndexer({
 					projectPath,
 					model,
+					enableEnrichment: enableEnrichment !== false,
 				});
 
 				const result = await indexer.index(force || false);
@@ -59,6 +64,17 @@ async function main() {
 				response += `- **Files indexed**: ${result.filesIndexed}\n`;
 				response += `- **Chunks created**: ${result.chunksCreated}\n`;
 				response += `- **Duration**: ${(result.durationMs / 1000).toFixed(2)}s\n`;
+
+				// Show enrichment stats if available
+				if ("enrichment" in result && result.enrichment) {
+					const enrichment = result.enrichment;
+					const totalDocs = enrichment.documentsCreated + enrichment.documentsUpdated;
+					response += `- **Enriched documents**: ${totalDocs}`;
+					if (enrichment.documentsUpdated > 0) {
+						response += ` (${enrichment.documentsCreated} new, ${enrichment.documentsUpdated} updated)`;
+					}
+					response += `\n`;
+				}
 
 				if (result.errors.length > 0) {
 					response += `\n### Errors (${result.errors.length})\n`;
@@ -90,7 +106,7 @@ async function main() {
 	// ========================================================================
 	server.tool(
 		"search_code",
-		"Search indexed code using natural language. Automatically indexes new/modified files before searching.",
+		"Search indexed code using natural language. Automatically indexes new/modified files before searching. Supports different use cases with optimized result weighting.",
 		{
 			query: z.string().describe("Natural language search query"),
 			limit: z
@@ -109,8 +125,12 @@ async function main() {
 				.boolean()
 				.optional()
 				.describe("Auto-index changed files before search (default: true)"),
+			useCase: z
+				.enum(["fim", "search", "navigation"])
+				.optional()
+				.describe("Search preset: 'fim' for code completion, 'search' for general queries (default), 'navigation' for codebase exploration"),
 		},
-		async ({ query, limit, language, path, autoIndex }) => {
+		async ({ query, limit, language, path, autoIndex, useCase }) => {
 			try {
 				const projectPath = path || process.cwd();
 				const indexer = createIndexer({ projectPath });
@@ -128,6 +148,7 @@ async function main() {
 				const results = await indexer.search(query, {
 					limit: limit || 10,
 					language,
+					useCase: useCase || "search",
 				});
 
 				await indexer.close();

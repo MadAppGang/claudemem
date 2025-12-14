@@ -201,6 +201,9 @@ export const ENV = {
 	OPENROUTER_API_KEY: "OPENROUTER_API_KEY",
 	VOYAGE_API_KEY: "VOYAGE_API_KEY",
 	CLAUDE_MEM_MODEL: "CLAUDE_MEM_MODEL",
+	ANTHROPIC_API_KEY: "ANTHROPIC_API_KEY",
+	CLAUDEMEM_LLM_PROVIDER: "CLAUDEMEM_LLM_PROVIDER",
+	CLAUDEMEM_LLM_MODEL: "CLAUDEMEM_LLM_MODEL",
 } as const;
 
 // ============================================================================
@@ -553,4 +556,113 @@ export function getEmbeddingModel(projectPath?: string): string {
 
 	// Fall back to default
 	return DEFAULT_EMBEDDING_MODEL;
+}
+
+// ============================================================================
+// LLM Configuration (for Enrichment)
+// ============================================================================
+
+import type { LLMProvider } from "./types.js";
+
+/**
+ * Get Anthropic API key from environment or config
+ */
+export function getAnthropicApiKey(): string | undefined {
+	// First check environment variable
+	const envKey = process.env[ENV.ANTHROPIC_API_KEY];
+	if (envKey) {
+		return envKey;
+	}
+
+	// Then check global config
+	const config = loadGlobalConfig();
+	return config.anthropicApiKey;
+}
+
+/**
+ * Check if Anthropic API key is configured
+ */
+export function hasAnthropicApiKey(): boolean {
+	return !!getAnthropicApiKey();
+}
+
+/**
+ * Get LLM provider from environment or config
+ * Priority: env var > project config > global config > default (claude-code)
+ */
+export function getLLMProvider(projectPath?: string): LLMProvider {
+	// First check environment variable
+	const envProvider = process.env[ENV.CLAUDEMEM_LLM_PROVIDER];
+	if (envProvider) {
+		return envProvider as LLMProvider;
+	}
+
+	// Then check project config
+	if (projectPath) {
+		const projectConfig = loadProjectConfig(projectPath);
+		if (projectConfig?.enrichment?.llmProvider) {
+			return projectConfig.enrichment.llmProvider;
+		}
+	}
+
+	// Then check global config
+	const globalConfig = loadGlobalConfig();
+	if (globalConfig.llmProvider) {
+		return globalConfig.llmProvider;
+	}
+
+	// Default to claude-code (uses existing Claude Code session)
+	return "claude-code";
+}
+
+/**
+ * Get LLM model from environment or config
+ */
+export function getLLMModel(projectPath?: string): string | undefined {
+	// First check environment variable
+	const envModel = process.env[ENV.CLAUDEMEM_LLM_MODEL];
+	if (envModel) {
+		return envModel;
+	}
+
+	// Then check global config
+	const globalConfig = loadGlobalConfig();
+	return globalConfig.llmModel;
+}
+
+/**
+ * Get LLM endpoint from config (for local providers)
+ */
+export function getLLMEndpoint(projectPath?: string): string | undefined {
+	const globalConfig = loadGlobalConfig();
+	return globalConfig.llmEndpoint;
+}
+
+/**
+ * Check if enrichment is enabled
+ * Priority: project config > global config > default (true)
+ */
+export function isEnrichmentEnabled(projectPath?: string): boolean {
+	// Check project override first
+	if (projectPath) {
+		const projectConfig = loadProjectConfig(projectPath);
+		if (projectConfig?.enrichment?.enabled !== undefined) {
+			return projectConfig.enrichment.enabled;
+		}
+	}
+
+	// Fall back to global config (default: true)
+	const globalConfig = loadGlobalConfig();
+	return globalConfig.enableEnrichment !== false;
+}
+
+/**
+ * Get enrichment document types to generate
+ */
+export function getEnrichmentTypes(projectPath?: string): string[] | undefined {
+	if (projectPath) {
+		const projectConfig = loadProjectConfig(projectPath);
+		return projectConfig?.enrichment?.types;
+	}
+	return undefined;
 }

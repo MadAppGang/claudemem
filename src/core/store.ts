@@ -8,7 +8,17 @@
 import * as lancedb from "@lancedb/lancedb";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import type { ChunkWithEmbedding, CodeChunk, SearchResult } from "../types.js";
+import type {
+	BaseDocument,
+	ChunkWithEmbedding,
+	CodeChunk,
+	DocumentType,
+	DocumentWithEmbedding,
+	EnrichedSearchOptions,
+	EnrichedSearchResult,
+	SearchResult,
+	SearchUseCase,
+} from "../types.js";
 
 // ============================================================================
 // Constants
@@ -25,6 +35,24 @@ const BM25_WEIGHT = 0.4;
 
 /** Vector weight in hybrid search */
 const VECTOR_WEIGHT = 0.6;
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Escape special characters in filter values to prevent injection attacks
+ * and crashes on special characters (identified by multi-model review)
+ */
+function escapeFilterValue(value: string): string {
+	// Escape single quotes by doubling them (SQL-style escaping)
+	// Also escape backslashes and other special chars
+	return value
+		.replace(/\\/g, "\\\\")
+		.replace(/'/g, "''")
+		.replace(/%/g, "\\%")
+		.replace(/_/g, "\\_");
+}
 
 // ============================================================================
 // Types
@@ -44,6 +72,12 @@ interface StoredChunk {
 	signature: string;
 	fileHash: string;
 	vector: number[];
+	// Enriched document fields
+	documentType: string; // "code_chunk" for code, others for enriched docs
+	sourceIds: string; // JSON array of source chunk IDs
+	metadata: string; // JSON for type-specific fields
+	createdAt: string;
+	enrichedAt: string;
 }
 
 interface SearchOptions {
@@ -132,6 +166,7 @@ export class VectorStore {
 
 		// Convert to stored format
 		// Use empty strings instead of null for optional fields to avoid Arrow type inference issues
+		const now = new Date().toISOString();
 		const data: StoredChunk[] = chunks.map((chunk) => ({
 			id: chunk.id,
 			content: chunk.content,
@@ -145,6 +180,12 @@ export class VectorStore {
 			signature: chunk.signature || "",
 			fileHash: chunk.fileHash,
 			vector: chunk.vector,
+			// Enriched document fields (defaults for code chunks)
+			documentType: "code_chunk",
+			sourceIds: "[]",
+			metadata: "{}",
+			createdAt: now,
+			enrichedAt: "",
 		}));
 
 		// Try to open existing table
@@ -201,13 +242,13 @@ export class VectorStore {
 			return [];
 		}
 
-		// Build filter string
+		// Build filter string with escaped values to prevent injection
 		const filters: string[] = [];
 		if (language) {
-			filters.push(`language = '${language}'`);
+			filters.push(`language = '${escapeFilterValue(language)}'`);
 		}
 		if (filePath) {
-			filters.push(`filePath LIKE '%${filePath}%'`);
+			filters.push(`filePath LIKE '%${escapeFilterValue(filePath)}%'`);
 		}
 		const filterStr = filters.length > 0 ? filters.join(" AND ") : undefined;
 
@@ -366,6 +407,261 @@ export class VectorStore {
 		}
 	}
 
+	// ========================================================================
+	// Enriched Document Methods
+	// ========================================================================
+
+	/**
+	 * Add enriched documents with embeddings to the store
+	 */
+	async addDocuments(documents: DocumentWithEmbedding[]): Promise<void> {
+		if (documents.length === 0) {
+			return;
+		}
+
+		const now = new Date().toISOString();
+		const data: StoredChunk[] = documents.map((doc) => ({
+			id: doc.id,
+			content: doc.content,
+			filePath: doc.filePath || "",
+			startLine: 0,
+			endLine: 0,
+			language: "",
+			chunkType: "",
+			name: "",
+			parentName: "",
+			signature: "",
+			fileHash: doc.fileHash || "",
+			vector: doc.vector,
+			// Enriched document fields
+			documentType: doc.documentType,
+			sourceIds: JSON.stringify(doc.sourceIds || []),
+			metadata: JSON.stringify(doc.metadata || {}),
+			createdAt: doc.createdAt || now,
+			enrichedAt: doc.enrichedAt || now,
+		}));
+
+		// Try to open existing table
+		let table = await this.ensureTableOpen();
+
+		// Check for dimension mismatch with existing table
+		const incomingDimension = data[0].vector.length;
+		if (table && this.tableDimension && this.tableDimension !== incomingDimension) {
+			console.warn(
+				`⚠️  Vector dimension mismatch: table has ${this.tableDimension}d, new embeddings are ${incomingDimension}d`,
+			);
+			console.warn("   Clearing existing vectors to match new embedding model...\n");
+			await this.clear();
+			table = null;
+			this.tableDimension = null;
+			this._dimensionMismatchCleared = true;
+		}
+
+		if (table) {
+			await table.add(data);
+		} else {
+			if (!this.db) {
+				await this.initialize();
+			}
+			this.table = await this.db!.createTable(CHUNKS_TABLE, data, {
+				mode: "create",
+			});
+			this.tableDimension = incomingDimension;
+		}
+
+		if (data.length > 0 && !this.dimension) {
+			this.dimension = data[0].vector.length;
+		}
+	}
+
+	/**
+	 * Delete all documents of a specific type
+	 */
+	async deleteByDocumentType(documentType: DocumentType): Promise<number> {
+		if (!this.db || !this.table) {
+			return 0;
+		}
+
+		try {
+			await this.table.delete(`documentType = '${documentType}'`);
+			return 1;
+		} catch {
+			return 0;
+		}
+	}
+
+	/**
+	 * Delete all documents (code chunks and enriched) for a specific file
+	 */
+	async deleteAllByFile(filePath: string): Promise<number> {
+		if (!this.db || !this.table) {
+			return 0;
+		}
+
+		try {
+			await this.table.delete(`filePath = '${filePath}'`);
+			return 1;
+		} catch {
+			return 0;
+		}
+	}
+
+	/**
+	 * Get all documents for a specific file
+	 */
+	async getDocumentsByFile(
+		filePath: string,
+		documentTypes?: DocumentType[],
+	): Promise<BaseDocument[]> {
+		const table = await this.ensureTableOpen();
+		if (!table) {
+			return [];
+		}
+
+		try {
+			let filter = `filePath = '${filePath}'`;
+			if (documentTypes && documentTypes.length > 0) {
+				const types = documentTypes.map((t) => `'${t}'`).join(", ");
+				filter += ` AND documentType IN (${types})`;
+			}
+
+			const results = await table.query().where(filter).toArray();
+
+			return results.map((row) => ({
+				id: row.id,
+				content: row.content,
+				documentType: row.documentType as DocumentType,
+				filePath: row.filePath || undefined,
+				fileHash: row.fileHash || undefined,
+				createdAt: row.createdAt,
+				enrichedAt: row.enrichedAt || undefined,
+				sourceIds: row.sourceIds ? JSON.parse(row.sourceIds) : undefined,
+				metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+			}));
+		} catch {
+			return [];
+		}
+	}
+
+	/**
+	 * Search with document type filtering and use-case weights
+	 */
+	async searchDocuments(
+		queryText: string,
+		queryVector: number[],
+		options: EnrichedSearchOptions = {},
+	): Promise<EnrichedSearchResult[]> {
+		const {
+			limit = DEFAULT_LIMIT,
+			language,
+			pathPattern,
+			documentTypes,
+			typeWeights,
+			useCase,
+			includeCodeChunks = true,
+		} = options;
+
+		const table = await this.ensureTableOpen();
+		if (!table) {
+			return [];
+		}
+
+		// Build filter string with escaped values to prevent injection
+		const filters: string[] = [];
+		if (language) {
+			filters.push(`language = '${escapeFilterValue(language)}'`);
+		}
+		if (pathPattern) {
+			filters.push(`filePath LIKE '%${escapeFilterValue(pathPattern)}%'`);
+		}
+
+		// Filter by document types (these are enum values, but escape anyway for safety)
+		const effectiveTypes = documentTypes || (includeCodeChunks
+			? undefined // No filter = all types
+			: ["file_summary", "symbol_summary", "idiom", "usage_example", "anti_pattern", "project_doc"]);
+
+		if (effectiveTypes && effectiveTypes.length > 0) {
+			const types = effectiveTypes.map((t) => `'${escapeFilterValue(t)}'`).join(", ");
+			filters.push(`documentType IN (${types})`);
+		}
+
+		const filterStr = filters.length > 0 ? filters.join(" AND ") : undefined;
+
+		// Vector search
+		let vectorQuery = table.vectorSearch(queryVector).limit(limit * 3);
+		if (filterStr) {
+			vectorQuery = vectorQuery.where(filterStr);
+		}
+		const vectorResults = await vectorQuery.toArray();
+
+		// BM25 full-text search
+		let bm25Results: any[] = [];
+		try {
+			let ftsQuery = table.search(queryText, "content").limit(limit * 3);
+			if (filterStr) {
+				ftsQuery = ftsQuery.where(filterStr);
+			}
+			bm25Results = await ftsQuery.toArray();
+		} catch {
+			bm25Results = [];
+		}
+
+		// Get weights for the use case
+		const weights = typeWeights || getUseCaseWeights(useCase);
+
+		// Type-aware RRF fusion
+		const results = typeAwareRRFFusion(
+			vectorResults,
+			bm25Results,
+			VECTOR_WEIGHT,
+			BM25_WEIGHT,
+			weights,
+		);
+
+		// Convert to EnrichedSearchResult format
+		return results.slice(0, limit).map((r) => ({
+			document: {
+				id: r.id,
+				content: r.content,
+				documentType: r.documentType as DocumentType,
+				filePath: r.filePath || undefined,
+				fileHash: r.fileHash || undefined,
+				createdAt: r.createdAt,
+				enrichedAt: r.enrichedAt || undefined,
+				sourceIds: r.sourceIds ? JSON.parse(r.sourceIds) : undefined,
+				metadata: r.metadata ? JSON.parse(r.metadata) : undefined,
+			},
+			score: r.fusedScore,
+			vectorScore: r.vectorScore || 0,
+			keywordScore: r.keywordScore || 0,
+			documentType: r.documentType as DocumentType,
+		}));
+	}
+
+	/**
+	 * Get document type statistics
+	 */
+	async getDocumentTypeStats(): Promise<Record<DocumentType, number>> {
+		const table = await this.ensureTableOpen();
+		if (!table) {
+			return {} as Record<DocumentType, number>;
+		}
+
+		try {
+			const allData = await table.query().toArray();
+
+			const counts: Record<string, number> = {};
+			for (const row of allData) {
+				const docType = row.documentType || "code_chunk";
+				counts[docType] = (counts[docType] || 0) + 1;
+			}
+
+			return counts as Record<DocumentType, number>;
+		} catch {
+			return {} as Record<DocumentType, number>;
+		}
+	}
+
 	/**
 	 * Close the database connection
 	 */
@@ -422,6 +718,120 @@ function reciprocalRankFusion(
 		const result = bm25Results[i];
 		const id = result.id;
 		const rrf = bm25Weight / (k + i + 1);
+
+		if (!scores.has(id)) {
+			scores.set(id, {
+				...result,
+				fusedScore: rrf,
+				keywordScore: 1 / (i + 1),
+			});
+		} else {
+			const existing = scores.get(id)!;
+			existing.fusedScore += rrf;
+			existing.keywordScore = 1 / (i + 1);
+		}
+	}
+
+	// Sort by fused score
+	return Array.from(scores.values()).sort((a, b) => b.fusedScore - a.fusedScore);
+}
+
+// ============================================================================
+// Use Case Weights
+// ============================================================================
+
+/** Default weights per document type for each use case */
+const USE_CASE_WEIGHTS: Record<SearchUseCase, Partial<Record<DocumentType, number>>> = {
+	// FIM completion: prioritize code and examples
+	fim: {
+		code_chunk: 0.5,
+		usage_example: 0.25,
+		idiom: 0.15,
+		symbol_summary: 0.1,
+	},
+	// Human search: balanced across summaries and code
+	search: {
+		file_summary: 0.25,
+		symbol_summary: 0.25,
+		code_chunk: 0.2,
+		idiom: 0.15,
+		usage_example: 0.1,
+		anti_pattern: 0.05,
+	},
+	// Agent navigation: prioritize understanding structure
+	navigation: {
+		symbol_summary: 0.35,
+		file_summary: 0.3,
+		code_chunk: 0.2,
+		idiom: 0.1,
+		project_doc: 0.05,
+	},
+};
+
+/**
+ * Get weights for a use case (or default balanced weights)
+ */
+function getUseCaseWeights(useCase?: SearchUseCase): Partial<Record<DocumentType, number>> {
+	if (useCase && USE_CASE_WEIGHTS[useCase]) {
+		return USE_CASE_WEIGHTS[useCase];
+	}
+	// Default balanced weights
+	return {
+		code_chunk: 0.3,
+		file_summary: 0.15,
+		symbol_summary: 0.2,
+		idiom: 0.15,
+		usage_example: 0.1,
+		anti_pattern: 0.05,
+		project_doc: 0.05,
+	};
+}
+
+// ============================================================================
+// Type-Aware RRF Fusion
+// ============================================================================
+
+/**
+ * Combine results with document type weighting
+ */
+function typeAwareRRFFusion(
+	vectorResults: any[],
+	bm25Results: any[],
+	vectorWeight: number,
+	bm25Weight: number,
+	typeWeights: Partial<Record<DocumentType, number>>,
+	k = 60,
+): FusedResult[] {
+	const scores = new Map<string, FusedResult>();
+
+	// Process vector results
+	for (let i = 0; i < vectorResults.length; i++) {
+		const result = vectorResults[i];
+		const id = result.id;
+		const docType = (result.documentType || "code_chunk") as DocumentType;
+		const typeWeight = typeWeights[docType] ?? 0.1;
+		const rrf = (vectorWeight * typeWeight) / (k + i + 1);
+
+		if (!scores.has(id)) {
+			scores.set(id, {
+				...result,
+				fusedScore: rrf,
+				vectorScore: 1 / (i + 1),
+			});
+		} else {
+			const existing = scores.get(id)!;
+			existing.fusedScore += rrf;
+			existing.vectorScore = 1 / (i + 1);
+		}
+	}
+
+	// Process BM25 results
+	for (let i = 0; i < bm25Results.length; i++) {
+		const result = bm25Results[i];
+		const id = result.id;
+		const docType = (result.documentType || "code_chunk") as DocumentType;
+		const typeWeight = typeWeights[docType] ?? 0.1;
+		const rrf = (bm25Weight * typeWeight) / (k + i + 1);
 
 		if (!scores.has(id)) {
 			scores.set(id, {

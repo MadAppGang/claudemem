@@ -8,7 +8,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, relative } from "node:path";
-import type { FileState } from "../types.js";
+import type { DocumentType, EnrichmentState, FileState } from "../types.js";
 import { createDatabaseSync, type SQLiteDatabase } from "./sqlite.js";
 
 // ============================================================================
@@ -24,6 +24,19 @@ export interface FileChanges {
 	deletedFiles: string[];
 	/** Files that are unchanged */
 	unchangedFiles: string[];
+}
+
+/** Enrichment state per document type for a file */
+export type EnrichmentStateMap = Partial<Record<DocumentType, EnrichmentState>>;
+
+/** Document tracking info */
+export interface TrackedDocument {
+	id: string;
+	documentType: DocumentType;
+	filePath: string;
+	sourceIds: string[];
+	createdAt: string;
+	enrichedAt?: string;
 }
 
 // ============================================================================
@@ -56,7 +69,9 @@ export class FileTracker {
         content_hash TEXT NOT NULL,
         mtime REAL NOT NULL,
         chunk_ids TEXT NOT NULL,
-        indexed_at TEXT NOT NULL
+        indexed_at TEXT NOT NULL,
+        enrichment_state TEXT DEFAULT '{}',
+        enriched_at TEXT
       );
 
       CREATE TABLE IF NOT EXISTS metadata (
@@ -64,8 +79,42 @@ export class FileTracker {
         value TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS documents (
+        id TEXT PRIMARY KEY,
+        document_type TEXT NOT NULL,
+        file_path TEXT,
+        source_ids TEXT NOT NULL DEFAULT '[]',
+        created_at TEXT NOT NULL,
+        enriched_at TEXT
+      );
+
       CREATE INDEX IF NOT EXISTS idx_files_content_hash ON files(content_hash);
+      CREATE INDEX IF NOT EXISTS idx_documents_file_path ON documents(file_path);
+      CREATE INDEX IF NOT EXISTS idx_documents_type ON documents(document_type);
     `);
+
+		// Migration: Add enrichment columns if they don't exist (for existing databases)
+		this.migrateSchema();
+	}
+
+	/**
+	 * Migrate schema for existing databases
+	 */
+	private migrateSchema(): void {
+		try {
+			// Check if enrichment_state column exists
+			const columns = this.db.prepare("PRAGMA table_info(files)").all() as Array<{ name: string }>;
+			const columnNames = columns.map((c) => c.name);
+
+			if (!columnNames.includes("enrichment_state")) {
+				this.db.exec("ALTER TABLE files ADD COLUMN enrichment_state TEXT DEFAULT '{}'");
+			}
+			if (!columnNames.includes("enriched_at")) {
+				this.db.exec("ALTER TABLE files ADD COLUMN enriched_at TEXT");
+			}
+		} catch {
+			// Ignore migration errors (columns might already exist)
+		}
 	}
 
 	/**
@@ -307,6 +356,7 @@ export class FileTracker {
 	clear(): void {
 		this.db.exec("DELETE FROM files");
 		this.db.exec("DELETE FROM metadata");
+		this.db.exec("DELETE FROM documents");
 	}
 
 	/**
@@ -314,6 +364,258 @@ export class FileTracker {
 	 */
 	close(): void {
 		this.db.close();
+	}
+
+	// ========================================================================
+	// Enrichment Tracking Methods
+	// ========================================================================
+
+	/**
+	 * Get enrichment state for a file
+	 */
+	getEnrichmentState(filePath: string): EnrichmentStateMap {
+		const relativePath = relative(this.projectRoot, filePath);
+
+		const stmt = this.db.prepare(
+			"SELECT enrichment_state FROM files WHERE path = ?",
+		);
+		const row = stmt.get(relativePath) as { enrichment_state: string } | undefined;
+
+		if (!row || !row.enrichment_state) {
+			return {};
+		}
+
+		try {
+			return JSON.parse(row.enrichment_state);
+		} catch {
+			return {};
+		}
+	}
+
+	/**
+	 * Set enrichment state for a specific document type
+	 */
+	setEnrichmentState(
+		filePath: string,
+		documentType: DocumentType,
+		state: EnrichmentState,
+	): void {
+		const relativePath = relative(this.projectRoot, filePath);
+
+		// Get current state
+		const current = this.getEnrichmentState(filePath);
+		current[documentType] = state;
+
+		const stmt = this.db.prepare(`
+			UPDATE files SET enrichment_state = ?, enriched_at = ?
+			WHERE path = ?
+		`);
+
+		stmt.run(
+			JSON.stringify(current),
+			state === "complete" ? new Date().toISOString() : null,
+			relativePath,
+		);
+	}
+
+	/**
+	 * Set all enrichment states for a file at once
+	 */
+	setAllEnrichmentStates(
+		filePath: string,
+		states: EnrichmentStateMap,
+	): void {
+		const relativePath = relative(this.projectRoot, filePath);
+
+		const hasComplete = Object.values(states).some((s) => s === "complete");
+
+		const stmt = this.db.prepare(`
+			UPDATE files SET enrichment_state = ?, enriched_at = ?
+			WHERE path = ?
+		`);
+
+		stmt.run(
+			JSON.stringify(states),
+			hasComplete ? new Date().toISOString() : null,
+			relativePath,
+		);
+	}
+
+	/**
+	 * Reset enrichment state for a file (e.g., when file is modified)
+	 */
+	resetEnrichmentState(filePath: string): void {
+		const relativePath = relative(this.projectRoot, filePath);
+
+		const stmt = this.db.prepare(`
+			UPDATE files SET enrichment_state = '{}', enriched_at = NULL
+			WHERE path = ?
+		`);
+
+		stmt.run(relativePath);
+	}
+
+	/**
+	 * Check if a file needs enrichment for a specific document type
+	 */
+	needsEnrichment(filePath: string, documentType: DocumentType): boolean {
+		const state = this.getEnrichmentState(filePath);
+		return state[documentType] !== "complete";
+	}
+
+	/**
+	 * Get all files that need enrichment for a specific document type
+	 */
+	getFilesNeedingEnrichment(documentType: DocumentType): string[] {
+		const stmt = this.db.prepare("SELECT path, enrichment_state FROM files");
+		const rows = stmt.all() as Array<{ path: string; enrichment_state: string }>;
+
+		const needsEnrichment: string[] = [];
+		for (const row of rows) {
+			try {
+				const state = JSON.parse(row.enrichment_state || "{}") as EnrichmentStateMap;
+				if (state[documentType] !== "complete") {
+					needsEnrichment.push(row.path);
+				}
+			} catch {
+				needsEnrichment.push(row.path);
+			}
+		}
+
+		return needsEnrichment;
+	}
+
+	// ========================================================================
+	// Document Tracking Methods
+	// ========================================================================
+
+	/**
+	 * Track a document in the documents table
+	 */
+	trackDocument(doc: TrackedDocument): void {
+		const stmt = this.db.prepare(`
+			INSERT OR REPLACE INTO documents (id, document_type, file_path, source_ids, created_at, enriched_at)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`);
+
+		stmt.run(
+			doc.id,
+			doc.documentType,
+			doc.filePath,
+			JSON.stringify(doc.sourceIds),
+			doc.createdAt,
+			doc.enrichedAt || null,
+		);
+	}
+
+	/**
+	 * Track multiple documents at once
+	 */
+	trackDocuments(docs: TrackedDocument[]): void {
+		const stmt = this.db.prepare(`
+			INSERT OR REPLACE INTO documents (id, document_type, file_path, source_ids, created_at, enriched_at)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`);
+
+		for (const doc of docs) {
+			stmt.run(
+				doc.id,
+				doc.documentType,
+				doc.filePath,
+				JSON.stringify(doc.sourceIds),
+				doc.createdAt,
+				doc.enrichedAt || null,
+			);
+		}
+	}
+
+	/**
+	 * Get all tracked documents for a file
+	 */
+	getDocumentsForFile(filePath: string): TrackedDocument[] {
+		const relativePath = relative(this.projectRoot, filePath);
+
+		const stmt = this.db.prepare(
+			"SELECT id, document_type, file_path, source_ids, created_at, enriched_at FROM documents WHERE file_path = ?",
+		);
+		const rows = stmt.all(relativePath) as Array<{
+			id: string;
+			document_type: string;
+			file_path: string;
+			source_ids: string;
+			created_at: string;
+			enriched_at: string | null;
+		}>;
+
+		return rows.map((row) => ({
+			id: row.id,
+			documentType: row.document_type as DocumentType,
+			filePath: row.file_path,
+			sourceIds: JSON.parse(row.source_ids),
+			createdAt: row.created_at,
+			enrichedAt: row.enriched_at || undefined,
+		}));
+	}
+
+	/**
+	 * Get all tracked documents of a specific type
+	 */
+	getDocumentsByType(documentType: DocumentType): TrackedDocument[] {
+		const stmt = this.db.prepare(
+			"SELECT id, document_type, file_path, source_ids, created_at, enriched_at FROM documents WHERE document_type = ?",
+		);
+		const rows = stmt.all(documentType) as Array<{
+			id: string;
+			document_type: string;
+			file_path: string;
+			source_ids: string;
+			created_at: string;
+			enriched_at: string | null;
+		}>;
+
+		return rows.map((row) => ({
+			id: row.id,
+			documentType: row.document_type as DocumentType,
+			filePath: row.file_path,
+			sourceIds: JSON.parse(row.source_ids),
+			createdAt: row.created_at,
+			enrichedAt: row.enriched_at || undefined,
+		}));
+	}
+
+	/**
+	 * Delete all documents for a file
+	 */
+	deleteDocumentsForFile(filePath: string): void {
+		const relativePath = relative(this.projectRoot, filePath);
+
+		const stmt = this.db.prepare("DELETE FROM documents WHERE file_path = ?");
+		stmt.run(relativePath);
+	}
+
+	/**
+	 * Delete documents by type
+	 */
+	deleteDocumentsByType(documentType: DocumentType): void {
+		const stmt = this.db.prepare("DELETE FROM documents WHERE document_type = ?");
+		stmt.run(documentType);
+	}
+
+	/**
+	 * Get document count by type
+	 */
+	getDocumentCounts(): Record<DocumentType, number> {
+		const stmt = this.db.prepare(
+			"SELECT document_type, COUNT(*) as count FROM documents GROUP BY document_type",
+		);
+		const rows = stmt.all() as Array<{ document_type: string; count: number }>;
+
+		const counts: Record<string, number> = {};
+		for (const row of rows) {
+			counts[row.document_type] = row.count;
+		}
+
+		return counts as Record<DocumentType, number>;
 	}
 
 	/**

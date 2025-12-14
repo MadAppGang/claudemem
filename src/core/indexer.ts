@@ -14,13 +14,18 @@ import {
 	getExcludePatterns,
 	getIndexDbPath,
 	getVectorStorePath,
+	isEnrichmentEnabled,
 	loadProjectConfig,
 	saveProjectConfig,
 } from "../config.js";
+import { createLLMClient } from "../llm/client.js";
+import type { ILLMClient } from "../types.js";
+import { createEnricher, type Enricher, type FileToEnrich } from "./enrichment/index.js";
 import { getParserManager } from "../parsers/parser-manager.js";
 import type {
 	ChunkWithEmbedding,
 	CodeChunk,
+	EnrichedIndexResult,
 	IEmbeddingsClient,
 	IndexResult,
 	IndexStatus,
@@ -53,6 +58,10 @@ interface IndexerOptions {
 	onProgress?: (current: number, total: number, file: string, inProgress?: number) => void;
 	/** Force re-index all files */
 	force?: boolean;
+	/** Enable LLM enrichment (default: from config) */
+	enableEnrichment?: boolean;
+	/** Concurrency for LLM enrichment requests (default: 10) */
+	enrichmentConcurrency?: number;
 }
 
 // ============================================================================
@@ -67,10 +76,15 @@ export class Indexer {
 	private includeExtensions: Set<string> | null;
 	private excludeExtensions: Set<string>;
 	private onProgress?: (current: number, total: number, file: string, inProgress?: number) => void;
+	private enableEnrichment: boolean;
+	private enrichmentConcurrency: number;
 
 	private embeddingsClient: IEmbeddingsClient | null = null;
 	private vectorStore: VectorStore | null = null;
 	private fileTracker: FileTracker | null = null;
+	private llmClient: ILLMClient | null = null;
+	private enricher: Enricher | null = null;
+	private llmProvider: string = "";
 
 	constructor(options: IndexerOptions) {
 		this.projectPath = options.projectPath;
@@ -95,6 +109,10 @@ export class Indexer {
 		);
 
 		this.onProgress = options.onProgress;
+
+		// Enrichment enabled by default (from config), can be overridden
+		this.enableEnrichment = options.enableEnrichment ?? isEnrichmentEnabled(options.projectPath);
+		this.enrichmentConcurrency = options.enrichmentConcurrency ?? 10;
 	}
 
 	/**
@@ -119,6 +137,27 @@ export class Indexer {
 		// Create file tracker
 		const indexDbPath = getIndexDbPath(this.projectPath);
 		this.fileTracker = createFileTracker(indexDbPath, this.projectPath);
+
+		// Initialize enrichment if enabled
+		if (this.enableEnrichment) {
+			try {
+				this.llmClient = await createLLMClient({}, this.projectPath);
+				this.llmProvider = this.llmClient.getProvider();
+				this.enricher = createEnricher(
+					this.llmClient,
+					this.embeddingsClient,
+					this.vectorStore,
+					this.fileTracker,
+				);
+			} catch (error) {
+				// Enrichment is optional - log and continue without it
+				console.warn(
+					"⚠️  Enrichment disabled:",
+					error instanceof Error ? error.message : error,
+				);
+				this.enableEnrichment = false;
+			}
+		}
 	}
 
 	/** Maximum files to process per batch (limits memory usage) */
@@ -127,7 +166,7 @@ export class Indexer {
 	/**
 	 * Index the codebase
 	 */
-	async index(force = false): Promise<IndexResult> {
+	async index(force = false): Promise<EnrichedIndexResult> {
 		const startTime = Date.now();
 		await this.initialize();
 
@@ -171,6 +210,13 @@ export class Indexer {
 				}
 				this.fileTracker!.removeFile(deletedFile);
 			}
+
+			// For modified files, delete old chunks/docs before re-indexing
+			// This prevents stale data accumulation (identified by multi-model review)
+			for (const modifiedFile of changes.modifiedFiles) {
+				await this.vectorStore!.deleteByFile(modifiedFile);
+				this.fileTracker!.resetEnrichmentState(modifiedFile);
+			}
 		}
 
 		// Process files in batches to limit memory usage
@@ -181,6 +227,9 @@ export class Indexer {
 		let totalChunksCreated = 0;
 		let totalCost = 0;
 		let totalTokens = 0;
+
+		// Track files for enrichment (file -> chunks mapping)
+		const fileChunksForEnrichment: FileToEnrich[] = [];
 
 		const totalBatches = Math.ceil(filesToIndex.length / Indexer.FILES_PER_BATCH);
 
@@ -302,7 +351,75 @@ export class Indexer {
 			totalFilesIndexed += fileChunkMap.size;
 			totalChunksCreated += chunksWithEmbeddings.length;
 
+			// Collect files for enrichment
+			if (this.enableEnrichment && this.enricher) {
+				// Group chunks by file for enrichment
+				const fileChunksMap = new Map<string, { content: string; chunks: CodeChunk[]; language: string }>();
+
+				for (const { chunk, filePath } of validChunks) {
+					if (!fileChunksMap.has(filePath)) {
+						const content = readFileSync(filePath, "utf-8");
+						fileChunksMap.set(filePath, {
+							content,
+							chunks: [],
+							language: chunk.language,
+						});
+					}
+					fileChunksMap.get(filePath)!.chunks.push(chunk);
+				}
+
+				for (const [filePath, { content, chunks, language }] of fileChunksMap) {
+					fileChunksForEnrichment.push({
+						filePath: relative(this.projectPath, filePath),
+						fileContent: content,
+						codeChunks: chunks,
+						language,
+					});
+				}
+			}
+
 			// Memory is released when batchChunks, embeddings, chunksWithEmbeddings go out of scope
+		}
+
+		// Phase 5: Enrichment (if enabled and files were indexed)
+		let enrichmentResult = undefined;
+		if (this.enableEnrichment && this.enricher && fileChunksForEnrichment.length > 0) {
+			// Show provider info at start of enrichment
+			const providerLabel = this.llmProvider === "claude-code" ? "Claude CLI (free)"
+				: this.llmProvider === "anthropic" ? "Anthropic API"
+				: this.llmProvider === "openrouter" ? "OpenRouter"
+				: this.llmProvider;
+			if (this.onProgress) {
+				this.onProgress(0, fileChunksForEnrichment.length, `[enriching] using ${providerLabel}...`);
+			}
+
+			try {
+				enrichmentResult = await this.enricher.enrichFiles(fileChunksForEnrichment, {
+					concurrency: this.enrichmentConcurrency,
+					onProgress: (completed, total, phase, status, inProgress) => {
+						if (this.onProgress) {
+							// Pass through enrichment sub-phases for granular progress
+							this.onProgress(
+								completed,
+								total,
+								`[${phase}] ${status}`,
+								inProgress,
+							);
+						}
+					},
+				});
+
+				// Add enrichment cost to total
+				if (enrichmentResult.cost) {
+					totalCost += enrichmentResult.cost;
+				}
+			} catch (error) {
+				// Enrichment failure shouldn't fail the whole index
+				console.warn(
+					"⚠️  Enrichment failed:",
+					error instanceof Error ? error.message : error,
+				);
+			}
 		}
 
 		// Save model info to project config
@@ -330,6 +447,7 @@ export class Indexer {
 			errors,
 			cost: totalCost > 0 ? totalCost : undefined,
 			totalTokens: totalTokens > 0 ? totalTokens : undefined,
+			enrichment: enrichmentResult,
 		};
 	}
 

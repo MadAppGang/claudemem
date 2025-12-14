@@ -348,7 +348,10 @@ function createCodeChunk(
 	language: SupportedLanguage,
 	fileHash: string,
 ): CodeChunk {
-	const id = createHash("sha256").update(parsed.content).digest("hex");
+	// Include filePath and line range in hash to prevent collisions across files
+	// with identical content (e.g., boilerplate functions)
+	const hashInput = `${filePath}:${parsed.startLine}:${parsed.endLine}:${parsed.content}`;
+	const id = createHash("sha256").update(hashInput).digest("hex");
 
 	return {
 		id,
@@ -442,13 +445,16 @@ function fallbackChunk(
 		if (currentLines.length >= maxLinesPerChunk) {
 			const content = currentLines.join("\n");
 			if (content.trim().length >= MIN_CHUNK_TOKENS * CHARS_PER_TOKEN) {
-				const id = createHash("sha256").update(content).digest("hex");
+				const startLine = currentStartLine + 1;
+				const endLine = i + 1;
+				const hashInput = `${filePath}:${startLine}:${endLine}:${content}`;
+				const id = createHash("sha256").update(hashInput).digest("hex");
 				chunks.push({
 					id,
 					content,
 					filePath,
-					startLine: currentStartLine + 1,
-					endLine: i + 1,
+					startLine,
+					endLine,
 					language,
 					chunkType: "block",
 					fileHash,
@@ -464,13 +470,16 @@ function fallbackChunk(
 	if (currentLines.length > 0) {
 		const content = currentLines.join("\n");
 		if (content.trim().length >= MIN_CHUNK_TOKENS * CHARS_PER_TOKEN) {
-			const id = createHash("sha256").update(content).digest("hex");
+			const startLine = currentStartLine + 1;
+			const endLine = lines.length;
+			const hashInput = `${filePath}:${startLine}:${endLine}:${content}`;
+			const id = createHash("sha256").update(hashInput).digest("hex");
 			chunks.push({
 				id,
 				content,
 				filePath,
-				startLine: currentStartLine + 1,
-				endLine: lines.length,
+				startLine,
+				endLine,
 				language,
 				chunkType: "block",
 				fileHash,

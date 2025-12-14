@@ -22,16 +22,26 @@ Use INSTEAD of grep/find for: architecture discovery, pattern matching, understa
 </purpose>
 
 <capabilities>
-INDEXING: Parse code → chunk by AST (functions/classes/methods) → embed → store in LanceDB
-SEARCH: Natural language → vector similarity + BM25 keyword → ranked results with file:line
-AUTO-INDEX: Changed files re-indexed automatically before search
+INDEXING:
+  Parse code → AST chunking (functions/classes/methods) → embed → LanceDB
+
+ENRICHMENT (LLM-powered):
+  File summaries: Purpose, key exports, dependencies (1 LLM call/file)
+  Symbol summaries: Function/class docs (batched: 1 LLM call for all symbols/file)
+
+SEARCH:
+  Natural language → vector similarity + BM25 → ranked results (file:line)
+  Searches BOTH raw code AND enriched summaries for better semantic matching
+
+AUTO-INDEX: Changed files re-indexed + re-enriched before search
 </capabilities>
 
 <tools>
 CLI:
-  claudemem index [path] [-f]      # Index codebase (force with -f)
+  claudemem index [path] [-f] [--enrich]  # Index codebase (force with -f, enrich with LLM)
+  claudemem enrich [path] [--concurrency N]  # Run LLM enrichment on indexed files
   claudemem search "query" [-n N]  # Search (auto-indexes changes)
-  claudemem status                 # Show index info
+  claudemem status                 # Show index info + enrichment progress
   claudemem clear                  # Remove index
   claudemem ai <role>              # Get role instructions
 
@@ -68,6 +78,27 @@ KEYWORD-ENHANCED (specific terms):
   "redis cache invalidation"
   "graphql resolver mutation"
 </search-patterns>
+
+<document-types>
+Results may come from different document types:
+
+code_chunk (raw code):
+  Direct AST-extracted code blocks (functions, classes, methods)
+  Best for: exact implementation, signatures, syntax
+
+file_summary (LLM-enriched):
+  AI-generated summary: purpose, key exports, architecture role
+  Best for: understanding file purpose, finding entry points
+
+symbol_summary (LLM-enriched):
+  AI-generated docs: purpose, parameters, return values, side effects
+  Best for: API understanding, finding functions by behavior
+
+SEARCH STRATEGY:
+  Generic queries → match enriched summaries (meaning-based)
+  Specific code → match raw chunks (implementation details)
+  Both types searched simultaneously for best results
+</document-types>
 
 <workflow>
 1. CHECK STATUS
@@ -180,13 +211,20 @@ ${roleInstructions}
  * Compact skill for tight context budgets
  */
 export const CLAUDEMEM_SKILL_COMPACT = `<skill name="claudemem">
-SEMANTIC CODE SEARCH via embeddings. Use INSTEAD of grep for meaning-based discovery.
+SEMANTIC CODE SEARCH via embeddings + LLM enrichment.
+Use INSTEAD of grep for meaning-based discovery.
 
 COMMANDS:
   claudemem search "query"   # Natural language → ranked results (file:line, score)
   claudemem index [-f]       # Index codebase (auto-runs before search)
-  claudemem status           # Check index
+  claudemem enrich           # LLM enrichment (file + symbol summaries)
+  claudemem status           # Check index + enrichment state
   claudemem ai <role>        # Role instructions (architect|developer|tester|debugger)
+
+DOCUMENT TYPES:
+  code_chunk     Raw AST-extracted code (implementation)
+  file_summary   LLM: file purpose, exports, architecture
+  symbol_summary LLM: function docs, params, side effects
 
 QUERY PATTERNS:
   "authentication flow login" (semantic)
@@ -238,9 +276,10 @@ WHEN NOT TO USE:
 /**
  * Quick reference card (minimal tokens)
  */
-export const CLAUDEMEM_QUICK_REF = `claudemem: semantic code search
-  search "query"  → file:line results
+export const CLAUDEMEM_QUICK_REF = `claudemem: semantic code search + LLM enrichment
+  search "query"  → file:line results (code + enriched summaries)
   index -f        → rebuild index
+  enrich          → LLM summaries (file + symbol)
   ai <role>       → architect|developer|tester|debugger
 Use for: meaning-based discovery, architecture, patterns
 Avoid: grep (no semantics), single-word queries`;

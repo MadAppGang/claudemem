@@ -62,6 +62,8 @@ export interface SearchOptions {
 	chunkType?: ChunkType;
 	/** Filter by file path pattern */
 	pathPattern?: string;
+	/** Search use case for weight presets */
+	useCase?: SearchUseCase;
 }
 
 // ============================================================================
@@ -202,6 +204,18 @@ export interface GlobalConfig {
 	ollamaEndpoint?: string;
 	/** Custom local endpoint URL */
 	localEndpoint?: string;
+
+	// ─── LLM Enrichment Settings ───
+	/** LLM provider for enrichment (claude-code, anthropic, openrouter, local) */
+	llmProvider?: LLMProvider;
+	/** LLM model to use for enrichment */
+	llmModel?: string;
+	/** LLM endpoint URL (for local providers) */
+	llmEndpoint?: string;
+	/** Anthropic API key (for direct Anthropic API calls) */
+	anthropicApiKey?: string;
+	/** Enable LLM enrichment during indexing (default: true) */
+	enableEnrichment?: boolean;
 }
 
 export interface ProjectConfig {
@@ -223,6 +237,24 @@ export interface ProjectConfig {
 	indexDir?: string;
 	/** Last used embedding model (internal use) */
 	lastModel?: string;
+
+	// ─── Enrichment Settings ───
+	/** Project-level enrichment configuration */
+	enrichment?: {
+		/** Enable/disable enrichment for this project (overrides global) */
+		enabled?: boolean;
+		/** Document types to generate */
+		types?: DocumentType[];
+		/** Override LLM provider for this project */
+		llmProvider?: LLMProvider;
+	};
+
+	/** Search weight configuration per use case */
+	searchWeights?: {
+		fim?: Partial<Record<DocumentType, number>>;
+		search?: Partial<Record<DocumentType, number>>;
+		navigation?: Partial<Record<DocumentType, number>>;
+	};
 }
 
 export interface Config extends GlobalConfig {
@@ -303,4 +335,320 @@ export interface ParsedChunk {
 	parentName?: string;
 	/** Signature if extractable */
 	signature?: string;
+}
+
+// ============================================================================
+// Document Types (Enriched RAG)
+// ============================================================================
+
+/** All document types in the enriched index */
+export type DocumentType =
+	| "code_chunk"
+	| "file_summary"
+	| "symbol_summary"
+	| "idiom"
+	| "usage_example"
+	| "anti_pattern"
+	| "project_doc";
+
+/** Base interface for all document types */
+export interface BaseDocument {
+	/** Unique identifier (SHA256 hash) */
+	id: string;
+	/** Document content (for embedding and search) */
+	content: string;
+	/** Document type discriminator */
+	documentType: DocumentType;
+	/** File path this document relates to (optional for project docs) */
+	filePath?: string;
+	/** Hash of source file for change tracking */
+	fileHash?: string;
+	/** When this document was created */
+	createdAt: string;
+	/** When this document was enriched (if by LLM) */
+	enrichedAt?: string;
+	/** IDs of source code chunks this was derived from */
+	sourceIds?: string[];
+	/** Additional type-specific metadata (JSON) */
+	metadata?: Record<string, unknown>;
+}
+
+/** Document with embedding vector attached */
+export interface DocumentWithEmbedding extends BaseDocument {
+	/** Vector embedding */
+	vector: number[];
+}
+
+/** File-level summary document */
+export interface FileSummary extends BaseDocument {
+	documentType: "file_summary";
+	filePath: string;
+	/** Programming language */
+	language: string;
+	/** High-level purpose of the file */
+	summary: string;
+	/** Main responsibilities (2-3 bullet points) */
+	responsibilities: string[];
+	/** Exported functions/classes/types */
+	exports: string[];
+	/** Imported modules/dependencies */
+	dependencies: string[];
+	/** Notable patterns used (hooks, middleware, etc.) */
+	patterns: string[];
+}
+
+/** Symbol-level summary (function, class, method) */
+export interface SymbolSummary extends BaseDocument {
+	documentType: "symbol_summary";
+	filePath: string;
+	/** Symbol name */
+	symbolName: string;
+	/** Type of symbol */
+	symbolType: "function" | "class" | "method" | "module";
+	/** What it does (one sentence) */
+	summary: string;
+	/** Key parameters and their purpose */
+	parameters?: Array<{ name: string; description: string }>;
+	/** What it returns and when */
+	returnDescription?: string;
+	/** Side effects (API calls, state mutations, etc.) */
+	sideEffects?: string[];
+	/** When/where to use this */
+	usageContext?: string;
+}
+
+/** Project idiom/pattern document */
+export interface Idiom extends BaseDocument {
+	documentType: "idiom";
+	/** Category (error_handling, async_patterns, naming, etc.) */
+	category: string;
+	/** Programming language */
+	language: string;
+	/** Pattern name/description */
+	pattern: string;
+	/** Code example showing the pattern */
+	example: string;
+	/** Why this pattern is used */
+	rationale: string;
+	/** Where this pattern applies */
+	appliesTo: string[];
+}
+
+/** Usage example document */
+export interface UsageExample extends BaseDocument {
+	documentType: "usage_example";
+	filePath: string;
+	/** Symbol this example is for */
+	symbol: string;
+	/** Type of example */
+	exampleType: "basic" | "with_options" | "error_case" | "in_context" | "test";
+	/** The example code */
+	code: string;
+	/** Brief description of what this example shows */
+	description?: string;
+}
+
+/** Anti-pattern document */
+export interface AntiPattern extends BaseDocument {
+	documentType: "anti_pattern";
+	/** What to avoid */
+	pattern: string;
+	/** Bad code example */
+	badExample: string;
+	/** Why it's problematic */
+	reason: string;
+	/** What to do instead */
+	alternative: string;
+	/** Severity level */
+	severity: "low" | "medium" | "high";
+}
+
+/** Project documentation document */
+export interface ProjectDoc extends BaseDocument {
+	documentType: "project_doc";
+	/** Document title */
+	title: string;
+	/** Category of documentation */
+	category: "architecture" | "getting_started" | "api" | "contributing" | "standards";
+	/** Document sections */
+	sections: Array<{
+		heading: string;
+		content: string;
+	}>;
+}
+
+/** Union type of all document types */
+export type Document =
+	| FileSummary
+	| SymbolSummary
+	| Idiom
+	| UsageExample
+	| AntiPattern
+	| ProjectDoc;
+
+// ============================================================================
+// LLM Types (for Enrichment)
+// ============================================================================
+
+/** Supported LLM providers for enrichment */
+export type LLMProvider = "claude-code" | "anthropic" | "openrouter" | "local";
+
+/** Message in LLM conversation */
+export interface LLMMessage {
+	role: "user" | "assistant" | "system";
+	content: string;
+}
+
+/** Response from LLM */
+export interface LLMResponse {
+	/** Generated content */
+	content: string;
+	/** Model that generated the response */
+	model: string;
+	/** Usage statistics */
+	usage?: {
+		inputTokens: number;
+		outputTokens: number;
+		/** Cost in USD (if available) */
+		cost?: number;
+	};
+}
+
+/** Options for LLM generation */
+export interface LLMGenerateOptions {
+	/** Model to use (overrides default) */
+	model?: string;
+	/** Temperature for generation (0-1) */
+	temperature?: number;
+	/** Maximum tokens to generate */
+	maxTokens?: number;
+	/** System prompt */
+	systemPrompt?: string;
+}
+
+/**
+ * LLM client interface
+ * All LLM providers must implement this interface
+ */
+export interface ILLMClient {
+	/** Generate completion from messages */
+	complete(messages: LLMMessage[], options?: LLMGenerateOptions): Promise<LLMResponse>;
+	/** Generate completion and parse as JSON */
+	completeJSON<T>(messages: LLMMessage[], options?: LLMGenerateOptions): Promise<T>;
+	/** Get the provider being used */
+	getProvider(): LLMProvider;
+	/** Get the model being used */
+	getModel(): string;
+	/** Test connection to the provider */
+	testConnection(): Promise<boolean>;
+}
+
+/** Progress callback for enrichment operations */
+export type EnrichmentProgressCallback = (
+	completed: number,
+	total: number,
+	documentType: DocumentType,
+	/** Status message (e.g., files being processed) */
+	status?: string,
+	/** Number of items currently in progress (for animation) */
+	inProgress?: number
+) => void;
+
+// ============================================================================
+// Extractor Types (for Enrichment Pipeline)
+// ============================================================================
+
+/** Context passed to document extractors */
+export interface ExtractionContext {
+	/** Project root path */
+	projectPath: string;
+	/** Code chunks for the current file */
+	codeChunks: CodeChunk[];
+	/** File path being processed */
+	filePath: string;
+	/** Full file content */
+	fileContent: string;
+	/** Programming language */
+	language: string;
+	/** Existing documents for this file (for incremental updates) */
+	existingDocs?: BaseDocument[];
+	/** All files in project (for project-level extraction) */
+	allFiles?: string[];
+}
+
+/** Enrichment state for a file */
+export type EnrichmentState = "pending" | "in_progress" | "complete" | "failed";
+
+/**
+ * Document extractor interface
+ * Each document type has its own extractor implementation
+ */
+export interface IDocumentExtractor {
+	/** Get the document type this extractor produces */
+	getDocumentType(): DocumentType;
+	/** Extract documents from the given context */
+	extract(context: ExtractionContext, llmClient: ILLMClient): Promise<BaseDocument[]>;
+	/** Check if extraction is needed (for incremental updates) */
+	needsUpdate(context: ExtractionContext): boolean;
+	/** Get document types this extractor depends on */
+	getDependencies(): DocumentType[];
+}
+
+// ============================================================================
+// Enriched Search Types
+// ============================================================================
+
+/** Search result with enriched document */
+export interface EnrichedSearchResult {
+	/** The matched document */
+	document: BaseDocument;
+	/** Combined relevance score (0-1) */
+	score: number;
+	/** Vector similarity score */
+	vectorScore: number;
+	/** BM25 keyword score */
+	keywordScore: number;
+	/** Document type for filtering/display */
+	documentType: DocumentType;
+}
+
+/** Use case for search weight presets */
+export type SearchUseCase = "fim" | "search" | "navigation";
+
+/** Search options with enrichment support */
+export interface EnrichedSearchOptions extends SearchOptions {
+	/** Filter by document types */
+	documentTypes?: DocumentType[];
+	/** Custom weights per document type (overrides use case) */
+	typeWeights?: Partial<Record<DocumentType, number>>;
+	/** Use case preset for automatic weight configuration */
+	useCase?: SearchUseCase;
+	/** Include code chunks in results (default: true) */
+	includeCodeChunks?: boolean;
+}
+
+// ============================================================================
+// Enrichment Result Types
+// ============================================================================
+
+/** Result of enrichment operation */
+export interface EnrichmentResult {
+	/** Number of documents created */
+	documentsCreated: number;
+	/** Number of documents updated */
+	documentsUpdated: number;
+	/** Time taken in milliseconds */
+	durationMs: number;
+	/** Errors encountered during enrichment */
+	errors: Array<{ file: string; documentType: DocumentType; error: string }>;
+	/** LLM cost in USD (if available) */
+	cost?: number;
+	/** Total LLM tokens used */
+	totalTokens?: number;
+}
+
+/** Extended index result with enrichment stats */
+export interface EnrichedIndexResult extends IndexResult {
+	/** Enrichment statistics */
+	enrichment?: EnrichmentResult;
 }
