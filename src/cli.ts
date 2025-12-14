@@ -375,6 +375,18 @@ async function handleIndex(args: string[]): Promise<void> {
 		if (result.enrichment) {
 			console.log(`\n  Enrichment:`);
 			console.log(`    Documents:    ${result.enrichment.documentsCreated}`);
+			if (result.enrichment.cost !== undefined) {
+				console.log(`    LLM cost:     $${result.enrichment.cost.toFixed(6)}`);
+				if (result.enrichment.costBreakdown) {
+					const { fileSummaries, symbolSummaries } = result.enrichment.costBreakdown;
+					if (fileSummaries !== undefined) {
+						console.log(`      - file summaries:   $${fileSummaries.toFixed(6)}`);
+					}
+					if (symbolSummaries !== undefined) {
+						console.log(`      - symbol summaries: $${symbolSummaries.toFixed(6)}`);
+					}
+				}
+			}
 			if (result.enrichment.errors.length > 0) {
 				console.log(`    Errors:       ${result.enrichment.errors.length}`);
 			}
@@ -1784,7 +1796,7 @@ function getFileTracker(projectPath: string): FileTracker | null {
 		return null;
 	}
 
-	return new FileTracker(dbPath);
+	return new FileTracker(dbPath, projectPath);
 }
 
 /**

@@ -53,6 +53,7 @@ export abstract class BaseLLMClient implements ILLMClient {
 	protected provider: LLMProvider;
 	protected model: string;
 	protected timeout: number;
+	private accumulatedUsage = { inputTokens: 0, outputTokens: 0, cost: 0, calls: 0 };
 
 	constructor(provider: LLMProvider, model: string, timeout = 120000) {
 		this.provider = provider;
@@ -66,6 +67,23 @@ export abstract class BaseLLMClient implements ILLMClient {
 
 	getModel(): string {
 		return this.model;
+	}
+
+	getAccumulatedUsage() {
+		return { ...this.accumulatedUsage };
+	}
+
+	resetAccumulatedUsage(): void {
+		this.accumulatedUsage = { inputTokens: 0, outputTokens: 0, cost: 0, calls: 0 };
+	}
+
+	protected accumulateUsage(usage?: { inputTokens: number; outputTokens: number; cost?: number }): void {
+		if (usage) {
+			this.accumulatedUsage.inputTokens += usage.inputTokens;
+			this.accumulatedUsage.outputTokens += usage.outputTokens;
+			this.accumulatedUsage.cost += usage.cost || 0;
+		}
+		this.accumulatedUsage.calls++;
 	}
 
 	abstract complete(
@@ -84,6 +102,9 @@ export abstract class BaseLLMClient implements ILLMClient {
 		};
 
 		const response = await this.complete(messages, jsonOptions);
+
+		// Track usage
+		this.accumulateUsage(response.usage);
 
 		// Try to parse JSON from response
 		try {

@@ -658,6 +658,14 @@ export interface LLMGenerateOptions {
  * LLM client interface
  * All LLM providers must implement this interface
  */
+/** Accumulated LLM usage stats */
+export interface LLMUsageStats {
+	inputTokens: number;
+	outputTokens: number;
+	cost: number;
+	calls: number;
+}
+
 export interface ILLMClient {
 	/** Generate completion from messages */
 	complete(messages: LLMMessage[], options?: LLMGenerateOptions): Promise<LLMResponse>;
@@ -669,6 +677,10 @@ export interface ILLMClient {
 	getModel(): string;
 	/** Test connection to the provider */
 	testConnection(): Promise<boolean>;
+	/** Get accumulated usage since last reset */
+	getAccumulatedUsage(): LLMUsageStats;
+	/** Reset accumulated usage counter */
+	resetAccumulatedUsage(): void;
 }
 
 /** Progress callback for enrichment operations */
@@ -786,8 +798,13 @@ export interface EnrichmentResult {
 	durationMs: number;
 	/** Errors encountered during enrichment */
 	errors: Array<{ file: string; documentType: DocumentType; error: string }>;
-	/** LLM cost in USD (if available) */
+	/** Total LLM cost in USD (if available) */
 	cost?: number;
+	/** Cost breakdown by phase */
+	costBreakdown?: {
+		fileSummaries?: number;
+		symbolSummaries?: number;
+	};
 	/** Total LLM tokens used */
 	totalTokens?: number;
 }

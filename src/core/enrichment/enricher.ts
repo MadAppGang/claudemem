@@ -213,6 +213,17 @@ export class Enricher {
 		let totalUpdated = 0;
 		const allErrors: EnrichmentResult["errors"] = [];
 
+		// Cost tracking per phase
+		let fileSummariesCost = 0;
+		let symbolSummariesCost = 0;
+
+		// Get LLM provider label for display
+		const provider = this.llmClient.getProvider();
+		const providerLabel = provider === "claude-code" ? "Claude CLI"
+			: provider === "anthropic" ? "Anthropic API"
+			: provider === "openrouter" ? "OpenRouter"
+			: provider;
+
 		// Report progress helper - phase is used by CLI to show distinct progress bars
 		const reportProgress = (phase: string, completed: number, phaseTotal: number, status: string, inProgress = 0) => {
 			if (options.onProgress) {
@@ -226,6 +237,9 @@ export class Enricher {
 		const allDocuments: BaseDocument[] = [];
 		const concurrency = options.concurrency ?? 10;
 
+		// Reset usage tracking before file summaries phase
+		this.llmClient.resetAccumulatedUsage();
+
 		if (fileSummaryExtractor) {
 			let summariesProcessed = 0;
 			const inProgressSummaries = new Set<string>();
@@ -238,7 +252,7 @@ export class Enricher {
 				const active = inProgressSummaries.size;
 				const activeList = Array.from(inProgressSummaries).slice(0, 2).join(", ");
 				const moreCount = active > 2 ? ` +${active - 2}` : "";
-				reportProgress("summaries", summariesProcessed, total, `${summariesProcessed}/${total} (${active} active) ${activeList}${moreCount}`, active);
+				reportProgress("file summaries", summariesProcessed, total, `${summariesProcessed}/${total} (${active} active) ${activeList}${moreCount}`, active);
 
 				try {
 					const docs = await fileSummaryExtractor.extract(
@@ -276,15 +290,20 @@ export class Enricher {
 
 			// Process file summaries in parallel with concurrency limit
 			// Note: Claude CLI may serialize requests; use Anthropic API for true parallelism
-			reportProgress("summaries", 0, total, `0/${total} (0 active) starting...`, 0);
+			reportProgress("file summaries", 0, total, `0/${total} (0 active) starting...`, 0);
 
 			for (let i = 0; i < files.length; i += concurrency) {
 				const batch = files.slice(i, i + concurrency);
 				await Promise.all(batch.map(processFileSummary));
 			}
 
-			reportProgress("summaries", total, total, `${total}/${total} done`, 0);
+			// Show provider in final status so user knows which LLM was used
+			reportProgress("file summaries", total, total, `${total}/${total} via ${providerLabel}`, 0);
 		}
+
+		// Capture file summaries cost and reset for next phase
+		fileSummariesCost = this.llmClient.getAccumulatedUsage().cost;
+		this.llmClient.resetAccumulatedUsage();
 
 		// Step 2: Extract symbol summaries in PARALLEL
 		// Only run symbol_summary for now - idiom/usage_example/anti_pattern/project_doc
@@ -297,7 +316,7 @@ export class Enricher {
 			let symbolsProcessed = 0;
 			const inProgressFiles = new Set<string>();
 
-			reportProgress("symbols", 0, total, `0/${total} (0 active) starting...`, 0);
+			reportProgress("symbol summaries", 0, total, `0/${total} (0 active) starting...`, 0);
 
 			// Process single file - called in parallel
 			const processFileSymbols = async (file: FileToEnrich): Promise<void> => {
@@ -308,7 +327,7 @@ export class Enricher {
 				const active = inProgressFiles.size;
 				const activeList = Array.from(inProgressFiles).slice(0, 2).join(", ");
 				const moreCount = active > 2 ? ` +${active - 2}` : "";
-				reportProgress("symbols", symbolsProcessed, total, `${symbolsProcessed}/${total} (${active} active) ${activeList}${moreCount}`, active);
+				reportProgress("symbol summaries", symbolsProcessed, total, `${symbolsProcessed}/${total} (${active} active) ${activeList}${moreCount}`, active);
 
 				try {
 					const pipelineResult = await this.pipeline.extractFile(
@@ -351,13 +370,16 @@ export class Enricher {
 				await Promise.all(batch.map(processFileSymbols));
 			}
 
-			reportProgress("symbols", total, total, `${total}/${total} done`, 0);
+			reportProgress("symbol summaries", total, total, `${total}/${total} done`, 0);
 		}
+
+		// Capture symbol summaries cost
+		symbolSummariesCost = this.llmClient.getAccumulatedUsage().cost;
 
 		// Step 3: Embed all documents in batch
 		const docCount = allDocuments.length;
 		if (docCount > 0) {
-			reportProgress("embedding", 0, docCount, `${docCount} documents...`, docCount);
+			reportProgress("embed summaries", 0, docCount, `${docCount} documents...`, docCount);
 
 			let documentsWithEmbeddings: DocumentWithEmbedding[];
 			if (options.skipEmbedding) {
@@ -369,10 +391,10 @@ export class Enricher {
 				documentsWithEmbeddings = await this.embedDocuments(allDocuments);
 			}
 
-			reportProgress("embedding", docCount, docCount, `${docCount} embedded`, 0);
+			reportProgress("embed summaries", docCount, docCount, `${docCount} embedded`, 0);
 
 			// Step 4: Store all documents
-			reportProgress("storing", 0, docCount, `${docCount} documents...`, docCount);
+			reportProgress("store vectors", 0, docCount, `${docCount} documents...`, docCount);
 			await this.vectorStore.addDocuments(documentsWithEmbeddings);
 
 			// Track all documents
@@ -387,16 +409,22 @@ export class Enricher {
 			this.tracker.trackDocuments(trackedDocs);
 
 			totalCreated = allDocuments.length;
-			reportProgress("storing", docCount, docCount, `${docCount} stored`, 0);
+			reportProgress("store vectors", docCount, docCount, `${docCount} stored`, 0);
 		}
 
-		reportProgress("complete", totalCreated, totalCreated, `${totalCreated} documents total`, 0);
+		// Calculate total cost
+		const totalCost = fileSummariesCost + symbolSummariesCost;
 
 		return {
 			documentsCreated: totalCreated,
 			documentsUpdated: totalUpdated,
 			durationMs: Date.now() - startTime,
 			errors: allErrors,
+			cost: totalCost > 0 ? totalCost : undefined,
+			costBreakdown: totalCost > 0 ? {
+				fileSummaries: fileSummariesCost > 0 ? fileSummariesCost : undefined,
+				symbolSummaries: symbolSummariesCost > 0 ? symbolSummariesCost : undefined,
+			} : undefined,
 		};
 	}
 

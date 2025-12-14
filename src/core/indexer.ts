@@ -88,7 +88,6 @@ export class Indexer {
 	private fileTracker: FileTracker | null = null;
 	private llmClient: ILLMClient | null = null;
 	private enricher: Enricher | null = null;
-	private llmProvider: string = "";
 
 	constructor(options: IndexerOptions) {
 		this.projectPath = options.projectPath;
@@ -146,7 +145,6 @@ export class Indexer {
 		if (this.enableEnrichment) {
 			try {
 				this.llmClient = await createLLMClient({}, this.projectPath);
-				this.llmProvider = this.llmClient.getProvider();
 				this.enricher = createEnricher(
 					this.llmClient,
 					this.embeddingsClient,
@@ -393,15 +391,6 @@ export class Indexer {
 		// Phase 5: Enrichment (if enabled and files were indexed)
 		let enrichmentResult = undefined;
 		if (this.enableEnrichment && this.enricher && fileChunksForEnrichment.length > 0) {
-			// Show provider info at start of enrichment
-			const providerLabel = this.llmProvider === "claude-code" ? "Claude CLI (free)"
-				: this.llmProvider === "anthropic" ? "Anthropic API"
-				: this.llmProvider === "openrouter" ? "OpenRouter"
-				: this.llmProvider;
-			if (this.onProgress) {
-				this.onProgress(0, fileChunksForEnrichment.length, `[enriching] using ${providerLabel}...`);
-			}
-
 			try {
 				enrichmentResult = await this.enricher.enrichFiles(fileChunksForEnrichment, {
 					concurrency: this.enrichmentConcurrency,
