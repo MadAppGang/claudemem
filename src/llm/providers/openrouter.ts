@@ -6,6 +6,7 @@
  */
 
 import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
+import { combineAbortSignals } from "../abort.js";
 import type { LLMGenerateOptions, LLMMessage, LLMResponse } from "../../types.js";
 
 // ============================================================================
@@ -40,6 +41,14 @@ interface OpenRouterResponse {
 		prompt_tokens: number;
 		completion_tokens: number;
 		total_tokens: number;
+	};
+}
+
+interface OpenRouterGenerationResponse {
+	data: {
+		total_cost: number;
+		tokens_prompt: number;
+		tokens_completion: number;
 	};
 }
 
@@ -87,6 +96,7 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 			// Make API request
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+			const signal = combineAbortSignals(controller.signal, options?.abortSignal);
 
 			try {
 				const response = await fetch(OPENROUTER_API_URL, {
@@ -98,7 +108,7 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 						"X-Title": "claudemem",
 					},
 					body: JSON.stringify(body),
-					signal: controller.signal,
+					signal,
 				});
 
 				clearTimeout(timeoutId);
@@ -125,13 +135,57 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 
 				const content = data.choices[0].message.content;
 
+				// Fetch actual cost from OpenRouter's generation endpoint
+				// Note: Data may not be immediately available, so we retry with delay
+				let cost: number | undefined;
+				let inputTokens = data.usage?.prompt_tokens;
+				let outputTokens = data.usage?.completion_tokens;
+
+				const fetchGenerationStats = async (retries = 3, delayMs = 300): Promise<void> => {
+					for (let attempt = 0; attempt < retries; attempt++) {
+						if (attempt > 0) {
+							await new Promise(resolve => setTimeout(resolve, delayMs));
+						}
+						try {
+							const genResponse = await fetch(
+								`https://openrouter.ai/api/v1/generation?id=${data.id}`,
+								{
+									headers: {
+										Authorization: `Bearer ${this.apiKey}`,
+									},
+								}
+							);
+
+							if (genResponse.ok) {
+								const genData = (await genResponse.json()) as OpenRouterGenerationResponse;
+								if (genData.data?.total_cost !== undefined) {
+									cost = genData.data.total_cost;
+									// Use native token counts from generation endpoint (more accurate)
+									if (genData.data.tokens_prompt !== undefined) {
+										inputTokens = genData.data.tokens_prompt;
+									}
+									if (genData.data.tokens_completion !== undefined) {
+										outputTokens = genData.data.tokens_completion;
+									}
+									return; // Success, exit retry loop
+								}
+							}
+						} catch {
+							// Continue to next retry
+						}
+					}
+				};
+
+				await fetchGenerationStats();
+
 				return {
 					content,
 					model: data.model,
-					usage: data.usage
+					usage: inputTokens !== undefined && outputTokens !== undefined
 						? {
-								inputTokens: data.usage.prompt_tokens,
-								outputTokens: data.usage.completion_tokens,
+								inputTokens,
+								outputTokens,
+								cost,
 							}
 						: undefined,
 				};

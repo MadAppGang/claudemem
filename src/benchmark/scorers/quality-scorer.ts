@@ -31,8 +31,9 @@ export class UsefulnessScorer implements IScorer {
 		_generation: GenerationResult<FileSummary | SymbolSummary>,
 		judgment?: JudgmentResult
 	): Promise<ScoreResult> {
-		// If no judgment available, return neutral score
-		const score = judgment?.usefulness ?? 50;
+		// If no judgment available, return 0 (not fake 50%)
+		const hasJudgment = judgment !== undefined && judgment.judgedBy !== "no judge";
+		const score = hasJudgment ? judgment.usefulness : 0;
 
 		const criterion = this.getCriterion();
 
@@ -44,6 +45,7 @@ export class UsefulnessScorer implements IScorer {
 			details: {
 				judgedBy: judgment?.judgedBy || "no judge",
 				feedback: judgment?.feedback,
+				hasValidJudgment: hasJudgment,
 			},
 		};
 	}
@@ -71,8 +73,9 @@ export class ConcisenessScorer implements IScorer {
 		_generation: GenerationResult<FileSummary | SymbolSummary>,
 		judgment?: JudgmentResult
 	): Promise<ScoreResult> {
-		// If no judgment available, return neutral score
-		const score = judgment?.conciseness ?? 50;
+		// If no judgment available, return 0 (not fake 50%)
+		const hasJudgment = judgment !== undefined && judgment.judgedBy !== "no judge";
+		const score = hasJudgment ? judgment.conciseness : 0;
 
 		const criterion = this.getCriterion();
 
@@ -84,6 +87,7 @@ export class ConcisenessScorer implements IScorer {
 			details: {
 				judgedBy: judgment?.judgedBy || "no judge",
 				clarity: judgment?.clarity,
+				hasValidJudgment: hasJudgment,
 			},
 		};
 	}
@@ -111,15 +115,17 @@ export class QualityScorer implements IScorer {
 		_generation: GenerationResult<FileSummary | SymbolSummary>,
 		judgment?: JudgmentResult
 	): Promise<ScoreResult> {
-		// If no judgment available, return neutral score
-		const usefulness = judgment?.usefulness ?? 50;
-		const conciseness = judgment?.conciseness ?? 50;
-		const clarity = judgment?.clarity ?? 50;
+		// If no judgment available, return 0 (not fake 50%)
+		const hasJudgment = judgment !== undefined && judgment.judgedBy !== "no judge";
+
+		const usefulness = hasJudgment ? judgment.usefulness : 0;
+		const conciseness = hasJudgment ? judgment.conciseness : 0;
+		const clarity = hasJudgment ? judgment.clarity : 0;
 
 		// Weighted combination: usefulness is most important
-		const score = Math.round(
-			usefulness * 0.5 + conciseness * 0.25 + clarity * 0.25
-		);
+		const score = hasJudgment
+			? Math.round(usefulness * 0.5 + conciseness * 0.25 + clarity * 0.25)
+			: 0;
 
 		const criterion = this.getCriterion();
 
@@ -134,6 +140,7 @@ export class QualityScorer implements IScorer {
 				clarity,
 				judgedBy: judgment?.judgedBy || "no judge",
 				feedback: judgment?.feedback,
+				hasValidJudgment: hasJudgment,
 			},
 		};
 	}

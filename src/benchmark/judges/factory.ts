@@ -2,9 +2,10 @@
  * Judge Factory
  *
  * Creates judge instances for evaluating summary quality.
+ * Uses LLMResolver for consistent model spec parsing.
  */
 
-import { createLLMClient } from "../../llm/client.js";
+import { LLMResolver } from "../../llm/resolver.js";
 import type { LLMProvider } from "../../types.js";
 import type { IJudge } from "../types.js";
 import { LLMJudge } from "./llm-judge.js";
@@ -18,21 +19,16 @@ import { BlindJudge } from "./blind-judge.js";
 /**
  * Create an LLM judge for the specified model.
  *
- * @param model - Model identifier (e.g., "claude-sonnet-4", "openai/gpt-4o")
+ * @param model - Model identifier (e.g., "claude-sonnet-4", "openai/gpt-4o", "a/opus", "cc/sonnet")
  * @param provider - Optional provider override (auto-detected from model if not specified)
  */
 export async function createJudge(
 	model: string,
 	provider?: LLMProvider
 ): Promise<IJudge> {
-	const resolvedProvider = provider || detectProvider(model);
-
-	const llmClient = await createLLMClient({
-		provider: resolvedProvider,
-		model: resolvedModel(model, resolvedProvider),
-	});
-
-	return new LLMJudge(llmClient);
+	// Use LLMResolver for consistent spec parsing
+	const client = await LLMResolver.createClient(model, provider ? { provider } : undefined);
+	return new LLMJudge(client);
 }
 
 /**
@@ -66,6 +62,8 @@ export async function createBlindJudge(model: string): Promise<IJudge> {
  * Parse judge specification and create appropriate judge.
  * Supports formats:
  * - "claude-sonnet-4" -> Single LLM judge
+ * - "a/opus" -> Single LLM judge with Anthropic provider
+ * - "cc/sonnet" -> Single LLM judge with Claude Code provider
  * - "claude-sonnet-4,gpt-4o" -> Consensus judge
  * - "blind:claude-sonnet-4" -> Blind judge
  * - "consensus:median:claude-sonnet-4,gpt-4o" -> Consensus with method
@@ -102,57 +100,6 @@ export async function parseAndCreateJudge(spec: string): Promise<IJudge> {
 
 	// Single model
 	return createJudge(spec);
-}
-
-// ============================================================================
-// Utility Functions
-// ============================================================================
-
-/**
- * Detect provider from model identifier.
- */
-function detectProvider(model: string): LLMProvider {
-	const normalized = model.toLowerCase();
-
-	// Check for explicit provider prefix
-	if (normalized.startsWith("openai/") || normalized.startsWith("google/") || normalized.startsWith("meta-llama/")) {
-		return "openrouter";
-	}
-
-	// Check for Anthropic models
-	if (normalized.includes("claude")) {
-		return "anthropic";
-	}
-
-	// Check for OpenAI models via OpenRouter
-	if (normalized.includes("gpt") || normalized.includes("o1")) {
-		return "openrouter";
-	}
-
-	// Check for local models
-	if (normalized.includes("llama") || normalized.includes("mistral") || normalized.includes("codellama")) {
-		return "local";
-	}
-
-	// Default to OpenRouter for unknown models
-	return "openrouter";
-}
-
-/**
- * Resolve model identifier for provider.
- */
-function resolvedModel(model: string, provider: LLMProvider): string {
-	// For anthropic, use direct model name
-	if (provider === "anthropic") {
-		// Strip provider prefix if present
-		if (model.startsWith("anthropic/")) {
-			return model.slice(10);
-		}
-		return model;
-	}
-
-	// For other providers, keep as-is
-	return model;
 }
 
 // ============================================================================
