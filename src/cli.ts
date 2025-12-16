@@ -13,6 +13,9 @@ import { confirm, input, select } from "@inquirer/prompts";
 import {
 	ENV,
 	getApiKey,
+	getEmbeddingModel,
+	getLLMModel,
+	getLLMProvider,
 	hasApiKey,
 	loadGlobalConfig,
 	saveGlobalConfig,
@@ -338,7 +341,21 @@ async function handleIndex(args: string[]): Promise<void> {
 		process.exit(1);
 	}
 
+	// Get model info for display
+	const embeddingModel = getEmbeddingModel(projectPath);
+	const llmProvider = getLLMProvider(projectPath);
+	const llmModel = getLLMModel(projectPath);
+
 	console.log(`\nIndexing ${projectPath}...`);
+	console.log(`  Embedding model: ${embeddingModel}`);
+	if (!noLlm) {
+		const llmDisplay = llmProvider === "claude-code"
+			? "Claude Code (Subscription)"
+			: llmModel
+				? `${llmProvider}/${llmModel}`
+				: llmProvider;
+		console.log(`  LLM for enrichment: ${llmDisplay}`);
+	}
 	if (force) {
 		console.log("(Force mode: re-indexing all files)");
 	}
