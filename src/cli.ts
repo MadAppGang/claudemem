@@ -449,6 +449,10 @@ async function handleSearch(args: string[]): Promise<void> {
 	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
 	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
 
+	// Embedding model override (will error if doesn't match stored model)
+	const modelIdx = args.findIndex((a) => a === "-m" || a === "--model");
+	const model = modelIdx >= 0 ? args[modelIdx + 1] : undefined;
+
 	// Auto-index flags
 	const noReindex = args.includes("--no-reindex");
 	const autoYes = args.includes("-y") || args.includes("--yes");
@@ -463,6 +467,7 @@ async function handleSearch(args: string[]): Promise<void> {
 	if (limitIdx >= 0) { flagIndices.add(limitIdx); flagIndices.add(limitIdx + 1); }
 	if (langIdx >= 0) { flagIndices.add(langIdx); flagIndices.add(langIdx + 1); }
 	if (pathIdx >= 0) { flagIndices.add(pathIdx); flagIndices.add(pathIdx + 1); }
+	if (modelIdx >= 0) { flagIndices.add(modelIdx); flagIndices.add(modelIdx + 1); }
 	if (useCaseIdx >= 0) { flagIndices.add(useCaseIdx); flagIndices.add(useCaseIdx + 1); }
 	const queryParts = args.filter((_, i) => !flagIndices.has(i) && !args[i].startsWith("-"));
 	const query = queryParts.join(" ");
@@ -480,8 +485,8 @@ async function handleSearch(args: string[]): Promise<void> {
 		process.exit(1);
 	}
 
-	const { createIndexer } = await import("./core/indexer.js");
-	const indexer = createIndexer({ projectPath });
+	const { createIndexer, EmbeddingModelMismatchError } = await import("./core/indexer.js");
+	const indexer = createIndexer({ projectPath, model });
 
 	try {
 		// Check if index exists
@@ -551,6 +556,12 @@ async function handleSearch(args: string[]): Promise<void> {
 
 			console.log("");
 		}
+	} catch (error) {
+		if (error instanceof EmbeddingModelMismatchError) {
+			console.error(`\n❌ ${error.message}\n`);
+			process.exit(1);
+		}
+		throw error;
 	} finally {
 		await indexer.close();
 	}

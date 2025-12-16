@@ -9,6 +9,7 @@
  */
 
 import {
+	DEFAULT_EMBEDDING_MODEL,
 	OPENROUTER_EMBEDDINGS_URL,
 	OPENROUTER_HEADERS,
 	VOYAGE_EMBEDDINGS_URL,
@@ -741,17 +742,19 @@ export function createEmbeddingsClient(
 ): IEmbeddingsClient {
 	// Determine provider from options or config
 	const config = loadGlobalConfig();
-	let provider = options?.provider || config.embeddingProvider || "openrouter";
-	let model = options?.model;
+	let provider = options?.provider || config.embeddingProvider;
+	// Use config default model (voyage-3.5-lite) if not specified
+	let model = options?.model || config.defaultModel || DEFAULT_EMBEDDING_MODEL;
 
-	// Auto-detect provider from model prefix
-	if (model) {
-		if (isVoyageModel(model)) {
-			provider = "voyage";
-		} else if (isOllamaModel(model)) {
-			provider = "ollama";
-			model = extractModelName(model); // Strip "ollama/" prefix
-		}
+	// Auto-detect provider from model prefix (overrides config provider)
+	if (isVoyageModel(model)) {
+		provider = "voyage";
+	} else if (isOllamaModel(model)) {
+		provider = "ollama";
+		model = extractModelName(model); // Strip "ollama/" prefix
+	} else if (!provider) {
+		// Fall back to openrouter only if no provider detected
+		provider = "openrouter";
 	}
 
 	switch (provider) {

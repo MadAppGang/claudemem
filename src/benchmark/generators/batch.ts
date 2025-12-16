@@ -327,30 +327,63 @@ Generate a JSON summary following the schema in your instructions.`;
 	// ============================================================================
 
 	private parseFileSummaryResponse(parsed: Record<string, unknown>, request: QueuedRequest): FileSummary {
+		const summary = String(parsed.summary || "");
+		const responsibilities = Array.isArray(parsed.responsibilities) ? parsed.responsibilities : [];
+		const exports = Array.isArray(parsed.exports) ? parsed.exports : [];
+		const dependencies = Array.isArray(parsed.dependencies) ? parsed.dependencies : [];
+		const patterns = Array.isArray(parsed.patterns) ? parsed.patterns : [];
+
+		// Create content for embedding
+		const content = [
+			summary,
+			...responsibilities,
+			...exports,
+		].join("\n");
+
 		return {
-			type: "file-summary",
+			id: `fs-${request.filePath}`,
+			content,
+			documentType: "file_summary",
 			filePath: request.filePath!,
-			summary: String(parsed.summary || ""),
-			responsibilities: Array.isArray(parsed.responsibilities) ? parsed.responsibilities : [],
-			exports: Array.isArray(parsed.exports) ? parsed.exports : [],
-			dependencies: Array.isArray(parsed.dependencies) ? parsed.dependencies : [],
-			patterns: Array.isArray(parsed.patterns) ? parsed.patterns : [],
-			complexity: (parsed.complexity as "low" | "medium" | "high") || "medium",
+			language: "", // Populated by caller
+			summary,
+			responsibilities,
+			exports,
+			dependencies,
+			patterns,
+			createdAt: new Date().toISOString(),
 		};
 	}
 
 	private parseSymbolSummaryResponse(parsed: Record<string, unknown>, request: QueuedRequest): SymbolSummary {
+		// Map ChunkType to SymbolSummary.symbolType (filter out "block")
+		const chunkType = request.chunk!.chunkType;
+		const symbolType: "function" | "class" | "method" | "module" =
+			chunkType === "block" ? "function" : chunkType;
+
+		const summary = String(parsed.summary || "");
+		const symbolName = request.chunk!.name || "unknown";
+
+		// Create content for embedding
+		const content = [
+			`${symbolType} ${symbolName}`,
+			summary,
+			parsed.usageContext ? String(parsed.usageContext) : "",
+		].filter(Boolean).join("\n");
+
 		return {
-			type: "symbol-summary",
-			symbolName: request.chunk!.name || "unknown",
-			symbolType: request.chunk!.chunkType,
+			id: `ss-${request.chunk!.filePath}-${symbolName}`,
+			content,
+			documentType: "symbol_summary",
+			symbolName,
+			symbolType,
 			filePath: request.chunk!.filePath,
-			summary: String(parsed.summary || ""),
+			summary,
 			parameters: Array.isArray(parsed.parameters) ? parsed.parameters : [],
 			returnDescription: parsed.returnDescription ? String(parsed.returnDescription) : undefined,
 			sideEffects: Array.isArray(parsed.sideEffects) ? parsed.sideEffects : [],
 			usageContext: parsed.usageContext ? String(parsed.usageContext) : undefined,
-			complexity: (parsed.complexity as "low" | "medium" | "high") || "medium",
+			createdAt: new Date().toISOString(),
 		};
 	}
 }

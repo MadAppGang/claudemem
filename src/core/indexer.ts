@@ -46,6 +46,31 @@ import { createReferenceGraphManager } from "./reference-graph.js";
 import { createRepoMapGenerator } from "./repo-map.js";
 
 // ============================================================================
+// Errors
+// ============================================================================
+
+/**
+ * Error thrown when search uses a different embedding model than indexing
+ */
+export class EmbeddingModelMismatchError extends Error {
+	constructor(
+		public storedModel: string,
+		public requestedModel: string,
+	) {
+		super(
+			`Embedding model mismatch!\n` +
+			`  Index was created with: ${storedModel}\n` +
+			`  You're trying to use: ${requestedModel}\n\n` +
+			`Solutions:\n` +
+			`  1. Use the same model: claudemem search --model ${storedModel} "query"\n` +
+			`  2. Reindex with new model: claudemem index --force --model ${requestedModel}\n` +
+			`  3. Let claudemem auto-detect: claudemem search "query" (uses stored model)`
+		);
+		this.name = "EmbeddingModelMismatchError";
+	}
+}
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -75,6 +100,7 @@ interface IndexerOptions {
 export class Indexer {
 	private projectPath: string;
 	private model: string;
+	private modelExplicitlySet: boolean;
 	private excludePatterns: string[];
 	private includePatterns: string[];
 	private includeExtensions: Set<string> | null;
@@ -91,6 +117,7 @@ export class Indexer {
 
 	constructor(options: IndexerOptions) {
 		this.projectPath = options.projectPath;
+		this.modelExplicitlySet = !!options.model;
 		this.model = options.model || getEmbeddingModel(options.projectPath);
 		// Get exclude patterns from config (includes defaults, gitignore, etc.)
 		this.excludePatterns = [
@@ -120,8 +147,9 @@ export class Indexer {
 
 	/**
 	 * Initialize all components
+	 * @param forSearch - If true, use stored embedding model (for retrieval consistency)
 	 */
-	private async initialize(): Promise<void> {
+	private async initialize(forSearch = false): Promise<void> {
 		// Ensure project directory exists
 		ensureProjectDir(this.projectPath);
 
@@ -129,17 +157,31 @@ export class Indexer {
 		const parserManager = getParserManager();
 		await parserManager.initialize();
 
-		// Create embeddings client
-		this.embeddingsClient = createEmbeddingsClient({ model: this.model });
+		// Create file tracker first (to read stored metadata)
+		const indexDbPath = getIndexDbPath(this.projectPath);
+		this.fileTracker = createFileTracker(indexDbPath, this.projectPath);
+
+		// For search operations, use the stored embedding model to ensure consistency
+		let modelToUse = this.model;
+		if (forSearch) {
+			const storedModel = this.fileTracker.getMetadata("embeddingModel");
+			if (storedModel) {
+				// If user explicitly requested a different model, throw clear error
+				if (this.modelExplicitlySet && this.model !== storedModel) {
+					throw new EmbeddingModelMismatchError(storedModel, this.model);
+				}
+				// Otherwise use the stored model for consistency
+				modelToUse = storedModel;
+			}
+		}
+
+		// Create embeddings client with appropriate model
+		this.embeddingsClient = createEmbeddingsClient({ model: modelToUse });
 
 		// Create vector store
 		const vectorStorePath = getVectorStorePath(this.projectPath);
 		this.vectorStore = createVectorStore(vectorStorePath);
 		await this.vectorStore.initialize();
-
-		// Create file tracker
-		const indexDbPath = getIndexDbPath(this.projectPath);
-		this.fileTracker = createFileTracker(indexDbPath, this.projectPath);
 
 		// Initialize enrichment if enabled
 		if (this.enableEnrichment) {
@@ -451,12 +493,14 @@ export class Indexer {
 
 	/**
 	 * Search the indexed codebase
+	 * Uses the stored embedding model from indexing for consistency
 	 */
 	async search(
 		query: string,
 		options: SearchOptions = {},
 	): Promise<SearchResult[]> {
-		await this.initialize();
+		// Initialize with forSearch=true to use stored embedding model
+		await this.initialize(true);
 
 		// Generate query embedding
 		const queryVector = await this.embeddingsClient!.embedOne(query);
@@ -480,7 +524,8 @@ export class Indexer {
 			};
 		}
 
-		await this.initialize();
+		// Initialize with forSearch=true (not indexing, just reading status)
+		await this.initialize(true);
 
 		const trackerStats = this.fileTracker!.getStats();
 		const storeStats = await this.vectorStore!.getStats();
@@ -506,6 +551,21 @@ export class Indexer {
 
 		await this.vectorStore!.clear();
 		this.fileTracker!.clear();
+	}
+
+	/**
+	 * Get the stored embedding model for a project without full initialization.
+	 * Useful for quick checks before search operations.
+	 */
+	static getStoredEmbeddingModel(projectPath: string): string | null {
+		const indexDbPath = getIndexDbPath(projectPath);
+		if (!existsSync(indexDbPath)) {
+			return null;
+		}
+		const tracker = createFileTracker(indexDbPath, projectPath);
+		const model = tracker.getMetadata("embeddingModel");
+		tracker.close();
+		return model;
 	}
 
 	/**
