@@ -94,12 +94,10 @@ export class FileSummaryExtractor extends BaseExtractor {
 
 			return [doc];
 		} catch (error) {
-			// Log but don't fail - return empty array
-			console.warn(
-				`Failed to extract file summary for ${context.filePath}:`,
-				error instanceof Error ? error.message : error,
+			// Re-throw with context so caller sees the actual error
+			throw new Error(
+				`LLM error: ${error instanceof Error ? error.message : String(error)}`
 			);
-			return [];
 		}
 	}
 
@@ -192,27 +190,10 @@ export class FileSummaryExtractor extends BaseExtractor {
 
 			return documents;
 		} catch (error) {
-			console.warn(
-				`Batched file summary extraction failed, falling back to sequential:`,
-				error instanceof Error ? error.message : error,
+			// Re-throw with context so caller sees the actual error
+			throw new Error(
+				`LLM error: ${error instanceof Error ? error.message : String(error)}`
 			);
-
-			// Fallback to sequential extraction
-			const results: FileSummary[] = [];
-			for (const file of files) {
-				const docs = await this.extract(
-					{
-						filePath: file.filePath,
-						fileContent: file.fileContent,
-						language: file.language,
-						codeChunks: file.codeChunks,
-						projectPath: "",
-					},
-					llmClient,
-				);
-				results.push(...(docs as FileSummary[]));
-			}
-			return results;
 		}
 	}
 

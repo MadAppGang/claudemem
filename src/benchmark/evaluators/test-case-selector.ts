@@ -142,8 +142,7 @@ export class TestCaseSelector {
 					}
 				}
 			} catch (error) {
-				// Skip files that can't be processed
-				console.warn(`Skipping ${fileState.path}: ${error instanceof Error ? error.message : error}`);
+				// Skip files that can't be processed silently
 			}
 		}
 

@@ -33,8 +33,9 @@ export type { ILLMClient, LLMGenerateOptions, LLMMessage, LLMProvider, LLMRespon
 
 /** Default models per provider */
 export const DEFAULT_LLM_MODELS: Record<LLMProvider, string> = {
-	"claude-code": "claude-sonnet-4-20250514",
-	anthropic: "claude-sonnet-4-20250514",
+	"claude-code": "claude-sonnet-4-5",
+	anthropic: "claude-sonnet-4-5",
+	"anthropic-batch": "claude-sonnet-4-5",
 	openrouter: "anthropic/claude-sonnet-4",
 	local: "llama3.2",
 };
@@ -225,6 +226,14 @@ export async function createLLMClient(
 				model,
 				apiKey: options?.apiKey || getAnthropicApiKey(),
 				timeout: options?.timeout,
+			});
+		}
+
+		case "anthropic-batch": {
+			const { AnthropicBatchLLMClient } = await import("./providers/anthropic-batch.js");
+			return new AnthropicBatchLLMClient({
+				model,
+				apiKey: options?.apiKey || getAnthropicApiKey(),
 			});
 		}
 

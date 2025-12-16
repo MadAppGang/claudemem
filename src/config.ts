@@ -204,6 +204,7 @@ export const ENV = {
 	ANTHROPIC_API_KEY: "ANTHROPIC_API_KEY",
 	CLAUDEMEM_LLM_PROVIDER: "CLAUDEMEM_LLM_PROVIDER",
 	CLAUDEMEM_LLM_MODEL: "CLAUDEMEM_LLM_MODEL",
+	CLAUDEMEM_LLM_ENDPOINT: "CLAUDEMEM_LLM_ENDPOINT",
 } as const;
 
 // ============================================================================
@@ -634,6 +635,12 @@ export function getLLMModel(projectPath?: string): string | undefined {
  * Get LLM endpoint from config (for local providers)
  */
 export function getLLMEndpoint(projectPath?: string): string | undefined {
+	// First check environment variable
+	const envEndpoint = process.env[ENV.CLAUDEMEM_LLM_ENDPOINT];
+	if (envEndpoint) {
+		return envEndpoint;
+	}
+
 	const globalConfig = loadGlobalConfig();
 	return globalConfig.llmEndpoint;
 }

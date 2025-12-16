@@ -74,11 +74,10 @@ export class SymbolSummaryExtractor extends BaseExtractor {
 				const doc = await this.extractSymbolSingle(selectedSymbols[0], context, llmClient);
 				return doc ? [doc] : [];
 			} catch (error) {
-				console.warn(
-					`Failed to extract symbol summary for ${selectedSymbols[0].name}:`,
-					error instanceof Error ? error.message : error,
+				// Re-throw with context so caller sees the actual error
+				throw new Error(
+					`LLM error: ${error instanceof Error ? error.message : String(error)}`
 				);
-				return [];
 			}
 		}
 
@@ -86,27 +85,10 @@ export class SymbolSummaryExtractor extends BaseExtractor {
 		try {
 			return await this.extractSymbolsBatch(selectedSymbols, context, llmClient);
 		} catch (error) {
-			console.warn(
-				`Batched symbol extraction failed, falling back to sequential:`,
-				error instanceof Error ? error.message : error,
+			// Re-throw with context so caller sees the actual error
+			throw new Error(
+				`LLM error: ${error instanceof Error ? error.message : String(error)}`
 			);
-
-			// Fallback to sequential extraction
-			const documents: BaseDocument[] = [];
-			for (const chunk of selectedSymbols) {
-				try {
-					const doc = await this.extractSymbolSingle(chunk, context, llmClient);
-					if (doc) {
-						documents.push(doc);
-					}
-				} catch (err) {
-					console.warn(
-						`Failed to extract symbol summary for ${chunk.name}:`,
-						err instanceof Error ? err.message : err,
-					);
-				}
-			}
-			return documents;
 		}
 	}
 

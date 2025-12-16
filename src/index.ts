@@ -17,8 +17,17 @@ const args = process.argv.slice(2);
 
 // Check for MCP server mode
 const isMcpMode = args.includes("--mcp");
+const isAutocompleteServerMode = args.includes("--autocomplete-server");
 
-if (isMcpMode) {
+if (isAutocompleteServerMode) {
+	// Autocomplete server mode (JSONL-RPC over stdio)
+	const projectIdx = args.findIndex((a) => a === "--project");
+	const projectPath = projectIdx !== -1 ? args[projectIdx + 1] : undefined;
+
+	import("./autocomplete/server.js").then((module) => {
+		module.startAutocompleteServer({ projectPath });
+	});
+} else if (isMcpMode) {
 	// MCP server mode - lazy load to keep CLI startup fast
 	import("./mcp-server.js").then((module) => {
 		module.startMcpServer();

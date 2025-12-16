@@ -6,6 +6,7 @@
  */
 
 import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
+import { combineAbortSignals } from "../abort.js";
 import type { LLMGenerateOptions, LLMMessage, LLMResponse } from "../../types.js";
 
 // ============================================================================
@@ -94,6 +95,7 @@ export class AnthropicLLMClient extends BaseLLMClient {
 			// Make API request
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+			const signal = combineAbortSignals(controller.signal, options?.abortSignal);
 
 			try {
 				const response = await fetch(ANTHROPIC_API_URL, {
@@ -104,7 +106,7 @@ export class AnthropicLLMClient extends BaseLLMClient {
 						"anthropic-version": ANTHROPIC_VERSION,
 					},
 					body: JSON.stringify(body),
-					signal: controller.signal,
+					signal,
 				});
 
 				clearTimeout(timeoutId);

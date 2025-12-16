@@ -124,6 +124,13 @@ Then Claude Code can use these tools:
 - `get_status` — check what's indexed
 - `clear_index` — start fresh
 
+## VS Code autocomplete (experimental)
+
+This repo also contains an experimental VS Code inline completion extension that talks to a persistent `claudemem` autocomplete server.
+
+- Autocomplete server: `claudemem --autocomplete-server --project .`
+- VS Code extension source: `extensions/vscode-claudemem-autocomplete/`
+
 ## What it actually does
 
 1. **Parses code** with tree-sitter — extracts functions, classes, methods as chunks (not dumb line splits)

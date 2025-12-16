@@ -9,15 +9,19 @@ import * as lancedb from "@lancedb/lancedb";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type {
+	ASTMetadata,
 	BaseDocument,
 	ChunkWithEmbedding,
 	CodeChunk,
+	CodeUnit,
+	CodeUnitWithEmbedding,
 	DocumentType,
 	DocumentWithEmbedding,
 	EnrichedSearchOptions,
 	EnrichedSearchResult,
 	SearchResult,
 	SearchUseCase,
+	UnitType,
 } from "../types.js";
 
 // ============================================================================
@@ -75,9 +79,14 @@ interface StoredChunk {
 	// Enriched document fields
 	documentType: string; // "code_chunk" for code, others for enriched docs
 	sourceIds: string; // JSON array of source chunk IDs
-	metadata: string; // JSON for type-specific fields
+	metadata: string; // JSON for type-specific fields (also used for ASTMetadata)
 	createdAt: string;
 	enrichedAt: string;
+	// Hierarchical CodeUnit fields (new in v0.4)
+	parentId: string; // ID of parent unit (null for file-level)
+	unitType: string; // "file" | "class" | "interface" | "function" | "method" | "type" | "enum"
+	depth: number; // Depth in hierarchy (0=file, 1=class/function, 2=method)
+	summary: string; // LLM-generated summary of this unit
 }
 
 interface SearchOptions {
@@ -186,6 +195,11 @@ export class VectorStore {
 			metadata: "{}",
 			createdAt: now,
 			enrichedAt: "",
+			// Hierarchical fields (defaults for legacy code chunks)
+			parentId: "",
+			unitType: "",
+			depth: -1,
+			summary: "",
 		}));
 
 		// Try to open existing table
@@ -439,6 +453,11 @@ export class VectorStore {
 			metadata: JSON.stringify(doc.metadata || {}),
 			createdAt: doc.createdAt || now,
 			enrichedAt: doc.enrichedAt || now,
+			// Hierarchical fields (defaults for enriched documents)
+			parentId: "",
+			unitType: "",
+			depth: -1,
+			summary: "",
 		}));
 
 		// Try to open existing table
@@ -669,6 +688,289 @@ export class VectorStore {
 		// LanceDB connections are auto-managed
 		this.db = null;
 		this.table = null;
+	}
+
+	// ========================================================================
+	// Code Unit Methods (Hierarchical Model)
+	// ========================================================================
+
+	/**
+	 * Add code units with embeddings to the store
+	 */
+	async addCodeUnits(units: CodeUnitWithEmbedding[]): Promise<void> {
+		if (units.length === 0) {
+			return;
+		}
+
+		const now = new Date().toISOString();
+		const data: StoredChunk[] = units.map((unit) => ({
+			id: unit.id,
+			content: unit.content,
+			filePath: unit.filePath,
+			startLine: unit.startLine,
+			endLine: unit.endLine,
+			language: unit.language,
+			chunkType: unit.unitType, // Map unitType to chunkType for compatibility
+			name: unit.name || "",
+			parentName: "", // Not used in new model
+			signature: unit.signature || "",
+			fileHash: unit.fileHash,
+			vector: unit.vector,
+			// Document fields for unified storage
+			documentType: "code_unit",
+			sourceIds: "[]",
+			metadata: JSON.stringify(unit.metadata || {}),
+			createdAt: now,
+			enrichedAt: "",
+			// Hierarchical fields
+			parentId: unit.parentId || "",
+			unitType: unit.unitType,
+			depth: unit.depth,
+			summary: "", // Will be populated by summarization phase
+		}));
+
+		let table = await this.ensureTableOpen();
+
+		// Check for dimension mismatch
+		const incomingDimension = data[0].vector.length;
+		if (table && this.tableDimension && this.tableDimension !== incomingDimension) {
+			console.warn(
+				`⚠️  Vector dimension mismatch: table has ${this.tableDimension}d, new embeddings are ${incomingDimension}d`,
+			);
+			console.warn("   Clearing existing vectors to match new embedding model...\n");
+			await this.clear();
+			table = null;
+			this.tableDimension = null;
+			this._dimensionMismatchCleared = true;
+		}
+
+		if (table) {
+			await table.add(data);
+		} else {
+			if (!this.db) {
+				await this.initialize();
+			}
+			this.table = await this.db!.createTable(CHUNKS_TABLE, data, {
+				mode: "create",
+			});
+			this.tableDimension = incomingDimension;
+		}
+
+		if (data.length > 0 && !this.dimension) {
+			this.dimension = data[0].vector.length;
+		}
+	}
+
+	/**
+	 * Update summary for a code unit (used during bottom-up summarization)
+	 */
+	async updateUnitSummary(unitId: string, summary: string): Promise<void> {
+		const table = await this.ensureTableOpen();
+		if (!table) return;
+
+		try {
+			// LanceDB update via delete + insert pattern
+			// First, get the existing record
+			const results = await table.query().where(`id = '${escapeFilterValue(unitId)}'`).toArray();
+			if (results.length === 0) return;
+
+			const existing = results[0] as StoredChunk;
+
+			// Delete old record
+			await table.delete(`id = '${escapeFilterValue(unitId)}'`);
+
+			// Insert updated record
+			await table.add([{ ...existing, summary }]);
+		} catch (error) {
+			console.warn(`Failed to update summary for unit ${unitId}:`, error);
+		}
+	}
+
+	/**
+	 * Get code units for a file, optionally filtered by unit type
+	 */
+	async getCodeUnitsByFile(
+		filePath: string,
+		unitTypes?: UnitType[],
+	): Promise<CodeUnit[]> {
+		const table = await this.ensureTableOpen();
+		if (!table) return [];
+
+		try {
+			let filter = `filePath = '${escapeFilterValue(filePath)}' AND documentType = 'code_unit'`;
+			if (unitTypes && unitTypes.length > 0) {
+				const types = unitTypes.map((t) => `'${escapeFilterValue(t)}'`).join(", ");
+				filter += ` AND unitType IN (${types})`;
+			}
+
+			const results = await table.query().where(filter).toArray();
+
+			return results.map((row) => this.rowToCodeUnit(row));
+		} catch {
+			return [];
+		}
+	}
+
+	/**
+	 * Get code units by depth level (for bottom-up processing)
+	 */
+	async getCodeUnitsByDepth(depth: number, filePath?: string): Promise<CodeUnit[]> {
+		const table = await this.ensureTableOpen();
+		if (!table) return [];
+
+		try {
+			let filter = `depth = ${depth} AND documentType = 'code_unit'`;
+			if (filePath) {
+				filter += ` AND filePath = '${escapeFilterValue(filePath)}'`;
+			}
+
+			const results = await table.query().where(filter).toArray();
+
+			return results.map((row) => this.rowToCodeUnit(row));
+		} catch {
+			return [];
+		}
+	}
+
+	/**
+	 * Get children of a code unit
+	 */
+	async getChildUnits(parentId: string): Promise<CodeUnit[]> {
+		const table = await this.ensureTableOpen();
+		if (!table) return [];
+
+		try {
+			const filter = `parentId = '${escapeFilterValue(parentId)}' AND documentType = 'code_unit'`;
+			const results = await table.query().where(filter).toArray();
+
+			return results.map((row) => this.rowToCodeUnit(row));
+		} catch {
+			return [];
+		}
+	}
+
+	/**
+	 * Get a code unit by ID
+	 */
+	async getCodeUnit(unitId: string): Promise<CodeUnit | null> {
+		const table = await this.ensureTableOpen();
+		if (!table) return null;
+
+		try {
+			const filter = `id = '${escapeFilterValue(unitId)}'`;
+			const results = await table.query().where(filter).toArray();
+
+			if (results.length === 0) return null;
+			return this.rowToCodeUnit(results[0]);
+		} catch {
+			return null;
+		}
+	}
+
+	/**
+	 * Search code units with hierarchy awareness
+	 */
+	async searchCodeUnits(
+		queryText: string,
+		queryVector: number[],
+		options: {
+			limit?: number;
+			unitTypes?: UnitType[];
+			minDepth?: number;
+			maxDepth?: number;
+			filePath?: string;
+			includeSummaries?: boolean;
+		} = {},
+	): Promise<Array<CodeUnit & { score: number }>> {
+		const { limit = 10, unitTypes, minDepth, maxDepth, filePath, includeSummaries = true } = options;
+
+		const table = await this.ensureTableOpen();
+		if (!table) return [];
+
+		// Build filter
+		const filters: string[] = ["documentType = 'code_unit'"];
+
+		if (unitTypes && unitTypes.length > 0) {
+			const types = unitTypes.map((t) => `'${escapeFilterValue(t)}'`).join(", ");
+			filters.push(`unitType IN (${types})`);
+		}
+		if (minDepth !== undefined) {
+			filters.push(`depth >= ${minDepth}`);
+		}
+		if (maxDepth !== undefined) {
+			filters.push(`depth <= ${maxDepth}`);
+		}
+		if (filePath) {
+			filters.push(`filePath LIKE '%${escapeFilterValue(filePath)}%'`);
+		}
+
+		const filterStr = filters.join(" AND ");
+
+		// Vector search
+		let vectorQuery = table.vectorSearch(queryVector).limit(limit * 2);
+		vectorQuery = vectorQuery.where(filterStr);
+		const vectorResults = await vectorQuery.toArray();
+
+		// BM25 search (search both content and summary if summaries exist)
+		let bm25Results: any[] = [];
+		try {
+			let ftsQuery = table.search(queryText, "content").limit(limit * 2);
+			ftsQuery = ftsQuery.where(filterStr);
+			bm25Results = await ftsQuery.toArray();
+		} catch {
+			bm25Results = [];
+		}
+
+		// RRF fusion
+		const results = reciprocalRankFusion(vectorResults, bm25Results, VECTOR_WEIGHT, BM25_WEIGHT);
+
+		return results.slice(0, limit).map((r) => ({
+			...this.rowToCodeUnit(r),
+			score: r.fusedScore,
+		}));
+	}
+
+	/**
+	 * Get maximum depth in the unit hierarchy for a file
+	 */
+	async getMaxDepth(filePath?: string): Promise<number> {
+		const table = await this.ensureTableOpen();
+		if (!table) return 0;
+
+		try {
+			let filter = "documentType = 'code_unit'";
+			if (filePath) {
+				filter += ` AND filePath = '${escapeFilterValue(filePath)}'`;
+			}
+
+			const results = await table.query().where(filter).toArray();
+			if (results.length === 0) return 0;
+
+			return Math.max(...results.map((r) => (r.depth as number) || 0));
+		} catch {
+			return 0;
+		}
+	}
+
+	/**
+	 * Convert database row to CodeUnit
+	 */
+	private rowToCodeUnit(row: any): CodeUnit {
+		return {
+			id: row.id,
+			parentId: row.parentId || null,
+			unitType: (row.unitType || "function") as UnitType,
+			filePath: row.filePath,
+			startLine: row.startLine,
+			endLine: row.endLine,
+			language: row.language,
+			content: row.content,
+			name: row.name || undefined,
+			signature: row.signature || undefined,
+			fileHash: row.fileHash,
+			depth: row.depth ?? 0,
+			metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+		};
 	}
 }
 

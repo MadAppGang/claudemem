@@ -33,6 +33,165 @@ export interface CodeChunk {
 	fileHash: string;
 }
 
+// ============================================================================
+// Code Unit Types (Hierarchical Model)
+// ============================================================================
+
+/** Code unit types in hierarchical order */
+export type UnitType = "file" | "class" | "interface" | "function" | "method" | "type" | "enum";
+
+/** Visibility modifiers */
+export type Visibility = "public" | "private" | "protected" | "internal" | "exported";
+
+/** AST metadata extracted from code units */
+export interface ASTMetadata {
+	/** Visibility modifier (public/private/protected/exported) */
+	visibility?: Visibility;
+	/** Whether the function/method is async */
+	isAsync?: boolean;
+	/** Whether the symbol is exported */
+	isExported?: boolean;
+	/** Decorators/attributes on the symbol */
+	decorators?: string[];
+	/** Parameters with names and types */
+	parameters?: Array<{ name: string; type?: string }>;
+	/** Return type if declared */
+	returnType?: string;
+	/** Import statements used within this unit */
+	importsUsed?: string[];
+	/** Functions/methods called within this unit */
+	functionsCalled?: string[];
+	/** Types referenced within this unit */
+	typesReferenced?: string[];
+	/** Generic type parameters if any */
+	typeParameters?: string[];
+	/** Whether this is a generator function */
+	isGenerator?: boolean;
+	/** Whether this is a static member */
+	isStatic?: boolean;
+	/** For Go: the receiver type */
+	receiver?: string;
+	/** Docstring/JSDoc comment if present */
+	docstring?: string;
+}
+
+/**
+ * Hierarchical code unit with parent-child relationships.
+ * Replaces the flat CodeChunk model with proper hierarchy tracking.
+ */
+export interface CodeUnit {
+	/** SHA256 hash of content + path + position */
+	id: string;
+	/** Parent unit ID (null for file-level units) */
+	parentId: string | null;
+	/** Type of code unit */
+	unitType: UnitType;
+	/** Relative path from project root */
+	filePath: string;
+	/** Starting line number (1-indexed) */
+	startLine: number;
+	/** Ending line number (1-indexed) */
+	endLine: number;
+	/** Programming language */
+	language: string;
+	/** Raw code content */
+	content: string;
+	/** Name of the unit (function/class/file name) */
+	name?: string;
+	/** Full signature including parameters and return type */
+	signature?: string;
+	/** Hash of the parent file for change tracking */
+	fileHash: string;
+	/** Hierarchy depth (0=file, 1=class/function, 2=method) */
+	depth: number;
+	/** Rich AST metadata */
+	metadata?: ASTMetadata;
+}
+
+/** Code unit with embedding vector attached */
+export interface CodeUnitWithEmbedding extends CodeUnit {
+	/** Vector embedding */
+	vector: number[];
+}
+
+// ============================================================================
+// Query Types (for Query Router)
+// ============================================================================
+
+/** Query intent classification types */
+export type QueryIntent =
+	| "symbol_lookup"    // Looking for a specific named entity
+	| "structural"       // Asking about code relationships or structure
+	| "semantic"         // Natural language question about functionality
+	| "similarity"       // Looking for code similar to an example
+	| "location";        // Looking for code in a specific location
+
+/** Result of query classification */
+export interface QueryClassification {
+	/** Detected query intent */
+	intent: QueryIntent;
+	/** Confidence score (0-1) */
+	confidence: number;
+	/** Extracted entity names from query */
+	extractedEntities: string[];
+	/** Brief reasoning for the classification */
+	reasoning?: string;
+	/** Filters to apply based on query type */
+	filters?: {
+		unitTypes?: UnitType[];
+		visibility?: Visibility[];
+		isExported?: boolean;
+		pathPattern?: string;
+	};
+}
+
+// ============================================================================
+// Reranking Types
+// ============================================================================
+
+/** Result of LLM reranking */
+export interface RerankResult {
+	/** Index of the result in the original array */
+	index: number;
+	/** Relevance score from LLM (0-10) */
+	score: number;
+	/** Brief explanation of the relevance */
+	reason: string;
+}
+
+/** Search result after reranking */
+export interface RerankedSearchResult extends EnrichedSearchResult {
+	/** Original score before reranking */
+	originalScore: number;
+	/** Score from LLM reranking (0-1 normalized) */
+	rerankScore: number;
+	/** Combined final score */
+	finalScore: number;
+	/** Reasoning from LLM reranker */
+	rerankReason?: string;
+}
+
+// ============================================================================
+// Context Composition Types
+// ============================================================================
+
+/** Formatted context for LLM consumption */
+export interface FormattedContext {
+	/** Primary results (placed at START for visibility) */
+	primary: string;
+	/** Supporting context (middle section) */
+	supporting?: string;
+	/** File summaries (placed at END for overview) */
+	summaries: string;
+	/** Metadata about the context */
+	metadata: {
+		resultCount: number;
+		fileCount: number;
+		queryIntent: QueryIntent;
+		tokenEstimate?: number;
+	};
+}
+
 export interface ChunkWithEmbedding extends CodeChunk {
 	/** Vector embedding */
 	vector: number[];
@@ -619,7 +778,7 @@ export type Document =
 // ============================================================================
 
 /** Supported LLM providers for enrichment */
-export type LLMProvider = "claude-code" | "anthropic" | "openrouter" | "local";
+export type LLMProvider = "claude-code" | "anthropic" | "anthropic-batch" | "openrouter" | "local";
 
 /** Message in LLM conversation */
 export interface LLMMessage {
@@ -652,6 +811,8 @@ export interface LLMGenerateOptions {
 	maxTokens?: number;
 	/** System prompt */
 	systemPrompt?: string;
+	/** Abort signal for cancellation */
+	abortSignal?: AbortSignal;
 }
 
 /**

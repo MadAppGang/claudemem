@@ -21,7 +21,10 @@
     "postinstall": "bun run download-grammars || true",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "test": "bun test",
+    "test:integration": "bun test test/integration",
+    "test:watch": "bun test --watch"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.0.0",

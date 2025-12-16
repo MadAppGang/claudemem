@@ -104,6 +104,20 @@ export class ClaudeCodeLLMClient extends BaseLLMClient {
 
 			let stdout = "";
 			let stderr = "";
+			let aborted = false;
+
+			const onAbort = () => {
+				aborted = true;
+				claude.kill("SIGTERM");
+			};
+
+			if (options?.abortSignal) {
+				if (options.abortSignal.aborted) {
+					onAbort();
+				} else {
+					options.abortSignal.addEventListener("abort", onAbort, { once: true });
+				}
+			}
 
 			claude.stdout.on("data", (data) => {
 				stdout += data.toString();
@@ -124,6 +138,15 @@ export class ClaudeCodeLLMClient extends BaseLLMClient {
 			});
 
 			claude.on("close", (code) => {
+				if (options?.abortSignal) {
+					options.abortSignal.removeEventListener("abort", onAbort);
+				}
+
+				if (aborted) {
+					reject(new Error("Claude Code CLI request aborted"));
+					return;
+				}
+
 				if (code !== 0) {
 					// Check for common errors
 					if (stderr.includes("authentication") || stderr.includes("API key")) {

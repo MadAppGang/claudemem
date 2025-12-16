@@ -24,6 +24,8 @@ export interface GeneratorInfo {
 	model: string;
 	/** Human-readable display name */
 	displayName: string;
+	/** Custom API endpoint (for local providers like LM Studio) */
+	endpoint?: string;
 }
 
 /** Result of generating a single summary */
@@ -238,6 +240,18 @@ export interface TestCaseResult {
 	error?: string;
 }
 
+/** Per-judge score breakdown */
+export interface JudgeScoreBreakdown {
+	/** Judge name/model */
+	judge: string;
+	/** Quality score from this judge */
+	qualityScore: number;
+	/** Usefulness score from this judge */
+	usefulness: number;
+	/** Conciseness score from this judge */
+	conciseness: number;
+}
+
 /** Aggregate scores for a generator */
 export interface AggregateScores {
 	/** Overall weighted score (0-100) */
@@ -246,14 +260,16 @@ export interface AggregateScores {
 	correctness: number;
 	/** Completeness score (0-100) - all fields covered */
 	completeness: number;
-	/** Usefulness score (0-100) - from judge */
+	/** Usefulness score (0-100) - from judge (median) */
 	usefulness: number;
-	/** Conciseness score (0-100) - from judge */
+	/** Conciseness score (0-100) - from judge (median) */
 	conciseness: number;
 	/** Speed score (0-100) - normalized, fastest=100 */
 	speed: number;
 	/** Cost efficiency score (0-100) - normalized, cheapest=100 */
 	cost: number;
+	/** Per-judge score breakdown (for multi-judge runs) */
+	judgeBreakdown?: JudgeScoreBreakdown[];
 }
 
 /** Performance metrics for a generator */
@@ -268,6 +284,8 @@ export interface PerformanceMetrics {
 	successRate: number;
 	/** Number of failures */
 	failures: number;
+	/** Actual error messages from failures */
+	errors?: string[];
 }
 
 /** Complete results for a single generator */
@@ -368,6 +386,8 @@ export interface BenchmarkConfig {
 	outputFormats: ReportFormat[];
 	/** Progress callback */
 	onProgress?: BenchmarkProgressCallback;
+	/** Enable verbose/diagnostic logging to stderr */
+	verbose?: boolean;
 }
 
 /** Progress callback for benchmark operations */

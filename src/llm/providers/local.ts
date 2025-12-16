@@ -6,6 +6,7 @@
  */
 
 import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
+import { combineAbortSignals } from "../abort.js";
 import type { LLMGenerateOptions, LLMMessage, LLMResponse } from "../../types.js";
 
 // ============================================================================
@@ -87,6 +88,7 @@ export class LocalLLMClient extends BaseLLMClient {
 			// Make API request
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+			const signal = combineAbortSignals(controller.signal, options?.abortSignal);
 
 			try {
 				const url = `${this.endpoint}/chat/completions`;
@@ -96,7 +98,7 @@ export class LocalLLMClient extends BaseLLMClient {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify(body),
-					signal: controller.signal,
+					signal,
 				});
 
 				clearTimeout(timeoutId);

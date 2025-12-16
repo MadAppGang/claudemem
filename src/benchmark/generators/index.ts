@@ -5,6 +5,7 @@
  */
 
 export { SummaryGenerator } from "./base.js";
+export { BatchSummaryGenerator, isBatchGenerator } from "./batch.js";
 export {
 	createGenerator,
 	createGenerators,
