@@ -170,15 +170,13 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (call
         function: (attribute
           attribute: (identifier) @ref.call))
-      ; Import statements
+      ; Import statements - capture imported names
       (import_from_statement
-        name: (dotted_name
-          (identifier) @ref.import))
+        (dotted_name (identifier) @ref.import))
       (aliased_import
-        name: (identifier) @ref.import)
+        (dotted_name (identifier) @ref.import))
       (import_statement
-        name: (dotted_name
-          (identifier) @ref.import))
+        (dotted_name (identifier) @ref.import))
       ; Class inheritance
       (class_definition
         superclasses: (argument_list
@@ -212,14 +210,10 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       (type_identifier) @ref.type
       ; Qualified type references (package.Type)
       (qualified_type
-        package: (package_identifier) @ref.import
-        name: (type_identifier) @ref.type)
+        (package_identifier) @ref.import)
       ; Import statements
       (import_spec
         path: (interpreted_string_literal) @ref.import)
-      ; Interface embedding
-      (interface_type
-        (type_identifier) @ref.implements)
     `,
 	},
 	rust: {
