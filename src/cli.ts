@@ -14,8 +14,7 @@ import {
 	ENV,
 	getApiKey,
 	getEmbeddingModel,
-	getLLMModel,
-	getLLMProvider,
+	getLLMSpec,
 	hasApiKey,
 	loadGlobalConfig,
 	saveGlobalConfig,
@@ -343,18 +342,12 @@ async function handleIndex(args: string[]): Promise<void> {
 
 	// Get model info for display
 	const embeddingModel = getEmbeddingModel(projectPath);
-	const llmProvider = getLLMProvider(projectPath);
-	const llmModel = getLLMModel(projectPath);
+	const llmSpec = getLLMSpec(projectPath);
 
 	console.log(`\nIndexing ${projectPath}...`);
 	console.log(`  Embedding model: ${embeddingModel}`);
 	if (!noLlm) {
-		const llmDisplay = llmProvider === "claude-code"
-			? "Claude Code (Subscription)"
-			: llmModel
-				? `${llmProvider}/${llmModel}`
-				: llmProvider;
-		console.log(`  LLM for enrichment: ${llmDisplay}`);
+		console.log(`  LLM for enrichment: ${llmSpec.displayName}`);
 	}
 	if (force) {
 		console.log("(Force mode: re-indexing all files)");
@@ -537,12 +530,12 @@ async function handleSearch(args: string[]): Promise<void> {
 			}
 		}
 
-		console.log(`Searching for: "${query}"\n`);
+		console.log(`Searching for: "${query}"`);
 
 		const results = await indexer.search(query, { limit, language, useCase });
 
 		if (results.length === 0) {
-			console.log("No results found.");
+			console.log("\nNo results found.");
 			console.log("Make sure the codebase is indexed: claudemem index");
 			return;
 		}
@@ -2978,7 +2971,7 @@ ${c.yellow}${c.bold}ENVIRONMENT${c.reset}
   ${c.magenta}OPENROUTER_API_KEY${c.reset}     API key for embeddings
   ${c.magenta}ANTHROPIC_API_KEY${c.reset}      API key for LLM enrichment (Anthropic provider)
   ${c.magenta}CLAUDEMEM_MODEL${c.reset}        Override default embedding model
-  ${c.magenta}CLAUDEMEM_LLM_PROVIDER${c.reset} LLM provider: claude-code | anthropic | openrouter | local
+  ${c.magenta}CLAUDEMEM_LLM${c.reset}          LLM spec (e.g., "a/sonnet", "or/openai/gpt-4o", "cc/haiku")
 
 ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.dim}# First time setup${c.reset}

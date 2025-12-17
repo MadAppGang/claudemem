@@ -200,11 +200,10 @@ export const VOYAGE_EMBEDDINGS_URL = `${VOYAGE_API_URL}/embeddings`;
 export const ENV = {
 	OPENROUTER_API_KEY: "OPENROUTER_API_KEY",
 	VOYAGE_API_KEY: "VOYAGE_API_KEY",
-	CLAUDE_MEM_MODEL: "CLAUDE_MEM_MODEL",
+	CLAUDEMEM_MODEL: "CLAUDEMEM_MODEL",
 	ANTHROPIC_API_KEY: "ANTHROPIC_API_KEY",
-	CLAUDEMEM_LLM_PROVIDER: "CLAUDEMEM_LLM_PROVIDER",
-	CLAUDEMEM_LLM_MODEL: "CLAUDEMEM_LLM_MODEL",
-	CLAUDEMEM_LLM_ENDPOINT: "CLAUDEMEM_LLM_ENDPOINT",
+	/** Unified LLM spec (e.g., "a/sonnet", "or/openai/gpt-4o", "cc/sonnet") */
+	CLAUDEMEM_LLM: "CLAUDEMEM_LLM",
 } as const;
 
 // ============================================================================
@@ -536,7 +535,7 @@ export function hasVoyageApiKey(): boolean {
  */
 export function getEmbeddingModel(projectPath?: string): string {
 	// First check environment variable
-	const envModel = process.env[ENV.CLAUDE_MEM_MODEL];
+	const envModel = process.env[ENV.CLAUDEMEM_MODEL];
 	if (envModel) {
 		return envModel;
 	}
@@ -544,8 +543,8 @@ export function getEmbeddingModel(projectPath?: string): string {
 	// Then check project config
 	if (projectPath) {
 		const projectConfig = loadProjectConfig(projectPath);
-		if (projectConfig?.model) {
-			return projectConfig.model;
+		if (projectConfig?.embeddingModel) {
+			return projectConfig.embeddingModel;
 		}
 	}
 
@@ -564,6 +563,7 @@ export function getEmbeddingModel(projectPath?: string): string {
 // ============================================================================
 
 import type { LLMProvider } from "./types.js";
+import { LLMResolver, type LLMSpec } from "./llm/resolver.js";
 
 /**
  * Get Anthropic API key from environment or config
@@ -588,61 +588,34 @@ export function hasAnthropicApiKey(): boolean {
 }
 
 /**
- * Get LLM provider from environment or config
- * Priority: env var > project config > global config > default (claude-code)
+ * Get unified LLM spec from environment or config.
+ * Supports specs like "a/sonnet", "or/openai/gpt-4o", "cc/sonnet".
+ *
+ * Priority: CLAUDEMEM_LLM env > project config llm > global config llm > default (cc/sonnet)
  */
-export function getLLMProvider(projectPath?: string): LLMProvider {
-	// First check environment variable
-	const envProvider = process.env[ENV.CLAUDEMEM_LLM_PROVIDER];
-	if (envProvider) {
-		return envProvider as LLMProvider;
+export function getLLMSpec(projectPath?: string): LLMSpec {
+	// 1. Check unified CLAUDEMEM_LLM env var
+	const envSpec = process.env[ENV.CLAUDEMEM_LLM];
+	if (envSpec) {
+		return LLMResolver.parseSpec(envSpec);
 	}
 
-	// Then check project config
+	// 2. Check project config
 	if (projectPath) {
 		const projectConfig = loadProjectConfig(projectPath);
-		if (projectConfig?.enrichment?.llmProvider) {
-			return projectConfig.enrichment.llmProvider;
+		if (projectConfig?.enrichmentModel) {
+			return LLMResolver.parseSpec(projectConfig.enrichmentModel);
 		}
 	}
 
-	// Then check global config
+	// 3. Check global config
 	const globalConfig = loadGlobalConfig();
-	if (globalConfig.llmProvider) {
-		return globalConfig.llmProvider;
+	if (globalConfig.llm) {
+		return LLMResolver.parseSpec(globalConfig.llm);
 	}
 
-	// Default to claude-code (uses existing Claude Code session)
-	return "claude-code";
-}
-
-/**
- * Get LLM model from environment or config
- */
-export function getLLMModel(projectPath?: string): string | undefined {
-	// First check environment variable
-	const envModel = process.env[ENV.CLAUDEMEM_LLM_MODEL];
-	if (envModel) {
-		return envModel;
-	}
-
-	// Then check global config
-	const globalConfig = loadGlobalConfig();
-	return globalConfig.llmModel;
-}
-
-/**
- * Get LLM endpoint from config (for local providers)
- */
-export function getLLMEndpoint(projectPath?: string): string | undefined {
-	// First check environment variable
-	const envEndpoint = process.env[ENV.CLAUDEMEM_LLM_ENDPOINT];
-	if (envEndpoint) {
-		return envEndpoint;
-	}
-
-	const globalConfig = loadGlobalConfig();
-	return globalConfig.llmEndpoint;
+	// 4. Default to claude-code
+	return LLMResolver.parseSpec("cc/sonnet");
 }
 
 /**
@@ -653,23 +626,12 @@ export function isEnrichmentEnabled(projectPath?: string): boolean {
 	// Check project override first
 	if (projectPath) {
 		const projectConfig = loadProjectConfig(projectPath);
-		if (projectConfig?.enrichment?.enabled !== undefined) {
-			return projectConfig.enrichment.enabled;
+		if (projectConfig?.enrichment !== undefined) {
+			return projectConfig.enrichment;
 		}
 	}
 
 	// Fall back to global config (default: true)
 	const globalConfig = loadGlobalConfig();
 	return globalConfig.enableEnrichment !== false;
-}
-
-/**
- * Get enrichment document types to generate
- */
-export function getEnrichmentTypes(projectPath?: string): string[] | undefined {
-	if (projectPath) {
-		const projectConfig = loadProjectConfig(projectPath);
-		return projectConfig?.enrichment?.types;
-	}
-	return undefined;
 }

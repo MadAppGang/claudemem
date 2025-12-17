@@ -8,9 +8,7 @@
 import {
 	getAnthropicApiKey,
 	getApiKey,
-	getLLMEndpoint,
-	getLLMModel,
-	getLLMProvider,
+	getLLMSpec,
 	loadGlobalConfig,
 } from "../config.js";
 import type {
@@ -200,16 +198,26 @@ export interface LLMClientOptions {
 /**
  * Create an LLM client based on provider
  *
- * Auto-detects provider from config if not specified.
- * Provider priority: options > project config > global config > default (claude-code)
+ * Auto-detects provider from unified LLM spec (CLAUDEMEM_LLM env or config).
+ * Supports specs like "a/sonnet", "or/openai/gpt-4o", "cc/sonnet".
  */
 export async function createLLMClient(
 	options?: LLMClientOptions,
 	projectPath?: string
 ): Promise<ILLMClient> {
 	const config = loadGlobalConfig();
-	const provider = options?.provider || getLLMProvider(projectPath);
-	const model = options?.model || getLLMModel(projectPath) || DEFAULT_LLM_MODELS[provider];
+
+	// Use options if provided, otherwise get from unified spec
+	let provider = options?.provider;
+	let model = options?.model;
+	let endpoint = options?.endpoint;
+
+	if (!provider || !model) {
+		const spec = getLLMSpec(projectPath);
+		provider = provider || spec.provider;
+		model = model || spec.model || DEFAULT_LLM_MODELS[provider];
+		endpoint = endpoint || spec.endpoint;
+	}
 
 	switch (provider) {
 		case "claude-code": {
@@ -250,7 +258,7 @@ export async function createLLMClient(
 			const { LocalLLMClient } = await import("./providers/local.js");
 			return new LocalLLMClient({
 				model,
-				endpoint: options?.endpoint || getLLMEndpoint(projectPath) || config.llmEndpoint,
+				endpoint: endpoint || config.llmEndpoint,
 				timeout: options?.timeout,
 			});
 		}

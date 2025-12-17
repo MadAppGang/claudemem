@@ -16,7 +16,6 @@ import {
 	getVectorStorePath,
 	isEnrichmentEnabled,
 	loadProjectConfig,
-	saveProjectConfig,
 } from "../config.js";
 import { createLLMClient } from "../llm/client.js";
 import type { ILLMClient } from "../types.js";
@@ -103,8 +102,6 @@ export class Indexer {
 	private modelExplicitlySet: boolean;
 	private excludePatterns: string[];
 	private includePatterns: string[];
-	private includeExtensions: Set<string> | null;
-	private excludeExtensions: Set<string>;
 	private onProgress?: (current: number, total: number, file: string, inProgress?: number) => void;
 	private enableEnrichment: boolean;
 	private enrichmentConcurrency: number;
@@ -127,16 +124,6 @@ export class Indexer {
 		// Get config options
 		const projectConfig = loadProjectConfig(options.projectPath);
 		this.includePatterns = options.includePatterns || projectConfig?.includePatterns || [];
-
-		// Extension filters from config
-		// includeExtensions: if set, ONLY index these extensions
-		// excludeExtensions: never index these extensions
-		this.includeExtensions = projectConfig?.includeExtensions
-			? new Set(projectConfig.includeExtensions.map(e => e.startsWith('.') ? e : `.${e}`))
-			: null;
-		this.excludeExtensions = new Set(
-			(projectConfig?.excludeExtensions || []).map(e => e.startsWith('.') ? e : `.${e}`)
-		);
 
 		this.onProgress = options.onProgress;
 
@@ -331,6 +318,7 @@ export class Indexer {
 			let embedResult: { embeddings: number[][]; cost?: number; totalTokens?: number };
 
 			try {
+				console.log(this.embeddingsClient)
 				// Pass progress callback to track embedding progress
 				embedResult = await this.embeddingsClient!.embed(texts, (completed, total, inProgress) => {
 					if (this.onProgress) {
@@ -461,11 +449,6 @@ export class Indexer {
 				);
 			}
 		}
-
-		// Save model info to project config
-		saveProjectConfig(this.projectPath, {
-			lastModel: this.model,
-		});
 
 		// Save metadata
 		this.fileTracker!.setMetadata(
@@ -599,18 +582,8 @@ export class Indexer {
 						continue;
 					}
 
-					// Get file extension
+					// Get file extension and check if supported by parser
 					const ext = "." + entry.name.split(".").pop()?.toLowerCase();
-
-					// Check extension filters from config
-					if (this.excludeExtensions.has(ext)) {
-						continue; // Skip excluded extensions
-					}
-					if (this.includeExtensions && !this.includeExtensions.has(ext)) {
-						continue; // Skip if not in include list (when include list is specified)
-					}
-
-					// Check if file extension is supported by parser
 					if (supportedExtensions.has(ext)) {
 						files.push(fullPath);
 					}

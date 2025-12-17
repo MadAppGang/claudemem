@@ -365,10 +365,8 @@ export interface GlobalConfig {
 	localEndpoint?: string;
 
 	// ─── LLM Enrichment Settings ───
-	/** LLM provider for enrichment (claude-code, anthropic, openrouter, local) */
-	llmProvider?: LLMProvider;
-	/** LLM model to use for enrichment */
-	llmModel?: string;
+	/** Unified LLM spec (e.g., "a/sonnet", "or/openai/gpt-4o", "cc/sonnet") */
+	llm?: string;
 	/** LLM endpoint URL (for local providers) */
 	llmEndpoint?: string;
 	/** Anthropic API key (for direct Anthropic API calls) */
@@ -379,41 +377,23 @@ export interface GlobalConfig {
 
 export interface ProjectConfig {
 	/** Override embedding model for this project */
-	model?: string;
+	embeddingModel?: string;
 	/** Additional exclude patterns (glob patterns) */
 	excludePatterns?: string[];
 	/** Include only these patterns (glob patterns) */
 	includePatterns?: string[];
-	/** Only index files with these extensions (e.g., [".ts", ".tsx"]) */
-	includeExtensions?: string[];
-	/** Exclude files with these extensions from indexing */
-	excludeExtensions?: string[];
 	/** Use .gitignore patterns for exclusion (default: true) */
 	useGitignore?: boolean;
 	/** Enable auto-indexing on search (default: true) */
 	autoIndex?: boolean;
 	/** Custom index directory path (default: .claudemem) */
 	indexDir?: string;
-	/** Last used embedding model (internal use) */
-	lastModel?: string;
 
 	// ─── Enrichment Settings ───
-	/** Project-level enrichment configuration */
-	enrichment?: {
-		/** Enable/disable enrichment for this project (overrides global) */
-		enabled?: boolean;
-		/** Document types to generate */
-		types?: DocumentType[];
-		/** Override LLM provider for this project */
-		llmProvider?: LLMProvider;
-	};
-
-	/** Search weight configuration per use case */
-	searchWeights?: {
-		fim?: Partial<Record<DocumentType, number>>;
-		search?: Partial<Record<DocumentType, number>>;
-		navigation?: Partial<Record<DocumentType, number>>;
-	};
+	/** Enable/disable enrichment for this project (overrides global) */
+	enrichment?: boolean;
+	/** Override LLM spec for this project (e.g., "a/sonnet", "or/openai/gpt-4o") */
+	enrichmentModel?: string;
 }
 
 export interface Config extends GlobalConfig {

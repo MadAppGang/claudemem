@@ -464,6 +464,7 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 
 				try {
 					// OpenAI-compatible format
+					console.log("ENDPOINTNTNTNTNT:", this.endpoint)
 					const response = await fetch(`${this.endpoint}/embeddings`, {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
@@ -480,6 +481,7 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 					}
 
 					const data: OpenRouterEmbeddingResponse = await response.json();
+					console.log(data);
 					const sorted = [...data.data].sort((a, b) => a.index - b.index);
 					const embeddings = sorted.map((item) => item.embedding);
 
