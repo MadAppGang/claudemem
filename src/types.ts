@@ -9,8 +9,10 @@
 export type ChunkType = "function" | "class" | "method" | "module" | "block";
 
 export interface CodeChunk {
-	/** SHA256 hash of content */
+	/** SHA256 hash of content + position (unique per location) */
 	id: string;
+	/** Content-addressable hash for diffing (stable across line shifts) */
+	contentHash: string;
 	/** Raw code content */
 	content: string;
 	/** Relative path from project root */
@@ -223,6 +225,8 @@ export interface SearchOptions {
 	pathPattern?: string;
 	/** Search use case for weight presets */
 	useCase?: SearchUseCase;
+	/** Use keyword search only (no embedding API call, faster but less semantic) */
+	keywordOnly?: boolean;
 }
 
 // ============================================================================
@@ -277,7 +281,7 @@ export interface FileState {
 // ============================================================================
 
 /** Supported embedding providers */
-export type EmbeddingProvider = "openrouter" | "ollama" | "local" | "voyage";
+export type EmbeddingProvider = "openrouter" | "ollama" | "lmstudio" | "local" | "voyage";
 
 /** Progress callback for embedding operations */
 export type EmbeddingProgressCallback = (
@@ -349,7 +353,11 @@ export interface EmbeddingResponse {
 // ============================================================================
 
 export interface GlobalConfig {
-	/** Default embedding model to use */
+	/**
+	 * Default embedding model to use.
+	 * IMPORTANT: Must use the same model for indexing and retrieval.
+	 * Different models produce incompatible vector spaces.
+	 */
 	defaultModel?: string;
 	/** OpenRouter API key */
 	openrouterApiKey?: string;
@@ -357,10 +365,12 @@ export interface GlobalConfig {
 	voyageApiKey?: string;
 	/** Global exclude patterns */
 	excludePatterns: string[];
-	/** Embedding provider (openrouter, ollama, local, voyage) */
+	/** Embedding provider (openrouter, ollama, lmstudio, local, voyage) */
 	embeddingProvider?: EmbeddingProvider;
 	/** Ollama endpoint URL (default: http://localhost:11434) */
 	ollamaEndpoint?: string;
+	/** LM Studio endpoint URL (default: http://localhost:1234/v1) */
+	lmstudioEndpoint?: string;
 	/** Custom local endpoint URL */
 	localEndpoint?: string;
 
@@ -376,7 +386,17 @@ export interface GlobalConfig {
 }
 
 export interface ProjectConfig {
-	/** Override embedding model for this project */
+	/**
+	 * Enable vector embeddings (default: true).
+	 * When false, only BM25 keyword search is used - no embedding API needed.
+	 */
+	vector?: boolean;
+	/**
+	 * Override embedding model for this project.
+	 * IMPORTANT: Must use the same model for indexing and retrieval.
+	 * Different models produce incompatible vector spaces.
+	 * Only used when vector=true.
+	 */
 	embeddingModel?: string;
 	/** Additional exclude patterns (glob patterns) */
 	excludePatterns?: string[];

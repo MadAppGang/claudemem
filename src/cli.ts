@@ -12,10 +12,13 @@ import inquirerSearch from "@inquirer/search";
 import { confirm, input, select } from "@inquirer/prompts";
 import {
 	ENV,
+	getAnthropicApiKey,
 	getApiKey,
 	getEmbeddingModel,
 	getLLMSpec,
+	getVoyageApiKey,
 	hasApiKey,
+	isVectorEnabled,
 	loadGlobalConfig,
 	saveGlobalConfig,
 } from "./config.js";
@@ -333,8 +336,11 @@ async function handleIndex(args: string[]): Promise<void> {
 	const concurrencyArg = args.find((a) => a.startsWith("--concurrency="));
 	const concurrency = concurrencyArg ? parseInt(concurrencyArg.split("=")[1], 10) : 10;
 
-	// Check for API key
-	if (!hasApiKey()) {
+	// Check if vector mode is enabled
+	const vectorEnabled = isVectorEnabled(projectPath);
+
+	// Check for API key (not needed when vector mode is disabled)
+	if (vectorEnabled && !hasApiKey()) {
 		console.error("Error: OpenRouter API key not configured.");
 		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
 		process.exit(1);
@@ -345,7 +351,11 @@ async function handleIndex(args: string[]): Promise<void> {
 	const llmSpec = getLLMSpec(projectPath);
 
 	console.log(`\nIndexing ${projectPath}...`);
-	console.log(`  Embedding model: ${embeddingModel}`);
+	if (vectorEnabled) {
+		console.log(`  Embedding model: ${embeddingModel}`);
+	} else {
+		console.log(`  Vector mode: disabled (BM25 keyword search only)`);
+	}
 	if (!noLlm) {
 		console.log(`  LLM for enrichment: ${llmSpec.displayName}`);
 	}
@@ -471,6 +481,9 @@ async function handleSearch(args: string[]): Promise<void> {
 	const useCaseIdx = args.findIndex((a) => a === "--use-case");
 	const useCase = useCaseIdx >= 0 ? args[useCaseIdx + 1] as "fim" | "search" | "navigation" : "search";
 
+	// Keyword-only search (skip embedding API call, use BM25 only)
+	const keywordOnly = args.includes("-k") || args.includes("--keyword");
+
 	// Get query (everything that's not a flag)
 	// Only add indices to flagIndices if the flag was actually found (>= 0)
 	const flagIndices = new Set<number>();
@@ -488,8 +501,11 @@ async function handleSearch(args: string[]): Promise<void> {
 		process.exit(1);
 	}
 
-	// Check for API key
-	if (!hasApiKey()) {
+	// Check if vector mode is enabled in config
+	const vectorEnabled = isVectorEnabled(projectPath);
+
+	// Check for API key (not needed for keyword-only search or when vector mode disabled)
+	if (!keywordOnly && vectorEnabled && !hasApiKey()) {
 		console.error("Error: OpenRouter API key not configured.");
 		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
 		process.exit(1);
@@ -523,16 +539,38 @@ async function handleSearch(args: string[]): Promise<void> {
 			const result = await indexer.index(false);
 			console.log(`✅ Indexed ${result.filesIndexed} files (${result.chunksCreated} chunks)\n`);
 		} else if (!noReindex) {
-			// Index exists - auto-reindex changed files
-			const result = await indexer.index(false); // incremental
-			if (result.filesIndexed > 0) {
-				console.log(`\n🔄 Auto-indexed ${result.filesIndexed} changed file(s)\n`);
+			// Index exists - auto-reindex changed files with progress display
+			// First, check if there are changes (quick check before showing progress)
+			const progress = createProgressRenderer();
+			let hasChanges = false;
+
+			// Create a temporary indexer with progress callback
+			const { createIndexer: createTempIndexer } = await import("./core/indexer.js");
+			const tempIndexer = createTempIndexer({
+				projectPath,
+				onProgress: (current, total, detail, inProgress) => {
+					if (!hasChanges && current > 0) {
+						hasChanges = true;
+						console.log("\n🔄 Auto-reindexing changed files...\n");
+						progress.start();
+					}
+					if (hasChanges) {
+						progress.update(current, total, detail, inProgress ?? 0);
+					}
+				},
+			});
+
+			const result = await tempIndexer.index(false); // incremental
+
+			if (hasChanges) {
+				progress.finish();
+				console.log(`✅ Auto-indexed ${result.filesIndexed} changed file(s)\n`);
 			}
 		}
 
-		console.log(`Searching for: "${query}"`);
+		console.log(`Searching for: "${query}"${keywordOnly ? " (keyword-only)" : ""}`);
 
-		const results = await indexer.search(query, { limit, language, useCase });
+		const results = await indexer.search(query, { limit, language, useCase, keywordOnly });
 
 		if (results.length === 0) {
 			console.log("\nNo results found.");
@@ -647,29 +685,67 @@ async function handleInit(): Promise<void> {
 
 	console.log("🔧 Setup\n");
 
-	// Step 1: Select embedding provider
-	const provider = await select({
+	// ═══════════════════════════════════════════════════════════════════════════
+	// STEP 1: Embedding Provider
+	// ═══════════════════════════════════════════════════════════════════════════
+	console.log("─── Embedding Configuration ───\n");
+
+	const embeddingProvider = await select({
 		message: "Select embedding provider:",
 		choices: [
 			{
-				name: "OpenRouter (cloud API, requires API key)",
+				name: "Voyage AI (recommended, best quality)",
+				value: "voyage",
+			},
+			{
+				name: "OpenRouter (cloud API, many models)",
 				value: "openrouter",
 			},
 			{
-				name: "Ollama (local, free, requires Ollama installed)",
+				name: "Ollama (local, free)",
 				value: "ollama",
+			},
+			{
+				name: "LM Studio (local, OpenAI-compatible)",
+				value: "lmstudio",
 			},
 			{
 				name: "Custom endpoint (local HTTP server)",
 				value: "local",
 			},
 		],
-	}) as "openrouter" | "ollama" | "local";
+	}) as "voyage" | "openrouter" | "ollama" | "lmstudio" | "local";
 
-	let modelId: string;
-	let endpoint: string | undefined;
+	let embeddingModel: string;
+	let embeddingEndpoint: string | undefined;
+	let voyageApiKey: string | undefined;
+	let openrouterApiKey: string | undefined;
 
-	if (provider === "openrouter") {
+	if (embeddingProvider === "voyage") {
+		// Voyage AI setup
+		const existingKey = getVoyageApiKey();
+		if (existingKey) {
+			const useExisting = await confirm({
+				message: "Voyage API key already configured. Keep it?",
+				default: true,
+			});
+			if (!useExisting) {
+				voyageApiKey = await promptForVoyageApiKey();
+			}
+		} else {
+			voyageApiKey = await promptForVoyageApiKey();
+		}
+
+		embeddingModel = await select({
+			message: "Select Voyage embedding model:",
+			choices: [
+				{ name: "voyage-3.5-lite (recommended, fast, cheap)", value: "voyage-3.5-lite" },
+				{ name: "voyage-3 (highest quality)", value: "voyage-3" },
+				{ name: "voyage-code-3 (optimized for code)", value: "voyage-code-3" },
+			],
+		});
+
+	} else if (embeddingProvider === "openrouter") {
 		// OpenRouter setup
 		const existingKey = getApiKey();
 		if (existingKey) {
@@ -677,7 +753,6 @@ async function handleInit(): Promise<void> {
 				message: "OpenRouter API key already configured. Keep it?",
 				default: true,
 			});
-
 			if (!useExisting) {
 				await promptForApiKey();
 			}
@@ -686,11 +761,11 @@ async function handleInit(): Promise<void> {
 		}
 
 		// Select OpenRouter model
-		console.log("\n📦 Selecting embedding model...\n");
+		console.log("\n📦 Fetching available models...\n");
 		const models = await discoverEmbeddingModels();
 
-		modelId = await inquirerSearch({
-			message: "Choose default embedding model:",
+		embeddingModel = await inquirerSearch({
+			message: "Choose embedding model:",
 			source: async (term: string | undefined) => {
 				const filtered = term
 					? models.filter(
@@ -707,9 +782,9 @@ async function handleInit(): Promise<void> {
 			},
 		});
 
-	} else if (provider === "ollama") {
+	} else if (embeddingProvider === "ollama") {
 		// Ollama setup
-		endpoint = await input({
+		embeddingEndpoint = await input({
 			message: "Ollama endpoint URL:",
 			default: "http://localhost:11434",
 		});
@@ -717,67 +792,326 @@ async function handleInit(): Promise<void> {
 		// Test connection
 		console.log("\n🔄 Testing Ollama connection...");
 		try {
-			const response = await fetch(`${endpoint}/api/tags`);
+			const response = await fetch(`${embeddingEndpoint}/api/tags`);
 			if (response.ok) {
 				const data = await response.json() as { models?: Array<{ name: string }> };
 				const installedModels = data.models || [];
-				const embeddingModels = installedModels.filter((m: { name: string }) =>
+				const embModels = installedModels.filter((m: { name: string }) =>
 					m.name.includes("embed") || m.name.includes("nomic") || m.name.includes("minilm") || m.name.includes("bge")
 				);
 
-				if (embeddingModels.length > 0) {
-					console.log(`✅ Found ${embeddingModels.length} embedding model(s)`);
-					modelId = await select({
+				if (embModels.length > 0) {
+					console.log(`✅ Found ${embModels.length} embedding model(s)`);
+					embeddingModel = await select({
 						message: "Select embedding model:",
-						choices: embeddingModels.map((m: { name: string }) => ({
+						choices: embModels.map((m: { name: string }) => ({
 							name: m.name,
 							value: m.name.replace(":latest", ""),
 						})),
 					});
 				} else {
-					console.log("⚠️  No embedding models found. Installing nomic-embed-text...");
+					console.log("⚠️  No embedding models found.");
 					console.log("   Run: ollama pull nomic-embed-text");
-					modelId = "nomic-embed-text";
+					embeddingModel = "nomic-embed-text";
 				}
 			} else {
 				throw new Error("Connection failed");
 			}
 		} catch {
 			console.log("⚠️  Could not connect to Ollama. Make sure it's running.");
-			console.log("   Start with: ollama serve");
-			modelId = await input({
+			embeddingModel = await input({
 				message: "Enter embedding model name:",
 				default: "nomic-embed-text",
 			});
 		}
 
+	} else if (embeddingProvider === "lmstudio") {
+		// LM Studio setup (OpenAI-compatible API)
+		embeddingEndpoint = await input({
+			message: "LM Studio endpoint URL:",
+			default: "http://localhost:1234/v1",
+		});
+
+		// Test connection and list embedding models
+		console.log("\n🔄 Fetching LM Studio embedding models...");
+		const models = await fetchLMStudioModels(embeddingEndpoint, "embedding");
+
+		if (models.length > 0) {
+			console.log(`✅ Found ${models.length} embedding model(s)`);
+			embeddingModel = await select({
+				message: "Select embedding model:",
+				choices: models.map((m) => ({
+					name: `${m.id}${m.publisher ? ` (${m.publisher})` : ""}`,
+					value: m.id,
+				})),
+			});
+		} else {
+			console.log("⚠️  No embedding models found in LM Studio.");
+			console.log("   Make sure LM Studio is running and has embedding models loaded.");
+			embeddingModel = await input({
+				message: "Enter embedding model name:",
+				default: "text-embedding-nomic-embed-text-v1.5",
+			});
+		}
+
 	} else {
 		// Custom endpoint setup
-		endpoint = await input({
+		embeddingEndpoint = await input({
 			message: "Custom endpoint URL:",
 			default: "http://localhost:8000",
 		});
-
-		modelId = await input({
+		embeddingModel = await input({
 			message: "Model name:",
 			default: "all-minilm-l6-v2",
 		});
 	}
 
-	// Save configuration
-	saveGlobalConfig({
-		embeddingProvider: provider,
-		defaultModel: modelId,
-		...(provider === "ollama" && endpoint ? { ollamaEndpoint: endpoint } : {}),
-		...(provider === "local" && endpoint ? { localEndpoint: endpoint } : {}),
+	// ═══════════════════════════════════════════════════════════════════════════
+	// STEP 2: LLM Enrichment
+	// ═══════════════════════════════════════════════════════════════════════════
+	console.log("\n─── LLM Enrichment Configuration ───\n");
+	console.log("LLM enrichment generates semantic summaries for better search.\n");
+
+	const enableEnrichment = await confirm({
+		message: "Enable LLM enrichment?",
+		default: true,
 	});
 
-	console.log("\n✅ Setup complete!");
-	console.log(`\nProvider: ${provider}`);
-	console.log(`Model: ${modelId}`);
-	if (endpoint) console.log(`Endpoint: ${endpoint}`);
+	let llmSpec: string | undefined;
+	let anthropicApiKey: string | undefined;
+
+	if (enableEnrichment) {
+		const llmProvider = await select({
+			message: "Select LLM provider for enrichment:",
+			choices: [
+				{ name: "Claude Code CLI (uses your subscription)", value: "claude-code" },
+				{ name: "Anthropic API (direct, requires API key)", value: "anthropic" },
+				{ name: "OpenRouter (many models)", value: "openrouter" },
+				{ name: "LM Studio (local, OpenAI-compatible)", value: "lmstudio" },
+				{ name: "Ollama (local)", value: "ollama" },
+			],
+		});
+
+		if (llmProvider === "claude-code") {
+			const llmModel = await select({
+				message: "Select Claude model:",
+				choices: [
+					{ name: "Claude Sonnet (recommended, balanced)", value: "sonnet" },
+					{ name: "Claude Haiku (fastest, cheapest)", value: "haiku" },
+					{ name: "Claude Opus (highest quality)", value: "opus" },
+				],
+			});
+			llmSpec = `cc/${llmModel}`;
+
+		} else if (llmProvider === "anthropic") {
+			const existingAnthropicKey = getAnthropicApiKey();
+			if (existingAnthropicKey) {
+				const useExisting = await confirm({
+					message: "Anthropic API key already configured. Keep it?",
+					default: true,
+				});
+				if (!useExisting) {
+					anthropicApiKey = await input({
+						message: "Enter your Anthropic API key:",
+						validate: (v) => v.startsWith("sk-ant-") || "Invalid format. Keys start with 'sk-ant-'",
+					});
+				}
+			} else {
+				anthropicApiKey = await input({
+					message: "Enter your Anthropic API key:",
+					validate: (v) => v.startsWith("sk-ant-") || "Invalid format. Keys start with 'sk-ant-'",
+				});
+			}
+
+			const llmModel = await select({
+				message: "Select Claude model:",
+				choices: [
+					{ name: "Claude Sonnet 4 (recommended)", value: "claude-sonnet-4-20250514" },
+					{ name: "Claude Haiku 3.5 (fastest)", value: "claude-3-5-haiku-20241022" },
+					{ name: "Claude Opus 4", value: "claude-opus-4-20250514" },
+				],
+			});
+			llmSpec = `a/${llmModel}`;
+
+		} else if (llmProvider === "openrouter") {
+			// Reuse OpenRouter key if already set
+			if (!getApiKey()) {
+				console.log("\n⚠️  OpenRouter API key needed for LLM.");
+				await promptForApiKey();
+			}
+
+			llmSpec = await input({
+				message: "Enter OpenRouter model (e.g., openai/gpt-4o, anthropic/claude-3.5-sonnet):",
+				default: "anthropic/claude-3.5-sonnet",
+			});
+			llmSpec = `or/${llmSpec}`;
+
+		} else if (llmProvider === "lmstudio") {
+			// LM Studio for LLM enrichment
+			const lmstudioEndpoint = await input({
+				message: "LM Studio endpoint URL:",
+				default: "http://localhost:1234/v1",
+			});
+
+			// Fetch LLM models (llm and vlm types)
+			console.log("\n🔄 Fetching LM Studio LLM models...");
+			const models = await fetchLMStudioModels(lmstudioEndpoint, "llm");
+
+			let localModel: string;
+			if (models.length > 0) {
+				console.log(`✅ Found ${models.length} LLM model(s)`);
+				localModel = await select({
+					message: "Select LLM model:",
+					choices: models.map((m) => ({
+						name: `${m.id}${m.publisher ? ` (${m.publisher})` : ""}`,
+						value: m.id,
+					})),
+				});
+			} else {
+				console.log("⚠️  No LLM models found in LM Studio.");
+				console.log("   Make sure LM Studio is running and has LLM models loaded.");
+				localModel = await input({
+					message: "Enter LLM model name:",
+					default: "llama-3.2-3b-instruct",
+				});
+			}
+			llmSpec = `lmstudio/${localModel}`;
+
+		} else if (llmProvider === "ollama") {
+			// Ollama for LLM enrichment
+			const ollamaEndpoint = await input({
+				message: "Ollama endpoint URL:",
+				default: "http://localhost:11434",
+			});
+
+			// Test connection and list models
+			console.log("\n🔄 Testing Ollama connection...");
+			try {
+				const response = await fetch(`${ollamaEndpoint}/api/tags`);
+				if (response.ok) {
+					const data = await response.json() as { models?: Array<{ name: string }> };
+					const installedModels = data.models || [];
+
+					if (installedModels.length > 0) {
+						console.log(`✅ Found ${installedModels.length} model(s)`);
+						const localModel = await select({
+							message: "Select LLM model:",
+							choices: installedModels.map((m: { name: string }) => ({
+								name: m.name,
+								value: m.name.replace(":latest", ""),
+							})),
+						});
+						llmSpec = `ollama/${localModel}`;
+					} else {
+						console.log("⚠️  No models found. Run: ollama pull llama3.2");
+						const localModel = await input({
+							message: "Enter model name:",
+							default: "llama3.2",
+						});
+						llmSpec = `ollama/${localModel}`;
+					}
+				} else {
+					throw new Error("Connection failed");
+				}
+			} catch {
+				console.log("⚠️  Could not connect to Ollama. Make sure it's running.");
+				const localModel = await input({
+					message: "Enter model name:",
+					default: "llama3.2",
+				});
+				llmSpec = `ollama/${localModel}`;
+			}
+		}
+	}
+
+	// ═══════════════════════════════════════════════════════════════════════════
+	// Save Configuration
+	// ═══════════════════════════════════════════════════════════════════════════
+	saveGlobalConfig({
+		embeddingProvider: embeddingProvider === "lmstudio" ? "lmstudio" : embeddingProvider,
+		defaultModel: embeddingModel,
+		...(voyageApiKey ? { voyageApiKey } : {}),
+		...(openrouterApiKey ? { openrouterApiKey } : {}),
+		...(anthropicApiKey ? { anthropicApiKey } : {}),
+		...(embeddingProvider === "ollama" && embeddingEndpoint ? { ollamaEndpoint: embeddingEndpoint } : {}),
+		...(embeddingProvider === "lmstudio" && embeddingEndpoint ? { lmstudioEndpoint: embeddingEndpoint } : {}),
+		...(embeddingProvider === "local" && embeddingEndpoint ? { localEndpoint: embeddingEndpoint } : {}),
+		enableEnrichment,
+		...(llmSpec ? { llm: llmSpec } : {}),
+	});
+
+	// ═══════════════════════════════════════════════════════════════════════════
+	// Summary
+	// ═══════════════════════════════════════════════════════════════════════════
+	console.log("\n✅ Setup complete!\n");
+	console.log("─── Configuration Summary ───\n");
+	console.log(`  Embedding provider: ${embeddingProvider}`);
+	console.log(`  Embedding model:    ${embeddingModel}`);
+	if (embeddingEndpoint) console.log(`  Endpoint:           ${embeddingEndpoint}`);
+	console.log(`  LLM enrichment:     ${enableEnrichment ? "enabled" : "disabled"}`);
+	if (llmSpec) console.log(`  LLM model:          ${llmSpec}`);
 	console.log("\nYou can now index your codebase:");
 	console.log("  claudemem index\n");
+}
+
+interface LMStudioModel {
+	id: string;
+	type: string; // "llm" | "embeddings" | "vlm"
+	publisher?: string;
+	architecture?: string;
+}
+
+/**
+ * Fetch available models from LM Studio
+ * Uses the new API: http://localhost:1234/api/v0/models
+ */
+async function fetchLMStudioModels(
+	endpoint: string,
+	filter?: "embedding" | "llm",
+): Promise<LMStudioModel[]> {
+	try {
+		// Use the new API endpoint
+		const baseUrl = endpoint.replace(/\/v1\/?$/, ""); // Remove /v1 suffix if present
+		const response = await fetch(`${baseUrl}/api/v0/models`);
+
+		if (!response.ok) {
+			return [];
+		}
+
+		const data = await response.json() as { data?: LMStudioModel[] };
+		let models = data.data || [];
+
+		// Filter by type if specified
+		if (filter === "embedding") {
+			models = models.filter((m) => m.type === "embeddings");
+		} else if (filter === "llm") {
+			models = models.filter((m) => m.type === "llm" || m.type === "vlm");
+		}
+
+		return models;
+	} catch {
+		return [];
+	}
+}
+
+async function promptForVoyageApiKey(): Promise<string> {
+	console.log("Voyage API key required for embeddings.");
+	console.log("Get yours at: https://dash.voyageai.com/api-keys\n");
+
+	const apiKey = await input({
+		message: "Enter your Voyage API key:",
+		validate: (value) => {
+			if (!value.trim()) {
+				return "API key is required";
+			}
+			if (!value.startsWith("pa-")) {
+				return "Invalid format. Voyage keys start with 'pa-'";
+			}
+			return true;
+		},
+	});
+
+	return apiKey;
 }
 
 async function handleModels(args: string[]): Promise<void> {
@@ -1371,6 +1705,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 			const chunksForStore = chunksWithPaths
 				.map((chunk, i) => ({
 					id: `chunk-${i}`,
+					contentHash: "", // Not used in benchmarking
 					content: chunk.content,
 					filePath: chunk.fileName,
 					startLine: 0,
@@ -2923,6 +3258,7 @@ ${c.yellow}${c.bold}SEARCH OPTIONS${c.reset}
   ${c.cyan}-y, --yes${c.reset}              Auto-create index if missing (no prompt)
   ${c.cyan}--no-reindex${c.reset}           Skip auto-reindexing changed files
   ${c.cyan}--use-case${c.reset} <case>      Search preset: fim | search | navigation (default: search)
+  ${c.cyan}-k, --keyword${c.reset}          Keyword-only search (skip embedding, use BM25 only)
 
 ${c.yellow}${c.bold}MODELS OPTIONS${c.reset}
   ${c.cyan}--free${c.reset}                 Show only free models

@@ -15,6 +15,7 @@ import {
 	getIndexDbPath,
 	getVectorStorePath,
 	isEnrichmentEnabled,
+	isVectorEnabled,
 	loadProjectConfig,
 } from "../config.js";
 import { createLLMClient } from "../llm/client.js";
@@ -105,12 +106,17 @@ export class Indexer {
 	private onProgress?: (current: number, total: number, file: string, inProgress?: number) => void;
 	private enableEnrichment: boolean;
 	private enrichmentConcurrency: number;
+	private vectorEnabled: boolean;
 
 	private embeddingsClient: IEmbeddingsClient | null = null;
 	private vectorStore: VectorStore | null = null;
 	private fileTracker: FileTracker | null = null;
 	private llmClient: ILLMClient | null = null;
 	private enricher: Enricher | null = null;
+
+	// Smart incremental reindexing: cache of old chunk vectors by contentHash
+	// Used to reuse embeddings for unchanged content, saving API costs
+	private oldChunksCache: Map<string, Map<string, number[]>> = new Map();
 
 	constructor(options: IndexerOptions) {
 		this.projectPath = options.projectPath;
@@ -130,6 +136,9 @@ export class Indexer {
 		// Enrichment enabled by default (from config), can be overridden
 		this.enableEnrichment = options.enableEnrichment ?? isEnrichmentEnabled(options.projectPath);
 		this.enrichmentConcurrency = options.enrichmentConcurrency ?? 10;
+
+		// Vector embeddings enabled by default (from config)
+		this.vectorEnabled = isVectorEnabled(options.projectPath);
 	}
 
 	/**
@@ -148,35 +157,38 @@ export class Indexer {
 		const indexDbPath = getIndexDbPath(this.projectPath);
 		this.fileTracker = createFileTracker(indexDbPath, this.projectPath);
 
-		// For search operations, use the stored embedding model to ensure consistency
-		let modelToUse = this.model;
-		if (forSearch) {
-			const storedModel = this.fileTracker.getMetadata("embeddingModel");
-			if (storedModel) {
-				// If user explicitly requested a different model, throw clear error
-				if (this.modelExplicitlySet && this.model !== storedModel) {
-					throw new EmbeddingModelMismatchError(storedModel, this.model);
+		// Create embeddings client only when vector mode is enabled
+		if (this.vectorEnabled) {
+			// For search operations, use the stored embedding model to ensure consistency
+			let modelToUse = this.model;
+			if (forSearch) {
+				const storedModel = this.fileTracker.getMetadata("embeddingModel");
+				if (storedModel) {
+					// If user explicitly requested a different model, throw clear error
+					if (this.modelExplicitlySet && this.model !== storedModel) {
+						throw new EmbeddingModelMismatchError(storedModel, this.model);
+					}
+					// Otherwise use the stored model for consistency
+					modelToUse = storedModel;
 				}
-				// Otherwise use the stored model for consistency
-				modelToUse = storedModel;
 			}
-		}
 
-		// Create embeddings client with appropriate model
-		this.embeddingsClient = createEmbeddingsClient({ model: modelToUse });
+			// Create embeddings client with appropriate model
+			this.embeddingsClient = createEmbeddingsClient({ model: modelToUse });
+		}
 
 		// Create vector store
 		const vectorStorePath = getVectorStorePath(this.projectPath);
 		this.vectorStore = createVectorStore(vectorStorePath);
 		await this.vectorStore.initialize();
 
-		// Initialize enrichment if enabled
-		if (this.enableEnrichment) {
+		// Initialize enrichment if enabled (requires vector mode for embeddings)
+		if (this.enableEnrichment && this.vectorEnabled) {
 			try {
 				this.llmClient = await createLLMClient({}, this.projectPath);
 				this.enricher = createEnricher(
 					this.llmClient,
-					this.embeddingsClient,
+					this.embeddingsClient!,
 					this.vectorStore,
 					this.fileTracker,
 				);
@@ -242,9 +254,23 @@ export class Indexer {
 				this.fileTracker!.removeFile(deletedFile);
 			}
 
-			// For modified files, delete old chunks/docs before re-indexing
-			// This prevents stale data accumulation (identified by multi-model review)
+			// SMART INCREMENTAL: Collect old chunks for modified files BEFORE deleting
+			// This allows us to reuse embeddings for unchanged content
 			for (const modifiedFile of changes.modifiedFiles) {
+				// Chunks are stored with absolute paths, so use absolute path for lookups
+				const oldChunks = await this.vectorStore!.getChunksWithVectors(modifiedFile);
+				if (oldChunks.length > 0) {
+					// Store old chunks indexed by contentHash for O(1) lookup
+					// Key by absolute path to match during embedding phase
+					const oldChunksMap = new Map<string, number[]>();
+					for (const chunk of oldChunks) {
+						if (chunk.contentHash && chunk.vector.length > 1) { // >1 to exclude placeholder [0]
+							oldChunksMap.set(chunk.contentHash, chunk.vector);
+						}
+					}
+					this.oldChunksCache.set(modifiedFile, oldChunksMap);
+				}
+				// Now delete old data (use absolute path to match stored chunks)
 				await this.vectorStore!.deleteByFile(modifiedFile);
 				this.fileTracker!.resetEnrichmentState(modifiedFile);
 			}
@@ -308,48 +334,97 @@ export class Indexer {
 				continue;
 			}
 
-			// Phase 2: Embed batch chunks
+			// Phase 2: Embed batch chunks (skip if vector mode disabled)
+			// SMART INCREMENTAL: Reuse vectors from cache for unchanged chunks
 			const batchInfo = totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
-			if (this.onProgress) {
-				this.onProgress(0, batchChunks.length, `[embedding]${batchInfo} ${batchChunks.length} chunks...`);
-			}
+			let validChunks: Array<{ chunk: CodeChunk; filePath: string; fileHash: string; vector: number[] }>;
 
-			const texts = batchChunks.map((c) => c.chunk.content);
-			let embedResult: { embeddings: number[][]; cost?: number; totalTokens?: number };
+			if (this.vectorEnabled) {
+				// Separate chunks into: cached (reuse vector) vs new (need embedding)
+				const chunksNeedingEmbedding: Array<{ chunk: CodeChunk; filePath: string; fileHash: string; originalIndex: number }> = [];
+				const cachedChunks: Array<{ chunk: CodeChunk; filePath: string; fileHash: string; vector: number[] }> = [];
 
-			try {
-				console.log(this.embeddingsClient)
-				// Pass progress callback to track embedding progress
-				embedResult = await this.embeddingsClient!.embed(texts, (completed, total, inProgress) => {
-					if (this.onProgress) {
-						this.onProgress(completed, total, `[embedding]${batchInfo} ${completed}/${total} chunks`, inProgress);
+				for (let i = 0; i < batchChunks.length; i++) {
+					const { chunk, filePath, fileHash } = batchChunks[i];
+					// Cache is keyed by absolute path (filePath is already absolute)
+					const cachedVectors = this.oldChunksCache.get(filePath);
+
+					if (cachedVectors && chunk.contentHash && cachedVectors.has(chunk.contentHash)) {
+						// REUSE: Same content found in cache - skip embedding API call!
+						cachedChunks.push({
+							chunk,
+							filePath,
+							fileHash,
+							vector: cachedVectors.get(chunk.contentHash)!,
+						});
+					} else {
+						// NEW: Content changed or new chunk - needs embedding
+						chunksNeedingEmbedding.push({ chunk, filePath, fileHash, originalIndex: i });
 					}
-				});
-			} catch (error) {
-				const errorMsg = error instanceof Error ? error.message : String(error);
-				throw new Error(`Embedding generation failed: ${errorMsg}`);
-			}
+				}
 
-			// Track cost and tokens
-			if (embedResult.cost) totalCost += embedResult.cost;
-			if (embedResult.totalTokens) totalTokens += embedResult.totalTokens;
+				const reusedCount = cachedChunks.length;
+				const newCount = chunksNeedingEmbedding.length;
 
-			// Verify we got embeddings for all chunks
-			if (embedResult.embeddings.length !== texts.length) {
-				throw new Error(
-					`Embedding count mismatch: expected ${texts.length}, got ${embedResult.embeddings.length}`,
-				);
-			}
+				if (this.onProgress) {
+					const reuseInfo = reusedCount > 0 ? ` (${reusedCount} reused)` : "";
+					this.onProgress(0, batchChunks.length, `[embedding]${batchInfo} ${newCount} new${reuseInfo}...`);
+				}
 
-			// Phase 3: Store batch chunks with embeddings
-			// Filter out chunks with empty embeddings (from failed batches)
-			const validChunks = batchChunks
-				.map((c, i) => ({
+				// Only call embedding API for chunks that actually need it
+				let newlyEmbeddedChunks: Array<{ chunk: CodeChunk; filePath: string; fileHash: string; vector: number[] }> = [];
+
+				if (chunksNeedingEmbedding.length > 0) {
+					const texts = chunksNeedingEmbedding.map((c) => c.chunk.content);
+					let embedResult: { embeddings: number[][]; cost?: number; totalTokens?: number };
+
+					try {
+						// Pass progress callback to track embedding progress
+						embedResult = await this.embeddingsClient!.embed(texts, (completed, total, inProgress) => {
+							if (this.onProgress) {
+								const reuseInfo = reusedCount > 0 ? ` (${reusedCount} reused)` : "";
+								this.onProgress(completed + reusedCount, total + reusedCount, `[embedding]${batchInfo} ${completed}/${total} new${reuseInfo}`, inProgress);
+							}
+						});
+					} catch (error) {
+						const errorMsg = error instanceof Error ? error.message : String(error);
+						throw new Error(`Embedding generation failed: ${errorMsg}`);
+					}
+
+					// Track cost and tokens
+					if (embedResult.cost) totalCost += embedResult.cost;
+					if (embedResult.totalTokens) totalTokens += embedResult.totalTokens;
+
+					// Verify we got embeddings for all chunks
+					if (embedResult.embeddings.length !== texts.length) {
+						throw new Error(
+							`Embedding count mismatch: expected ${texts.length}, got ${embedResult.embeddings.length}`,
+						);
+					}
+
+					// Map embeddings back to chunks
+					newlyEmbeddedChunks = chunksNeedingEmbedding
+						.map((c, i) => ({
+							chunk: c.chunk,
+							filePath: c.filePath,
+							fileHash: c.fileHash,
+							vector: embedResult.embeddings[i],
+						}))
+						.filter((c) => c.vector.length > 0);
+				}
+
+				// Combine cached + newly embedded chunks
+				validChunks = [...cachedChunks, ...newlyEmbeddedChunks];
+			} else {
+				// Vector mode disabled - store chunks with placeholder vector (BM25 only)
+				// LanceDB requires non-empty vectors, so we use a single-element placeholder
+				validChunks = batchChunks.map((c) => ({
 					...c,
-					vector: embedResult.embeddings[i],
-				}))
-				.filter((c) => c.vector.length > 0);
+					vector: [0], // Placeholder - BM25 search only (vector search disabled)
+				}));
+			}
 
+			// Phase 3: Store batch chunks
 			const chunksWithEmbeddings: ChunkWithEmbedding[] = validChunks.map((c) => ({
 				...c.chunk,
 				vector: c.vector,
@@ -460,6 +535,9 @@ export class Indexer {
 			new Date().toISOString(),
 		);
 
+		// Clean up: Release cached old chunks to free memory
+		this.oldChunksCache.clear();
+
 		const durationMs = Date.now() - startTime;
 
 		return {
@@ -485,11 +563,17 @@ export class Indexer {
 		// Initialize with forSearch=true to use stored embedding model
 		await this.initialize(true);
 
-		// Generate query embedding
-		const queryVector = await this.embeddingsClient!.embedOne(query);
+		// Force keyword-only mode when vector embeddings are disabled
+		const useKeywordOnly = options.keywordOnly || !this.vectorEnabled;
+
+		// Generate query embedding (skip if keyword-only mode or vector disabled)
+		let queryVector: number[] | undefined;
+		if (!useKeywordOnly && this.embeddingsClient) {
+			queryVector = await this.embeddingsClient.embedOne(query);
+		}
 
 		// Search
-		return this.vectorStore!.search(query, queryVector, options);
+		return this.vectorStore!.search(query, queryVector, { ...options, keywordOnly: useKeywordOnly });
 	}
 
 	/**

@@ -348,13 +348,21 @@ function createCodeChunk(
 	language: SupportedLanguage,
 	fileHash: string,
 ): CodeChunk {
+	// Storage ID: includes position for uniqueness within a file
 	// Include filePath and line range in hash to prevent collisions across files
 	// with identical content (e.g., boilerplate functions)
 	const hashInput = `${filePath}:${parsed.startLine}:${parsed.endLine}:${parsed.content}`;
 	const id = createHash("sha256").update(hashInput).digest("hex");
 
+	// Content hash: stable identifier for diffing (ignores line numbers)
+	// Used to detect unchanged content even when lines shift
+	// Includes name+type+content to differentiate similar code with different purposes
+	const contentHashInput = `${parsed.name || ""}:${parsed.chunkType}:${parsed.content}`;
+	const contentHash = createHash("sha256").update(contentHashInput).digest("hex");
+
 	return {
 		id,
+		contentHash,
 		content: parsed.content,
 		filePath,
 		startLine: parsed.startLine + 1, // Convert to 1-indexed
@@ -449,8 +457,12 @@ function fallbackChunk(
 				const endLine = i + 1;
 				const hashInput = `${filePath}:${startLine}:${endLine}:${content}`;
 				const id = createHash("sha256").update(hashInput).digest("hex");
+				// Content hash for diffing (stable across line shifts)
+				const contentHashInput = `:block:${content}`;
+				const contentHash = createHash("sha256").update(contentHashInput).digest("hex");
 				chunks.push({
 					id,
+					contentHash,
 					content,
 					filePath,
 					startLine,
@@ -474,8 +486,12 @@ function fallbackChunk(
 			const endLine = lines.length;
 			const hashInput = `${filePath}:${startLine}:${endLine}:${content}`;
 			const id = createHash("sha256").update(hashInput).digest("hex");
+			// Content hash for diffing (stable across line shifts)
+			const contentHashInput = `:block:${content}`;
+			const contentHash = createHash("sha256").update(contentHashInput).digest("hex");
 			chunks.push({
 				id,
+				contentHash,
 				content,
 				filePath,
 				startLine,

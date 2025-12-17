@@ -65,6 +65,7 @@ function escapeFilterValue(value: string): string {
 interface StoredChunk {
 	[key: string]: unknown;
 	id: string;
+	contentHash: string; // Content-addressable hash for incremental diffing
 	content: string;
 	filePath: string;
 	startLine: number;
@@ -93,6 +94,7 @@ interface SearchOptions {
 	limit?: number;
 	language?: string;
 	filePath?: string;
+	keywordOnly?: boolean;
 }
 
 // ============================================================================
@@ -178,6 +180,7 @@ export class VectorStore {
 		const now = new Date().toISOString();
 		const data: StoredChunk[] = chunks.map((chunk) => ({
 			id: chunk.id,
+			contentHash: chunk.contentHash || "", // For incremental diffing
 			content: chunk.content,
 			filePath: chunk.filePath,
 			startLine: chunk.startLine,
@@ -242,13 +245,16 @@ export class VectorStore {
 
 	/**
 	 * Search for similar chunks using hybrid search
+	 * @param queryText - The search query text
+	 * @param queryVector - Query embedding vector (undefined for keyword-only search)
+	 * @param options - Search options
 	 */
 	async search(
 		queryText: string,
-		queryVector: number[],
+		queryVector: number[] | undefined,
 		options: SearchOptions = {},
 	): Promise<SearchResult[]> {
-		const { limit = DEFAULT_LIMIT, language, filePath } = options;
+		const { limit = DEFAULT_LIMIT, language, filePath, keywordOnly } = options;
 
 		const table = await this.ensureTableOpen();
 		if (!table) {
@@ -266,12 +272,15 @@ export class VectorStore {
 		}
 		const filterStr = filters.length > 0 ? filters.join(" AND ") : undefined;
 
-		// Vector search
-		let vectorQuery = table.vectorSearch(queryVector).limit(limit * 2);
-		if (filterStr) {
-			vectorQuery = vectorQuery.where(filterStr);
+		// Vector search (skip if keyword-only mode or no vector)
+		let vectorResults: any[] = [];
+		if (!keywordOnly && queryVector) {
+			let vectorQuery = table.vectorSearch(queryVector).limit(limit * 2);
+			if (filterStr) {
+				vectorQuery = vectorQuery.where(filterStr);
+			}
+			vectorResults = await vectorQuery.toArray();
 		}
-		const vectorResults = await vectorQuery.toArray();
 
 		// BM25 full-text search (if available)
 		let bm25Results: any[] = [];
@@ -300,6 +309,7 @@ export class VectorStore {
 		return results.slice(0, limit).map((r) => ({
 			chunk: {
 				id: r.id,
+				contentHash: r.contentHash || "",
 				content: r.content,
 				filePath: r.filePath,
 				startLine: r.startLine,
@@ -346,6 +356,42 @@ export class VectorStore {
 			return 1;
 		} catch {
 			return 0;
+		}
+	}
+
+	/**
+	 * Get all code chunks for a file with their vectors (for incremental diffing)
+	 * Returns chunks with contentHash and vector for reuse during smart reindexing
+	 */
+	async getChunksWithVectors(filePath: string): Promise<ChunkWithEmbedding[]> {
+		const table = await this.ensureTableOpen();
+		if (!table) {
+			return [];
+		}
+
+		try {
+			const results = await table
+				.query()
+				.where(`filePath = '${escapeFilterValue(filePath)}' AND documentType = 'code_chunk'`)
+				.toArray();
+
+			return results.map((row) => ({
+				id: row.id,
+				contentHash: row.contentHash || "",
+				content: row.content,
+				filePath: row.filePath,
+				startLine: row.startLine,
+				endLine: row.endLine,
+				language: row.language,
+				chunkType: row.chunkType as any,
+				name: row.name || undefined,
+				parentName: row.parentName || undefined,
+				signature: row.signature || undefined,
+				fileHash: row.fileHash,
+				vector: row.vector,
+			}));
+		} catch {
+			return [];
 		}
 	}
 
@@ -436,6 +482,7 @@ export class VectorStore {
 		const now = new Date().toISOString();
 		const data: StoredChunk[] = documents.map((doc) => ({
 			id: doc.id,
+			contentHash: "", // Enriched documents don't use contentHash (not for diffing)
 			content: doc.content,
 			filePath: doc.filePath || "",
 			startLine: 0,
@@ -705,6 +752,7 @@ export class VectorStore {
 		const now = new Date().toISOString();
 		const data: StoredChunk[] = units.map((unit) => ({
 			id: unit.id,
+			contentHash: "", // CodeUnits don't use contentHash (for incremental diffing)
 			content: unit.content,
 			filePath: unit.filePath,
 			startLine: unit.startLine,

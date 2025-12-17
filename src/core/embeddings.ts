@@ -36,6 +36,7 @@ const BASE_RETRY_DELAY = 1000;
 const DEFAULT_MODELS: Record<EmbeddingProvider, string> = {
 	openrouter: "qwen/qwen3-embedding-8b",
 	ollama: "nomic-embed-text",
+	lmstudio: "text-embedding-nomic-embed-text-v1.5",
 	local: "all-minilm-l6-v2",
 	voyage: "voyage-code-3",
 };
@@ -464,7 +465,6 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 
 				try {
 					// OpenAI-compatible format
-					console.log("ENDPOINTNTNTNTNT:", this.endpoint)
 					const response = await fetch(`${this.endpoint}/embeddings`, {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
@@ -481,7 +481,6 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 					}
 
 					const data: OpenRouterEmbeddingResponse = await response.json();
-					console.log(data);
 					const sorted = [...data.data].sort((a, b) => a.index - b.index);
 					const embeddings = sorted.map((item) => item.embedding);
 
@@ -765,6 +764,14 @@ export function createEmbeddingsClient(
 				...options,
 				model,
 				endpoint: options?.endpoint || config.ollamaEndpoint,
+			});
+
+		case "lmstudio":
+			// LM Studio uses OpenAI-compatible API
+			return new LocalEmbeddingsClient({
+				...options,
+				model,
+				endpoint: options?.endpoint || config.lmstudioEndpoint || "http://localhost:1234/v1",
 			});
 
 		case "local":

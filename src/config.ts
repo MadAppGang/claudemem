@@ -635,3 +635,19 @@ export function isEnrichmentEnabled(projectPath?: string): boolean {
 	const globalConfig = loadGlobalConfig();
 	return globalConfig.enableEnrichment !== false;
 }
+
+/**
+ * Check if vector embeddings are enabled
+ * Priority: project config > default (true)
+ * When false, only BM25 keyword search is used - no embedding API needed.
+ */
+export function isVectorEnabled(projectPath?: string): boolean {
+	if (projectPath) {
+		const projectConfig = loadProjectConfig(projectPath);
+		if (projectConfig?.vector !== undefined) {
+			return projectConfig.vector;
+		}
+	}
+	// Default: true (vector embeddings enabled)
+	return true;
+}
