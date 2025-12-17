@@ -439,6 +439,8 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 
 export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 	private endpoint: string;
+	// Smaller batch size for local models to show progress more frequently
+	private static readonly LOCAL_BATCH_SIZE = 10;
 
 	constructor(options: EmbeddingsClientOptions = {}) {
 		super(
@@ -451,11 +453,40 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 	async embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult> {
 		if (texts.length === 0) return { embeddings: [] };
 
-		// Report "starting to process" (all texts at once)
-		if (onProgress) {
-			onProgress(0, texts.length, texts.length);
+		// Split into batches for progress reporting
+		const batches: string[][] = [];
+		for (let i = 0; i < texts.length; i += LocalEmbeddingsClient.LOCAL_BATCH_SIZE) {
+			batches.push(texts.slice(i, i + LocalEmbeddingsClient.LOCAL_BATCH_SIZE));
 		}
 
+		const results: number[][] = [];
+		let completedTexts = 0;
+
+		for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+			const batch = batches[batchIdx];
+
+			// Report progress before processing this batch
+			if (onProgress) {
+				onProgress(completedTexts, texts.length, batch.length);
+			}
+
+			const batchResult = await this.embedBatch(batch);
+			results.push(...batchResult);
+			completedTexts += batch.length;
+		}
+
+		// Final progress report
+		if (onProgress) {
+			onProgress(texts.length, texts.length, 0);
+		}
+
+		return { embeddings: results };
+	}
+
+	/**
+	 * Embed a single batch of texts
+	 */
+	private async embedBatch(texts: string[]): Promise<number[][]> {
 		let lastError: Error | undefined;
 
 		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -488,13 +519,7 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 						this.dimension = embeddings[0].length;
 					}
 
-					// Report completion
-					if (onProgress) {
-						onProgress(texts.length, texts.length, 0);
-					}
-
-					// Local server doesn't report cost
-					return { embeddings };
+					return embeddings;
 				} finally {
 					clearTimeout(timeoutId);
 				}
