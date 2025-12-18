@@ -313,6 +313,10 @@ export interface IEmbeddingsClient {
 	getModel(): string;
 	/** Get the embedding dimension (discovered after first request) */
 	getDimension(): number | undefined;
+	/** Get the provider being used */
+	getProvider(): EmbeddingProvider;
+	/** Check if this is a local provider (ollama, lmstudio, local) */
+	isLocal(): boolean;
 }
 
 export interface EmbeddingModel {
@@ -842,6 +846,8 @@ export interface ILLMClient {
 	getAccumulatedUsage(): LLMUsageStats;
 	/** Reset accumulated usage counter */
 	resetAccumulatedUsage(): void;
+	/** Check if this is a cloud provider (anthropic, openrouter, anthropic-batch) */
+	isCloud(): boolean;
 }
 
 /** Progress callback for enrichment operations */

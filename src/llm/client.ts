@@ -48,6 +48,9 @@ const BASE_RETRY_DELAY = 1000;
 // Base Client Class
 // ============================================================================
 
+/** Cloud LLM providers (use network API calls) */
+const CLOUD_LLM_PROVIDERS: Set<LLMProvider> = new Set(["anthropic", "anthropic-batch", "openrouter"]);
+
 export abstract class BaseLLMClient implements ILLMClient {
 	protected provider: LLMProvider;
 	protected model: string;
@@ -66,6 +69,10 @@ export abstract class BaseLLMClient implements ILLMClient {
 
 	getModel(): string {
 		return this.model;
+	}
+
+	isCloud(): boolean {
+		return CLOUD_LLM_PROVIDERS.has(this.provider);
 	}
 
 	getAccumulatedUsage() {

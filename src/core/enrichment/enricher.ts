@@ -200,7 +200,7 @@ export class Enricher {
 
 	/**
 	 * Enrich multiple files using batched LLM calls for efficiency.
-	 * Processes file summaries in batches, then other document types.
+	 * Processes file summaries AND symbol summaries in parallel for maximum throughput.
 	 */
 	async enrichFiles(
 		files: FileToEnrich[],
@@ -235,27 +235,38 @@ export class Enricher {
 			}
 		};
 
-		// Step 1: Extract file summaries in PARALLEL (same concurrency as symbols)
-		const fileSummaryExtractor = this.registry.get("file_summary") as FileSummaryExtractor | undefined;
-		const allDocuments: BaseDocument[] = [];
+		// Thread-safe document accumulation (JS is single-threaded for sync ops)
+		const fileSummaryDocs: BaseDocument[] = [];
+		const symbolSummaryDocs: BaseDocument[] = [];
 		const concurrency = options.concurrency ?? 10;
 
-		// Reset usage tracking before file summaries phase
+		// File summary extractor
+		const fileSummaryExtractor = this.registry.get("file_summary") as FileSummaryExtractor | undefined;
+		const otherTypes: DocumentType[] = ["symbol_summary"];
+
+		// Reset usage tracking
 		this.llmClient.resetAccumulatedUsage();
 
-		if (fileSummaryExtractor) {
-			let summariesProcessed = 0;
-			const inProgressSummaries = new Set<string>();
+		// ============================================================================
+		// PARALLEL PHASE: File summaries + Symbol summaries run concurrently
+		// Each reports to its own progress line (CLI handles parallel phases)
+		// ============================================================================
 
-			const processFileSummary = async (file: FileToEnrich): Promise<void> => {
+		// File summaries processor
+		const processFileSummaries = async (): Promise<void> => {
+			if (!fileSummaryExtractor) return;
+
+			let completed = 0;
+			const inProgress = new Set<string>();
+
+			const processFile = async (file: FileToEnrich): Promise<void> => {
 				const fileName = file.filePath.split("/").pop() || file.filePath;
-				inProgressSummaries.add(fileName);
+				inProgress.add(fileName);
 
-				// Report what we're working on - show active count to validate parallelism
-				const active = inProgressSummaries.size;
-				const activeList = Array.from(inProgressSummaries).slice(0, 2).join(", ");
+				const active = inProgress.size;
+				const activeList = Array.from(inProgress).slice(0, 2).join(", ");
 				const moreCount = active > 2 ? ` +${active - 2}` : "";
-				reportProgress("file summaries", summariesProcessed, total, `${summariesProcessed}/${total} (${active} active) ${activeList}${moreCount}`, active);
+				reportProgress("file summaries", completed, total, `${completed}/${total} (${active} active) ${activeList}${moreCount}`, active);
 
 				try {
 					const docs = await fileSummaryExtractor.extract(
@@ -269,10 +280,8 @@ export class Enricher {
 						this.llmClient,
 					);
 
-					// Thread-safe accumulation
-					allDocuments.push(...docs);
+					fileSummaryDocs.push(...docs);
 
-					// Mark file summary as complete
 					for (const doc of docs) {
 						if (doc.filePath) {
 							this.tracker.setEnrichmentState(doc.filePath, "file_summary", "complete");
@@ -286,53 +295,36 @@ export class Enricher {
 						error: errorMessage,
 					});
 				} finally {
-					inProgressSummaries.delete(fileName);
-					summariesProcessed++;
+					inProgress.delete(fileName);
+					completed++;
 				}
 			};
 
-			// Process file summaries in parallel with concurrency limit
-			// Note: Claude CLI may serialize requests; use Anthropic API for true parallelism
-			reportProgress("file summaries", 0, total, `0/${total} (0 active) starting...`, 0);
+			reportProgress("file summaries", 0, total, `0/${total} starting...`, 0);
 
 			for (let i = 0; i < files.length; i += concurrency) {
 				const batch = files.slice(i, i + concurrency);
-				await Promise.all(batch.map(processFileSummary));
+				await Promise.all(batch.map(processFile));
 			}
 
-			// Show provider in final status so user knows which LLM was used
 			reportProgress("file summaries", total, total, `${total}/${total} via ${providerLabel}`, 0);
-		}
+		};
 
-		// Capture file summaries stats and reset for next phase
-		const fileSummariesUsage = this.llmClient.getAccumulatedUsage();
-		fileSummariesCost = fileSummariesUsage.cost;
-		fileSummariesCalls = fileSummariesUsage.calls;
-		this.llmClient.resetAccumulatedUsage();
+		// Symbol summaries processor
+		const processSymbolSummaries = async (): Promise<void> => {
+			if (otherTypes.length === 0) return;
 
-		// Step 2: Extract symbol summaries in PARALLEL
-		// Only run symbol_summary for now - idiom/usage_example/anti_pattern/project_doc
-		// add too many LLM calls (usage_example alone is 10 calls per file!)
-		// TODO: Batch these other extractors or make them optional
-		const otherTypes: DocumentType[] = ["symbol_summary"];
+			let completed = 0;
+			const inProgress = new Set<string>();
 
-		if (otherTypes.length > 0) {
-			const concurrency = options.concurrency ?? 10; // Default 10 parallel requests
-			let symbolsProcessed = 0;
-			const inProgressFiles = new Set<string>();
-
-			reportProgress("symbol summaries", 0, total, `0/${total} (0 active) starting...`, 0);
-
-			// Process single file - called in parallel
-			const processFileSymbols = async (file: FileToEnrich): Promise<void> => {
+			const processFile = async (file: FileToEnrich): Promise<void> => {
 				const fileName = file.filePath.split("/").pop() || file.filePath;
-				inProgressFiles.add(fileName);
+				inProgress.add(fileName);
 
-				// Report what we're working on - show active count to validate parallelism
-				const active = inProgressFiles.size;
-				const activeList = Array.from(inProgressFiles).slice(0, 2).join(", ");
+				const active = inProgress.size;
+				const activeList = Array.from(inProgress).slice(0, 2).join(", ");
 				const moreCount = active > 2 ? ` +${active - 2}` : "";
-				reportProgress("symbol summaries", symbolsProcessed, total, `${symbolsProcessed}/${total} (${active} active) ${activeList}${moreCount}`, active);
+				reportProgress("symbol summaries", completed, total, `${completed}/${total} (${active} active) ${activeList}${moreCount}`, active);
 
 				try {
 					const pipelineResult = await this.pipeline.extractFile(
@@ -342,12 +334,11 @@ export class Enricher {
 						file.language,
 						{
 							documentTypes: otherTypes,
-							existingDocs: allDocuments.filter(d => d.filePath === file.filePath),
+							existingDocs: [], // No dependency on file summaries
 						},
 					);
 
-					// Thread-safe accumulation (JS is single-threaded for sync ops)
-					allDocuments.push(...pipelineResult.documents);
+					symbolSummaryDocs.push(...pipelineResult.documents);
 
 					for (const err of pipelineResult.errors) {
 						allErrors.push({
@@ -364,24 +355,37 @@ export class Enricher {
 						error: errorMessage,
 					});
 				} finally {
-					inProgressFiles.delete(fileName);
-					symbolsProcessed++;
+					inProgress.delete(fileName);
+					completed++;
 				}
 			};
 
-			// Process files in parallel with concurrency limit
+			reportProgress("symbol summaries", 0, total, `0/${total} starting...`, 0);
+
 			for (let i = 0; i < files.length; i += concurrency) {
 				const batch = files.slice(i, i + concurrency);
-				await Promise.all(batch.map(processFileSymbols));
+				await Promise.all(batch.map(processFile));
 			}
 
 			reportProgress("symbol summaries", total, total, `${total}/${total} done`, 0);
-		}
+		};
 
-		// Capture symbol summaries stats
-		const symbolSummariesUsage = this.llmClient.getAccumulatedUsage();
-		symbolSummariesCost = symbolSummariesUsage.cost;
-		symbolSummariesCalls = symbolSummariesUsage.calls;
+		// Run BOTH phases in parallel - this doubles throughput when using cloud LLM!
+		await Promise.all([
+			processFileSummaries(),
+			processSymbolSummaries(),
+		]);
+
+		// Combine all documents
+		const allDocuments = [...fileSummaryDocs, ...symbolSummaryDocs];
+
+		// Get combined usage
+		const combinedUsage = this.llmClient.getAccumulatedUsage();
+		const fileSummaryRatio = fileSummaryDocs.length / Math.max(1, allDocuments.length);
+		fileSummariesCost = combinedUsage.cost * fileSummaryRatio;
+		symbolSummariesCost = combinedUsage.cost * (1 - fileSummaryRatio);
+		fileSummariesCalls = Math.round(combinedUsage.calls * fileSummaryRatio);
+		symbolSummariesCalls = combinedUsage.calls - fileSummariesCalls;
 
 		// Step 3: Embed all documents in batch
 		const docCount = allDocuments.length;

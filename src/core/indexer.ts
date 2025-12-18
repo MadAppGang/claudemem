@@ -26,6 +26,7 @@ import type {
 	ChunkWithEmbedding,
 	CodeChunk,
 	EnrichedIndexResult,
+	EnrichmentResult,
 	IEmbeddingsClient,
 	IndexResult,
 	IndexStatus,
@@ -44,6 +45,7 @@ import {
 import { createSymbolExtractor } from "./symbol-extractor.js";
 import { createReferenceGraphManager } from "./reference-graph.js";
 import { createRepoMapGenerator } from "./repo-map.js";
+import { createIndexLock, type IndexLock, type LockOptions } from "./lock.js";
 
 // ============================================================================
 // Errors
@@ -70,6 +72,29 @@ export class EmbeddingModelMismatchError extends Error {
 	}
 }
 
+/**
+ * Error thrown when indexing is already in progress by another process
+ */
+export class IndexLockError extends Error {
+	constructor(
+		public holderPid: number,
+		public runningFor: number,
+		public reason: "already_running" | "timeout",
+	) {
+		const runningForSec = Math.round(runningFor / 1000);
+		super(
+			reason === "timeout"
+				? `Timed out waiting for indexing to complete.\n` +
+				  `  Another process (PID ${holderPid}) has been indexing for ${runningForSec}s.\n` +
+				  `  If the process is stuck, use --force-unlock to clear the lock.`
+				: `Another process (PID ${holderPid}) is currently indexing.\n` +
+				  `  It has been running for ${runningForSec}s.\n` +
+				  `  Use --wait to wait for it to finish, or --force-unlock if it's stuck.`
+		);
+		this.name = "IndexLockError";
+	}
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -91,6 +116,10 @@ interface IndexerOptions {
 	enableEnrichment?: boolean;
 	/** Concurrency for LLM enrichment requests (default: 10) */
 	enrichmentConcurrency?: number;
+	/** Lock options for concurrent access control */
+	lockOptions?: LockOptions;
+	/** Callback when waiting for another process to finish indexing */
+	onWaitingForLock?: (holderPid: number, waitedMs: number) => void;
 }
 
 // ============================================================================
@@ -107,12 +136,15 @@ export class Indexer {
 	private enableEnrichment: boolean;
 	private enrichmentConcurrency: number;
 	private vectorEnabled: boolean;
+	private lockOptions?: LockOptions;
+	private onWaitingForLock?: (holderPid: number, waitedMs: number) => void;
 
 	private embeddingsClient: IEmbeddingsClient | null = null;
 	private vectorStore: VectorStore | null = null;
 	private fileTracker: FileTracker | null = null;
 	private llmClient: ILLMClient | null = null;
 	private enricher: Enricher | null = null;
+	private indexLock: IndexLock | null = null;
 
 	// Smart incremental reindexing: cache of old chunk vectors by contentHash
 	// Used to reuse embeddings for unchanged content, saving API costs
@@ -139,6 +171,10 @@ export class Indexer {
 
 		// Vector embeddings enabled by default (from config)
 		this.vectorEnabled = isVectorEnabled(options.projectPath);
+
+		// Lock options for concurrent access control
+		this.lockOptions = options.lockOptions;
+		this.onWaitingForLock = options.onWaitingForLock;
 	}
 
 	/**
@@ -211,6 +247,35 @@ export class Indexer {
 	 */
 	async index(force = false): Promise<EnrichedIndexResult> {
 		const startTime = Date.now();
+
+		// Acquire lock to prevent concurrent indexing
+		this.indexLock = createIndexLock(this.projectPath);
+		const lockResult = await this.indexLock.acquire({
+			...this.lockOptions,
+			onWaiting: this.onWaitingForLock,
+		});
+
+		if (!lockResult.acquired) {
+			throw new IndexLockError(
+				lockResult.holderPid!,
+				lockResult.runningFor!,
+				lockResult.reason as "already_running" | "timeout",
+			);
+		}
+
+		try {
+			return await this.indexInternal(force, startTime);
+		} finally {
+			// Always release lock when done
+			this.indexLock.release();
+			this.indexLock = null;
+		}
+	}
+
+	/**
+	 * Internal indexing logic (called after lock acquired)
+	 */
+	private async indexInternal(force: boolean, startTime: number): Promise<EnrichedIndexResult> {
 		await this.initialize();
 
 		// Check if embedding model changed - requires full reindex
@@ -287,6 +352,14 @@ export class Indexer {
 
 		// Track files for enrichment (file -> chunks mapping)
 		const fileChunksForEnrichment: FileToEnrich[] = [];
+
+		// PARALLEL MODE: Run AST extraction and enrichment in parallel
+		// Conditions: embedding is local (uses GPU/CPU) AND LLM is cloud (uses network)
+		const canParallelizeEnrichment = this.enableEnrichment &&
+			this.enricher &&
+			this.vectorEnabled &&
+			this.embeddingsClient?.isLocal() &&
+			this.llmClient?.isCloud();
 
 		const totalBatches = Math.ceil(filesToIndex.length / Indexer.FILES_PER_BATCH);
 
@@ -436,6 +509,12 @@ export class Indexer {
 			}
 			await this.vectorStore!.addChunks(chunksWithEmbeddings);
 
+			// Report storing completion
+			if (this.onProgress) {
+				const total = chunksWithEmbeddings.length;
+				this.onProgress(total, total, `[storing] ${total} chunks stored`);
+			}
+
 			// Check if vector store auto-cleared due to dimension mismatch
 			// If so, we need to also clear file tracker for consistency
 			if (this.vectorStore!.dimensionMismatchCleared) {
@@ -488,41 +567,47 @@ export class Indexer {
 			// Memory is released when batchChunks, embeddings, chunksWithEmbeddings go out of scope
 		}
 
-		// Phase 4.5: AST Symbol Extraction and Reference Graph
-		if (filesToIndex.length > 0) {
-			await this.extractSymbolGraph(filesToIndex, force);
-		}
+		// Phase 4.5 & 5: AST Extraction and Enrichment
+		// Run in parallel when embedding is local and LLM is cloud (no resource contention)
+		let enrichmentResult: EnrichmentResult | undefined;
 
-		// Phase 5: Enrichment (if enabled and files were indexed)
-		let enrichmentResult = undefined;
-		if (this.enableEnrichment && this.enricher && fileChunksForEnrichment.length > 0) {
+		const runEnrichment = async (): Promise<void> => {
+			if (!this.enableEnrichment || !this.enricher || fileChunksForEnrichment.length === 0) {
+				return;
+			}
 			try {
 				enrichmentResult = await this.enricher.enrichFiles(fileChunksForEnrichment, {
 					concurrency: this.enrichmentConcurrency,
 					onProgress: (completed, total, phase, status, inProgress) => {
 						if (this.onProgress) {
-							// Pass through enrichment sub-phases for granular progress
-							this.onProgress(
-								completed,
-								total,
-								`[${phase}] ${status}`,
-								inProgress,
-							);
+							this.onProgress(completed, total, `[${phase}] ${status}`, inProgress);
 						}
 					},
 				});
-
-				// Add enrichment cost to total
-				if (enrichmentResult.cost) {
-					totalCost += enrichmentResult.cost;
-				}
 			} catch (error) {
-				// Enrichment failure shouldn't fail the whole index
-				console.warn(
-					"⚠️  Enrichment failed:",
-					error instanceof Error ? error.message : error,
-				);
+				console.warn("⚠️  Enrichment failed:", error instanceof Error ? error.message : error);
 			}
+		};
+
+		const runASTExtraction = async (): Promise<void> => {
+			if (filesToIndex.length > 0) {
+				await this.extractSymbolGraph(filesToIndex, force);
+			}
+		};
+
+		if (canParallelizeEnrichment) {
+			// Parallel: AST extraction and enrichment run concurrently
+			// AST uses CPU, enrichment uses cloud LLM - no contention
+			await Promise.all([runASTExtraction(), runEnrichment()]);
+		} else {
+			// Sequential: AST first, then enrichment
+			await runASTExtraction();
+			await runEnrichment();
+		}
+
+		// Add enrichment cost to total
+		if (enrichmentResult?.cost) {
+			totalCost += enrichmentResult.cost;
 		}
 
 		// Save metadata
@@ -618,6 +703,27 @@ export class Indexer {
 
 		await this.vectorStore!.clear();
 		this.fileTracker!.clear();
+	}
+
+	/**
+	 * Check if another process is currently indexing this project
+	 */
+	isIndexingInProgress(): { inProgress: boolean; holderPid?: number; runningFor?: number } {
+		const lock = createIndexLock(this.projectPath);
+		const status = lock.isLocked();
+		return {
+			inProgress: status.locked,
+			holderPid: status.holderPid,
+			runningFor: status.runningFor,
+		};
+	}
+
+	/**
+	 * Force release a stale lock (use when a previous indexing process died)
+	 */
+	forceUnlock(): boolean {
+		const lock = createIndexLock(this.projectPath);
+		return lock.forceRelease();
 	}
 
 	/**

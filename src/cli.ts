@@ -186,31 +186,29 @@ function formatElapsed(ms: number): string {
 /** Animation frames for "in progress" portion */
 const ANIM_FRAMES = ["▓", "▒", "░", "▒"];
 
-/** Progress state for continuous rendering */
-interface ProgressState {
+/** Phase state for parallel phase tracking */
+interface PhaseState {
 	completed: number;
 	total: number;
 	inProgress: number;
-	phase: string;
 	detail: string;
+	startTime: number;
+	isComplete: boolean;
+	/** Frozen duration when phase completes (ms) */
+	finalDuration?: number;
 }
 
-/** Completed phase record */
-interface CompletedPhase {
-	phase: string;
-	durationMs: number;
-}
-
-/** Create a progress renderer with per-phase timers and overall timer */
+/** Create a progress renderer with support for parallel phases */
 function createProgressRenderer() {
 	const globalStartTime = Date.now();
-	let phaseStartTime = Date.now();
-	let state: ProgressState = { completed: 0, total: 0, inProgress: 0, phase: "starting", detail: "scanning files..." };
 	let animFrame = 0;
 	let interval: ReturnType<typeof setInterval> | null = null;
-	let lastPhase = "";
-	const completedPhases: CompletedPhase[] = [];
-	let linesWritten = 0; // Track how many lines we've written
+	let linesWritten = 0; // Track how many lines we've actually rendered
+
+	// Track multiple phases simultaneously (for parallel execution)
+	const phases = new Map<string, PhaseState>();
+	// Order phases appeared (for consistent rendering order)
+	const phaseOrder: string[] = [];
 
 	function renderLine(elapsed: string, bar: string, percent: number, phase: string, detail: string) {
 		return `⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(16)} │ ${detail}`;
@@ -237,34 +235,34 @@ function createProgressRenderer() {
 
 	function render() {
 		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
-		const { completed, total, inProgress, phase, detail } = state;
-		const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-		const bar = buildBar(completed, total, inProgress);
 
-		// Phase elapsed time (from phase start)
-		const phaseElapsed = formatElapsed(Date.now() - phaseStartTime);
-		// Overall elapsed time
-		const totalElapsed = formatElapsed(Date.now() - globalStartTime);
-
-		// Move cursor up to redraw all lines we previously wrote
+		// Move cursor up to redraw only the lines we previously wrote
 		if (linesWritten > 0) {
 			process.stdout.write(`\x1b[${linesWritten}A`);
 		}
 
-		// Render completed phases (frozen times)
-		for (const cp of completedPhases) {
-			const cpBar = "█".repeat(20);
-			process.stdout.write(`\r${renderLine(formatElapsed(cp.durationMs), cpBar, 100, cp.phase, "done")}\x1b[K\n`);
+		// Render each phase in order
+		for (const phaseName of phaseOrder) {
+			const phase = phases.get(phaseName)!;
+			const percent = phase.total > 0 ? Math.round((phase.completed / phase.total) * 100) : 0;
+			const bar = phase.isComplete
+				? "█".repeat(20)
+				: buildBar(phase.completed, phase.total, phase.inProgress);
+			// Use frozen duration for completed phases, live duration for active
+			const elapsed = phase.isComplete && phase.finalDuration !== undefined
+				? formatElapsed(phase.finalDuration)
+				: formatElapsed(Date.now() - phase.startTime);
+			const detail = phase.isComplete ? "done" : phase.detail;
+
+			process.stdout.write(`\r${renderLine(elapsed, bar, percent, phaseName, detail)}\x1b[K\n`);
 		}
 
-		// Render current phase
-		process.stdout.write(`\r${renderLine(phaseElapsed, bar, percent, phase, detail)}\x1b[K\n`);
-
 		// Render total line
+		const totalElapsed = formatElapsed(Date.now() - globalStartTime);
 		process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
 
-		// Track how many lines we wrote (completed + current + total)
-		linesWritten = completedPhases.length + 2;
+		// Track how many lines we wrote (phases + total line)
+		linesWritten = phaseOrder.length + 1;
 	}
 
 	return {
@@ -275,20 +273,38 @@ function createProgressRenderer() {
 		update(completed: number, total: number, detail: string, inProgress = 0) {
 			// Match phase names including spaces, e.g. [file summaries]
 			const phaseMatch = detail.match(/^\[([^\]]+)\]/);
-			const phase = phaseMatch ? phaseMatch[1] : "processing";
+			const phaseName = phaseMatch ? phaseMatch[1] : "processing";
 			const cleanDetail = detail.replace(/^\[[^\]]+\]\s*/, "");
 
-			// On phase change: record completed phase and reset timer
-			if (phase !== lastPhase && lastPhase !== "") {
-				completedPhases.push({
-					phase: lastPhase,
-					durationMs: Date.now() - phaseStartTime,
+			// Create or update phase
+			if (!phases.has(phaseName)) {
+				phases.set(phaseName, {
+					completed: 0,
+					total: 0,
+					inProgress: 0,
+					detail: "",
+					startTime: Date.now(),
+					isComplete: false,
 				});
-				phaseStartTime = Date.now();
+				phaseOrder.push(phaseName);
 			}
-			lastPhase = phase;
 
-			state = { completed, total, inProgress, phase, detail: cleanDetail };
+			const phase = phases.get(phaseName)!;
+
+			// Only update if not already complete (don't regress)
+			if (!phase.isComplete) {
+				phase.completed = completed;
+				phase.total = total;
+				phase.inProgress = inProgress;
+				phase.detail = cleanDetail;
+
+				// Mark complete when 100% and no in-progress items
+				if (completed >= total && total > 0 && inProgress === 0) {
+					phase.isComplete = true;
+					// Freeze the elapsed time
+					phase.finalDuration = Date.now() - phase.startTime;
+				}
+			}
 		},
 		stop() {
 			if (interval) {
@@ -298,29 +314,35 @@ function createProgressRenderer() {
 		},
 		finish() {
 			this.stop();
-			// Record final phase
-			if (lastPhase !== "") {
-				completedPhases.push({
-					phase: lastPhase,
-					durationMs: Date.now() - phaseStartTime,
-				});
-			}
-			// Final render
-			state = { ...state, completed: state.total, inProgress: 0 };
-			animFrame = 0;
 
-			// Clear and redraw final state
+			// Mark all phases as complete with frozen durations
+			for (const phase of phases.values()) {
+				if (!phase.isComplete) {
+					phase.finalDuration = Date.now() - phase.startTime;
+				}
+				phase.isComplete = true;
+				phase.completed = phase.total;
+				phase.inProgress = 0;
+			}
+
+			// Final render - use linesWritten to avoid overwriting unrelated lines
+			animFrame = 0;
 			if (linesWritten > 0) {
 				process.stdout.write(`\x1b[${linesWritten}A`);
 			}
 
-			for (const cp of completedPhases) {
-				const cpBar = "█".repeat(20);
-				process.stdout.write(`\r${renderLine(formatElapsed(cp.durationMs), cpBar, 100, cp.phase, "done")}\x1b[K\n`);
+			for (const phaseName of phaseOrder) {
+				const phase = phases.get(phaseName)!;
+				const elapsed = formatElapsed(phase.finalDuration ?? (Date.now() - phase.startTime));
+				const bar = "█".repeat(20);
+				process.stdout.write(`\r${renderLine(elapsed, bar, 100, phaseName, "done")}\x1b[K\n`);
 			}
 
 			const totalElapsed = formatElapsed(Date.now() - globalStartTime);
 			process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
+
+			// Update linesWritten for consistency
+			linesWritten = phaseOrder.length + 1;
 		},
 	};
 }
@@ -329,12 +351,33 @@ async function handleIndex(args: string[]): Promise<void> {
 	// Parse arguments
 	const force = args.includes("--force") || args.includes("-f");
 	const noLlm = args.includes("--no-llm") || args.includes("--no-enrichment");
+	const forceUnlock = args.includes("--force-unlock");
+	const wait = args.includes("--wait") || args.includes("-w");
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
 
 	// Parse concurrency (default 10 for parallel LLM requests)
 	const concurrencyArg = args.find((a) => a.startsWith("--concurrency="));
 	const concurrency = concurrencyArg ? parseInt(concurrencyArg.split("=")[1], 10) : 10;
+
+	// Parse wait timeout (default 5 minutes)
+	const waitTimeoutArg = args.find((a) => a.startsWith("--wait-timeout="));
+	const waitTimeout = waitTimeoutArg
+		? parseInt(waitTimeoutArg.split("=")[1], 10) * 1000
+		: 5 * 60 * 1000;
+
+	// Handle force unlock
+	if (forceUnlock) {
+		const { createIndexer } = await import("./core/indexer.js");
+		const indexer = createIndexer({ projectPath });
+		const released = indexer.forceUnlock();
+		if (released) {
+			console.log("✅ Lock released successfully.");
+		} else {
+			console.log("ℹ️  No lock file found.");
+		}
+		return;
+	}
 
 	// Check if vector mode is enabled
 	const vectorEnabled = isVectorEnabled(projectPath);
@@ -371,17 +414,28 @@ async function handleIndex(args: string[]): Promise<void> {
 
 	// Create progress renderer with continuous timer and animation
 	const progress = createProgressRenderer();
-	progress.start();
+	let waitingMessageShown = false;
 
-	const { createIndexer } = await import("./core/indexer.js");
+	const { createIndexer, IndexLockError } = await import("./core/indexer.js");
 	const indexer = createIndexer({
 		projectPath,
 		enableEnrichment: !noLlm,
 		enrichmentConcurrency: concurrency,
+		lockOptions: wait ? { waitTimeout } : undefined,
+		onWaitingForLock: (holderPid, waitedMs) => {
+			if (!waitingMessageShown) {
+				console.log(`⏳ Waiting for another indexing process (PID ${holderPid}) to finish...`);
+				waitingMessageShown = true;
+			}
+		},
 		onProgress: (current, total, file, inProgress) => {
+			if (!progress) return;
 			progress.update(current, total, file, inProgress ?? 0);
 		},
 	});
+
+	// Start progress only after we know we have the lock
+	progress.start();
 
 	try {
 		const result = await indexer.index(force);
@@ -449,6 +503,15 @@ async function handleIndex(args: string[]): Promise<void> {
 				console.log(`  ... and ${result.errors.length - 5} more`);
 			}
 		}
+	} catch (error) {
+		progress.stop();
+
+		if (error instanceof IndexLockError) {
+			console.error(`\n❌ ${error.message}`);
+			process.exit(1);
+		}
+
+		throw error;
 	} finally {
 		progress.stop();
 		await indexer.close();

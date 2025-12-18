@@ -19,6 +19,9 @@ import {
 } from "../config.js";
 import type { EmbeddingProgressCallback, EmbeddingProvider, EmbeddingResponse, EmbedResult, IEmbeddingsClient } from "../types.js";
 
+/** Local embedding providers (no network API call to cloud) */
+const LOCAL_EMBEDDING_PROVIDERS: Set<EmbeddingProvider> = new Set(["ollama", "lmstudio", "local"]);
+
 // ============================================================================
 // Constants
 // ============================================================================
@@ -120,9 +123,11 @@ abstract class BaseEmbeddingsClient implements IEmbeddingsClient {
 	protected model: string;
 	protected timeout: number;
 	protected dimension?: number;
+	protected provider: EmbeddingProvider;
 
-	constructor(model: string, timeout = 60000) {
+	constructor(model: string, provider: EmbeddingProvider, timeout = 60000) {
 		this.model = model;
+		this.provider = provider;
 		this.timeout = timeout;
 	}
 
@@ -132,6 +137,14 @@ abstract class BaseEmbeddingsClient implements IEmbeddingsClient {
 
 	getDimension(): number | undefined {
 		return this.dimension;
+	}
+
+	getProvider(): EmbeddingProvider {
+		return this.provider;
+	}
+
+	isLocal(): boolean {
+		return LOCAL_EMBEDDING_PROVIDERS.has(this.provider);
 	}
 
 	abstract embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult>;
@@ -156,6 +169,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 	constructor(options: EmbeddingsClientOptions = {}) {
 		super(
 			options.model || DEFAULT_MODELS.openrouter,
+			"openrouter",
 			options.timeout,
 		);
 
@@ -328,6 +342,7 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 	constructor(options: EmbeddingsClientOptions = {}) {
 		super(
 			options.model || DEFAULT_MODELS.ollama,
+			"ollama",
 			options.timeout,
 		);
 		this.endpoint = options.endpoint || DEFAULT_OLLAMA_ENDPOINT;
@@ -442,9 +457,10 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 	// Smaller batch size for local models to show progress more frequently
 	private static readonly LOCAL_BATCH_SIZE = 10;
 
-	constructor(options: EmbeddingsClientOptions = {}) {
+	constructor(options: EmbeddingsClientOptions = {}, provider: "local" | "lmstudio" = "local") {
 		super(
-			options.model || DEFAULT_MODELS.local,
+			options.model || DEFAULT_MODELS[provider],
+			provider,
 			options.timeout,
 		);
 		this.endpoint = options.endpoint || DEFAULT_LOCAL_ENDPOINT;
@@ -571,6 +587,7 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 	constructor(options: EmbeddingsClientOptions = {}) {
 		super(
 			options.model || DEFAULT_MODELS.voyage,
+			"voyage",
 			options.timeout,
 		);
 
@@ -797,14 +814,14 @@ export function createEmbeddingsClient(
 				...options,
 				model,
 				endpoint: options?.endpoint || config.lmstudioEndpoint || "http://localhost:1234/v1",
-			});
+			}, "lmstudio");
 
 		case "local":
 			return new LocalEmbeddingsClient({
 				...options,
 				model,
 				endpoint: options?.endpoint || config.localEndpoint,
-			});
+			}, "local");
 
 		case "voyage":
 			return new VoyageEmbeddingsClient({ ...options, model });
