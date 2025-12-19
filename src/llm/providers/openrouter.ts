@@ -58,6 +58,10 @@ interface OpenRouterGenerationResponse {
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
+// Rate limit retry settings (longer delays for free models)
+const RATE_LIMIT_MAX_RETRIES = 5;
+const RATE_LIMIT_BASE_DELAY_MS = 5000; // 5 seconds base delay for rate limits
+
 export class OpenRouterLLMClient extends BaseLLMClient {
 	private apiKey: string;
 
@@ -81,7 +85,7 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 		messages: LLMMessage[],
 		options?: LLMGenerateOptions
 	): Promise<LLMResponse> {
-		return this.withRetry(async () => {
+		return this.withRateLimitRetry(async () => {
 			// Convert messages to OpenRouter format
 			const openRouterMessages = this.convertMessages(messages, options?.systemPrompt);
 
@@ -119,7 +123,12 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 					if (response.status === 401) {
 						throw new Error("OpenRouter API key is invalid");
 					} else if (response.status === 429) {
-						throw new Error("OpenRouter rate limit exceeded");
+						// Parse retry-after header if available
+						const retryAfter = response.headers.get("retry-after");
+						const retryAfterMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : undefined;
+						const error = new Error("OpenRouter rate limit exceeded") as Error & { retryAfterMs?: number };
+						error.retryAfterMs = retryAfterMs;
+						throw error;
 					} else if (response.status === 402) {
 						throw new Error("OpenRouter payment required - check your credits");
 					}
@@ -223,5 +232,45 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Retry with special handling for rate limits.
+	 * Uses longer delays and more retries for 429 errors (common with free models).
+	 */
+	private async withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
+		let lastError: Error | undefined;
+
+		for (let attempt = 0; attempt < RATE_LIMIT_MAX_RETRIES; attempt++) {
+			try {
+				return await fn();
+			} catch (error) {
+				lastError = error instanceof Error ? error : new Error(String(error));
+
+				// Don't retry on auth or payment errors
+				if (
+					lastError.message.includes("401") ||
+					lastError.message.includes("403") ||
+					lastError.message.includes("invalid") ||
+					lastError.message.includes("payment required")
+				) {
+					throw lastError;
+				}
+
+				// Check if it's a rate limit error
+				const isRateLimit = lastError.message.includes("rate limit");
+
+				if (attempt < RATE_LIMIT_MAX_RETRIES - 1) {
+					// Use retry-after if available, otherwise exponential backoff
+					const retryAfterMs = (error as Error & { retryAfterMs?: number }).retryAfterMs;
+					const baseDelay = isRateLimit ? RATE_LIMIT_BASE_DELAY_MS : 1000;
+					const delay = retryAfterMs || baseDelay * Math.pow(2, attempt);
+
+					await this.sleep(delay);
+				}
+			}
+		}
+
+		throw lastError || new Error("Failed after retries");
 	}
 }
