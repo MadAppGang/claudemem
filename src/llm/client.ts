@@ -114,8 +114,9 @@ export abstract class BaseLLMClient implements ILLMClient {
 
 		// Try to parse JSON from response
 		try {
-			// Handle potential markdown code blocks
 			let content = response.content.trim();
+
+			// Handle markdown code blocks
 			if (content.startsWith("```json")) {
 				content = content.slice(7);
 			} else if (content.startsWith("```")) {
@@ -125,6 +126,47 @@ export abstract class BaseLLMClient implements ILLMClient {
 				content = content.slice(0, -3);
 			}
 			content = content.trim();
+
+			// Handle thinking prefixes (some models output text before JSON)
+			// Find the first { or [ which starts the JSON
+			const jsonStartBrace = content.indexOf("{");
+			const jsonStartBracket = content.indexOf("[");
+			let jsonStart = -1;
+
+			if (jsonStartBrace !== -1 && jsonStartBracket !== -1) {
+				jsonStart = Math.min(jsonStartBrace, jsonStartBracket);
+			} else if (jsonStartBrace !== -1) {
+				jsonStart = jsonStartBrace;
+			} else if (jsonStartBracket !== -1) {
+				jsonStart = jsonStartBracket;
+			}
+
+			if (jsonStart > 0) {
+				// There's text before the JSON - extract just the JSON part
+				content = content.slice(jsonStart);
+			}
+
+			// Find matching closing brace/bracket
+			const isArray = content.startsWith("[");
+			const openChar = isArray ? "[" : "{";
+			const closeChar = isArray ? "]" : "}";
+			let depth = 0;
+			let jsonEnd = -1;
+
+			for (let i = 0; i < content.length; i++) {
+				if (content[i] === openChar) depth++;
+				else if (content[i] === closeChar) {
+					depth--;
+					if (depth === 0) {
+						jsonEnd = i + 1;
+						break;
+					}
+				}
+			}
+
+			if (jsonEnd > 0) {
+				content = content.slice(0, jsonEnd);
+			}
 
 			return JSON.parse(content) as T;
 		} catch (error) {
