@@ -784,6 +784,8 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 				if (cost < 1) return `$${cost.toFixed(3)}`;
 				return `$${cost.toFixed(2)}`;
 			};
+			// Round to display precision for comparison (avoids floating-point issues)
+			const round = (v: number) => Math.round(v * 1000) / 1000;
 			const highlight = (val: string, isMax: boolean, isMin: boolean, shouldHL: boolean) => {
 				if (!shouldHL) return val;
 				if (isMax) return `${c.green}${val}${c.reset}`;
@@ -838,20 +840,20 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 				console.log(`${c.dim}Weighted combination of all evaluation methods. Higher is better.${c.reset}`);
 				console.log();
 
-				// Calculate min/max for each column
+				// Calculate min/max for each column (rounded for floating-point comparison)
 				const latencyValues = scoreArray.map(s => latencyByModel.get(s.modelId) || 0).filter(v => v > 0);
 				const costValues = scoreArray.map(s => costByModel.get(s.modelId) || 0).filter(v => v > 0);
 				const stats = {
-					judge: { max: Math.max(...scoreArray.map(s => s.judge.combined)), min: Math.min(...scoreArray.map(s => s.judge.combined)) },
-					contr: { max: Math.max(...scoreArray.map(s => s.contrastive.combined)), min: Math.min(...scoreArray.map(s => s.contrastive.combined)) },
-					retr: { max: Math.max(...scoreArray.map(s => s.retrieval.combined)), min: Math.min(...scoreArray.map(s => s.retrieval.combined)) },
-					down: { max: Math.max(...scoreArray.map(s => s.downstream.combined)), min: Math.min(...scoreArray.map(s => s.downstream.combined)) },
-					overall: { max: Math.max(...scoreArray.map(s => s.overall)), min: Math.min(...scoreArray.map(s => s.overall)) },
+					judge: { max: round(Math.max(...scoreArray.map(s => s.judge.combined))), min: round(Math.min(...scoreArray.map(s => s.judge.combined))) },
+					contr: { max: round(Math.max(...scoreArray.map(s => s.contrastive.combined))), min: round(Math.min(...scoreArray.map(s => s.contrastive.combined))) },
+					retr: { max: round(Math.max(...scoreArray.map(s => s.retrieval.combined))), min: round(Math.min(...scoreArray.map(s => s.retrieval.combined))) },
+					down: { max: round(Math.max(...scoreArray.map(s => s.downstream.combined))), min: round(Math.min(...scoreArray.map(s => s.downstream.combined))) },
+					overall: { max: round(Math.max(...scoreArray.map(s => s.overall))), min: round(Math.min(...scoreArray.map(s => s.overall))) },
 					latency: latencyValues.length > 0
-						? { max: Math.max(...latencyValues), min: Math.min(...latencyValues) }
+						? { max: round(Math.max(...latencyValues)), min: round(Math.min(...latencyValues)) }
 						: { max: 0, min: 0 },
 					cost: costValues.length > 0
-						? { max: Math.max(...costValues), min: Math.min(...costValues) }
+						? { max: round(Math.max(...costValues)), min: round(Math.min(...costValues)) }
 						: { max: 0, min: 0 },
 				};
 
@@ -860,15 +862,15 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 
 				for (const s of scoreArray) {
 					const name = truncateName(s.modelId).padEnd(26);
-					const judge = highlight(fmtPct(s.judge.combined).padEnd(8), s.judge.combined === stats.judge.max, s.judge.combined === stats.judge.min && stats.judge.min !== stats.judge.max, shouldHighlight);
-					const contr = highlight(fmtPct(s.contrastive.combined).padEnd(8), s.contrastive.combined === stats.contr.max, s.contrastive.combined === stats.contr.min && stats.contr.min !== stats.contr.max, shouldHighlight);
-					const retr = highlight(fmtPct(s.retrieval.combined).padEnd(8), s.retrieval.combined === stats.retr.max, s.retrieval.combined === stats.retr.min && stats.retr.min !== stats.retr.max, shouldHighlight);
-					const down = highlight(fmtPct(s.downstream.combined).padEnd(8), s.downstream.combined === stats.down.max, s.downstream.combined === stats.down.min && stats.down.min !== stats.down.max, shouldHighlight);
-					const overall = highlight(fmtPct(s.overall).padEnd(8), s.overall === stats.overall.max, s.overall === stats.overall.min && stats.overall.min !== stats.overall.max, shouldHighlight);
+					const judge = highlight(fmtPct(s.judge.combined).padEnd(8), round(s.judge.combined) === stats.judge.max, round(s.judge.combined) === stats.judge.min && stats.judge.min !== stats.judge.max, shouldHighlight);
+					const contr = highlight(fmtPct(s.contrastive.combined).padEnd(8), round(s.contrastive.combined) === stats.contr.max, round(s.contrastive.combined) === stats.contr.min && stats.contr.min !== stats.contr.max, shouldHighlight);
+					const retr = highlight(fmtPct(s.retrieval.combined).padEnd(8), round(s.retrieval.combined) === stats.retr.max, round(s.retrieval.combined) === stats.retr.min && stats.retr.min !== stats.retr.max, shouldHighlight);
+					const down = highlight(fmtPct(s.downstream.combined).padEnd(8), round(s.downstream.combined) === stats.down.max, round(s.downstream.combined) === stats.down.min && stats.down.min !== stats.down.max, shouldHighlight);
+					const overall = highlight(fmtPct(s.overall).padEnd(8), round(s.overall) === stats.overall.max, round(s.overall) === stats.overall.min && stats.overall.min !== stats.overall.max, shouldHighlight);
 					const modelLatency = latencyByModel.get(s.modelId) || 0;
-					const latency = highlightLatency(fmtLatency(modelLatency).padEnd(8), modelLatency === stats.latency.min && stats.latency.min !== stats.latency.max, modelLatency === stats.latency.max && stats.latency.min !== stats.latency.max, shouldHighlight);
+					const latency = highlightLatency(fmtLatency(modelLatency).padEnd(8), round(modelLatency) === stats.latency.min && stats.latency.min !== stats.latency.max, round(modelLatency) === stats.latency.max && stats.latency.min !== stats.latency.max, shouldHighlight);
 					const modelCost = costByModel.get(s.modelId) || 0;
-					const cost = highlightLatency(fmtCost(modelCost).padEnd(8), modelCost === stats.cost.min && stats.cost.min !== stats.cost.max, modelCost === stats.cost.max && stats.cost.min !== stats.cost.max, shouldHighlight);
+					const cost = highlightLatency(fmtCost(modelCost).padEnd(8), round(modelCost) === stats.cost.min && stats.cost.min !== stats.cost.max, round(modelCost) === stats.cost.max && stats.cost.min !== stats.cost.max, shouldHighlight);
 					console.log(`  ${name} ${judge} ${contr} ${retr} ${down} ${overall} ${latency} ${cost}`);
 				}
 
