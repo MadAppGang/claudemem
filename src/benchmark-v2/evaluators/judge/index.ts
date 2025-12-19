@@ -164,69 +164,76 @@ export function createJudgePhaseExecutor(
 
 			// Pairwise evaluation - run judges in parallel
 			if (evalConfig.usePairwise) {
+				// Show progress while building pairwise tasks
+				stateMachine.updateProgress(
+					"evaluation:judge",
+					completed,
+					undefined,
+					"preparing pairwise comparisons..."
+				);
+
 				const allPairwiseResults: PairwiseResult[] = [];
 
 				// Hard cap: max 600 comparisons per judge (300 pairs × 2 orderings)
-				// This prevents excessive API calls when there's a lot of data
 				const MAX_COMPARISONS_PER_JUDGE = 600;
-				const MAX_PAIRS_PER_JUDGE = MAX_COMPARISONS_PER_JUDGE / 2; // Each pair = 2 comparisons (A vs B, B vs A)
+				const MAX_PAIRS_PER_JUDGE = MAX_COMPARISONS_PER_JUDGE / 2;
 
-				// Calculate total possible comparisons
+				// Build comparison tasks efficiently using maps for O(1) lookups
 				const numModels = config.generators.length;
-				const pairsPerUnit = (numModels * (numModels - 1)) / 2;
-				const comparisonsPerUnit = pairsPerUnit * 2; // Both orderings
-				const totalPossibleComparisons = comparisonsPerUnit * codeUnits.length;
-
-				// Build all possible (codeUnit, modelPair) combinations grouped by model pair
-				// This allows us to sample evenly across model pairs
-				type ModelPair = { modelA: string; modelB: string };
 				type ComparisonTask = { codeUnit: typeof codeUnits[0]; summaries: typeof summaries };
-				const comparisonsByPair = new Map<string, { pair: ModelPair; tasks: ComparisonTask[] }>();
+
+				// Group summaries by code unit for fast lookup
+				const summariesByUnit = new Map<string, typeof summaries>();
+				for (const summary of summaries) {
+					const existing = summariesByUnit.get(summary.codeUnitId) || [];
+					existing.push(summary);
+					summariesByUnit.set(summary.codeUnitId, existing);
+				}
 
 				// Get unique model pairs
 				const modelIds = config.generators.map(g => g.id);
+				const modelPairs: Array<{ modelA: string; modelB: string }> = [];
 				for (let i = 0; i < modelIds.length; i++) {
 					for (let j = i + 1; j < modelIds.length; j++) {
-						const pairKey = `${modelIds[i]}::${modelIds[j]}`;
-						comparisonsByPair.set(pairKey, {
-							pair: { modelA: modelIds[i], modelB: modelIds[j] },
-							tasks: []
-						});
+						modelPairs.push({ modelA: modelIds[i], modelB: modelIds[j] });
 					}
 				}
 
-				// Populate tasks for each model pair
-				for (const codeUnit of codeUnits) {
-					const unitSummaries = summaries.filter((s) => s.codeUnitId === codeUnit.id);
-					if (unitSummaries.length < 2) continue;
+				// Build tasks per model pair
+				const tasksByPair = new Map<string, ComparisonTask[]>();
+				for (const pair of modelPairs) {
+					const pairKey = `${pair.modelA}::${pair.modelB}`;
+					const tasks: ComparisonTask[] = [];
 
-					// For each model pair, if both models have summaries for this unit, add a task
-					for (const [pairKey, pairData] of comparisonsByPair) {
-						const summaryA = unitSummaries.find(s => s.modelId === pairData.pair.modelA);
-						const summaryB = unitSummaries.find(s => s.modelId === pairData.pair.modelB);
+					for (const codeUnit of codeUnits) {
+						const unitSummaries = summariesByUnit.get(codeUnit.id) || [];
+						if (unitSummaries.length < 2) continue;
+
+						const summaryA = unitSummaries.find(s => s.modelId === pair.modelA);
+						const summaryB = unitSummaries.find(s => s.modelId === pair.modelB);
 						if (summaryA && summaryB) {
-							pairData.tasks.push({ codeUnit, summaries: [summaryA, summaryB] });
+							tasks.push({ codeUnit, summaries: [summaryA, summaryB] });
 						}
+					}
+
+					if (tasks.length > 0) {
+						tasksByPair.set(pairKey, tasks);
 					}
 				}
 
 				// Sample evenly across model pairs if we exceed the cap
-				const numPairs = comparisonsByPair.size;
+				const numPairs = tasksByPair.size;
 				const tasksPerPair = Math.ceil(MAX_PAIRS_PER_JUDGE / numPairs);
 
 				// Collect sampled tasks
 				const sampledTasks: ComparisonTask[] = [];
-				for (const [_, pairData] of comparisonsByPair) {
-					const tasks = pairData.tasks;
+				for (const [_, tasks] of tasksByPair) {
 					if (tasks.length <= tasksPerPair) {
-						// Use all tasks for this pair
 						sampledTasks.push(...tasks);
 					} else {
-						// Sample evenly from this pair's tasks
 						const step = tasks.length / tasksPerPair;
 						for (let i = 0; i < tasksPerPair; i++) {
-							const idx = Math.floor(i * step);
-							sampledTasks.push(tasks[idx]);
+							sampledTasks.push(tasks[Math.floor(i * step)]);
 						}
 					}
 				}
@@ -234,40 +241,100 @@ export function createJudgePhaseExecutor(
 				// Calculate actual total comparisons after sampling
 				const totalComparisons = Math.min(sampledTasks.length * 2, MAX_COMPARISONS_PER_JUDGE);
 
+				stateMachine.updateProgress(
+					"evaluation:judge",
+					completed,
+					undefined,
+					`starting pairwise: ${sampledTasks.length} tasks across ${numPairs} pairs`
+				);
+
+				// Pairwise task concurrency - process multiple code units in parallel per judge
+				const PAIRWISE_CONCURRENCY = 20;
+
 				const pairwisePromises = evalConfig.judgeModels.map(async (judgeModelId) => {
 					const client = judgeClients.get(judgeModelId);
 					if (!client) return { results: [] as PairwiseResult[], failures: 0, lastError: "" };
+
+					// Show this judge is starting pairwise
+					stateMachine.updateProgress(
+						"evaluation:judge",
+						0,
+						undefined,
+						`pw:${judgeModelId}: 0/${totalComparisons}/0`
+					);
 
 					const evaluator = createPairwiseJudgeEvaluator(client, judgeModelId);
 					const results: PairwiseResult[] = [];
 					let pairwiseFailures = 0;
 					let lastError = "";
-
 					let totalCompleted = 0;
+					let inProgressCount = 0;
 
-					// Process sampled tasks
-					for (const task of sampledTasks) {
-						try {
-							const pairResults = await evaluator.comparePairs(
-								task.codeUnit,
-								task.summaries,
-								(compCompleted, compTotal, compInProgress) => {
-									// Report progress at comparison level
-									stateMachine.updateProgress(
-										"evaluation:judge",
-										totalCompleted + compCompleted,
-										task.codeUnit.id,
-										`pairwise:${judgeModelId}: ${totalCompleted + compCompleted}/${totalComparisons}/${compInProgress}`
-									);
+					// Process sampled tasks in parallel batches
+					for (let i = 0; i < sampledTasks.length; i += PAIRWISE_CONCURRENCY) {
+						const batch = sampledTasks.slice(i, i + PAIRWISE_CONCURRENCY);
+						inProgressCount = batch.length;
+
+						// Update progress when batch starts
+						stateMachine.updateProgress(
+							"evaluation:judge",
+							totalCompleted,
+							undefined,
+							`pw:${judgeModelId}: ${totalCompleted}/${totalComparisons}/${inProgressCount}`
+						);
+
+						const batchPromises = batch.map(async (task) => {
+							try {
+								const pairResults = await evaluator.comparePairs(
+									task.codeUnit,
+									task.summaries,
+									() => {
+										// Trigger animation refresh
+										stateMachine.updateProgress(
+											"evaluation:judge",
+											totalCompleted,
+											task.codeUnit.id,
+											`pw:${judgeModelId}: ${totalCompleted}/${totalComparisons}/${inProgressCount}`
+										);
+									}
+								);
+								inProgressCount--;
+								totalCompleted += 2;
+								// Update progress as task completes
+								stateMachine.updateProgress(
+									"evaluation:judge",
+									totalCompleted,
+									task.codeUnit.id,
+									`pw:${judgeModelId}: ${totalCompleted}/${totalComparisons}/${inProgressCount}`
+								);
+								return { success: true as const, results: pairResults };
+							} catch (error) {
+								inProgressCount--;
+								totalCompleted += 2;
+								stateMachine.updateProgress(
+									"evaluation:judge",
+									totalCompleted,
+									undefined,
+									`pw:${judgeModelId}: ${totalCompleted}/${totalComparisons}/${inProgressCount}`
+								);
+								return { success: false as const, error: String(error) };
+							}
+						});
+
+						const batchResults = await Promise.allSettled(batchPromises);
+
+						for (const result of batchResults) {
+							if (result.status === "fulfilled") {
+								if (result.value.success) {
+									results.push(...result.value.results);
+								} else {
+									pairwiseFailures++;
+									lastError = result.value.error;
 								}
-							);
-							results.push(...pairResults);
-							totalCompleted += 2; // Each task = 2 comparisons (both orderings)
-						} catch (error) {
-							// Track error silently (don't print during progress bar)
-							pairwiseFailures++;
-							lastError = String(error);
-							totalCompleted += 2; // Still advance progress
+							} else {
+								pairwiseFailures++;
+								lastError = result.reason?.message || "Unknown error";
+							}
 						}
 					}
 
@@ -286,28 +353,28 @@ export function createJudgePhaseExecutor(
 				completed += allPairwiseResults.length;
 
 				// Save pairwise results
+				stateMachine.updateProgress(
+					"evaluation:judge",
+					completed,
+					undefined,
+					"saving pairwise results..."
+				);
 				db.insertPairwiseResults(run.id, allPairwiseResults);
 
 				// Aggregate tournament scores
+				stateMachine.updateProgress(
+					"evaluation:judge",
+					completed,
+					undefined,
+					"aggregating tournament scores..."
+				);
 				const tournamentScores = aggregateTournamentResults(
 					allPairwiseResults,
 					config.generators.map((g) => g.id)
 				);
 
-				// Update summaries with pairwise scores
-				for (const [modelId, score] of tournamentScores) {
-					const modelSummaries = summaries.filter((s) => s.modelId === modelId);
-					for (const summary of modelSummaries) {
-						const existingResults = db.getEvaluationResults(run.id, "judge");
-						const existingResult = existingResults.find((r) => r.summaryId === summary.id);
-
-						if (existingResult?.judgeResults) {
-							existingResult.judgeResults.pairwiseWins = score.wins;
-							existingResult.judgeResults.pairwiseLosses = score.losses;
-							existingResult.judgeResults.pairwiseTies = score.ties;
-						}
-					}
-				}
+				// Update summaries with pairwise scores (skip - this is slow and not needed for results)
+				// The tournament scores are already computed and will be shown in the report
 			}
 
 			return {
