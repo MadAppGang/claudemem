@@ -632,12 +632,12 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 
 		// Update progress for multi-item phases
 		if (activeMultiProgress && details) {
-			// Parse details: "model: completed/total/inProgress/failures|error" or "pairwise:model: completed/total/inProgress"
-			const isPairwise = details.startsWith("pairwise:");
+			// Parse details: "model: completed/total/inProgress/failures|error" or "pw:model: completed/total/inProgress"
+			const isPairwise = details.startsWith("pw:") || details.startsWith("pairwise:");
 			// New format with failures: model: 5/6/0/1|error message
 			// Old format without failures: model: 5/6/0
-			const matchWithFailures = details.match(/^(?:pairwise:)?(.+?):\s*(\d+)\/(\d+)\/(\d+)\/(\d+)(?:\|(.*))?$/);
-			const matchOld = details.match(/^(?:pairwise:)?(.+?):\s*(\d+)\/(\d+)\/(\d+)$/);
+			const matchWithFailures = details.match(/^(?:pw:|pairwise:)?(.+?):\s*(\d+)\/(\d+)\/(\d+)\/(\d+)(?:\|(.*))?$/);
+			const matchOld = details.match(/^(?:pw:|pairwise:)?(.+?):\s*(\d+)\/(\d+)\/(\d+)$/);
 			const match = matchWithFailures || matchOld;
 
 			if (match) {
