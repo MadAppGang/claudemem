@@ -52,6 +52,26 @@ import {
 	getFullSkillWithRole,
 	getCompactSkillWithRole,
 } from "./ai-skill.js";
+import {
+	getLogo,
+	printLogo as printLogoUI,
+	formatElapsed,
+	createBenchmarkProgress,
+	renderTable,
+	renderSummary,
+	renderHeader,
+	renderInfo,
+	renderSuccess,
+	renderError,
+	truncate,
+	formatPercent,
+	formatDuration,
+	formatCost,
+	formatContextLength,
+	getHighlight,
+	type TableColumn,
+	type CellValue,
+} from "./ui/index.js";
 
 // ============================================================================
 // Version & Branding
@@ -63,20 +83,11 @@ const packageJson = JSON.parse(
 );
 const VERSION = packageJson.version;
 
-/** ASCII logo for interactive commands (matches help logo) */
-const LOGO = `
-\x1b[38;5;209m   ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗\x1b[0m\x1b[38;5;78m███╗   ███╗███████╗███╗   ███╗\x1b[0m
-\x1b[38;5;209m  ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝\x1b[0m\x1b[38;5;78m████╗ ████║██╔════╝████╗ ████║\x1b[0m
-\x1b[38;5;209m  ██║     ██║     ███████║██║   ██║██║  ██║█████╗  \x1b[0m\x1b[38;5;78m██╔████╔██║█████╗  ██╔████╔██║\x1b[0m
-\x1b[38;5;209m  ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  \x1b[0m\x1b[38;5;78m██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║\x1b[0m
-\x1b[38;5;209m  ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗\x1b[0m\x1b[38;5;78m██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║\x1b[0m
-\x1b[38;5;209m   ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝\x1b[0m\x1b[38;5;78m╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝\x1b[0m
-\x1b[2m  Semantic code search powered by embeddings          v${VERSION}\x1b[0m
-`;
-
 /** Print logo for interactive commands */
 function printLogo(): void {
-	console.log(LOGO);
+	if (!noLogo) {
+		printLogoUI();
+	}
 }
 
 /** Global flag to suppress logo */
@@ -140,6 +151,9 @@ export async function runCli(args: string[]): Promise<void> {
 		case "benchmark-llm":
 			await handleBenchmarkLLM(args.slice(1));
 			break;
+		case "benchmark-llm-v2":
+			await handleBenchmarkLLMv2(args.slice(1));
+			break;
 		case "ai":
 			handleAiInstructions(args.slice(1));
 			break;
@@ -175,16 +189,10 @@ export async function runCli(args: string[]): Promise<void> {
 // Command Handlers
 // ============================================================================
 
-/** Format elapsed time as mm:ss */
-function formatElapsed(ms: number): string {
-	const seconds = Math.floor(ms / 1000);
-	const mins = Math.floor(seconds / 60);
-	const secs = seconds % 60;
-	return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-}
+// Note: formatElapsed and createBenchmarkProgress are imported from ./ui/index.js
 
-/** Animation frames for "in progress" portion */
-const ANIM_FRAMES = ["▓", "▒", "░", "▒"];
+/** Animation frames for indexing progress (local copy for createProgressRenderer) */
+const INDEX_ANIM_FRAMES = ["▓", "▒", "░", "▒"];
 
 /** Phase state for parallel phase tracking */
 interface PhaseState {
@@ -226,15 +234,15 @@ function createProgressRenderer() {
 		const filled = "█".repeat(filledWidth);
 		let animated = "";
 		for (let i = 0; i < inProgressWidth; i++) {
-			const charIndex = (animFrame + i) % ANIM_FRAMES.length;
-			animated += ANIM_FRAMES[charIndex];
+			const charIndex = (animFrame + i) % INDEX_ANIM_FRAMES.length;
+			animated += INDEX_ANIM_FRAMES[charIndex];
 		}
 		const empty = "░".repeat(emptyWidth);
 		return filled + animated + empty;
 	}
 
 	function render() {
-		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
+		animFrame = (animFrame + 1) % INDEX_ANIM_FRAMES.length;
 
 		// Move cursor up to redraw only the lines we previously wrote
 		if (linesWritten > 0) {
@@ -1360,141 +1368,7 @@ const EXCLUDE_DIRS = new Set([
 	"__pycache__", ".pytest_cache", "venv", ".venv", "target",
 ]);
 
-/** Multi-line progress renderer for benchmark */
-function createBenchmarkProgress(modelIds: string[]) {
-	const globalStartTime = Date.now();
-	const ANIM_FRAMES = ["▓", "▒", "░", "▒"];
-	let animFrame = 0;
-	let interval: ReturnType<typeof setInterval> | null = null;
-
-	// State for each model (with individual timing)
-	const modelState = new Map<string, {
-		completed: number;
-		total: number;
-		inProgress: number;
-		phase: string;
-		done: boolean;
-		started: boolean;  // Track if model has actually started
-		error?: string;
-		startTime: number;
-		endTime?: number;
-	}>();
-	for (const id of modelIds) {
-		modelState.set(id, { completed: 0, total: 0, inProgress: 0, phase: "embed", done: false, started: false, startTime: globalStartTime });
-	}
-
-	function render() {
-		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
-
-		// Move cursor up to overwrite previous lines
-		if (modelIds.length > 0) {
-			process.stdout.write(`\x1b[${modelIds.length}A`);
-		}
-
-		for (const modelId of modelIds) {
-			const state = modelState.get(modelId)!;
-			const { completed, total, inProgress, phase, done, started, error, startTime, endTime } = state;
-
-			// Calculate elapsed time (frozen when done/error, or show 00:00 if not started)
-			const elapsedMs = started ? (endTime || Date.now()) - startTime : 0;
-			const elapsed = formatElapsed(elapsedMs);
-
-			// Short model name (last part after /)
-			const shortName = modelId.split("/").pop() || modelId;
-			const displayName = shortName.length > 25 ? shortName.slice(0, 22) + "..." : shortName;
-
-			// Build progress bar and status
-			const width = 20;
-			let bar: string;
-			let percent: number;
-			let status: string;
-
-			if (error) {
-				bar = "\x1b[31m" + "✗".repeat(width) + "\x1b[0m";
-				percent = 0;
-				status = `\x1b[31m${"✗ error".padEnd(20)}\x1b[0m`;
-			} else if (done) {
-				bar = "█".repeat(width);
-				percent = 100;
-				status = `\x1b[38;5;78m${"✓ done".padEnd(20)}\x1b[0m`;
-			} else if (!started) {
-				// Model is waiting to start (sequential queue)
-				bar = "\x1b[90m" + "░".repeat(width) + "\x1b[0m";
-				percent = 0;
-				status = `\x1b[90m${"⏳ waiting...".padEnd(20)}\x1b[0m`;
-			} else {
-				percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-				const filledRatio = total > 0 ? completed / total : 0;
-				const inProgressRatio = total > 0 ? inProgress / total : 0;
-
-				const filledWidth = Math.round(filledRatio * width);
-				const inProgressWidth = Math.min(Math.round(inProgressRatio * width), width - filledWidth);
-				const emptyWidth = width - filledWidth - inProgressWidth;
-
-				const filled = "█".repeat(filledWidth);
-				let animated = "";
-				for (let i = 0; i < inProgressWidth; i++) {
-					const charIndex = (animFrame + i) % ANIM_FRAMES.length;
-					animated += ANIM_FRAMES[charIndex];
-				}
-				const empty = "░".repeat(emptyWidth);
-				bar = filled + animated + empty;
-				status = `${phase}: ${completed}/${total}`.padEnd(20);
-			}
-
-			process.stdout.write(`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${displayName.padEnd(25)} │ ${status}\n`);
-		}
-	}
-
-	return {
-		start() {
-			for (let i = 0; i < modelIds.length; i++) {
-				console.log("");
-			}
-			interval = setInterval(render, 100);
-			if (interval.unref) interval.unref();
-			render();
-		},
-		update(modelId: string, completed: number, total: number, inProgress: number, phase = "embed") {
-			const state = modelState.get(modelId);
-			if (state) {
-				// Start the timer on first update (when model actually begins)
-				if (!state.started) {
-					state.started = true;
-					state.startTime = Date.now();
-				}
-				state.completed = completed;
-				state.total = total;
-				state.inProgress = inProgress;
-				state.phase = phase;
-			}
-		},
-		finish(modelId: string) {
-			const state = modelState.get(modelId);
-			if (state) {
-				state.done = true;
-				state.inProgress = 0;
-				state.completed = state.total;
-				state.endTime = Date.now();
-			}
-		},
-		setError(modelId: string, error: string) {
-			const state = modelState.get(modelId);
-			if (state) {
-				state.error = error;
-				state.done = true;
-				state.endTime = Date.now();
-			}
-		},
-		stop() {
-			if (interval) {
-				clearInterval(interval);
-				interval = null;
-			}
-			render();
-		},
-	};
-}
+// Note: createBenchmarkProgress is imported from ./ui/index.js
 
 interface BenchmarkResult {
 	model: string;
@@ -3301,6 +3175,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}models${c.reset}                 List available embedding models
   ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
   ${c.green}benchmark-llm${c.reset}          Compare LLM models for summary generation quality
+  ${c.green}benchmark-llm-v2${c.reset}       Comprehensive LLM evaluation (4 methods, resumable)
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
 
 ${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(for AI agents - use --raw for parsing)${c.reset}
@@ -3343,6 +3218,15 @@ ${c.yellow}${c.bold}BENCHMARK-LLM OPTIONS${c.reset} ${c.dim}(LLM summary benchma
   ${c.cyan}--judges=${c.reset}<list>        LLM models to judge quality ${c.dim}(optional, enables blind eval)${c.reset}
   ${c.cyan}--cases=${c.reset}<n|all>        Number of test cases or "all" for entire codebase ${c.dim}(default: 10)${c.reset}
   ${c.cyan}--format=${c.reset}<fmt>         Output format: cli | json | detailed ${c.dim}(default: cli)${c.reset}
+
+${c.yellow}${c.bold}BENCHMARK-LLM-V2 OPTIONS${c.reset} ${c.dim}(comprehensive LLM evaluation)${c.reset}
+  ${c.cyan}--generators=${c.reset}<list>    LLM providers/models to test (comma-separated)
+  ${c.cyan}--judges=${c.reset}<list>        LLM models for LLM-as-Judge evaluation
+  ${c.cyan}--cases=${c.reset}<n|all>        Target code units (default: 100)
+  ${c.cyan}--resume=${c.reset}<run-id>      Resume from previous run
+  ${c.cyan}--verbose${c.reset}, ${c.cyan}-v${c.reset}           Show detailed progress
+  ${c.dim}Evaluation methods: LLM-as-Judge, Contrastive, Retrieval (P@K/MRR), Downstream${c.reset}
+  ${c.dim}Outputs: JSON, Markdown, HTML reports${c.reset}
 
 ${c.yellow}${c.bold}SYMBOL GRAPH OPTIONS${c.reset}
   ${c.cyan}--raw${c.reset}                  Machine-readable output (line-based, for parsing)
@@ -3418,4 +3302,13 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}
 `);
+}
+
+// ============================================================================
+// Benchmark LLM V2 Handler
+// ============================================================================
+
+async function handleBenchmarkLLMv2(args: string[]): Promise<void> {
+	const { runBenchmarkCLI } = await import("./benchmark-v2/index.js");
+	await runBenchmarkCLI(args);
 }
