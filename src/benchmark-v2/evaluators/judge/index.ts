@@ -59,7 +59,13 @@ export function createJudgePhaseExecutor(
 			stateMachine.startPhase("evaluation:judge", totalItems);
 
 			const concurrency = 30; // Process 30 summaries concurrently per judge
-			const REQUEST_TIMEOUT_MS = 60_000; // 60 second timeout per request
+			const DEFAULT_TIMEOUT_MS = 60_000; // 60 second timeout per request
+			const CC_TIMEOUT_MS = 180_000; // 180 seconds for Claude Code (subprocess overhead + Opus thinking)
+
+			// Get timeout based on provider (cc/ models need more time)
+			const getTimeoutForModel = (modelId: string): number => {
+				return modelId.startsWith("cc/") ? CC_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+			};
 
 			// Timeout wrapper
 			const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
@@ -108,7 +114,7 @@ export function createJudgePhaseExecutor(
 					try {
 						const result = await withTimeout(
 							evaluator.evaluate(summary, codeUnit, {}),
-							REQUEST_TIMEOUT_MS
+							getTimeoutForModel(judgeModelId)
 						);
 						db.insertEvaluationResult(run.id, result);
 					} catch (error) {
@@ -160,12 +166,73 @@ export function createJudgePhaseExecutor(
 			if (evalConfig.usePairwise) {
 				const allPairwiseResults: PairwiseResult[] = [];
 
-				// Calculate total comparisons: for N models, we have C(N,2) * 2 comparisons per code unit
-				// (both A vs B and B vs A orderings for position bias mitigation)
+				// Hard cap: max 600 comparisons per judge (300 pairs × 2 orderings)
+				// This prevents excessive API calls when there's a lot of data
+				const MAX_COMPARISONS_PER_JUDGE = 600;
+				const MAX_PAIRS_PER_JUDGE = MAX_COMPARISONS_PER_JUDGE / 2; // Each pair = 2 comparisons (A vs B, B vs A)
+
+				// Calculate total possible comparisons
 				const numModels = config.generators.length;
 				const pairsPerUnit = (numModels * (numModels - 1)) / 2;
 				const comparisonsPerUnit = pairsPerUnit * 2; // Both orderings
-				const totalComparisons = comparisonsPerUnit * codeUnits.length;
+				const totalPossibleComparisons = comparisonsPerUnit * codeUnits.length;
+
+				// Build all possible (codeUnit, modelPair) combinations grouped by model pair
+				// This allows us to sample evenly across model pairs
+				type ModelPair = { modelA: string; modelB: string };
+				type ComparisonTask = { codeUnit: typeof codeUnits[0]; summaries: typeof summaries };
+				const comparisonsByPair = new Map<string, { pair: ModelPair; tasks: ComparisonTask[] }>();
+
+				// Get unique model pairs
+				const modelIds = config.generators.map(g => g.id);
+				for (let i = 0; i < modelIds.length; i++) {
+					for (let j = i + 1; j < modelIds.length; j++) {
+						const pairKey = `${modelIds[i]}::${modelIds[j]}`;
+						comparisonsByPair.set(pairKey, {
+							pair: { modelA: modelIds[i], modelB: modelIds[j] },
+							tasks: []
+						});
+					}
+				}
+
+				// Populate tasks for each model pair
+				for (const codeUnit of codeUnits) {
+					const unitSummaries = summaries.filter((s) => s.codeUnitId === codeUnit.id);
+					if (unitSummaries.length < 2) continue;
+
+					// For each model pair, if both models have summaries for this unit, add a task
+					for (const [pairKey, pairData] of comparisonsByPair) {
+						const summaryA = unitSummaries.find(s => s.modelId === pairData.pair.modelA);
+						const summaryB = unitSummaries.find(s => s.modelId === pairData.pair.modelB);
+						if (summaryA && summaryB) {
+							pairData.tasks.push({ codeUnit, summaries: [summaryA, summaryB] });
+						}
+					}
+				}
+
+				// Sample evenly across model pairs if we exceed the cap
+				const numPairs = comparisonsByPair.size;
+				const tasksPerPair = Math.ceil(MAX_PAIRS_PER_JUDGE / numPairs);
+
+				// Collect sampled tasks
+				const sampledTasks: ComparisonTask[] = [];
+				for (const [_, pairData] of comparisonsByPair) {
+					const tasks = pairData.tasks;
+					if (tasks.length <= tasksPerPair) {
+						// Use all tasks for this pair
+						sampledTasks.push(...tasks);
+					} else {
+						// Sample evenly from this pair's tasks
+						const step = tasks.length / tasksPerPair;
+						for (let i = 0; i < tasksPerPair; i++) {
+							const idx = Math.floor(i * step);
+							sampledTasks.push(tasks[idx]);
+						}
+					}
+				}
+
+				// Calculate actual total comparisons after sampling
+				const totalComparisons = Math.min(sampledTasks.length * 2, MAX_COMPARISONS_PER_JUDGE);
 
 				const pairwisePromises = evalConfig.judgeModels.map(async (judgeModelId) => {
 					const client = judgeClients.get(judgeModelId);
@@ -178,32 +245,29 @@ export function createJudgePhaseExecutor(
 
 					let totalCompleted = 0;
 
-					// Process all code units, tracking comparison-level progress
-					for (const codeUnit of codeUnits) {
-						const unitSummaries = summaries.filter((s) => s.codeUnitId === codeUnit.id);
-						if (unitSummaries.length < 2) continue;
-
+					// Process sampled tasks
+					for (const task of sampledTasks) {
 						try {
 							const pairResults = await evaluator.comparePairs(
-								codeUnit,
-								unitSummaries,
+								task.codeUnit,
+								task.summaries,
 								(compCompleted, compTotal, compInProgress) => {
 									// Report progress at comparison level
 									stateMachine.updateProgress(
 										"evaluation:judge",
 										totalCompleted + compCompleted,
-										codeUnit.id,
+										task.codeUnit.id,
 										`pairwise:${judgeModelId}: ${totalCompleted + compCompleted}/${totalComparisons}/${compInProgress}`
 									);
 								}
 							);
 							results.push(...pairResults);
-							totalCompleted += comparisonsPerUnit;
+							totalCompleted += 2; // Each task = 2 comparisons (both orderings)
 						} catch (error) {
 							// Track error silently (don't print during progress bar)
 							pairwiseFailures++;
 							lastError = String(error);
-							totalCompleted += comparisonsPerUnit; // Still advance progress
+							totalCompleted += 2; // Still advance progress
 						}
 					}
 

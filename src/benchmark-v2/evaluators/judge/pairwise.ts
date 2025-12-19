@@ -288,8 +288,12 @@ export class PairwiseJudgeEvaluator extends BaseEvaluator<PairwiseResult[]> {
 			return count;
 		};
 
-		// Timeout for each batch (2 minutes)
-		const BATCH_TIMEOUT_MS = 120_000;
+		// Timeout for each batch - longer for Claude Code subprocess
+		const DEFAULT_BATCH_TIMEOUT_MS = 120_000; // 2 minutes
+		const CC_BATCH_TIMEOUT_MS = 300_000; // 5 minutes for cc/ models
+		const BATCH_TIMEOUT_MS = this.judgeModelId.startsWith("cc/")
+			? CC_BATCH_TIMEOUT_MS
+			: DEFAULT_BATCH_TIMEOUT_MS;
 
 		const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
 			return Promise.race([

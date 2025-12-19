@@ -31,7 +31,7 @@ export type { ILLMClient, LLMGenerateOptions, LLMMessage, LLMProvider, LLMRespon
 
 /** Default models per provider */
 export const DEFAULT_LLM_MODELS: Record<LLMProvider, string> = {
-	"claude-code": "claude-sonnet-4-5",
+	"claude-code": "sonnet", // Short name - provider resolves to full API model ID
 	anthropic: "claude-sonnet-4-5",
 	"anthropic-batch": "claude-sonnet-4-5",
 	openrouter: "anthropic/claude-sonnet-4",

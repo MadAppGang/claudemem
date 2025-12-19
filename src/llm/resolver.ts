@@ -233,6 +233,13 @@ export class LLMResolver {
 			return "anthropic";
 		}
 
+		// Check for Claude model short names - default to claude-code for subscription usage
+		if (normalized === "opus" || normalized.startsWith("opus-") ||
+			normalized === "sonnet" || normalized.startsWith("sonnet-") ||
+			normalized === "haiku" || normalized.startsWith("haiku-")) {
+			return "claude-code";
+		}
+
 		// Check for OpenAI models via OpenRouter
 		if (normalized.includes("gpt") || normalized.includes("o1-") || normalized.startsWith("o1")) {
 			return "openrouter";
@@ -265,12 +272,21 @@ export class LLMResolver {
 	/**
 	 * Resolve model alias to full model ID.
 	 * E.g., "sonnet" → "claude-sonnet-4-5" for anthropic provider
+	 * For claude-code provider, returns short names (haiku, sonnet, opus) - the provider resolves to full IDs
 	 */
 	static resolveModelAlias(alias: string, provider: LLMProvider): string {
 		const normalized = alias.toLowerCase();
 
+		// Claude Code uses short names - the provider itself resolves to full API model IDs
+		if (provider === "claude-code") {
+			if (normalized.includes("haiku")) return "haiku";
+			if (normalized.includes("opus")) return "opus";
+			if (normalized.includes("sonnet")) return "sonnet";
+			return alias;
+		}
+
 		// Check Claude aliases for Anthropic providers
-		if (provider === "anthropic" || provider === "anthropic-batch" || provider === "claude-code") {
+		if (provider === "anthropic" || provider === "anthropic-batch") {
 			if (CLAUDE_ALIASES[normalized]) {
 				return CLAUDE_ALIASES[normalized];
 			}
@@ -354,7 +370,7 @@ export class LLMResolver {
 		const defaults: Record<LLMProvider, string> = {
 			anthropic: "claude-sonnet-4-5",
 			"anthropic-batch": "claude-sonnet-4-5",
-			"claude-code": "claude-sonnet-4-5",
+			"claude-code": "sonnet", // Short name - provider resolves to full API model ID
 			openrouter: "anthropic/claude-sonnet-4",
 			local: "llama3.2",
 		};
