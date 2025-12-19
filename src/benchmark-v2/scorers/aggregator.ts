@@ -404,19 +404,22 @@ export class ScoreAggregator {
 	}
 
 	private calculateStats(values: number[]): CriterionStats {
-		if (values.length === 0) {
+		// Filter out null/undefined/NaN values (can occur from failed evaluations)
+		const validValues = values.filter(v => v !== null && v !== undefined && !isNaN(v));
+
+		if (validValues.length === 0) {
 			return { mean: 0, median: 0, stdDev: 0, min: 0, max: 0, count: 0 };
 		}
 
-		const sorted = [...values].sort((a, b) => a - b);
-		const mean = values.reduce((a, b) => a + b, 0) / values.length;
+		const sorted = [...validValues].sort((a, b) => a - b);
+		const mean = validValues.reduce((a, b) => a + b, 0) / validValues.length;
 		const median =
-			values.length % 2 === 0
-				? (sorted[values.length / 2 - 1] + sorted[values.length / 2]) / 2
-				: sorted[Math.floor(values.length / 2)];
+			validValues.length % 2 === 0
+				? (sorted[validValues.length / 2 - 1] + sorted[validValues.length / 2]) / 2
+				: sorted[Math.floor(validValues.length / 2)];
 
-		const squaredDiffs = values.map((v) => Math.pow(v - mean, 2));
-		const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+		const squaredDiffs = validValues.map((v) => Math.pow(v - mean, 2));
+		const variance = squaredDiffs.reduce((a, b) => a + b, 0) / validValues.length;
 		const stdDev = Math.sqrt(variance);
 
 		return {
@@ -425,7 +428,7 @@ export class ScoreAggregator {
 			stdDev,
 			min: sorted[0],
 			max: sorted[sorted.length - 1],
-			count: values.length,
+			count: validValues.length,
 		};
 	}
 }

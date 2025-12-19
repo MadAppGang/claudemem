@@ -179,20 +179,27 @@ xychart-beta
 	): string {
 		const sections: string[] = ["## Detailed Metrics"];
 
+		// Helper to safely format stats (handles null/undefined/NaN)
+		const fmt = (val: number | null | undefined): string => {
+			if (val === null || val === undefined || isNaN(val)) return "N/A";
+			return val.toFixed(2);
+		};
+
 		for (const score of scores.slice(0, 5)) {
 			const agg = aggregations.get(score.modelId);
 			if (!agg) continue;
 
+			const pw = agg.judge.pointwise;
 			sections.push(`### ${score.modelId}
 
 **Judge Scores (1-5 scale):**
 | Criterion | Mean | Std Dev | Min | Max |
 |-----------|------|---------|-----|-----|
-| Accuracy | ${agg.judge.pointwise.accuracy.mean.toFixed(2)} | ${agg.judge.pointwise.accuracy.stdDev.toFixed(2)} | ${agg.judge.pointwise.accuracy.min.toFixed(2)} | ${agg.judge.pointwise.accuracy.max.toFixed(2)} |
-| Completeness | ${agg.judge.pointwise.completeness.mean.toFixed(2)} | ${agg.judge.pointwise.completeness.stdDev.toFixed(2)} | ${agg.judge.pointwise.completeness.min.toFixed(2)} | ${agg.judge.pointwise.completeness.max.toFixed(2)} |
-| Semantic Richness | ${agg.judge.pointwise.semanticRichness.mean.toFixed(2)} | ${agg.judge.pointwise.semanticRichness.stdDev.toFixed(2)} | ${agg.judge.pointwise.semanticRichness.min.toFixed(2)} | ${agg.judge.pointwise.semanticRichness.max.toFixed(2)} |
-| Abstraction | ${agg.judge.pointwise.abstraction.mean.toFixed(2)} | ${agg.judge.pointwise.abstraction.stdDev.toFixed(2)} | ${agg.judge.pointwise.abstraction.min.toFixed(2)} | ${agg.judge.pointwise.abstraction.max.toFixed(2)} |
-| Conciseness | ${agg.judge.pointwise.conciseness.mean.toFixed(2)} | ${agg.judge.pointwise.conciseness.stdDev.toFixed(2)} | ${agg.judge.pointwise.conciseness.min.toFixed(2)} | ${agg.judge.pointwise.conciseness.max.toFixed(2)} |
+| Accuracy | ${fmt(pw.accuracy.mean)} | ${fmt(pw.accuracy.stdDev)} | ${fmt(pw.accuracy.min)} | ${fmt(pw.accuracy.max)} |
+| Completeness | ${fmt(pw.completeness.mean)} | ${fmt(pw.completeness.stdDev)} | ${fmt(pw.completeness.min)} | ${fmt(pw.completeness.max)} |
+| Semantic Richness | ${fmt(pw.semanticRichness.mean)} | ${fmt(pw.semanticRichness.stdDev)} | ${fmt(pw.semanticRichness.min)} | ${fmt(pw.semanticRichness.max)} |
+| Abstraction | ${fmt(pw.abstraction.mean)} | ${fmt(pw.abstraction.stdDev)} | ${fmt(pw.abstraction.min)} | ${fmt(pw.abstraction.max)} |
+| Conciseness | ${fmt(pw.conciseness.mean)} | ${fmt(pw.conciseness.stdDev)} | ${fmt(pw.conciseness.min)} | ${fmt(pw.conciseness.max)} |
 
 **Pairwise Tournament:**
 - Wins: ${agg.judge.pairwise.wins}
