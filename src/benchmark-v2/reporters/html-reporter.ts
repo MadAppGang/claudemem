@@ -13,6 +13,7 @@ import type {
 } from "../types.js";
 import type { ModelAggregation } from "../scorers/aggregator.js";
 import type { CorrelationMatrix } from "../scorers/statistics.js";
+import { detectSameProviderBias, getModelProvider } from "../index.js";
 
 // ============================================================================
 // HTML Reporter
@@ -62,7 +63,7 @@ export class HTMLReporter {
         ${this.options.includeInteractiveCharts ? this.generateChartSection(scores) : ""}
         ${this.generateDetailedResults(aggregations, scores)}
         ${correlationMatrix ? this.generateCorrelationSection(correlationMatrix) : ""}
-        ${this.generateMethodology(config)}
+        ${this.generateMethodology(config, scores.map(s => s.modelId))}
         ${this.generateFooter(run)}
     </div>
     ${this.options.includeInteractiveCharts ? this.generateChartScripts(scores, correlationMatrix) : ""}
@@ -315,26 +316,28 @@ export class HTMLReporter {
                 <div>${(score.overallScore * 100).toFixed(1)}%</div>
                 <div class="progress-bar"><div class="progress-fill" style="width: ${score.overallScore * 100}%"></div></div>
             </td>
-            <td>${(score.judgeScore / 5 * 100).toFixed(1)}%</td>
-            <td>${(score.contrastiveAccuracy * 100).toFixed(1)}%</td>
             <td>${(score.retrievalMRR * 100).toFixed(1)}%</td>
-            <td>${(score.downstreamScore * 100).toFixed(1)}%</td>
+            <td>${(score.contrastiveAccuracy * 100).toFixed(1)}%</td>
+            <td>${(score.judgeScore / 5 * 100).toFixed(1)}%</td>
         </tr>`
 			)
 			.join("");
 
 		return `<section>
-        <h2>🏆 Rankings</h2>
+        <h2>🏆 Quality Rankings</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+            How well summaries serve LLM agents for code understanding.
+            Weights: Retrieval 45%, Contrastive 30%, Judge 25%.
+        </p>
         <table>
             <thead>
                 <tr>
                     <th>Rank</th>
                     <th>Model</th>
-                    <th>Overall Score</th>
-                    <th>Judge</th>
-                    <th>Contrastive</th>
-                    <th>Retrieval</th>
-                    <th>Downstream</th>
+                    <th>Overall</th>
+                    <th>Retrieval (45%)</th>
+                    <th>Contrastive (30%)</th>
+                    <th>Judge (25%)</th>
                 </tr>
             </thead>
             <tbody>
@@ -427,31 +430,74 @@ export class HTMLReporter {
     </section>`;
 	}
 
-	private generateMethodology(config: BenchmarkConfig): string {
-		const weights = config.weights?.evalWeights || { judge: 0.35, contrastive: 0.2, retrieval: 0.4, downstream: 0.05 };
+	private generateMethodology(config: BenchmarkConfig, generatorIds?: string[]): string {
+		const judgeModels = config.evaluation.judge.judgeModels || config.judges || [];
+		const generators = generatorIds || [];
+		const biasedPairs = detectSameProviderBias(generators, judgeModels);
+
+		const biasWarning = biasedPairs.length > 0 ? `
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+            <h4 style="color: #856404; margin-bottom: 0.5rem;">⚠️ Same-Provider Bias Warning</h4>
+            <p style="color: #856404; margin-bottom: 0.5rem;">
+                Some models are being judged by models from the same provider (e.g., Claude judging Claude).
+                These scores may be biased as models from the same family may rate each other favorably.
+            </p>
+            <ul style="color: #856404; margin: 0; padding-left: 1.5rem;">
+                ${biasedPairs.map(p => `<li>${p.generator} judged by ${p.judge} (${p.provider})</li>`).join("")}
+            </ul>
+        </div>` : "";
 
 		return `<section>
         <h2>📖 Methodology</h2>
+        <h3>Quality Metrics (determine ranking)</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+            These metrics measure how well summaries serve LLM agents for code understanding.
+        </p>
         <div class="method-grid">
             <div class="method-card">
-                <h4>LLM-as-Judge (${(weights.judge * 100).toFixed(0)}%)</h4>
-                <p>5-point scale across 5 criteria</p>
-                <p>Judges: ${config.evaluation.judge.judgeModels?.join(", ") || config.judges?.join(", ") || "N/A"}</p>
-            </div>
-            <div class="method-card">
-                <h4>Contrastive (${(weights.contrastive * 100).toFixed(0)}%)</h4>
-                <p>Method: ${config.evaluation.contrastive.method || "both"}</p>
-                <p>Distractors: ${config.evaluation.contrastive.distractorCount || 9}</p>
-            </div>
-            <div class="method-card">
-                <h4>Retrieval (${(weights.retrieval * 100).toFixed(0)}%)</h4>
+                <h4>🔍 Retrieval (45%)</h4>
+                <p><strong>Can agents FIND the right code?</strong></p>
                 <p>Metrics: P@K, MRR</p>
                 <p>K values: ${config.evaluation.retrieval.kValues?.join(", ") || "1, 3, 5, 10"}</p>
             </div>
             <div class="method-card">
-                <h4>Downstream (${(weights.downstream * 100).toFixed(0)}%)</h4>
-                <p>Code completion, Bug localization</p>
-                <p>Function selection</p>
+                <h4>🎯 Contrastive (30%)</h4>
+                <p><strong>Can agents DISTINGUISH similar code?</strong></p>
+                <p>Method: ${config.evaluation.contrastive.method || "both"}</p>
+                <p>Distractors: ${config.evaluation.contrastive.distractorCount || 9}</p>
+            </div>
+            <div class="method-card">
+                <h4>📋 Judge (25%)</h4>
+                <p><strong>Is the summary accurate and complete?</strong></p>
+                <p>5-point scale across 5 criteria</p>
+                <p>Judges: ${judgeModels.join(", ") || "N/A"}</p>
+            </div>
+        </div>
+        ${biasWarning}
+        <h3 style="margin-top: 2rem;">Operational Metrics (reported separately)</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+            Production efficiency metrics for cost/speed decisions. Don't affect quality ranking.
+        </p>
+        <div class="method-grid">
+            <div class="method-card">
+                <h4>⚡ Latency</h4>
+                <p>Avg time to generate summaries</p>
+                <p>Lower = faster indexing</p>
+            </div>
+            <div class="method-card">
+                <h4>💰 Cost</h4>
+                <p>Total generation cost per model</p>
+                <p>Lower = cheaper production</p>
+            </div>
+            <div class="method-card">
+                <h4>🔄 Refinement</h4>
+                <p>Avg rounds to achieve target rank</p>
+                <p>Lower = better first-try quality</p>
+            </div>
+            <div class="method-card">
+                <h4>🔁 Self-Eval</h4>
+                <p>Can model use its own summaries?</p>
+                <p>Internal consistency check</p>
             </div>
         </div>
     </section>`;

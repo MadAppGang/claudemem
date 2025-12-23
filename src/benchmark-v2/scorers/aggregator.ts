@@ -18,6 +18,8 @@ import type {
 import type { AggregatedRetrievalMetrics } from "../evaluators/retrieval/index.js";
 import { aggregateRetrievalResults } from "../evaluators/retrieval/index.js";
 import { aggregateTournamentResults } from "../evaluators/judge/pairwise.js";
+import { aggregateSelfEvaluationResults, type SelfEvaluationMetrics } from "../evaluators/self/index.js";
+import { aggregateIterativeResults, type IterativeMetrics } from "../evaluators/iterative/index.js";
 
 // ============================================================================
 // Types
@@ -36,6 +38,8 @@ export interface ModelAggregation {
 	contrastive: ContrastiveAggregation;
 	retrieval: AggregatedRetrievalMetrics;
 	downstream: DownstreamAggregation;
+	iterative?: IterativeMetrics; // Optional: iterative refinement performance
+	self?: SelfEvaluationMetrics; // Optional: model's ability to use its own summaries
 	overall: OverallScore;
 }
 
@@ -149,12 +153,22 @@ export class ScoreAggregator {
 		for (const modelId of modelIds) {
 			const modelResults = resultsByModel.get(modelId) || [];
 
+			// Aggregate self-evaluation (if present)
+			const selfMetrics = aggregateSelfEvaluationResults(evaluationResults, modelId);
+			const hasSelfResults = selfMetrics.retrieval.count > 0 || selfMetrics.functionSelection.count > 0;
+
+			// Aggregate iterative refinement (if present)
+			const iterativeMetrics = aggregateIterativeResults(evaluationResults, modelId);
+			const hasIterativeResults = iterativeMetrics.totalEvaluated > 0;
+
 			aggregations.set(modelId, {
 				modelId,
 				judge: this.aggregateJudge(modelResults, tournamentScores, modelId),
 				contrastive: this.aggregateContrastive(modelResults),
 				retrieval: this.aggregateRetrieval(modelResults, kValues),
 				downstream: this.aggregateDownstream(modelResults),
+				iterative: hasIterativeResults ? iterativeMetrics : undefined,
+				self: hasSelfResults ? selfMetrics : undefined,
 				overall: { score: 0, rank: 0, confidence: 0 }, // Calculated after all models
 			});
 		}
@@ -367,27 +381,38 @@ export class ScoreAggregator {
 	private calculateOverallScores(aggregations: Map<string, ModelAggregation>): void {
 		const weights = this.scoringConfig.evalWeights;
 
+		// Use only core quality metrics: retrieval, contrastive, judge
+		// Operational metrics (iterative, self-eval, downstream) are reported separately
+		const retrievalWeight = weights.retrieval ?? 0.45;
+		const contrastiveWeight = weights.contrastive ?? 0.30;
+		const judgeWeight = weights.judge ?? 0.25;
+
+		// Normalize to ensure weights sum to 1.0
+		const totalWeight = retrievalWeight + contrastiveWeight + judgeWeight;
+		const normalizedWeights = {
+			retrieval: retrievalWeight / totalWeight,
+			contrastive: contrastiveWeight / totalWeight,
+			judge: judgeWeight / totalWeight,
+		};
+
 		// Calculate weighted overall score for each model
 		for (const [modelId, agg] of aggregations) {
-			const judgeScore = agg.judge.pointwise.overall.mean / 5; // Normalize to 0-1
+			// Core quality metrics (0-1 scale)
+			const judgeScore = agg.judge.pointwise.overall.mean / 5; // Normalize 1-5 to 0-1
 			const contrastiveScore = agg.contrastive.combined;
 			// Use win rate if available (cross-model competition), else fall back to MRR
 			const retrievalScore = agg.retrieval.winRate > 0 ? agg.retrieval.winRate : agg.retrieval.mrr;
-			const downstreamScore = agg.downstream.overall;
 
+			// Quality score = weighted combination of core metrics only
 			agg.overall.score =
-				weights.judge * judgeScore +
-				weights.contrastive * contrastiveScore +
-				weights.retrieval * retrievalScore +
-				weights.downstream * downstreamScore;
+				normalizedWeights.retrieval * retrievalScore +
+				normalizedWeights.contrastive * contrastiveScore +
+				normalizedWeights.judge * judgeScore;
 
 			// Confidence based on sample sizes
 			const sampleSizes = [
 				agg.judge.pointwise.overall.count,
 				agg.contrastive.embedding.count + agg.contrastive.llm.count,
-				agg.downstream.completion.count +
-					agg.downstream.bugLocalization.count +
-					agg.downstream.functionSelection.count,
 			];
 			const avgSamples = sampleSizes.reduce((a, b) => a + b, 0) / sampleSizes.length;
 			agg.overall.confidence = Math.min(1, avgSamples / 100); // Cap at 100 samples

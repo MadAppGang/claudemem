@@ -10,6 +10,27 @@ import { combineAbortSignals } from "../abort.js";
 import type { LLMGenerateOptions, LLMMessage, LLMResponse } from "../../types.js";
 
 // ============================================================================
+// LMStudio Model Contention Handler
+// ============================================================================
+
+/** Errors that indicate LMStudio model swapping - should retry */
+const RETRYABLE_ERRORS = [
+	"Model unloaded",
+	"Model is unloaded",
+	"Model has unloaded",
+	"Model does not exist",
+	"Operation canceled",
+];
+
+/** Check if error is due to LMStudio model contention */
+function isModelContentionError(message: string): boolean {
+	return RETRYABLE_ERRORS.some((err) => message.includes(err));
+}
+
+/** Retry delays for model contention (give LMStudio time to load model) */
+const MODEL_RETRY_DELAYS = [2000, 4000, 8000]; // 2s, 4s, 8s
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -73,84 +94,109 @@ export class LocalLLMClient extends BaseLLMClient {
 		options?: LLMGenerateOptions
 	): Promise<LLMResponse> {
 		return this.withRetry(async () => {
-			// Convert messages to OpenAI format
-			const openAIMessages = this.convertMessages(messages, options?.systemPrompt);
-
-			// Build request body
-			const body = {
-				model: options?.model || this.model,
-				messages: openAIMessages,
-				...(options?.maxTokens && { max_tokens: options.maxTokens }),
-				...(options?.temperature !== undefined && { temperature: options.temperature }),
-				stream: false,
-			};
-
-			// Make API request
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-			const signal = combineAbortSignals(controller.signal, options?.abortSignal);
-
-			try {
-				const url = `${this.endpoint}/chat/completions`;
-				const response = await fetch(url, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(body),
-					signal,
-				});
-
-				clearTimeout(timeoutId);
-
-				if (!response.ok) {
-					const errorBody = await response.text();
-
-					if (response.status === 404) {
-						throw new Error(
-							`Local model "${this.model}" not found. Make sure it's available on your local server.`
-						);
-					}
-
-					throw new Error(`Local LLM API error (${response.status}): ${errorBody}`);
-				}
-
-				const data = (await response.json()) as OpenAIResponse;
-
-				if (!data.choices || data.choices.length === 0) {
-					throw new Error("Local LLM returned empty response");
-				}
-
-				const content = data.choices[0].message.content;
-
-				return {
-					content,
-					model: data.model || this.model,
-					usage: data.usage
-						? {
-								inputTokens: data.usage.prompt_tokens,
-								outputTokens: data.usage.completion_tokens,
-							}
-						: undefined,
-				};
-			} catch (error) {
-				clearTimeout(timeoutId);
-
-				if (error instanceof Error) {
-					if (error.name === "AbortError") {
-						throw new Error(`Local LLM request timed out after ${this.timeout}ms`);
-					}
-					// Connection refused - server not running
-					if (error.message.includes("ECONNREFUSED")) {
-						throw new Error(
-							`Cannot connect to local LLM at ${this.endpoint}. ` +
-								"Make sure Ollama or LM Studio is running."
-						);
-					}
-				}
-				throw error;
-			}
+			return this.completeWithModelRetry(messages, options, 0);
 		});
+	}
+
+	/**
+	 * Complete with model contention retry
+	 * LMStudio may need to swap models - retry with increasing delays
+	 */
+	private async completeWithModelRetry(
+		messages: LLMMessage[],
+		options: LLMGenerateOptions | undefined,
+		attempt: number
+	): Promise<LLMResponse> {
+		// Convert messages to OpenAI format
+		const openAIMessages = this.convertMessages(messages, options?.systemPrompt);
+
+		// Build request body
+		const body = {
+			model: options?.model || this.model,
+			messages: openAIMessages,
+			...(options?.maxTokens && { max_tokens: options.maxTokens }),
+			...(options?.temperature !== undefined && { temperature: options.temperature }),
+			stream: false,
+		};
+
+		// Make API request
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+		const signal = combineAbortSignals(controller.signal, options?.abortSignal);
+
+		try {
+			const url = `${this.endpoint}/chat/completions`;
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(body),
+				signal,
+			});
+
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				const errorBody = await response.text();
+
+				// Check for model contention errors (LMStudio swapping models)
+				if (isModelContentionError(errorBody) && attempt < MODEL_RETRY_DELAYS.length) {
+					const delay = MODEL_RETRY_DELAYS[attempt];
+					await new Promise((r) => setTimeout(r, delay));
+					return this.completeWithModelRetry(messages, options, attempt + 1);
+				}
+
+				if (response.status === 404) {
+					throw new Error(
+						`Local model "${this.model}" not found. Make sure it's available on your local server.`
+					);
+				}
+
+				throw new Error(`Local LLM API error (${response.status}): ${errorBody}`);
+			}
+
+			const data = (await response.json()) as OpenAIResponse;
+
+			if (!data.choices || data.choices.length === 0) {
+				throw new Error("Local LLM returned empty response");
+			}
+
+			const content = data.choices[0].message.content;
+
+			return {
+				content,
+				model: data.model || this.model,
+				usage: data.usage
+					? {
+							inputTokens: data.usage.prompt_tokens,
+							outputTokens: data.usage.completion_tokens,
+						}
+					: undefined,
+			};
+		} catch (error) {
+			clearTimeout(timeoutId);
+
+			if (error instanceof Error) {
+				if (error.name === "AbortError") {
+					throw new Error(`Local LLM request timed out after ${this.timeout}ms`);
+				}
+				// Connection refused - server not running
+				if (error.message.includes("ECONNREFUSED")) {
+					throw new Error(
+						`Cannot connect to local LLM at ${this.endpoint}. ` +
+							"Make sure Ollama or LM Studio is running."
+					);
+				}
+				// Check for model contention in thrown errors too
+				if (isModelContentionError(error.message) && attempt < MODEL_RETRY_DELAYS.length) {
+					const delay = MODEL_RETRY_DELAYS[attempt];
+					await new Promise((r) => setTimeout(r, delay));
+					return this.completeWithModelRetry(messages, options, attempt + 1);
+				}
+			}
+			throw error;
+		}
 	}
 
 	/**

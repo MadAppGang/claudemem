@@ -13,6 +13,7 @@ import type {
 } from "../types.js";
 import type { ModelAggregation } from "../scorers/aggregator.js";
 import type { CorrelationMatrix, InterRaterAgreement } from "../scorers/statistics.js";
+import { detectSameProviderBias } from "../index.js";
 
 // ============================================================================
 // Markdown Reporter
@@ -87,7 +88,7 @@ export class MarkdownReporter {
 		}
 
 		// Methodology
-		sections.push(this.generateMethodology(config));
+		sections.push(this.generateMethodology(config, scores.map(s => s.modelId)));
 
 		// Footer
 		sections.push(this.generateFooter(run));
@@ -144,13 +145,15 @@ export class MarkdownReporter {
 	private generateRankingsTable(scores: AggregatedScore[]): string {
 		const rows = scores.map((score) => {
 			const medal = score.rank === 1 ? "🥇" : score.rank === 2 ? "🥈" : score.rank === 3 ? "🥉" : "";
-			return `| ${medal} ${score.rank} | ${score.modelId} | ${(score.overallScore * 100).toFixed(1)}% | ${(score.judgeScore / 5 * 100).toFixed(1)}% | ${(score.contrastiveAccuracy * 100).toFixed(1)}% | ${(score.retrievalMRR * 100).toFixed(1)}% | ${(score.downstreamScore * 100).toFixed(1)}% |`;
+			return `| ${medal} ${score.rank} | ${score.modelId} | ${(score.overallScore * 100).toFixed(1)}% | ${(score.retrievalMRR * 100).toFixed(1)}% | ${(score.contrastiveAccuracy * 100).toFixed(1)}% | ${(score.judgeScore / 5 * 100).toFixed(1)}% |`;
 		});
 
-		return `## Rankings
+		return `## Quality Rankings
 
-| Rank | Model | Overall | Judge | Contrastive | Retrieval | Downstream |
-|------|-------|---------|-------|-------------|-----------|------------|
+How well summaries serve LLM agents for code understanding.
+
+| Rank | Model | Overall | Retrieval (45%) | Contrastive (30%) | Judge (25%) |
+|------|-------|---------|-----------------|-------------------|-------------|
 ${rows.join("\n")}`;
 	}
 
@@ -211,7 +214,20 @@ xychart-beta
 ${Object.entries(agg.retrieval.precision)
 	.map(([k, v]) => `- P@${k}: ${(v * 100).toFixed(1)}%`)
 	.join("\n")}
-- MRR: ${(agg.retrieval.mrr * 100).toFixed(1)}%`);
+- MRR: ${(agg.retrieval.mrr * 100).toFixed(1)}%${agg.iterative ? `
+
+**Iterative Refinement:**
+- Summaries Evaluated: ${agg.iterative.totalEvaluated}
+- Success Rate: ${(agg.iterative.successRate * 100).toFixed(1)}%
+- Avg Rounds to Success: ${agg.iterative.avgRounds.toFixed(2)}
+- Refinement Score: ${(agg.iterative.avgRefinementScore * 100).toFixed(1)}% (Brokk-style: 1/log₂(rounds+2))
+- Avg Rank Improvement: ${agg.iterative.avgRankImprovement.toFixed(2)}` : ""}${agg.self ? `
+
+**Self-Evaluation (Internal Consistency):**
+- Self-Retrieval Accuracy: ${(agg.self.retrieval.accuracy * 100).toFixed(1)}% (n=${agg.self.retrieval.count})
+- Self-Retrieval Confidence: ${(agg.self.retrieval.avgConfidence * 100).toFixed(1)}%
+- Function Selection: ${(agg.self.functionSelection.accuracy * 100).toFixed(1)}% (n=${agg.self.functionSelection.count})
+- Overall Self-Use: ${(agg.self.overall * 100).toFixed(1)}%` : ""}`);
 		}
 
 		return sections.join("\n\n");
@@ -245,28 +261,51 @@ ${rows.join("\n")}
 | Interpretation | ${agreement.interpretation} |`;
 	}
 
-	private generateMethodology(config: BenchmarkConfig): string {
-		const weights = config.weights?.evalWeights || { judge: 0.35, contrastive: 0.2, retrieval: 0.4, downstream: 0.05 };
+	private generateMethodology(config: BenchmarkConfig, generatorIds?: string[]): string {
+		const judgeModels = config.evaluation.judge.judgeModels || config.judges || [];
+		const generators = generatorIds || [];
+		const biasedPairs = detectSameProviderBias(generators, judgeModels);
+
+		const biasWarning = biasedPairs.length > 0 ? `
+
+> ⚠️ **Same-Provider Bias Warning**
+>
+> Some models are being judged by models from the same provider (e.g., Claude judging Claude).
+> These scores may be biased as models from the same family may rate each other favorably.
+>
+> Affected pairs:
+${biasedPairs.map(p => `> - ${p.generator} judged by ${p.judge} (${p.provider})`).join("\n")}
+` : "";
 
 		return `## Methodology
 
-### Evaluation Methods
+### Quality Metrics (determine ranking)
 
-1. **LLM-as-Judge** (${(weights.judge * 100).toFixed(0)}% weight)
-   - 5-point scale across 5 criteria
-   - Judge models: ${config.evaluation.judge.judgeModels?.join(", ") || config.judges?.join(", ") || "N/A"}
+These metrics measure how well summaries serve LLM agents for code understanding.
 
-2. **Contrastive Matching** (${(weights.contrastive * 100).toFixed(0)}% weight)
+1. **🔍 Retrieval** (45% weight)
+   - **Can agents FIND the right code?**
+   - Metrics: P@K (K=${config.evaluation.retrieval.kValues?.join(", ") || "1, 3, 5, 10"}), MRR
+   - Tests semantic search performance
+
+2. **🎯 Contrastive Matching** (30% weight)
+   - **Can agents DISTINGUISH similar code?**
    - Method: ${config.evaluation.contrastive.method || "both"}
    - Distractors: ${config.evaluation.contrastive.distractorCount || 9}
 
-3. **Retrieval Evaluation** (${(weights.retrieval * 100).toFixed(0)}% weight)
-   - Metrics: P@K (K=${config.evaluation.retrieval.kValues?.join(", ") || "1, 3, 5, 10"}), MRR
+3. **📋 LLM-as-Judge** (25% weight)
+   - **Is the summary accurate and complete?**
+   - 5-point scale across 5 criteria
+   - Judge models: ${judgeModels.join(", ") || "N/A"}
+${biasWarning}
+### Operational Metrics (reported separately)
 
-4. **Downstream Tasks** (${(weights.downstream * 100).toFixed(0)}% weight)
-   - Code completion
-   - Bug localization
-   - Function selection
+Production efficiency metrics for cost/speed decisions. Don't affect quality ranking.
+
+- **⚡ Latency** - Avg time to generate summaries (lower = faster)
+- **💰 Cost** - Total generation cost per model (lower = cheaper)
+- **🔄 Refinement** - Avg rounds to achieve target rank (lower = better first-try quality)
+- **🔁 Self-Eval** - Can model use its own summaries? (internal consistency check)
 
 ### Sampling
 

@@ -835,6 +835,70 @@ export class VectorStore {
 	}
 
 	/**
+	 * Update document content and re-embed (used for summary refinement)
+	 */
+	async updateDocumentContent(
+		documentId: string,
+		newContent: string,
+		newVector: number[],
+	): Promise<boolean> {
+		const table = await this.ensureTableOpen();
+		if (!table) return false;
+
+		try {
+			// LanceDB update via delete + insert pattern
+			const results = await table.query().where(`id = '${escapeFilterValue(documentId)}'`).toArray();
+			if (results.length === 0) return false;
+
+			const existing = results[0] as StoredChunk;
+
+			// Delete old record
+			await table.delete(`id = '${escapeFilterValue(documentId)}'`);
+
+			// Insert updated record with new content and vector
+			await table.add([{
+				...existing,
+				content: newContent,
+				vector: newVector,
+				enrichedAt: new Date().toISOString(),
+			}]);
+
+			return true;
+		} catch (error) {
+			console.warn(`Failed to update document ${documentId}:`, error);
+			return false;
+		}
+	}
+
+	/**
+	 * Get all summary documents (file_summary and symbol_summary) for refinement
+	 */
+	async getAllSummaries(): Promise<Array<BaseDocument & { vector: number[] }>> {
+		const table = await this.ensureTableOpen();
+		if (!table) return [];
+
+		try {
+			const filter = "documentType IN ('file_summary', 'symbol_summary')";
+			const results = await table.query().where(filter).toArray();
+
+			return results.map((row) => ({
+				id: row.id,
+				content: row.content,
+				documentType: row.documentType as DocumentType,
+				filePath: row.filePath || undefined,
+				fileHash: row.fileHash || undefined,
+				createdAt: row.createdAt,
+				enrichedAt: row.enrichedAt || undefined,
+				sourceIds: row.sourceIds ? JSON.parse(row.sourceIds) : undefined,
+				metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+				vector: row.vector,
+			}));
+		} catch {
+			return [];
+		}
+	}
+
+	/**
 	 * Get code units for a file, optionally filtered by unit type
 	 */
 	async getCodeUnitsByFile(

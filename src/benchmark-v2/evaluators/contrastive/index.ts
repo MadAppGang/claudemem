@@ -423,6 +423,16 @@ export function createContrastivePhaseExecutor(
 			const summaries = db.getSummaries(run.id);
 			const codeUnits = db.getCodeUnits(run.id);
 
+			// Resume support: get existing evaluation results
+			const existingResults = db.getEvaluationResults(run.id, "contrastive");
+			const evaluatedContrastive = new Set<string>(); // key: summaryId:method
+			for (const result of existingResults) {
+				if (result.contrastiveResults) {
+					const key = `${result.summaryId}:${result.contrastiveResults.method}`;
+					evaluatedContrastive.add(key);
+				}
+			}
+
 			// Calculate methods to run
 			const methods: ("embedding" | "llm")[] = [];
 			if (evalConfig.method === "both") {
@@ -548,6 +558,13 @@ export function createContrastivePhaseExecutor(
 				const processSummary = async (summary: typeof validSummaries[0]): Promise<void> => {
 					const codeUnit = codeUnitMap.get(summary.codeUnitId);
 					if (!codeUnit) return;
+
+					// Resume support: skip already evaluated
+					const evalKey = `${summary.id}:${method}`;
+					if (evaluatedContrastive.has(evalKey)) {
+						methodCompleted++;
+						return;
+					}
 
 					inProgress.add(summary.id);
 

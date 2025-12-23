@@ -24,6 +24,13 @@ import {
 	FileSummaryExtractor,
 } from "./extractors/index.js";
 import { createEnrichmentPipeline, EnrichmentPipeline } from "./pipeline.js";
+import {
+	createRefinementEngine,
+	createRetrievalStrategy,
+	type RefinementContext,
+	type IterativeRefinementResults,
+	calculateRefinementScore,
+} from "./refinement/index.js";
 
 // ============================================================================
 // Types
@@ -45,6 +52,43 @@ export interface FileToEnrich {
 	fileContent: string;
 	codeChunks: CodeChunk[];
 	language: string;
+}
+
+export interface RefinementOptions {
+	/** Target rank threshold - summaries ranking above this are refined (default: 3) */
+	targetRank?: number;
+	/** Maximum refinement rounds per summary (default: 3) */
+	maxRounds?: number;
+	/** Concurrency for parallel refinement (default: 5) */
+	concurrency?: number;
+	/** Progress callback for refinement progress */
+	onProgress?: (phase: string, completed: number, total: number, details?: string) => void;
+}
+
+export interface RefinementResult {
+	/** Number of summaries tested */
+	totalTested: number;
+	/** Number of summaries that failed quality test */
+	failuresFound: number;
+	/** Number of summaries successfully refined */
+	successfullyRefined: number;
+	/** Average rounds needed for successful refinement */
+	avgRoundsToSuccess: number;
+	/** Average Brokk-style score (1.0 / log2(rounds + 2)) */
+	avgRefinementScore: number;
+	/** Duration in milliseconds */
+	durationMs: number;
+	/** Individual refinement results */
+	details: Array<{
+		documentId: string;
+		filePath?: string;
+		documentType: DocumentType;
+		initialRank: number;
+		finalRank: number;
+		rounds: number;
+		success: boolean;
+		refinementScore: number;
+	}>;
 }
 
 // ============================================================================
@@ -488,6 +532,238 @@ export class Enricher {
 	 */
 	getFilesNeedingEnrichment(documentType: DocumentType): string[] {
 		return this.tracker.getFilesNeedingEnrichment(documentType);
+	}
+
+	// ========================================================================
+	// Iterative Refinement
+	// ========================================================================
+
+	/**
+	 * Refine summaries that fail quality testing.
+	 *
+	 * Uses retrieval-based quality testing to identify poor summaries,
+	 * then iteratively refines them using LLM feedback.
+	 *
+	 * Inspired by Brokk's edit-test loop methodology.
+	 *
+	 * @example
+	 * ```typescript
+	 * const result = await enricher.refineFailures({
+	 *   targetRank: 3,
+	 *   maxRounds: 3,
+	 *   onProgress: (phase, completed, total, details) => {
+	 *     console.log(`[${phase}] ${completed}/${total}: ${details}`);
+	 *   },
+	 * });
+	 *
+	 * console.log(`Refined ${result.successfullyRefined} of ${result.failuresFound} failures`);
+	 * ```
+	 */
+	async refineFailures(options: RefinementOptions = {}): Promise<RefinementResult> {
+		const startTime = Date.now();
+		const {
+			targetRank = 3,
+			maxRounds = 3,
+			concurrency = 5,
+			onProgress,
+		} = options;
+
+		const reportProgress = (phase: string, completed: number, total: number, details?: string) => {
+			if (onProgress) {
+				onProgress(phase, completed, total, details);
+			}
+		};
+
+		// Step 1: Get all summaries from vector store
+		reportProgress("loading", 0, 0, "Loading summaries from index...");
+		const allSummaries = await this.vectorStore.getAllSummaries();
+
+		if (allSummaries.length === 0) {
+			return {
+				totalTested: 0,
+				failuresFound: 0,
+				successfullyRefined: 0,
+				avgRoundsToSuccess: 0,
+				avgRefinementScore: 0,
+				durationMs: Date.now() - startTime,
+				details: [],
+			};
+		}
+
+		reportProgress("loading", allSummaries.length, allSummaries.length, `Loaded ${allSummaries.length} summaries`);
+
+		// Step 2: Create refinement engine and strategy
+		const engine = createRefinementEngine();
+		const strategy = createRetrievalStrategy({
+			embeddingsClient: this.embeddingsClient,
+			targetRank,
+		});
+
+		// Step 3: Test all summaries and collect failures
+		reportProgress("testing", 0, allSummaries.length, "Testing summary quality...");
+
+		const failures: Array<{
+			summary: typeof allSummaries[0];
+			initialRank: number;
+		}> = [];
+
+		let tested = 0;
+		for (let i = 0; i < allSummaries.length; i += concurrency) {
+			const batch = allSummaries.slice(i, i + concurrency);
+
+			await Promise.all(batch.map(async (summary) => {
+				// Build minimal refinement context for testing
+				const context: RefinementContext = {
+					summary: summary.content,
+					codeContent: "", // Not needed for testing, only for refinement prompt
+					language: "",
+					metadata: {
+						filePath: summary.filePath,
+					},
+					competitors: allSummaries
+						.filter((s) => s.id !== summary.id)
+						.slice(0, 20) // Sample competitors for efficiency
+						.map((s) => ({
+							summary: s.content,
+							modelId: "index",
+						})),
+				};
+
+				// Test quality
+				const result = await strategy.testQuality(summary.content, context);
+				tested++;
+
+				if (!strategy.isSuccess(result)) {
+					failures.push({
+						summary,
+						initialRank: result.rank ?? Infinity,
+					});
+				}
+
+				reportProgress("testing", tested, allSummaries.length, `Tested ${tested}/${allSummaries.length}, ${failures.length} failures`);
+			}));
+		}
+
+		if (failures.length === 0) {
+			return {
+				totalTested: allSummaries.length,
+				failuresFound: 0,
+				successfullyRefined: 0,
+				avgRoundsToSuccess: 0,
+				avgRefinementScore: 1.0, // All passed on first try
+				durationMs: Date.now() - startTime,
+				details: [],
+			};
+		}
+
+		// Step 4: Refine failures
+		reportProgress("refining", 0, failures.length, `Refining ${failures.length} failing summaries...`);
+
+		const results: RefinementResult["details"] = [];
+		let refined = 0;
+		let successCount = 0;
+		let roundsSum = 0;
+		let scoreSum = 0;
+
+		// We need code content for refinement - read from source if available
+		for (let i = 0; i < failures.length; i += concurrency) {
+			const batch = failures.slice(i, i + concurrency);
+
+			await Promise.all(batch.map(async (failure) => {
+				const summary = failure.summary;
+
+				// Build full refinement context
+				const context: RefinementContext = {
+					summary: summary.content,
+					codeContent: "", // We don't have original code in production - refinement will use summary context
+					language: "",
+					metadata: {
+						filePath: summary.filePath,
+					},
+					competitors: allSummaries
+						.filter((s) => s.id !== summary.id)
+						.slice(0, 20)
+						.map((s) => ({
+							summary: s.content,
+							modelId: "index",
+						})),
+				};
+
+				try {
+					// Run refinement
+					const refinementResult = await engine.refine(
+						summary.content,
+						context,
+						{
+							maxRounds,
+							strategy,
+							llmClient: this.llmClient,
+						},
+					);
+
+					// Track stats
+					const score = calculateRefinementScore(refinementResult.rounds);
+
+					if (refinementResult.success) {
+						successCount++;
+						roundsSum += refinementResult.rounds;
+
+						// Update the summary in the vector store
+						if (refinementResult.rounds > 0) {
+							// Re-embed the refined summary
+							const embedResult = await this.embeddingsClient.embed([refinementResult.finalSummary]);
+							const newVector = embedResult.embeddings[0];
+
+							await this.vectorStore.updateDocumentContent(
+								summary.id,
+								refinementResult.finalSummary,
+								newVector,
+							);
+						}
+					}
+
+					scoreSum += score;
+
+					results.push({
+						documentId: summary.id,
+						filePath: summary.filePath,
+						documentType: summary.documentType,
+						initialRank: failure.initialRank,
+						finalRank: refinementResult.metrics.finalRank ?? failure.initialRank,
+						rounds: refinementResult.rounds,
+						success: refinementResult.success,
+						refinementScore: score,
+					});
+				} catch (error) {
+					// Record failure
+					results.push({
+						documentId: summary.id,
+						filePath: summary.filePath,
+						documentType: summary.documentType,
+						initialRank: failure.initialRank,
+						finalRank: failure.initialRank,
+						rounds: 0,
+						success: false,
+						refinementScore: 0,
+					});
+				}
+
+				refined++;
+				reportProgress("refining", refined, failures.length, `Refined ${refined}/${failures.length}`);
+			}));
+		}
+
+		reportProgress("complete", failures.length, failures.length, `Done: ${successCount}/${failures.length} successfully refined`);
+
+		return {
+			totalTested: allSummaries.length,
+			failuresFound: failures.length,
+			successfullyRefined: successCount,
+			avgRoundsToSuccess: successCount > 0 ? roundsSum / successCount : 0,
+			avgRefinementScore: failures.length > 0 ? scoreSum / failures.length : 1.0,
+			durationMs: Date.now() - startTime,
+			details: results,
+		};
 	}
 }
 

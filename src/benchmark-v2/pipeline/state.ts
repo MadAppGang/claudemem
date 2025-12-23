@@ -29,10 +29,12 @@ import type {
 export const PHASES: readonly BenchmarkPhase[] = [
 	"extraction",
 	"generation",
+	"evaluation:iterative", // Runs first to refine summaries before other evaluations
 	"evaluation:judge",
 	"evaluation:contrastive",
 	"evaluation:retrieval",
 	"evaluation:downstream",
+	"evaluation:self",
 	"aggregation",
 	"reporting",
 ] as const;
@@ -41,15 +43,19 @@ export const PHASES: readonly BenchmarkPhase[] = [
 export const PHASE_DEPENDENCIES: Record<BenchmarkPhase, BenchmarkPhase[]> = {
 	extraction: [],
 	generation: ["extraction"],
-	"evaluation:judge": ["generation"],
-	"evaluation:contrastive": ["generation"],
-	"evaluation:retrieval": ["generation"],
-	"evaluation:downstream": ["generation"],
+	"evaluation:iterative": ["generation"],
+	"evaluation:judge": ["evaluation:iterative"], // Uses refined summaries
+	"evaluation:contrastive": ["evaluation:iterative"],
+	"evaluation:retrieval": ["evaluation:iterative"],
+	"evaluation:downstream": ["evaluation:iterative"],
+	"evaluation:self": ["evaluation:iterative"],
 	aggregation: [
+		"evaluation:iterative",
 		"evaluation:judge",
 		"evaluation:contrastive",
 		"evaluation:retrieval",
 		"evaluation:downstream",
+		"evaluation:self",
 	],
 	reporting: ["aggregation"],
 };
@@ -58,10 +64,12 @@ export const PHASE_DEPENDENCIES: Record<BenchmarkPhase, BenchmarkPhase[]> = {
 export const PHASE_NAMES: Record<BenchmarkPhase, string> = {
 	extraction: "Code Extraction",
 	generation: "Summary Generation",
+	"evaluation:iterative": "Iterative Refinement",
 	"evaluation:judge": "LLM-as-Judge Evaluation",
 	"evaluation:contrastive": "Contrastive Matching",
 	"evaluation:retrieval": "Retrieval Evaluation",
 	"evaluation:downstream": "Downstream Tasks",
+	"evaluation:self": "Self-Evaluation",
 	aggregation: "Score Aggregation",
 	reporting: "Report Generation",
 };

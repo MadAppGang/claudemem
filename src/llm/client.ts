@@ -114,66 +114,126 @@ export abstract class BaseLLMClient implements ILLMClient {
 
 		// Try to parse JSON from response
 		try {
-			let content = response.content.trim();
-
-			// Handle markdown code blocks
-			if (content.startsWith("```json")) {
-				content = content.slice(7);
-			} else if (content.startsWith("```")) {
-				content = content.slice(3);
+			const content = response.content.trim();
+			const parsed = this.extractJSON(content);
+			if (parsed === null) {
+				throw new Error("No valid JSON found in response");
 			}
-			if (content.endsWith("```")) {
-				content = content.slice(0, -3);
-			}
-			content = content.trim();
-
-			// Handle thinking prefixes (some models output text before JSON)
-			// Find the first { or [ which starts the JSON
-			const jsonStartBrace = content.indexOf("{");
-			const jsonStartBracket = content.indexOf("[");
-			let jsonStart = -1;
-
-			if (jsonStartBrace !== -1 && jsonStartBracket !== -1) {
-				jsonStart = Math.min(jsonStartBrace, jsonStartBracket);
-			} else if (jsonStartBrace !== -1) {
-				jsonStart = jsonStartBrace;
-			} else if (jsonStartBracket !== -1) {
-				jsonStart = jsonStartBracket;
-			}
-
-			if (jsonStart > 0) {
-				// There's text before the JSON - extract just the JSON part
-				content = content.slice(jsonStart);
-			}
-
-			// Find matching closing brace/bracket
-			const isArray = content.startsWith("[");
-			const openChar = isArray ? "[" : "{";
-			const closeChar = isArray ? "]" : "}";
-			let depth = 0;
-			let jsonEnd = -1;
-
-			for (let i = 0; i < content.length; i++) {
-				if (content[i] === openChar) depth++;
-				else if (content[i] === closeChar) {
-					depth--;
-					if (depth === 0) {
-						jsonEnd = i + 1;
-						break;
-					}
-				}
-			}
-
-			if (jsonEnd > 0) {
-				content = content.slice(0, jsonEnd);
-			}
-
-			return JSON.parse(content) as T;
+			return parsed as T;
 		} catch (error) {
 			throw new Error(
 				`Failed to parse LLM response as JSON: ${error instanceof Error ? error.message : String(error)}\nResponse: ${response.content.slice(0, 500)}`
 			);
 		}
+	}
+
+	/**
+	 * Extract JSON from a potentially messy LLM response
+	 * Handles: markdown code fences, nested fences, prefix text, suffix text
+	 */
+	private extractJSON(content: string): unknown {
+		// Strategy 1: Try parsing as-is (fastest path for well-formed responses)
+		try {
+			return JSON.parse(content);
+		} catch {
+			// Continue to more complex extraction
+		}
+
+		// Strategy 2: Remove ALL markdown code fences (handles nested fences)
+		// This removes ```json, ```typescript, ``` etc. that local models often include
+		let cleaned = content
+			.replace(/```(?:json|javascript|typescript|ts|js)?\s*/gi, "")
+			.replace(/```/g, "")
+			.trim();
+
+		// Try parsing cleaned content
+		try {
+			return JSON.parse(cleaned);
+		} catch {
+			// Continue to bracket matching
+		}
+
+		// Strategy 3: Find first { or [ and extract matching structure
+		const jsonStartBrace = cleaned.indexOf("{");
+		const jsonStartBracket = cleaned.indexOf("[");
+		let jsonStart = -1;
+
+		if (jsonStartBrace !== -1 && jsonStartBracket !== -1) {
+			jsonStart = Math.min(jsonStartBrace, jsonStartBracket);
+		} else if (jsonStartBrace !== -1) {
+			jsonStart = jsonStartBrace;
+		} else if (jsonStartBracket !== -1) {
+			jsonStart = jsonStartBracket;
+		}
+
+		if (jsonStart === -1) {
+			return null; // No JSON structure found
+		}
+
+		cleaned = cleaned.slice(jsonStart);
+
+		// Find matching closing brace/bracket (string-aware to handle nested quotes)
+		const isArray = cleaned.startsWith("[");
+		const openChar = isArray ? "[" : "{";
+		const closeChar = isArray ? "]" : "}";
+		let depth = 0;
+		let inString = false;
+		let escapeNext = false;
+		let jsonEnd = -1;
+
+		for (let i = 0; i < cleaned.length; i++) {
+			const char = cleaned[i];
+
+			if (escapeNext) {
+				escapeNext = false;
+				continue;
+			}
+
+			if (char === "\\") {
+				escapeNext = true;
+				continue;
+			}
+
+			if (char === '"') {
+				inString = !inString;
+				continue;
+			}
+
+			if (inString) continue;
+
+			if (char === openChar) depth++;
+			else if (char === closeChar) {
+				depth--;
+				if (depth === 0) {
+					jsonEnd = i + 1;
+					break;
+				}
+			}
+		}
+
+		if (jsonEnd > 0) {
+			cleaned = cleaned.slice(0, jsonEnd);
+		}
+
+		// Try parsing the extracted JSON
+		try {
+			return JSON.parse(cleaned);
+		} catch {
+			// Strategy 4: Try removing common trailing garbage
+			// Some models add explanatory text after the JSON
+			const lastBrace = cleaned.lastIndexOf("}");
+			const lastBracket = cleaned.lastIndexOf("]");
+			const lastClose = Math.max(lastBrace, lastBracket);
+			if (lastClose > 0) {
+				try {
+					return JSON.parse(cleaned.slice(0, lastClose + 1));
+				} catch {
+					// Give up
+				}
+			}
+		}
+
+		return null;
 	}
 
 	async testConnection(): Promise<boolean> {

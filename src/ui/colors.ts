@@ -15,6 +15,8 @@ export const colors = {
 	green: "\x1b[38;5;78m",
 	yellow: "\x1b[33m",
 	cyan: "\x1b[36m",
+	magenta: "\x1b[35m",
+	purple: "\x1b[38;5;141m",
 	orange: "\x1b[38;5;209m",
 	gray: "\x1b[90m",
 

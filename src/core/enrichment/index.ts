@@ -6,7 +6,7 @@
 
 // Core components
 export { Enricher, createEnricher } from "./enricher.js";
-export type { EnricherOptions, FileToEnrich } from "./enricher.js";
+export type { EnricherOptions, FileToEnrich, RefinementOptions, RefinementResult } from "./enricher.js";
 
 export { EnrichmentPipeline, createEnrichmentPipeline } from "./pipeline.js";
 export type { PipelineOptions, PipelineResult } from "./pipeline.js";

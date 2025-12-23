@@ -1,0 +1,13 @@
+{
+	"hosting": {
+		"site": "claudish-6da10-eddc7",
+		"public": "dist",
+		"ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+		"rewrites": [
+			{
+				"source": "**",
+				"destination": "/index.html"
+			}
+		]
+	}
+}

@@ -47,6 +47,27 @@ export function createJudgePhaseExecutor(
 			const codeUnits = db.getCodeUnits(run.id);
 			const codeUnitMap = new Map(codeUnits.map((u) => [u.id, u]));
 
+			// Resume support: get existing evaluation results
+			const existingResults = db.getEvaluationResults(run.id, "judge");
+			const evaluatedPointwise = new Set<string>(); // key: summaryId:judgeModelId
+			for (const result of existingResults) {
+				if (result.judgeResults) {
+					const key = `${result.summaryId}:${result.judgeResults.judgeModelId}`;
+					evaluatedPointwise.add(key);
+				}
+			}
+
+			// Pairwise results are stored separately
+			const existingPairwise = db.getPairwiseResults(run.id);
+			const evaluatedPairwise = new Set<string>(); // key: codeUnitId:modelA:modelB:judgeModelId
+			for (const pw of existingPairwise) {
+				// Store both orderings to catch either direction
+				const key1 = `${pw.codeUnitId}:${pw.modelA}:${pw.modelB}:${pw.judgeModel}`;
+				const key2 = `${pw.codeUnitId}:${pw.modelB}:${pw.modelA}:${pw.judgeModel}`;
+				evaluatedPairwise.add(key1);
+				evaluatedPairwise.add(key2);
+			}
+
 			// Calculate total work per judge
 			const summariesPerJudge = summaries.length;
 			const totalPairwise = evalConfig.usePairwise
@@ -100,6 +121,13 @@ export function createJudgePhaseExecutor(
 					// Check if model can judge (not same family)
 					const eligible = selectJudges(summary.modelId, [judgeModelId], 1);
 					if (eligible.length === 0) return;
+
+					// Resume support: skip already evaluated
+					const evalKey = `${summary.id}:${judgeModelId}`;
+					if (evaluatedPointwise.has(evalKey)) {
+						judgeCompleted++;
+						return;
+					}
 
 					inProgress.add(summary.id);
 
@@ -238,22 +266,23 @@ export function createJudgePhaseExecutor(
 					}
 				}
 
-				// Calculate actual total comparisons after sampling
-				const totalComparisons = Math.min(sampledTasks.length * 2, MAX_COMPARISONS_PER_JUDGE);
-
-				stateMachine.updateProgress(
-					"evaluation:judge",
-					completed,
-					undefined,
-					`starting pairwise: ${sampledTasks.length} tasks across ${numPairs} pairs`
-				);
-
 				// Pairwise task concurrency - process multiple code units in parallel per judge
 				const PAIRWISE_CONCURRENCY = 20;
 
 				const pairwisePromises = evalConfig.judgeModels.map(async (judgeModelId) => {
 					const client = judgeClients.get(judgeModelId);
 					if (!client) return { results: [] as PairwiseResult[], failures: 0, lastError: "" };
+
+					// Resume support: filter out already-evaluated pairwise comparisons for this judge
+					const tasksForJudge = sampledTasks.filter((task) => {
+						const [summaryA, summaryB] = task.summaries;
+						const pairKey = `${task.codeUnit.id}:${summaryA.modelId}:${summaryB.modelId}:${judgeModelId}`;
+						const pairKeyReverse = `${task.codeUnit.id}:${summaryB.modelId}:${summaryA.modelId}:${judgeModelId}`;
+						return !evaluatedPairwise.has(pairKey) && !evaluatedPairwise.has(pairKeyReverse);
+					});
+
+					// Calculate actual total comparisons after filtering
+					const totalComparisons = Math.min(tasksForJudge.length * 2, MAX_COMPARISONS_PER_JUDGE);
 
 					// Show this judge is starting pairwise
 					stateMachine.updateProgress(
@@ -270,9 +299,9 @@ export function createJudgePhaseExecutor(
 					let totalCompleted = 0;
 					let inProgressCount = 0;
 
-					// Process sampled tasks in parallel batches
-					for (let i = 0; i < sampledTasks.length; i += PAIRWISE_CONCURRENCY) {
-						const batch = sampledTasks.slice(i, i + PAIRWISE_CONCURRENCY);
+					// Process sampled tasks in parallel batches (filtered for resume)
+					for (let i = 0; i < tasksForJudge.length; i += PAIRWISE_CONCURRENCY) {
+						const batch = tasksForJudge.slice(i, i + PAIRWISE_CONCURRENCY);
 						inProgressCount = batch.length;
 
 						// Update progress when batch starts

@@ -166,6 +166,7 @@ export class PointwiseJudgeEvaluator extends BaseEvaluator<EvaluationResult> {
 				scores,
 				reasoning: parsed.reasoning,
 				weightedAverage,
+				cost: response.usage?.cost,
 			};
 
 			return {

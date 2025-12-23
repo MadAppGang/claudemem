@@ -115,7 +115,7 @@ export interface GeneratedSummary {
 // ============================================================================
 
 /** Types of evaluations supported */
-export type EvaluationType = "judge" | "contrastive" | "retrieval" | "downstream";
+export type EvaluationType = "judge" | "contrastive" | "retrieval" | "downstream" | "self" | "iterative";
 
 /** Scores from judge evaluation (1-5 scale) */
 export interface JudgeScores {
@@ -135,6 +135,8 @@ export interface JudgeResults {
 	pairwiseWins?: number;
 	pairwiseLosses?: number;
 	pairwiseTies?: number;
+	/** Cost of this judge evaluation in USD */
+	cost?: number;
 }
 
 /** Method used for contrastive matching */
@@ -182,6 +184,79 @@ export interface DownstreamResults {
 	details?: Record<string, unknown>;
 }
 
+/** Self-evaluation task types */
+export type SelfEvalTaskType = "retrieval" | "completion" | "function_selection";
+
+/** Results from self-evaluation (model uses its own summaries) */
+export interface SelfEvaluationResults {
+	/** The generating model that was tested */
+	generatingModelId: string;
+	/** Type of self-evaluation task */
+	taskType: SelfEvalTaskType;
+	/** For retrieval: did the model find the right code using its own summary? */
+	retrievalResults?: {
+		queryId: string;
+		query: string;
+		/** Did the model correctly identify the source code from its summary? */
+		correct: boolean;
+		/** Confidence score (0-1) from the model */
+		confidence: number;
+		/** Model's reasoning for its choice */
+		reasoning?: string;
+	};
+	/** For completion: could the model complete code using its own summary? */
+	completionResults?: {
+		taskId: string;
+		/** BLEU score of completion */
+		bleuScore: number;
+		/** Did it pass tests? */
+		passedTests: boolean;
+		/** Model's generated completion */
+		completion: string;
+	};
+	/** For function selection: could the model pick the right function using its summary? */
+	functionSelectionResults?: {
+		taskId: string;
+		/** Did it select the correct function? */
+		correct: boolean;
+		/** Which function was selected */
+		selectedFunction: string;
+		/** Model's reasoning */
+		reasoning?: string;
+	};
+}
+
+/** Results from iterative refinement evaluation */
+export interface IterativeResults {
+	/** The model that generated the summary */
+	modelId: string;
+	/** Code unit this summary is for */
+	codeUnitId: string;
+	/** Number of refinement rounds executed (0 = initial was good) */
+	rounds: number;
+	/** Whether target rank was achieved */
+	success: boolean;
+	/** Initial summary quality rank */
+	initialRank: number | null;
+	/** Final summary quality rank */
+	finalRank: number | null;
+	/** Brokk-style score: 1.0 / log2(rounds + 2) */
+	refinementScore: number;
+	/** History of all refinement attempts */
+	history: Array<{
+		round: number;
+		rank: number | null;
+		passed: boolean;
+		summary?: string;
+	}>;
+	/** Strategy used for quality testing */
+	strategyName: string;
+	/** The final refined summary (if different from original) */
+	refinedSummary?: string;
+	/** Total time spent on refinement */
+	durationMs: number;
+}
+
 /** Complete evaluation result for a summary */
 export interface EvaluationResult {
 	id: string;
@@ -191,6 +266,8 @@ export interface EvaluationResult {
 	contrastiveResults?: ContrastiveResults;
 	retrievalResults?: RetrievalResults;
 	downstreamResults?: DownstreamResults;
+	selfEvaluationResults?: SelfEvaluationResults;
+	iterativeResults?: IterativeResults;
 	evaluatedAt: string;
 }
 
@@ -215,6 +292,8 @@ export interface PairwiseResult {
 		clarity: "A" | "B" | "tie";
 		conciseness: "A" | "B" | "tie";
 	};
+	/** Cost of this comparison in USD (may be portion of batched call) */
+	cost?: number;
 }
 
 /** Tournament scores for a model */
@@ -309,20 +388,42 @@ export const JUDGE_SCORE_WEIGHTS = {
 	conciseness: 0.15,
 } as const;
 
-/** Weights for combining different evaluation types */
+/**
+ * Weights for combining quality evaluation metrics.
+ *
+ * These metrics measure how well summaries serve LLM agents:
+ * - Retrieval: Can agents FIND the right code? (semantic search)
+ * - Contrastive: Can agents DISTINGUISH similar code?
+ * - Judge: Is the summary accurate and complete?
+ *
+ * Operational metrics (latency, cost, refinement, self-eval) are
+ * reported separately and don't affect the quality score.
+ */
 export interface EvaluationWeights {
-	judge: number;
-	contrastive: number;
+	/** Retrieval quality (P@K, MRR) - most critical for code search */
 	retrieval: number;
-	downstream: number;
+	/** Contrastive accuracy - distinguishes code among distractors */
+	contrastive: number;
+	/** Judge score - accuracy, completeness, quality */
+	judge: number;
+	/** @deprecated Use operational metrics instead */
+	downstream?: number;
+	/** @deprecated Use operational metrics instead */
+	iterative?: number;
 }
 
-/** Default evaluation weights */
+/**
+ * Default evaluation weights optimized for LLM agent code understanding.
+ *
+ * Rationale:
+ * - Retrieval (45%): If agents can't find code, nothing else matters
+ * - Contrastive (30%): Agents must distinguish similar functions
+ * - Judge (25%): Quality baseline for accuracy/completeness
+ */
 export const DEFAULT_EVALUATION_WEIGHTS: EvaluationWeights = {
-	judge: 0.30,
-	contrastive: 0.25,
-	retrieval: 0.25,
-	downstream: 0.20,
+	retrieval: 0.45,
+	contrastive: 0.30,
+	judge: 0.25,
 };
 
 /** Weights for combining judge evaluation methods */
@@ -400,6 +501,7 @@ export interface NormalizedScores {
 		precision1: number;
 		precision5: number;
 		mrr: number;
+		winRate?: number;
 		combined: number;
 	};
 	downstream: {
@@ -409,6 +511,18 @@ export interface NormalizedScores {
 		combined: number;
 	};
 	overall: number;
+	/** Operational: Iterative refinement metrics (optional) */
+	iterative?: {
+		avgRounds: number;
+		successRate: number;
+		avgRefinementScore: number;
+	};
+	/** Operational: Self-evaluation metrics (optional) */
+	self?: {
+		overall: number;
+		retrieval: number;
+		functionSelection: number;
+	};
 }
 
 // ============================================================================
@@ -460,6 +574,28 @@ export interface EvaluationConfig {
 		tasks: DownstreamTaskType[];
 		completionModel?: string;
 	};
+	/** Self-evaluation: generating model tests its own summaries */
+	self: {
+		enabled: boolean;
+		/** Tasks to run: retrieval (can model find code from its summary?), completion, function_selection */
+		tasks: SelfEvalTaskType[];
+		/** Number of retrieval queries per code unit */
+		queriesPerUnit: number;
+	};
+	/** Iterative refinement: refine summaries until they rank well */
+	iterative: {
+		enabled: boolean;
+		/** Maximum refinement rounds per summary (default: 3) */
+		maxRounds: number;
+		/** Target rank for success (e.g., 3 = top-3) */
+		targetRank: number;
+		/** Strategy for quality testing */
+		strategy: "retrieval" | "bleu" | "llm-judge";
+		/** Apply Brokk-style scoring penalty based on rounds */
+		applyRoundsPenalty: boolean;
+		/** Max items to refine per model (default: 10, refinement is expensive) */
+		sampleSize: number;
+	};
 }
 
 /** Complete benchmark configuration */
@@ -490,6 +626,13 @@ export interface BenchmarkConfig {
 	outputFormats: ReportFormat[];
 	/** Enable verbose logging */
 	verbose?: boolean;
+	/**
+	 * Local model parallelism (lmstudio, ollama).
+	 * - 0 = all in parallel (may cause model swapping if VRAM limited)
+	 * - 1 = sequential (default, safest for limited VRAM)
+	 * - 2-4 = run N local models concurrently
+	 */
+	localModelParallelism?: number;
 }
 
 // ============================================================================
@@ -503,10 +646,12 @@ export type BenchmarkStatus = "pending" | "running" | "completed" | "failed" | "
 export type BenchmarkPhase =
 	| "extraction"
 	| "generation"
+	| "evaluation:iterative"
 	| "evaluation:judge"
 	| "evaluation:contrastive"
 	| "evaluation:retrieval"
 	| "evaluation:downstream"
+	| "evaluation:self"
 	| "aggregation"
 	| "reporting";
 
@@ -779,6 +924,7 @@ export interface DBPairwiseResult {
 	position_swapped: boolean;
 	reasoning: string | null;
 	criteria_breakdown_json: string | null;
+	cost: number | null;
 }
 
 export interface DBGeneratedQuery {

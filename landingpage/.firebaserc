@@ -1,0 +1,12 @@
+{
+	"projects": {
+		"default": "claudish-6da10"
+	},
+	"targets": {
+		"claudish-6da10": {
+			"hosting": {
+				"claudish-6da10-eddc7": ["claudish-6da10-eddc7"]
+			}
+		}
+	}
+}

@@ -20,6 +20,7 @@ import type {
 	BenchmarkRun,
 	BenchmarkCodeUnit,
 	GeneratedSummary,
+	GenerationMetadata,
 	EvaluationResult,
 	PairwiseResult,
 	GeneratedQuery,
@@ -417,6 +418,38 @@ export class BenchmarkDatabase {
 		return result.count;
 	}
 
+	/**
+	 * Update a summary (e.g., after iterative refinement)
+	 */
+	updateSummary(
+		runId: string,
+		summaryId: string,
+		updates: { summary?: string; generationMetadata?: GenerationMetadata }
+	): void {
+		const setClause: string[] = [];
+		const params: (string | null)[] = [];
+
+		if (updates.summary !== undefined) {
+			setClause.push("summary = ?");
+			params.push(updates.summary);
+		}
+
+		if (updates.generationMetadata !== undefined) {
+			setClause.push("generation_metadata_json = ?");
+			params.push(JSON.stringify(updates.generationMetadata));
+		}
+
+		if (setClause.length === 0) return;
+
+		params.push(runId, summaryId);
+
+		const stmt = this.db.prepare(`
+			UPDATE generated_summaries SET ${setClause.join(", ")}
+			WHERE run_id = ? AND id = ?
+		`);
+		stmt.run(...params);
+	}
+
 	private rowToSummary(row: DBGeneratedSummary): GeneratedSummary {
 		try {
 			return {
@@ -462,6 +495,14 @@ export class BenchmarkDatabase {
 			case "downstream":
 				resultsJson = JSON.stringify(result.downstreamResults);
 				break;
+			case "iterative":
+				resultsJson = JSON.stringify(result.iterativeResults);
+				break;
+			case "self":
+				resultsJson = JSON.stringify(result.selfEvaluationResults);
+				break;
+			default:
+				resultsJson = "{}";
 		}
 
 		stmt.run(
@@ -511,6 +552,10 @@ export class BenchmarkDatabase {
 					return { ...base, retrievalResults: results };
 				case "downstream":
 					return { ...base, downstreamResults: results };
+				case "iterative":
+					return { ...base, iterativeResults: results };
+				case "self":
+					return { ...base, selfEvaluationResults: results };
 				default:
 					return base;
 			}
@@ -555,8 +600,8 @@ export class BenchmarkDatabase {
 		const stmt = this.db.prepare(`
 			INSERT INTO pairwise_results (
 				id, run_id, model_a, model_b, code_unit_id, judge_model,
-				winner, confidence, position_swapped, reasoning, criteria_breakdown_json
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				winner, confidence, position_swapped, reasoning, criteria_breakdown_json, cost
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`);
 
 		this.db.transaction(() => {
@@ -574,7 +619,8 @@ export class BenchmarkDatabase {
 					result.reasoning ?? null,
 					result.criteriaBreakdown
 						? JSON.stringify(result.criteriaBreakdown)
-						: null
+						: null,
+					result.cost ?? null
 				);
 			}
 		});
@@ -602,6 +648,7 @@ export class BenchmarkDatabase {
 			criteriaBreakdown: row.criteria_breakdown_json
 				? JSON.parse(row.criteria_breakdown_json)
 				: undefined,
+			cost: row.cost ?? undefined,
 		};
 	}
 

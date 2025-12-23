@@ -47,6 +47,7 @@ export {
 // ============================================================================
 
 import type { PhaseContext, PhaseResult } from "../pipeline/orchestrator.js";
+import type { NormalizedScores } from "../types.js";
 import { createScoreAggregator } from "./aggregator.js";
 
 /**
@@ -77,7 +78,7 @@ export function createScoringPhaseExecutor(): (
 
 			// Save normalized scores to database
 			for (const [modelId, agg] of aggregations) {
-				const normalizedScores = {
+				const normalizedScores: NormalizedScores = {
 					modelId,
 					judge: {
 						pointwise: agg.judge.pointwise.overall.mean / 5,
@@ -105,6 +106,17 @@ export function createScoringPhaseExecutor(): (
 						combined: agg.downstream.overall,
 					},
 					overall: agg.overall.score,
+					// Operational metrics (don't affect quality ranking)
+					iterative: agg.iterative ? {
+						avgRounds: agg.iterative.avgRounds,
+						successRate: agg.iterative.successRate,
+						avgRefinementScore: agg.iterative.avgRefinementScore,
+					} : undefined,
+					self: agg.self ? {
+						overall: agg.self.overall,
+						retrieval: agg.self.retrieval.accuracy,
+						functionSelection: agg.self.functionSelection.accuracy,
+					} : undefined,
 				};
 				db.saveAggregatedScores(run.id, modelId, normalizedScores);
 			}

@@ -137,6 +137,41 @@ This repo also contains an experimental VS Code inline completion extension that
 2. **Generates embeddings** via OpenRouter (default: voyage-3.5-lite, best value)
 3. **Stores locally** in LanceDB — everything stays in `.claudemem/` in your project
 4. **Hybrid search** — BM25 for exact matches + vector similarity for semantic. Combines both.
+5. **Builds symbol graph** — tracks references between symbols, computes PageRank for importance
+
+## Symbol graph & code analysis
+
+Beyond semantic search, claudemem builds a **symbol graph** with PageRank scores. This enables powerful code analysis:
+
+### Dead code detection
+```bash
+claudemem dead-code
+# Finds: symbols with zero callers + low PageRank + not exported
+# Great for: cleaning up unused code
+```
+
+### Test coverage gaps
+```bash
+claudemem test-gaps
+# Finds: high-PageRank symbols not called by any test file
+# Great for: prioritizing what to test next
+```
+
+### Change impact analysis
+```bash
+claudemem impact FileTracker
+# Shows: all transitive callers, grouped by file
+# Great for: understanding blast radius before refactoring
+```
+
+### Keep index fresh
+```bash
+# Option 1: Watch mode (daemon)
+claudemem watch
+
+# Option 2: Git hook (auto-index after commits)
+claudemem hooks install
+```
 
 ## Supported languages
 
@@ -146,6 +181,7 @@ If your language isn't here, it falls back to line-based chunking. Works, but no
 
 ## CLI reference
 
+### Basic commands
 ```
 claudemem init              # setup wizard
 claudemem index [path]      # index codebase
@@ -157,12 +193,45 @@ claudemem benchmark         # benchmark embedding models
 claudemem --mcp             # run as MCP server
 ```
 
-Search flags:
+### Symbol graph commands (for AI agents)
+```
+claudemem map [query]       # repo structure with PageRank scores
+claudemem symbol <name>     # find symbol definition
+claudemem callers <name>    # what calls this symbol?
+claudemem callees <name>    # what does this symbol call?
+claudemem context <name>    # symbol + callers + callees
+```
+
+### Code analysis commands
+```
+claudemem dead-code         # find potentially dead code (zero callers + low PageRank)
+claudemem test-gaps         # find important code without test coverage
+claudemem impact <symbol>   # analyze change impact (transitive callers)
+```
+
+### Developer experience
+```
+claudemem watch             # auto-reindex on file changes (daemon mode)
+claudemem hooks install     # install git post-commit hook for auto-indexing
+claudemem hooks uninstall   # remove the hook
+claudemem hooks status      # check if hook is installed
+```
+
+### Search flags
 ```
 -n, --limit <n>       # max results (default: 10)
 -l, --language <lang> # filter by language
 -y, --yes             # auto-create index without asking
 --no-reindex          # skip auto-reindex
+```
+
+### Code analysis flags
+```
+--max-pagerank <n>    # dead-code threshold (default: 0.001)
+--min-pagerank <n>    # test-gaps threshold (default: 0.01)
+--max-depth <n>       # impact analysis depth (default: 10)
+--include-exported    # include exported symbols in dead-code scan
+--raw                 # machine-readable output (for AI agents)
 ```
 
 ## Config

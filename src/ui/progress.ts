@@ -100,7 +100,7 @@ export function createBenchmarkProgress(itemIds: string[]) {
 				const truncatedError = error.length > 40 ? error.slice(0, 37) + "..." : error;
 				status = `${c.red}✗ ${truncatedError}${c.reset}`;
 			} else if (done) {
-				bar = "█".repeat(width);
+				bar = `${c.green}${"█".repeat(width)}${c.reset}`;
 				percent = 100;
 				status = `${c.green}${("✓ " + phase).padEnd(20)}${c.reset}`;
 			} else if (!started) {

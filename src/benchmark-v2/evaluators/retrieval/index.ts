@@ -504,6 +504,24 @@ export function createRetrievalPhaseExecutor(
 
 			const numModels = summariesByModel.size;
 
+			// Resume support: get existing evaluation results
+			const existingResults = db.getEvaluationResults(run.id, "retrieval");
+			const evaluatedRetrieval = new Set<string>(); // key: queryId (all models evaluated together)
+			// Count how many results exist per query - a query is complete when it has numModels results
+			const resultCountByQuery = new Map<string, number>();
+			for (const result of existingResults) {
+				if (result.retrievalResults) {
+					const queryId = result.retrievalResults.queryId;
+					resultCountByQuery.set(queryId, (resultCountByQuery.get(queryId) || 0) + 1);
+				}
+			}
+			// Mark queries as evaluated if they have results for all models
+			for (const [queryId, count] of resultCountByQuery) {
+				if (count >= numModels) {
+					evaluatedRetrieval.add(queryId);
+				}
+			}
+
 			// Generate queries if needed
 			let queries = db.getQueries(run.id);
 			if (queries.length === 0) {
@@ -552,6 +570,12 @@ export function createRetrievalPhaseExecutor(
 
 			// Evaluate each query with cross-model competition
 			for (const query of queries) {
+				// Resume support: skip already-evaluated queries
+				if (evaluatedRetrieval.has(query.id)) {
+					completed += numModels;
+					continue;
+				}
+
 				try {
 					// This returns results for ALL models in one call
 					const results = await evaluator.evaluateQueryCrossModel(query, summariesByModel);

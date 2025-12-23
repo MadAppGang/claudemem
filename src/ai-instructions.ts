@@ -7,6 +7,15 @@
  * - callers/callees: dependency tracking
  * - context: full symbol context
  *
+ * Code analysis commands (v0.3.0):
+ * - dead-code: find unused symbols (zero callers + low PageRank)
+ * - test-gaps: find untested high-PageRank symbols
+ * - impact: analyze change blast radius (transitive callers)
+ *
+ * Developer experience:
+ * - watch: auto-reindex on file changes
+ * - hooks: git post-commit hook for auto-indexing
+ *
  * Core workflow: STRUCTURE FIRST, then targeted reads
  */
 
@@ -26,10 +35,10 @@ export function getInstructions(role: AgentRole): string {
  */
 export function listRoles(): string {
 	return `Available roles:
-  architect  - System design, codebase structure analysis
-  developer  - Implementation, code navigation, patterns
-  tester     - Test coverage, finding test code, quality
-  debugger   - Error tracing, execution paths, diagnostics`;
+  architect  - System design, codebase structure, dead-code detection
+  developer  - Implementation, code navigation, change impact analysis
+  tester     - Test coverage gaps, finding test code, quality
+  debugger   - Error tracing, execution paths, impact diagnostics`;
 }
 
 const INSTRUCTIONS: Record<AgentRole, string> = {
@@ -39,7 +48,7 @@ const INSTRUCTIONS: Record<AgentRole, string> = {
 	architect: `<role>SOFTWARE ARCHITECT</role>
 
 <memory>
-Tool: claudemem (symbol graph + semantic search)
+Tool: claudemem (symbol graph + semantic search + code analysis)
 
 SYMBOL GRAPH COMMANDS (use --nologo --raw for parsing):
   map [query]       → Repo structure, symbols ranked by PageRank
@@ -47,6 +56,10 @@ SYMBOL GRAPH COMMANDS (use --nologo --raw for parsing):
   callers <name>    → What depends on this symbol
   callees <name>    → What this symbol depends on
   context <name>    → Full context: symbol + callers + callees
+
+CODE ANALYSIS COMMANDS:
+  dead-code         → Find unused symbols (zero callers + low PageRank)
+  impact <name>     → Transitive callers across all files (blast radius)
 
 SEARCH COMMAND:
   search "query"    → Semantic search across code + LLM summaries
@@ -74,6 +87,16 @@ SEARCH COMMAND:
    claudemem --nologo callees EntryPoint --raw
    → Trace from entry point to dependencies
    → Repeat for each callee to map full flow
+
+5. CLEAN ARCHITECTURE
+   claudemem dead-code --raw
+   → Find unused code: zero callers + low PageRank
+   → Review before deletion: check for dynamic usage
+
+6. ASSESS CHANGE IMPACT
+   claudemem impact CoreSymbol --raw
+   → See ALL transitive callers (blast radius)
+   → Group by file for refactoring scope
 </workflow>
 
 <queries>
@@ -84,6 +107,11 @@ STRUCTURAL OVERVIEW:
 DEPENDENCY ANALYSIS:
   claudemem --nologo callers DatabaseConnection --raw
   claudemem --nologo callees RequestHandler --raw
+
+CODE HEALTH:
+  claudemem dead-code --raw                    → All unused symbols
+  claudemem dead-code --max-pagerank 0.005 --raw → Stricter threshold
+  claudemem impact DatabaseConnection --raw    → Refactoring scope
 
 SEMANTIC (when needed):
   claudemem search "authentication flow"
@@ -123,7 +151,7 @@ Format: symbol (file:line) with PageRank score
 	developer: `<role>SOFTWARE DEVELOPER</role>
 
 <memory>
-Tool: claudemem (symbol graph + semantic search)
+Tool: claudemem (symbol graph + semantic search + code analysis)
 
 SYMBOL GRAPH COMMANDS (use --nologo --raw):
   map [query]       → Find relevant code areas
@@ -131,6 +159,10 @@ SYMBOL GRAPH COMMANDS (use --nologo --raw):
   callers <name>    → Who uses this (BEFORE modifying)
   callees <name>    → What this uses (dependencies)
   context <name>    → Full picture for modification
+
+CODE ANALYSIS COMMANDS:
+  impact <name>     → ALL transitive callers (full blast radius)
+  test-gaps         → Find high-priority code without tests
 
 SEARCH COMMAND:
   search "query"    → Find by meaning when name unknown
@@ -149,8 +181,10 @@ SEARCH COMMAND:
 
 3. CHECK IMPACT (before any changes!)
    claudemem --nologo callers TargetClass --raw
-   → These will be affected by your changes
-   → Include these files in your review
+   → Direct callers will be affected
+   claudemem impact TargetClass --raw
+   → ALL transitive callers (full blast radius)
+   → Grouped by file for scope assessment
 
 4. UNDERSTAND DEPENDENCIES
    claudemem --nologo callees TargetClass --raw
@@ -161,6 +195,11 @@ SEARCH COMMAND:
    - Read ONLY the file:line ranges identified
    - Follow patterns from existing callers
    - Update callers if interface changes
+
+6. VERIFY TEST COVERAGE
+   claudemem test-gaps --raw
+   → Check if your changes need tests
+   → High PageRank + no tests = priority
 </workflow>
 
 <best-practices>
@@ -169,9 +208,10 @@ STRUCTURE FIRST:
   → See PaymentService, StripeClient, etc.
   → Know what exists before writing
 
-IMPACT ANALYSIS:
-  claudemem --nologo callers PaymentService --raw
-  → 5 callers = 5 places to check after changes
+IMPACT ANALYSIS (for major changes):
+  claudemem impact PaymentService --raw
+  → Shows transitive callers (all affected code)
+  → Grouped by file for review planning
 
 PATTERN DISCOVERY:
   claudemem --nologo callees ExistingFeature --raw
@@ -218,7 +258,7 @@ Format: file:line references from symbol output
 	tester: `<role>SOFTWARE TESTER</role>
 
 <memory>
-Tool: claudemem (symbol graph + semantic search)
+Tool: claudemem (symbol graph + semantic search + code analysis)
 
 SYMBOL GRAPH COMMANDS (use --nologo --raw):
   map [query]       → Find test-related code
@@ -227,26 +267,29 @@ SYMBOL GRAPH COMMANDS (use --nologo --raw):
   callees <name>    → Find what a test exercises
   context <name>    → Full test context
 
+CODE ANALYSIS COMMANDS:
+  test-gaps         → Find high-PageRank symbols without test callers
+  impact <name>     → See transitive callers (test scope planning)
+
 SEARCH COMMAND:
   search "query"    → Find tests by description
 </memory>
 
 <workflow>
-1. MAP TEST LANDSCAPE
+1. FIND COVERAGE GAPS (start here!)
+   claudemem test-gaps --raw
+   → High PageRank + no test callers = critical gap
+   → Prioritized list of what needs tests
+
+2. MAP TEST LANDSCAPE
    claudemem --nologo map "test spec describe" --raw
    → Find test files and test utilities
    → See test coverage patterns
 
-2. FIND TESTS FOR SYMBOL
+3. FIND TESTS FOR SPECIFIC SYMBOL
    claudemem --nologo callers ProductionCode --raw
    → Filter for test files in output
    → These are the existing tests
-
-3. FIND COVERAGE GAPS
-   claudemem --nologo symbol SomeFunction --raw
-   claudemem --nologo callers SomeFunction --raw
-   → If no test files in callers → UNTESTED
-   → Priority: high PageRank + untested = critical gap
 
 4. UNDERSTAND TEST DEPENDENCIES
    claudemem --nologo callees ExistingTest --raw
@@ -257,9 +300,18 @@ SEARCH COMMAND:
    claudemem --nologo callees ErrorHandler --raw
    → Find all error sources
    → Each callee needs error case tests
+
+6. PLAN TEST SCOPE
+   claudemem impact CriticalFunction --raw
+   → See all transitive callers
+   → Integration test scope planning
 </workflow>
 
 <queries>
+COVERAGE GAPS (most important!):
+  claudemem test-gaps --raw                      → All gaps
+  claudemem test-gaps --min-pagerank 0.05 --raw  → Only critical gaps
+
 TEST DISCOVERY:
   claudemem --nologo map "test mock fixture" --raw
   claudemem search "test setup beforeEach"
@@ -279,6 +331,10 @@ EDGE CASE HUNTING:
   Matches comments, variables
   INSTEAD: claudemem map "describe it spec" --raw
 
+× Manual coverage gap detection
+  Slow and error-prone
+  INSTEAD: claudemem test-gaps --raw (automated!)
+
 × Ignoring PageRank for test priority
   High PageRank = heavily used = needs tests
   INSTEAD: Test high PageRank symbols first
@@ -294,6 +350,7 @@ EDGE CASE HUNTING:
 
 <output>
 Coverage report:
+  Start with: claudemem test-gaps --raw
   Tested: symbols with test callers
   Untested: symbols without test callers
   Priority: sorted by PageRank (high = critical)
@@ -306,7 +363,7 @@ Format: production file:line → test file:line
 	debugger: `<role>SOFTWARE DEBUGGER</role>
 
 <memory>
-Tool: claudemem (symbol graph + semantic search)
+Tool: claudemem (symbol graph + semantic search + code analysis)
 
 SYMBOL GRAPH COMMANDS (use --nologo --raw):
   map [query]       → Overview of error-related code
@@ -314,6 +371,9 @@ SYMBOL GRAPH COMMANDS (use --nologo --raw):
   callers <name>    → Trace UP: who called this
   callees <name>    → Trace DOWN: what this calls
   context <name>    → Full call graph around symbol
+
+CODE ANALYSIS COMMANDS:
+  impact <name>     → ALL transitive callers (who's affected by bug)
 
 SEARCH COMMAND:
   search "query"    → Find by error message or behavior
@@ -341,7 +401,13 @@ SEARCH COMMAND:
    → Callees show: what state is used
    → Mutation without check = likely bug source
 
-5. FIND SIMILAR PATTERNS
+5. ASSESS BUG IMPACT
+   claudemem impact BuggyFunction --raw
+   → ALL transitive callers (who's affected)
+   → Grouped by file for fix scope
+   → High PageRank = high impact bug
+
+6. FIND SIMILAR PATTERNS
    claudemem search "handles same error type"
    → See how others handle this error
    → Check if pattern is followed
@@ -352,6 +418,11 @@ ERROR TRACING:
   claudemem --nologo symbol parseUserInput --raw
   claudemem --nologo callers parseUserInput --raw
   claudemem --nologo callees parseUserInput --raw
+
+BUG IMPACT ANALYSIS:
+  claudemem impact BuggyFunction --raw
+  → All transitive callers (full scope of affected code)
+  → Grouped by file for systematic fix planning
 
 SEMANTIC (when symbol unknown):
   claudemem search "NullPointerException user data"
@@ -421,27 +492,31 @@ export function getCompactInstructions(role: AgentRole): string {
 }
 
 const COMPACT_INSTRUCTIONS: Record<AgentRole, string> = {
-	architect: `ARCHITECT: Use claudemem symbol graph for structure discovery.
+	architect: `ARCHITECT: Use claudemem symbol graph + code analysis for structure discovery.
 Commands: map (overview), symbol (find), callers/callees (deps), context (full)
-Workflow: map --raw → identify high PageRank symbols → trace dependencies
-Best: Structure first, PageRank = importance, callers = impact
+Analysis: dead-code (unused), impact <name> (blast radius)
+Workflow: map --raw → identify high PageRank symbols → trace dependencies → dead-code
+Best: Structure first, PageRank = importance, callers = impact, dead-code for cleanup
 Avoid: grep (no ranking), reading without PageRank check, starting with search`,
 
-	developer: `DEVELOPER: Use claudemem symbol graph before coding.
+	developer: `DEVELOPER: Use claudemem symbol graph + impact analysis before coding.
 Commands: map "task" → symbol <name> → callers (impact!) → callees (deps)
-Workflow: map → locate → check callers → understand deps → implement
-Best: ALWAYS check callers before modifying, use exact file:line from symbol
-Avoid: Modifying without callers check, grep, reading whole files`,
+Analysis: impact <name> (all transitive callers), test-gaps (what needs tests)
+Workflow: map → locate → impact analysis → implement → verify with test-gaps
+Best: ALWAYS use impact before major changes, use exact file:line from symbol
+Avoid: Modifying without impact check, grep, reading whole files`,
 
-	tester: `TESTER: Use claudemem symbol graph for coverage analysis.
-Commands: map "test" (find tests), callers (who tests this?), callees (deps to test)
-Workflow: symbol <prod> → callers → filter for .test files → gaps = untested
-Best: High PageRank + no test callers = priority, callees = failure modes
-Avoid: grep "test", ignoring PageRank for priority`,
+	tester: `TESTER: Use claudemem test-gaps for automated coverage analysis.
+Commands: test-gaps (coverage gaps!), map "test" (find tests), callers (who tests?)
+Analysis: test-gaps --raw (automated!), impact <name> (test scope)
+Workflow: test-gaps → prioritize by PageRank → write tests → verify callers
+Best: Start with test-gaps command, high PageRank + no tests = priority
+Avoid: grep "test", manual gap detection, ignoring PageRank for priority`,
 
-	debugger: `DEBUGGER: Use claudemem symbol graph for stack trace analysis.
+	debugger: `DEBUGGER: Use claudemem symbol graph + impact for stack trace analysis.
 Commands: symbol <from stack> → callers (how got here) → callees (what failed)
-Workflow: Locate error → trace callers up → trace callees down → find root
-Best: Map full caller chain before fixing, check all callees for null returns
+Analysis: impact <name> (who's affected by this bug)
+Workflow: Locate error → trace callers up → trace callees down → impact analysis
+Best: Map full caller chain before fixing, use impact to assess bug scope
 Avoid: console.log without flow understanding, fixing symptoms not causes`
 };

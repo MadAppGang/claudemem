@@ -154,6 +154,12 @@ export async function runCli(args: string[]): Promise<void> {
 		case "benchmark-llm-v2":
 			await handleBenchmarkLLMv2(args.slice(1));
 			break;
+		case "benchmark-list":
+			await handleBenchmarkList(args.slice(1));
+			break;
+		case "benchmark-show":
+			await handleBenchmarkShow(args.slice(1));
+			break;
 		case "ai":
 			handleAiInstructions(args.slice(1));
 			break;
@@ -172,6 +178,23 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "context":
 			await handleContext(args.slice(1));
+			break;
+		// Code analysis commands
+		case "dead-code":
+			await handleDeadCode(args.slice(1));
+			break;
+		case "test-gaps":
+			await handleTestGaps(args.slice(1));
+			break;
+		case "impact":
+			await handleImpact(args.slice(1));
+			break;
+		// Developer experience commands
+		case "watch":
+			await handleWatch(args.slice(1));
+			break;
+		case "hooks":
+			await handleHooks(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -3030,6 +3053,399 @@ async function handleContext(args: string[]): Promise<void> {
 }
 
 // ============================================================================
+// Code Analysis Commands
+// ============================================================================
+
+/**
+ * Handle 'dead-code' command - find potentially dead code
+ */
+async function handleDeadCode(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const projectPath = resolve(".");
+
+	// Parse --max-pagerank flag
+	let maxPageRank = 0.001;
+	const prIdx = args.findIndex(a => a === "--max-pagerank");
+	if (prIdx !== -1 && args[prIdx + 1]) {
+		maxPageRank = parseFloat(args[prIdx + 1]) || 0.001;
+	}
+
+	// Parse --limit flag
+	let limit = 50;
+	const limitIdx = args.findIndex(a => a === "--limit" || a === "-n");
+	if (limitIdx !== -1 && args[limitIdx + 1]) {
+		limit = parseInt(args[limitIdx + 1], 10) || 50;
+	}
+
+	// Parse --include-exported flag
+	const includeExported = args.includes("--include-exported");
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const { createCodeAnalyzer } = await import("./core/analysis/index.js");
+		const analyzer = createCodeAnalyzer(tracker);
+
+		const results = analyzer.findDeadCode({
+			maxPageRank,
+			unexportedOnly: !includeExported,
+			excludeTestFiles: true,
+			limit,
+		});
+
+		if (raw) {
+			if (results.length === 0) {
+				console.log("# No dead code found");
+			} else {
+				const output = results.map(r => [
+					`name: ${r.symbol.name}`,
+					`file: ${r.symbol.filePath}`,
+					`line: ${r.symbol.startLine}-${r.symbol.endLine}`,
+					`kind: ${r.symbol.kind}`,
+					`pagerank: ${r.symbol.pagerankScore.toFixed(6)}`,
+					`exported: ${r.symbol.isExported}`,
+				].join('\n')).join('\n---\n');
+				console.log(output);
+			}
+		} else {
+			if (!noLogo) printLogo();
+			console.log("\n💀 Dead Code Analysis\n");
+
+			if (results.length === 0) {
+				console.log("  No dead code found! Your codebase is clean.");
+			} else {
+				console.log(`  Found ${results.length} potentially dead symbol(s):\n`);
+				for (const r of results) {
+					console.log(`  ${r.symbol.name}`);
+					console.log(`     ${r.symbol.filePath}:${r.symbol.startLine} (${r.symbol.kind})`);
+					console.log(`     PageRank: ${r.symbol.pagerankScore.toFixed(6)}`);
+				}
+			}
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'test-gaps' command - find untested high-importance code
+ */
+async function handleTestGaps(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const projectPath = resolve(".");
+
+	// Parse --min-pagerank flag
+	let minPageRank = 0.01;
+	const prIdx = args.findIndex(a => a === "--min-pagerank");
+	if (prIdx !== -1 && args[prIdx + 1]) {
+		minPageRank = parseFloat(args[prIdx + 1]) || 0.01;
+	}
+
+	// Parse --limit flag
+	let limit = 30;
+	const limitIdx = args.findIndex(a => a === "--limit" || a === "-n");
+	if (limitIdx !== -1 && args[limitIdx + 1]) {
+		limit = parseInt(args[limitIdx + 1], 10) || 30;
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const { createCodeAnalyzer } = await import("./core/analysis/index.js");
+		const analyzer = createCodeAnalyzer(tracker);
+
+		const results = analyzer.findTestGaps({
+			minPageRank,
+			limit,
+		});
+
+		if (raw) {
+			if (results.length === 0) {
+				console.log("# No test gaps found");
+			} else {
+				const output = results.map(r => [
+					`name: ${r.symbol.name}`,
+					`file: ${r.symbol.filePath}`,
+					`line: ${r.symbol.startLine}-${r.symbol.endLine}`,
+					`kind: ${r.symbol.kind}`,
+					`pagerank: ${r.symbol.pagerankScore.toFixed(6)}`,
+					`callers: ${r.callerCount}`,
+					`test_callers: ${r.testCallerCount}`,
+				].join('\n')).join('\n---\n');
+				console.log(output);
+			}
+		} else {
+			if (!noLogo) printLogo();
+			console.log("\n🧪 Test Coverage Gaps\n");
+
+			if (results.length === 0) {
+				console.log("  No test gaps found! All important code has test coverage.");
+			} else {
+				console.log(`  Found ${results.length} important symbol(s) without test coverage:\n`);
+				for (const r of results) {
+					console.log(`  ${r.symbol.name}`);
+					console.log(`     ${r.symbol.filePath}:${r.symbol.startLine} (${r.symbol.kind})`);
+					console.log(`     PageRank: ${r.symbol.pagerankScore.toFixed(4)} | Callers: ${r.callerCount}`);
+				}
+			}
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'impact' command - analyze change impact
+ */
+async function handleImpact(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const projectPath = resolve(".");
+
+	// Get symbol name
+	const symbolName = args.find(a => !a.startsWith("-"));
+	if (!symbolName) {
+		console.error("Usage: claudemem impact <symbol> [--max-depth N] [--raw]");
+		process.exit(1);
+	}
+
+	// Parse --max-depth flag
+	let maxDepth = 10;
+	const depthIdx = args.findIndex(a => a === "--max-depth");
+	if (depthIdx !== -1 && args[depthIdx + 1]) {
+		maxDepth = parseInt(args[depthIdx + 1], 10) || 10;
+	}
+
+	// Parse --file flag for disambiguation
+	let fileHint: string | undefined;
+	const fileIdx = args.findIndex(a => a === "--file");
+	if (fileIdx !== -1 && args[fileIdx + 1]) {
+		fileHint = args[fileIdx + 1];
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const { createCodeAnalyzer } = await import("./core/analysis/index.js");
+		const analyzer = createCodeAnalyzer(tracker);
+
+		// Find the target symbol
+		const target = analyzer.findSymbolForImpact(symbolName, fileHint);
+		if (!target) {
+			console.error(`Symbol '${symbolName}' not found.`);
+			process.exit(1);
+		}
+
+		const impact = analyzer.findImpact(target.id, {
+			maxDepth,
+			includeTestFiles: true,
+			groupByFile: true,
+		});
+
+		if (!impact) {
+			console.error("Failed to analyze impact.");
+			process.exit(1);
+		}
+
+		if (raw) {
+			const sections: string[] = [];
+
+			// Target section
+			sections.push("[target]");
+			sections.push([
+				`name: ${impact.target.name}`,
+				`file: ${impact.target.filePath}`,
+				`line: ${impact.target.startLine}-${impact.target.endLine}`,
+				`kind: ${impact.target.kind}`,
+			].join('\n'));
+
+			// Summary
+			sections.push("[summary]");
+			sections.push([
+				`direct_callers: ${impact.directCallers.length}`,
+				`total_affected: ${impact.totalAffected}`,
+				`files_affected: ${impact.byFile.size}`,
+			].join('\n'));
+
+			// By file
+			sections.push("[by_file]");
+			for (const [filePath, results] of impact.byFile) {
+				sections.push(`file: ${filePath}`);
+				sections.push(`count: ${results.length}`);
+				for (const r of results) {
+					sections.push(`  caller: ${r.symbol.name}`);
+					sections.push(`  line: ${r.symbol.startLine}`);
+					sections.push(`  depth: ${r.depth}`);
+					sections.push(`  ---`);
+				}
+			}
+
+			console.log(sections.join('\n'));
+		} else {
+			if (!noLogo) printLogo();
+			console.log(`\n🎯 Impact Analysis for '${symbolName}'\n`);
+
+			// Target info
+			console.log("  Target:");
+			console.log(`    ${impact.target.name} (${impact.target.kind})`);
+			console.log(`    ${impact.target.filePath}:${impact.target.startLine}`);
+
+			// Summary
+			console.log("\n  Summary:");
+			console.log(`    Direct callers: ${impact.directCallers.length}`);
+			console.log(`    Total affected: ${impact.totalAffected} symbols`);
+			console.log(`    Files affected: ${impact.byFile.size}`);
+
+			// By file
+			if (impact.byFile.size > 0) {
+				console.log("\n  Affected Files:");
+				for (const [filePath, results] of impact.byFile) {
+					console.log(`\n    📄 ${filePath} (${results.length} symbols)`);
+					for (const r of results.slice(0, 5)) {
+						const depthIcon = r.depth === 1 ? "→" : "→".repeat(Math.min(r.depth, 3));
+						console.log(`       ${depthIcon} ${r.symbol.name}:${r.symbol.startLine} (depth ${r.depth})`);
+					}
+					if (results.length > 5) {
+						console.log(`       ... and ${results.length - 5} more`);
+					}
+				}
+			}
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'watch' command - file watcher daemon
+ */
+async function handleWatch(args: string[]): Promise<void> {
+	const projectPath = resolve(".");
+
+	// Parse --debounce flag
+	let debounceMs = 1000;
+	const debounceIdx = args.findIndex(a => a === "--debounce");
+	if (debounceIdx !== -1 && args[debounceIdx + 1]) {
+		debounceMs = parseInt(args[debounceIdx + 1], 10) || 1000;
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		console.error("No index found. Run 'claudemem index' first.");
+		process.exit(1);
+	}
+
+	try {
+		const { createFileWatcher } = await import("./core/watcher/file-watcher.js");
+		const watcher = createFileWatcher(projectPath, debounceMs);
+
+		if (!noLogo) printLogo();
+		console.log("\n👁️  Watch Mode\n");
+		console.log(`  Watching for changes in: ${projectPath}`);
+		console.log(`  Debounce: ${debounceMs}ms`);
+		console.log("  Press Ctrl+C to stop\n");
+
+		await watcher.start();
+
+		// Handle shutdown
+		const shutdown = () => {
+			console.log("\n\n  Stopping watcher...");
+			watcher.stop();
+			tracker.close();
+			process.exit(0);
+		};
+
+		process.on("SIGINT", shutdown);
+		process.on("SIGTERM", shutdown);
+
+		// Keep process alive
+		await new Promise(() => {}); // Never resolves
+	} catch (error) {
+		tracker.close();
+		throw error;
+	}
+}
+
+/**
+ * Handle 'hooks' command - git hooks management
+ */
+async function handleHooks(args: string[]): Promise<void> {
+	const projectPath = resolve(".");
+	const subcommand = args[0];
+
+	if (!subcommand || subcommand === "help") {
+		console.log(`
+Usage: claudemem hooks <subcommand>
+
+Subcommands:
+  install     Install post-commit hook for auto-indexing
+  uninstall   Remove the post-commit hook
+  status      Check if hook is installed
+`);
+		return;
+	}
+
+	const { createGitHookManager } = await import("./git/hook-manager.js");
+	const hookManager = createGitHookManager(projectPath);
+
+	switch (subcommand) {
+		case "install":
+			try {
+				await hookManager.install();
+				if (!noLogo) printLogo();
+				console.log("\n✅ Git hook installed successfully!\n");
+				console.log("  The post-commit hook will now auto-index changes after each commit.");
+				console.log("  Location: .git/hooks/post-commit\n");
+			} catch (error) {
+				console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+				process.exit(1);
+			}
+			break;
+
+		case "uninstall":
+			try {
+				await hookManager.uninstall();
+				if (!noLogo) printLogo();
+				console.log("\n✅ Git hook uninstalled successfully!\n");
+			} catch (error) {
+				console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+				process.exit(1);
+			}
+			break;
+
+		case "status":
+			const status = await hookManager.status();
+			if (!noLogo) printLogo();
+			console.log("\n🔗 Git Hook Status\n");
+			console.log(`  Installed: ${status.installed ? "Yes" : "No"}`);
+			if (status.installed) {
+				console.log(`  Hook type: ${status.hookType}`);
+			}
+			console.log("");
+			break;
+
+		default:
+			console.error(`Unknown subcommand: ${subcommand}`);
+			console.error('Run "claudemem hooks help" for usage.');
+			process.exit(1);
+	}
+}
+
+// ============================================================================
 // AI Instructions Command
 // ============================================================================
 
@@ -3176,6 +3592,8 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
   ${c.green}benchmark-llm${c.reset}          Compare LLM models for summary generation quality
   ${c.green}benchmark-llm-v2${c.reset}       Comprehensive LLM evaluation (4 methods, resumable)
+  ${c.green}benchmark-list${c.reset}         List all benchmark runs
+  ${c.green}benchmark-show${c.reset}         Show results for a specific run
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
 
 ${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(for AI agents - use --raw for parsing)${c.reset}
@@ -3184,6 +3602,15 @@ ${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(for AI agents - use
   ${c.green}callers${c.reset} <name>         Find what calls a symbol
   ${c.green}callees${c.reset} <name>         Find what a symbol calls
   ${c.green}context${c.reset} <name>         Get symbol with its callers and callees
+
+${c.yellow}${c.bold}CODE ANALYSIS COMMANDS${c.reset}
+  ${c.green}dead-code${c.reset}              Find potentially dead code ${c.dim}(zero callers + low PageRank)${c.reset}
+  ${c.green}test-gaps${c.reset}              Find important code without test coverage
+  ${c.green}impact${c.reset} <symbol>        Analyze change impact ${c.dim}(transitive callers)${c.reset}
+
+${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
+  ${c.green}watch${c.reset}                  Watch for changes and auto-reindex ${c.dim}(daemon mode)${c.reset}
+  ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
@@ -3224,6 +3651,7 @@ ${c.yellow}${c.bold}BENCHMARK-LLM-V2 OPTIONS${c.reset} ${c.dim}(comprehensive LL
   ${c.cyan}--judges=${c.reset}<list>        LLM models for LLM-as-Judge evaluation
   ${c.cyan}--cases=${c.reset}<n|all>        Target code units (default: 100)
   ${c.cyan}--resume=${c.reset}<run-id>      Resume from previous run
+  ${c.cyan}--local-parallelism=${c.reset}<n> Local models parallelism (1=seq, 2-4, all) ${c.dim}(default: 1)${c.reset}
   ${c.cyan}--verbose${c.reset}, ${c.cyan}-v${c.reset}           Show detailed progress
   ${c.dim}Evaluation methods: LLM-as-Judge, Contrastive, Retrieval (P@K/MRR), Downstream${c.reset}
   ${c.dim}Outputs: JSON, Markdown, HTML reports${c.reset}
@@ -3234,6 +3662,16 @@ ${c.yellow}${c.bold}SYMBOL GRAPH OPTIONS${c.reset}
   ${c.cyan}--file${c.reset} <hint>          Disambiguate symbol by file path
   ${c.cyan}--callers${c.reset} <n>          Max callers to show (default: 10)
   ${c.cyan}--callees${c.reset} <n>          Max callees to show (default: 15)
+
+${c.yellow}${c.bold}CODE ANALYSIS OPTIONS${c.reset}
+  ${c.cyan}--max-pagerank${c.reset} <n>     Dead-code threshold (default: 0.001)
+  ${c.cyan}--min-pagerank${c.reset} <n>     Test-gaps threshold (default: 0.01)
+  ${c.cyan}--max-depth${c.reset} <n>        Impact analysis depth (default: 10)
+  ${c.cyan}--include-exported${c.reset}     Include exported symbols in dead-code scan
+  ${c.cyan}-n, --limit${c.reset} <n>        Max results (default: 50 for dead-code, 30 for test-gaps)
+
+${c.yellow}${c.bold}WATCH/HOOKS OPTIONS${c.reset}
+  ${c.cyan}--debounce${c.reset} <ms>        Watch debounce time (default: 1000ms)
 
 ${c.yellow}${c.bold}AI OPTIONS${c.reset}
   ${c.cyan}-c, --compact${c.reset}          Minimal version (~50 tokens)
@@ -3299,6 +3737,15 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.cyan}claudemem --nologo callees VectorStore --raw${c.reset}      ${c.dim}# what it uses?${c.reset}
   ${c.cyan}claudemem --nologo context VectorStore --raw${c.reset}      ${c.dim}# full context${c.reset}
 
+  ${c.dim}# Code analysis commands${c.reset}
+  ${c.cyan}claudemem dead-code${c.reset}                               ${c.dim}# find dead code${c.reset}
+  ${c.cyan}claudemem test-gaps${c.reset}                               ${c.dim}# find untested code${c.reset}
+  ${c.cyan}claudemem impact createIndexer${c.reset}                    ${c.dim}# change impact analysis${c.reset}
+
+  ${c.dim}# Developer experience${c.reset}
+  ${c.cyan}claudemem watch${c.reset}                                   ${c.dim}# auto-reindex on changes${c.reset}
+  ${c.cyan}claudemem hooks install${c.reset}                           ${c.dim}# install git hook${c.reset}
+
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}
 `);
@@ -3311,4 +3758,136 @@ ${c.yellow}${c.bold}MORE INFO${c.reset}
 async function handleBenchmarkLLMv2(args: string[]): Promise<void> {
 	const { runBenchmarkCLI } = await import("./benchmark-v2/index.js");
 	await runBenchmarkCLI(args);
+}
+
+// ============================================================================
+// Benchmark List/Show Handlers
+// ============================================================================
+
+async function handleBenchmarkList(args: string[]): Promise<void> {
+	const { BenchmarkDatabase } = await import("./benchmark-v2/storage/benchmark-db.js");
+
+	// Colors for output
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		red: "\x1b[31m",
+	};
+
+	// Parse arguments
+	const limitArg = parseInt(args.find(a => a.startsWith("--limit="))?.split("=")[1] || "20", 10);
+	const statusFilter = args.find(a => a.startsWith("--status="))?.split("=")[1] as "completed" | "failed" | "running" | undefined;
+	const projectPath = args.find(a => a.startsWith("--project="))?.split("=")[1] || process.cwd();
+
+	const dbPath = join(projectPath, ".claudemem", "benchmark-v2.db");
+	if (!existsSync(dbPath)) {
+		console.log(`${c.yellow}No benchmark database found at ${dbPath}${c.reset}`);
+		console.log(`${c.dim}Run benchmarks first with: claudemem benchmark ...${c.reset}`);
+		return;
+	}
+
+	const db = new BenchmarkDatabase(dbPath);
+	const runs = db.listRuns(statusFilter).slice(0, limitArg);
+
+	if (runs.length === 0) {
+		console.log(`${c.yellow}No benchmark runs found${c.reset}`);
+		return;
+	}
+
+	console.log(`\n${c.cyan}📊 Benchmark Runs${c.reset} (${runs.length} shown)\n`);
+	console.log(`${"ID".padEnd(38)} ${"Status".padEnd(10)} ${"Date".padEnd(20)} ${"Models".padEnd(8)} ${"Cases".padEnd(6)} Project`);
+	console.log(`${"─".repeat(38)} ${"─".repeat(10)} ${"─".repeat(20)} ${"─".repeat(8)} ${"─".repeat(6)} ${"─".repeat(30)}`);
+
+	for (const run of runs) {
+		const date = new Date(run.startedAt).toLocaleString();
+		const statusColor = run.status === "completed" ? c.green : run.status === "failed" ? c.red : c.yellow;
+		const modelCount = run.config.generators.length;
+		const caseCount = run.config.sampleSize;
+		const project = run.config.projectPath.split("/").pop() || run.config.projectPath;
+
+		console.log(
+			`${c.dim}${run.id.slice(0, 36)}${c.reset} ` +
+			`${statusColor}${run.status.padEnd(10)}${c.reset} ` +
+			`${date.padEnd(20)} ` +
+			`${String(modelCount).padEnd(8)} ` +
+			`${String(caseCount).padEnd(6)} ` +
+			`${project}`
+		);
+	}
+
+	console.log(`\n${c.dim}Use: claudemem benchmark-show <run-id> to view results${c.reset}\n`);
+}
+
+async function handleBenchmarkShow(args: string[]): Promise<void> {
+	const { BenchmarkDatabase } = await import("./benchmark-v2/storage/benchmark-db.js");
+	const { displayBenchmarkResults } = await import("./benchmark-v2/display.js");
+
+	// Colors for output
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		red: "\x1b[31m",
+	};
+
+	const runId = args.find(a => !a.startsWith("--"));
+	if (!runId) {
+		console.log(`${c.red}Error: Please provide a run ID${c.reset}`);
+		console.log(`Usage: claudemem benchmark-show <run-id>`);
+		console.log(`       claudemem benchmark-show <run-id> --json`);
+		console.log(`       claudemem benchmark-show <run-id> --project=/path/to/project`);
+		return;
+	}
+
+	const projectPath = args.find(a => a.startsWith("--project="))?.split("=")[1] || process.cwd();
+	const dbPath = join(projectPath, ".claudemem", "benchmark-v2.db");
+	if (!existsSync(dbPath)) {
+		console.log(`${c.yellow}No benchmark database found at ${dbPath}${c.reset}`);
+		return;
+	}
+
+	const db = new BenchmarkDatabase(dbPath);
+	const run = db.getRun(runId);
+
+	if (!run) {
+		console.log(`${c.red}Error: Run not found: ${runId}${c.reset}`);
+		return;
+	}
+
+	const jsonOutput = args.includes("--json");
+
+	if (jsonOutput) {
+		const scores = db.getAggregatedScores(runId);
+		console.log(JSON.stringify({
+			run: {
+				id: run.id,
+				status: run.status,
+				startedAt: run.startedAt,
+				config: run.config,
+			},
+			scores: Object.fromEntries(scores),
+		}, null, 2));
+		return;
+	}
+
+	// Display run info header
+	console.log(`\n${c.cyan}📊 Benchmark Run: ${run.id}${c.reset}\n`);
+	console.log(`Status:     ${run.status === "completed" ? c.green : c.red}${run.status}${c.reset}`);
+	console.log(`Started:    ${new Date(run.startedAt).toLocaleString()}`);
+	console.log(`Project:    ${run.config.projectPath}`);
+	console.log(`Cases:      ${run.config.sampleSize}`);
+	console.log();
+
+	// Use the full display function (same as after benchmark run)
+	const generatorSpecs = run.config.generators.map(g => g.id);
+	const judgeModels = run.config.judges;
+
+	await displayBenchmarkResults(db, runId, generatorSpecs, judgeModels);
 }

@@ -1,6 +1,6 @@
 {
   "name": "claude-codemem",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Local code indexing tool with semantic search for Claude Code - MCP server and CLI",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,7 +11,7 @@
     "dev": "bun run src/index.ts",
     "dev:mcp": "bun run src/index.ts --mcp",
     "download-grammars": "bun run scripts/download-grammars.ts",
-    "build": "rm -rf dist && bun run download-grammars && bun build src/index.ts --outdir dist --target node --external @lancedb/lancedb --external better-sqlite3 && chmod +x dist/index.js",
+    "build": "rm -rf dist && bun run download-grammars && bun build src/index.ts --outdir dist --target node --external @lancedb/lancedb --external better-sqlite3 && cp src/benchmark-v2/storage/schema.sql dist/ && chmod +x dist/index.js",
     "build:binary": "bun run download-grammars && bun build src/index.ts --compile --outfile claudemem",
     "build:binary:linux": "bun run download-grammars && bun build src/index.ts --compile --target=bun-linux-x64 --outfile claudemem-linux-x64",
     "build:binary:mac": "bun run download-grammars && bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile claudemem-darwin-arm64",
@@ -33,6 +33,7 @@
     "@modelcontextprotocol/sdk": "^1.22.0",
     "better-sqlite3": "^11.6.0",
     "dotenv": "^16.4.7",
+    "firebase": "^12.7.0",
     "minimatch": "^10.0.1",
     "web-tree-sitter": "^0.25.10",
     "zod": "^3.24.1"

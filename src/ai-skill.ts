@@ -1,11 +1,20 @@
 /**
  * Comprehensive AI Agent Skill for claudemem
  *
- * Updated to incorporate symbol graph commands:
+ * Symbol graph commands:
  * - map: structural overview with PageRank ranking
  * - symbol: find symbol definitions
  * - callers/callees: dependency tracking
  * - context: full symbol context
+ *
+ * Code analysis commands (v0.3.0):
+ * - dead-code: find unused symbols (zero callers + low PageRank)
+ * - test-gaps: find untested high-PageRank symbols
+ * - impact: analyze change blast radius (transitive callers)
+ *
+ * Developer experience:
+ * - watch: auto-reindex on file changes
+ * - hooks: git post-commit hook for auto-indexing
  *
  * Core principle: STRUCTURE FIRST, then targeted reads
  */
@@ -16,9 +25,9 @@ import { getInstructions, getCompactInstructions, type AgentRole, VALID_ROLES } 
  * Full agentic skill document for claudemem
  * Designed for embedding in CLAUDE.md or system prompts
  */
-export const CLAUDEMEM_SKILL = `<skill name="claudemem" version="0.2">
+export const CLAUDEMEM_SKILL = `<skill name="claudemem" version="0.3">
 <purpose>
-Code intelligence via symbol graph + semantic search.
+Code intelligence via symbol graph + semantic search + code analysis.
 Provides STRUCTURE FIRST understanding before reading code.
 
 Primary use: Navigate code by SYMBOLS and DEPENDENCIES, not text.
@@ -32,6 +41,11 @@ SYMBOL GRAPH:
   Compute PageRank = symbol importance score
   Generate token-budgeted repo maps
 
+CODE ANALYSIS:
+  Dead code detection (zero callers + low PageRank)
+  Test gap analysis (high PageRank without test callers)
+  Impact analysis (transitive callers across files)
+
 SEMANTIC SEARCH:
   Natural language → vector similarity + BM25
   Searches raw code AND LLM-enriched summaries
@@ -40,6 +54,8 @@ SEMANTIC SEARCH:
 INDEXING:
   Parse code → AST chunking → embed → vector store
   Auto-reindex on file changes before search/map
+  Watch mode for continuous re-indexing
+  Git hooks for post-commit indexing
 </capabilities>
 
 <tools>
@@ -50,6 +66,11 @@ SYMBOL GRAPH COMMANDS (primary - always use --nologo --raw):
   claudemem callees <name>    # What this symbol depends on
   claudemem context <name>    # Full context: symbol + callers + callees
 
+CODE ANALYSIS COMMANDS:
+  claudemem dead-code         # Find unused: zero callers + low PageRank
+  claudemem test-gaps         # Find untested: high PageRank + no test callers
+  claudemem impact <name>     # Transitive callers across all files
+
 SEARCH (secondary - after structure understood):
   claudemem search "query"    # Semantic search, returns file:line + code
   claudemem search "q" --map  # Search + include repo map context
@@ -58,6 +79,8 @@ INDEX/STATUS:
   claudemem index [path] [-f] # Index codebase (force with -f)
   claudemem status            # Show index info
   claudemem clear             # Remove index
+  claudemem watch             # Auto-reindex on file changes (daemon)
+  claudemem hooks install     # Git post-commit hook for auto-indexing
 
 AI INSTRUCTIONS:
   claudemem ai <role>         # Role instructions (architect|developer|tester|debugger)
@@ -97,8 +120,9 @@ Records separated by "---". Each field: "key: value" on own line.
 
 3. CHECK IMPACT (before modifying!)
    claudemem --nologo callers TargetClass --raw
-   → These will break if you change the interface
-   → Include these files in your review
+   → Direct callers that will break if you change interface
+   claudemem impact TargetClass --raw
+   → ALL transitive callers (full blast radius)
 
 4. UNDERSTAND DEPENDENCIES
    claudemem --nologo callees TargetClass --raw
@@ -109,7 +133,11 @@ Records separated by "---". Each field: "key: value" on own line.
    claudemem --nologo context TargetClass --raw
    → Symbol + all callers + all callees at once
 
-6. SEARCH (when needed)
+6. CODE ANALYSIS (when relevant)
+   claudemem dead-code --raw       → Find unused code
+   claudemem test-gaps --raw       → Find untested code
+
+7. SEARCH (when needed)
    claudemem --nologo search "specific query" --raw
    → Use for natural language discovery
    → After structure is understood
@@ -174,19 +202,20 @@ BUG FIX:
   1. claudemem map "error keywords" --raw
   2. claudemem symbol FunctionFromStackTrace --raw
   3. claudemem callers FunctionFromStackTrace --raw
-  4. Read identified file:line ranges
-  5. Fix bug, verify callers still work
+  4. claudemem impact BuggyFunction --raw (assess scope)
+  5. Read identified file:line ranges
+  6. Fix bug, verify callers still work
 
 NEW FEATURE:
   1. claudemem map "feature area" --raw
   2. claudemem callees ExistingFeature --raw (see patterns)
   3. claudemem context ModificationPoint --raw
   4. Implement following existing patterns
-  5. Check no callers broken
+  5. claudemem test-gaps --raw (check coverage)
 
 REFACTORING:
   1. claudemem symbol SymbolToRename --raw
-  2. claudemem callers SymbolToRename --raw
+  2. claudemem impact SymbolToRename --raw (full scope)
   3. Update all caller locations from output
   4. Verify each file:line updated
 
@@ -195,6 +224,16 @@ UNDERSTANDING CODEBASE:
   2. Identify top 5 by PageRank
   3. claudemem context <top-symbol> --raw for each
   4. Trace flow via callees
+
+CLEANUP (new!):
+  1. claudemem dead-code --raw (find unused)
+  2. Review each symbol for dynamic usage
+  3. Remove confirmed dead code
+
+TEST PLANNING (new!):
+  1. claudemem test-gaps --raw (prioritized list)
+  2. Focus on high PageRank symbols
+  3. claudemem impact <symbol> --raw for test scope
 </scenarios>
 
 <supported-languages>
@@ -220,7 +259,7 @@ ${roleInstructions}
  * Compact skill for tight context budgets
  */
 export const CLAUDEMEM_SKILL_COMPACT = `<skill name="claudemem">
-CODE INTELLIGENCE via symbol graph + semantic search.
+CODE INTELLIGENCE via symbol graph + semantic search + code analysis.
 STRUCTURE FIRST: map → symbol → callers → then read code.
 
 SYMBOL GRAPH (primary - use --nologo --raw):
@@ -230,6 +269,11 @@ SYMBOL GRAPH (primary - use --nologo --raw):
   claudemem callees <name>    # What this depends on
   claudemem context <name>    # Full context at once
 
+CODE ANALYSIS:
+  claudemem dead-code         # Find unused (zero callers + low PageRank)
+  claudemem test-gaps         # Find untested (high PageRank + no test callers)
+  claudemem impact <name>     # ALL transitive callers (blast radius)
+
 SEARCH (after structure understood):
   claudemem search "query"    # Semantic search → file:line results
 
@@ -237,8 +281,8 @@ PAGERANK = importance:
   High (>0.05) = core abstractions, read first
   Low (<0.01) = utilities, defer
 
-WORKFLOW: map → identify high PageRank → symbol → callers → implement
-AVOID: grep (no ranking), reading whole files, modifying without callers check
+WORKFLOW: map → identify high PageRank → symbol → impact analysis → implement
+AVOID: grep (no ranking), reading whole files, modifying without impact check
 </skill>`;
 
 /**
@@ -268,8 +312,11 @@ TOOLS:
 PREFERRED CLI WORKFLOW:
   claudemem map "task" --raw             # Structure first
   claudemem symbol <name> --raw          # Find definition
-  claudemem callers <name> --raw         # Check impact
+  claudemem callers <name> --raw         # Check direct impact
+  claudemem impact <name> --raw          # Full transitive impact (blast radius)
   claudemem callees <name> --raw         # Dependencies
+  claudemem dead-code --raw              # Find unused code
+  claudemem test-gaps --raw              # Find untested code
   claudemem search "query" --raw         # When needed
 
 WHEN TO USE MCP:
@@ -278,7 +325,7 @@ WHEN TO USE MCP:
 
 WHEN TO USE CLI:
   ✓ Structure discovery (map, symbol, callers, callees)
-  ✓ Impact analysis before modifications
+  ✓ Code analysis (dead-code, test-gaps, impact)
   ✓ Dependency tracing
   ✓ Any workflow requiring parsed output
 </mcp-skill>`;
@@ -286,12 +333,15 @@ WHEN TO USE CLI:
 /**
  * Quick reference card (minimal tokens)
  */
-export const CLAUDEMEM_QUICK_REF = `claudemem: symbol graph + semantic search (--nologo --raw)
+export const CLAUDEMEM_QUICK_REF = `claudemem: symbol graph + semantic search + code analysis (--nologo --raw)
   map [query]      # Structure overview, PageRank ranked
   symbol <name>    # Find definition (file:line)
   callers <name>   # What depends on this (BEFORE modifying!)
   callees <name>   # What this depends on
   context <name>   # Symbol + callers + callees
+  dead-code        # Find unused (zero callers + low PageRank)
+  test-gaps        # Find untested (high PageRank + no test callers)
+  impact <name>    # ALL transitive callers (blast radius)
   search "query"   # Semantic search (after structure understood)
-WORKFLOW: map → symbol → callers → implement
-AVOID: grep, whole file reads, modifying without callers`;
+WORKFLOW: map → symbol → impact → implement
+AVOID: grep, whole file reads, modifying without impact check`;

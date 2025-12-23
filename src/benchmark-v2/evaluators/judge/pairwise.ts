@@ -391,6 +391,10 @@ ${comp.summaryB.summary}`;
 
 			const parsed = this.parseJSONResponse<BatchedPairwiseResponse>(response.content);
 
+			// Calculate cost per comparison (divide batch cost evenly)
+			const batchCost = response.usage?.cost || 0;
+			const costPerComparison = batch.length > 0 ? batchCost / batch.length : 0;
+
 			// Map results back to PairwiseResult objects
 			const results: PairwiseResult[] = [];
 			for (let i = 0; i < batch.length; i++) {
@@ -402,12 +406,14 @@ ${comp.summaryB.summary}`;
 					continue;
 				}
 
-				results.push(this.buildResult(codeUnit, comp, {
+				const result = this.buildResult(codeUnit, comp, {
 					winner: resultData.winner,
 					confidence: resultData.confidence,
 					reasoning: resultData.reasoning,
 					criteria_breakdown: resultData.criteria_breakdown,
-				}));
+				});
+				result.cost = costPerComparison;
+				results.push(result);
 			}
 
 			return results;

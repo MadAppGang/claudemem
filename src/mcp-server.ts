@@ -10,8 +10,26 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { createIndexer } from "./core/indexer.js";
+import { createCodeAnalyzer } from "./core/analysis/index.js";
+import { FileTracker } from "./core/tracker.js";
 import { discoverEmbeddingModels, formatModelInfo } from "./models/model-discovery.js";
+
+/**
+ * Get file tracker for a project path
+ */
+function getFileTracker(projectPath: string): FileTracker | null {
+	const claudememDir = join(projectPath, ".claudemem");
+	const dbPath = join(claudememDir, "index.db");
+
+	if (!existsSync(dbPath)) {
+		return null;
+	}
+
+	return new FileTracker(dbPath, projectPath);
+}
 
 // ============================================================================
 // MCP Server Setup
@@ -20,7 +38,7 @@ import { discoverEmbeddingModels, formatModelInfo } from "./models/model-discove
 async function main() {
 	const server = new McpServer({
 		name: "claudemem",
-		version: "0.1.0",
+		version: "0.3.0",
 	});
 
 	// ========================================================================
@@ -341,6 +359,286 @@ async function main() {
 				}
 
 				response += `\n**Recommended for code**: \`qwen/qwen3-embedding-8b\` (best quality/price ratio for code)\n`;
+
+				return { content: [{ type: "text", text: response }] };
+			} catch (error) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+						},
+					],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// ========================================================================
+	// Tool: find_dead_code
+	// ========================================================================
+	server.tool(
+		"find_dead_code",
+		"Find potentially dead code - symbols with zero callers and low PageRank. Great for codebase cleanup.",
+		{
+			path: z
+				.string()
+				.optional()
+				.describe("Project path (default: current directory)"),
+			maxPageRank: z
+				.number()
+				.optional()
+				.describe("Maximum PageRank threshold (default: 0.001)"),
+			unexportedOnly: z
+				.boolean()
+				.optional()
+				.describe("Only show unexported symbols (default: true)"),
+			limit: z
+				.number()
+				.optional()
+				.describe("Maximum results to return (default: 50)"),
+		},
+		async ({ path, maxPageRank, unexportedOnly, limit }) => {
+			try {
+				const projectPath = path || process.cwd();
+				const tracker = getFileTracker(projectPath);
+
+				if (!tracker) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: "No index found. Run `index_codebase` first to index your project.",
+							},
+						],
+						isError: true,
+					};
+				}
+
+				const analyzer = createCodeAnalyzer(tracker);
+
+				const results = analyzer.findDeadCode({
+					maxPageRank: maxPageRank || 0.001,
+					unexportedOnly: unexportedOnly !== false,
+					limit: limit || 50,
+				});
+
+				if (results.length === 0) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: "No dead code found! Your codebase looks clean.",
+							},
+						],
+					};
+				}
+
+				let response = `## Dead Code Analysis\n\n`;
+				response += `Found ${results.length} potentially dead symbols:\n\n`;
+
+				response += `| Symbol | File | PageRank | Reason |\n`;
+				response += `|--------|------|----------|--------|\n`;
+
+				for (const r of results) {
+					const file = r.symbol.filePath.split("/").pop();
+					response += `| \`${r.symbol.name}\` | ${file} | ${r.symbol.pagerankScore.toFixed(4)} | ${r.reason} |\n`;
+				}
+
+				response += `\n**Note**: Review before deletion - some may be used dynamically.`;
+
+				return { content: [{ type: "text", text: response }] };
+			} catch (error) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+						},
+					],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// ========================================================================
+	// Tool: find_test_gaps
+	// ========================================================================
+	server.tool(
+		"find_test_gaps",
+		"Find high-PageRank symbols without test coverage. Prioritizes what needs testing most.",
+		{
+			path: z
+				.string()
+				.optional()
+				.describe("Project path (default: current directory)"),
+			minPageRank: z
+				.number()
+				.optional()
+				.describe("Minimum PageRank threshold (default: 0.01)"),
+			limit: z
+				.number()
+				.optional()
+				.describe("Maximum results to return (default: 20)"),
+		},
+		async ({ path, minPageRank, limit }) => {
+			try {
+				const projectPath = path || process.cwd();
+				const tracker = getFileTracker(projectPath);
+
+				if (!tracker) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: "No index found. Run `index_codebase` first to index your project.",
+							},
+						],
+						isError: true,
+					};
+				}
+
+				const analyzer = createCodeAnalyzer(tracker);
+
+				const results = analyzer.findTestGaps({
+					minPageRank: minPageRank || 0.01,
+					limit: limit || 20,
+				});
+
+				if (results.length === 0) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: "No test gaps found! All important symbols appear to have test coverage.",
+							},
+						],
+					};
+				}
+
+				let response = `## Test Coverage Gaps\n\n`;
+				response += `Found ${results.length} symbols without test coverage:\n\n`;
+
+				response += `| Symbol | File | PageRank | Priority |\n`;
+				response += `|--------|------|----------|----------|\n`;
+
+				for (const r of results) {
+					const file = r.symbol.filePath.split("/").pop();
+					const pageRank = r.symbol.pagerankScore;
+					const priority = pageRank > 0.05 ? "🔴 HIGH" : pageRank > 0.02 ? "🟠 MEDIUM" : "🟡 LOW";
+					response += `| \`${r.symbol.name}\` | ${file} | ${pageRank.toFixed(4)} | ${priority} |\n`;
+				}
+
+				response += `\n**Tip**: Start with HIGH priority symbols - they're most heavily used.`;
+
+				return { content: [{ type: "text", text: response }] };
+			} catch (error) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+						},
+					],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// ========================================================================
+	// Tool: analyze_impact
+	// ========================================================================
+	server.tool(
+		"analyze_impact",
+		"Analyze the blast radius of changing a symbol. Shows all transitive callers grouped by file.",
+		{
+			symbol: z.string().describe("Symbol name to analyze (e.g., 'MyClass', 'processData')"),
+			path: z
+				.string()
+				.optional()
+				.describe("Project path (default: current directory)"),
+			fileHint: z
+				.string()
+				.optional()
+				.describe("File path hint if symbol name is ambiguous"),
+			maxDepth: z
+				.number()
+				.optional()
+				.describe("Maximum depth for transitive analysis (default: 10)"),
+		},
+		async ({ symbol: symbolName, path, fileHint, maxDepth }) => {
+			try {
+				const projectPath = path || process.cwd();
+				const tracker = getFileTracker(projectPath);
+
+				if (!tracker) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: "No index found. Run `index_codebase` first to index your project.",
+							},
+						],
+						isError: true,
+					};
+				}
+
+				const analyzer = createCodeAnalyzer(tracker);
+
+				// Find the target symbol first
+				const target = analyzer.findSymbolForImpact(symbolName, fileHint);
+				if (!target) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: `Symbol "${symbolName}" not found. Try using a more specific name or provide a fileHint.`,
+							},
+						],
+					};
+				}
+
+				const result = analyzer.findImpact(target.id, {
+					maxDepth: maxDepth || 10,
+				});
+
+				if (!result) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: `Could not analyze impact for "${symbolName}".`,
+							},
+						],
+					};
+				}
+
+				let response = `## Impact Analysis: \`${result.target.name}\`\n\n`;
+				response += `**Location**: ${result.target.filePath}:${result.target.startLine}\n`;
+				response += `**PageRank**: ${result.target.pagerankScore.toFixed(4)}\n`;
+				response += `**Total affected callers**: ${result.totalAffected}\n`;
+				response += `**Files affected**: ${result.byFile.size}\n\n`;
+
+				if (result.byFile.size === 0) {
+					response += `No callers found - this symbol is safe to modify.\n`;
+				} else {
+					response += `### Affected Files\n\n`;
+
+					for (const [filePath, callers] of result.byFile) {
+						const fileName = filePath.split("/").pop();
+						response += `**${fileName}** (${callers.length} callers)\n`;
+						for (const caller of callers.slice(0, 5)) {
+							response += `  - \`${caller.symbol.name}\` at line ${caller.symbol.startLine} (depth ${caller.depth})\n`;
+						}
+						if (callers.length > 5) {
+							response += `  - *... and ${callers.length - 5} more*\n`;
+						}
+						response += `\n`;
+					}
+				}
 
 				return { content: [{ type: "text", text: response }] };
 			} catch (error) {

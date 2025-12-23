@@ -16,9 +16,9 @@ CREATE TABLE IF NOT EXISTS benchmark_runs (
     current_phase TEXT
         CHECK (current_phase IS NULL OR current_phase IN (
             'extraction', 'generation',
-            'evaluation:judge', 'evaluation:contrastive',
+            'evaluation:iterative', 'evaluation:judge', 'evaluation:contrastive',
             'evaluation:retrieval', 'evaluation:downstream',
-            'aggregation', 'reporting'
+            'evaluation:self', 'aggregation', 'reporting'
         )),
     started_at TEXT NOT NULL DEFAULT (datetime('now')),
     completed_at TEXT,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS evaluation_results (
     run_id TEXT NOT NULL REFERENCES benchmark_runs(id) ON DELETE CASCADE,
     summary_id TEXT NOT NULL REFERENCES generated_summaries(id) ON DELETE CASCADE,
     evaluation_type TEXT NOT NULL
-        CHECK (evaluation_type IN ('judge', 'contrastive', 'retrieval', 'downstream')),
+        CHECK (evaluation_type IN ('iterative', 'judge', 'contrastive', 'retrieval', 'downstream', 'self')),
     results_json TEXT NOT NULL,
     evaluated_at TEXT NOT NULL DEFAULT (datetime('now')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS pairwise_results (
     position_swapped INTEGER NOT NULL DEFAULT 0,
     reasoning TEXT,
     criteria_breakdown_json TEXT,
+    cost REAL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
