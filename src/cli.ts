@@ -151,9 +151,6 @@ export async function runCli(args: string[]): Promise<void> {
 		case "benchmark-llm":
 			await handleBenchmarkLLM(args.slice(1));
 			break;
-		case "benchmark-llm-v2":
-			await handleBenchmarkLLMv2(args.slice(1));
-			break;
 		case "benchmark-list":
 			await handleBenchmarkList(args.slice(1));
 			break;
@@ -1887,544 +1884,12 @@ async function handleBenchmark(args: string[]): Promise<void> {
 }
 
 // ============================================================================
-// LLM Benchmark Handler
+// LLM Benchmark Handler (V2 - Comprehensive evaluation)
 // ============================================================================
 
 async function handleBenchmarkLLM(args: string[]): Promise<void> {
-	if (!noLogo) printLogo();
-
-	const c = {
-		reset: "\x1b[0m",
-		bold: "\x1b[1m",
-		dim: "\x1b[2m",
-		cyan: "\x1b[36m",
-		green: "\x1b[38;5;78m",
-		yellow: "\x1b[33m",
-		red: "\x1b[31m",
-		orange: "\x1b[38;5;209m",
-	};
-
-	// Parse flags
-	const getFlag = (name: string): string | undefined => {
-		const idx = args.findIndex((a) => a.startsWith(`--${name}=`));
-		if (idx !== -1) return args[idx].split("=")[1];
-		const idxSpace = args.findIndex((a) => a === `--${name}`);
-		if (idxSpace !== -1 && args[idxSpace + 1] && !args[idxSpace + 1].startsWith("-")) {
-			return args[idxSpace + 1];
-		}
-		return undefined;
-	};
-
-	const generatorsStr = getFlag("generators") || "anthropic";
-	const judgesStr = getFlag("judges");
-	const casesStr = getFlag("cases") || "10";
-	const testCaseCount = casesStr.toLowerCase() === "all" ? Infinity : parseInt(casesStr, 10);
-	const outputFormat = getFlag("format") || "cli";
-	const verbose = args.includes("--verbose") || args.includes("-v");
-
-	// Parse generator specs - import DEFAULT_LLM_MODELS for resolving defaults
-	const { parseGeneratorSpec } = await import("./benchmark/generators/index.js");
-	const { DEFAULT_LLM_MODELS } = await import("./llm/client.js");
-	const generatorSpecs = generatorsStr.split(",").map((s) => s.trim());
-	const generatorConfigs = generatorSpecs.map((spec) => {
-		const parsed = parseGeneratorSpec(spec);
-		// Resolve model from defaults if not specified
-		const resolvedModel = parsed.model || DEFAULT_LLM_MODELS[parsed.provider];
-		return {
-			provider: parsed.provider,
-			model: resolvedModel,
-			displayName: spec === parsed.provider ? `${spec} (${resolvedModel})` : spec,
-			endpoint: parsed.endpoint, // For local providers (lmstudio uses port 1234, ollama uses 11434)
-		};
-	});
-
-	// Parse judge specs
-	const judgeModels = judgesStr ? judgesStr.split(",").map((s) => s.trim()) : [];
-
-	console.log(`\n${c.orange}${c.bold}🏁 LLM BENCHMARK${c.reset}\n`);
-	console.log(`${c.dim}Generators: ${generatorSpecs.join(", ")}${c.reset}`);
-	console.log(`${c.dim}Judges: ${judgeModels.length > 0 ? judgeModels.join(", ") : "none (AST only)"}${c.reset}`);
-	console.log(`${c.dim}Test cases: ${testCaseCount === Infinity ? "all" : testCaseCount}${c.reset}\n`);
-
-	// Import benchmark module
-	const { runBenchmark, createReporter } = await import("./benchmark/index.js");
-
-	// Types (inline to avoid compile-time dependency on dynamic import)
-	type BenchmarkPhase = "preparing" | "generating" | "judging" | "scoring" | "reporting";
-	type ReportFormat = "cli" | "json" | "detailed";
-	type TestCaseType = "file_summary" | "symbol_summary";
-	type LLMProvider = "claude-code" | "anthropic" | "anthropic-batch" | "openrouter" | "local";
-	type BenchmarkConfig = {
-		generators: Array<{ provider: LLMProvider; model: string; displayName: string }>;
-		judges: string[];
-		testCaseCount: number;
-		testCaseTypes: TestCaseType[];
-		projectPath: string;
-		outputFormats: ReportFormat[];
-		onProgress?: (phase: BenchmarkPhase, completed: number, total: number, details?: string) => void;
-		verbose?: boolean;
-	};
-
-	// Create multi-model progress renderer (each model gets its own row)
-	const createLLMMultiProgress = (generatorNames: string[], judgeNames: string[] = []) => {
-		const globalStartTime = Date.now();
-		const ANIM = ["▓", "▒", "░", "▒"];
-		let animFrame = 0;
-		let interval: ReturnType<typeof setInterval> | null = null;
-		const hasJudges = judgeNames.length > 0;
-		// +1 for summary line, +1 for separator if judges exist
-		const totalLines = generatorNames.length + judgeNames.length + 1 + (hasJudges ? 1 : 0);
-		let renderCount = 0; // Track render calls for debugging
-
-		// State per generator
-		const generatorState = new Map<string, {
-			completed: number;
-			total: number;
-			phase: string;
-			done: boolean;
-			started: boolean;
-			error?: string;
-			startTime: number;
-			endTime?: number;
-		}>();
-		for (const name of generatorNames) {
-			generatorState.set(name, {
-				completed: 0,
-				total: 0,
-				phase: "waiting",
-				done: false,
-				started: false,
-				startTime: globalStartTime,
-			});
-		}
-
-		// State per judge
-		const judgeState = new Map<string, {
-			completed: number;
-			total: number;
-			phase: string;
-			done: boolean;
-			started: boolean;
-			error?: string;
-			startTime: number;
-			endTime?: number;
-		}>();
-		for (const name of judgeNames) {
-			judgeState.set(name, {
-				completed: 0,
-				total: 0,
-				phase: "waiting",
-				done: false,
-				started: false,
-				startTime: globalStartTime,
-			});
-		}
-
-		// Global phase tracking
-		let globalPhase = "preparing";
-
-		const formatTime = (ms: number) => {
-			const s = Math.floor(ms / 1000);
-			const m = Math.floor(s / 60);
-			return m > 0 ? `${m.toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}` : `00:${s.toString().padStart(2, "0")}`;
-		};
-
-		// Helper to extract a friendly display name from full generator/judge name
-		// Handles formats:
-		//   "provider (model)" -> "model-family/provider" e.g. "anthropic (claude-sonnet-4-5)" -> "sonnet"
-		//   "batch/sonnet" -> "sonnet/batch"
-		//   "Model Name (Provider)" -> "model/provider" e.g. "Claude Sonnet 4.5 (Anthropic)" -> "sonnet"
-		const extractDisplayName = (name: string): string => {
-			// Try to extract from format: "something (something-else)"
-			const fullMatch = name.match(/^(.+?)\s*\((.+?)\)$/);
-			if (fullMatch) {
-				const beforeParen = fullMatch[1].trim();
-				const inParen = fullMatch[2].trim();
-
-				// Determine which is model and which is provider
-				// If inParen contains "claude-" it's the model, otherwise it's the provider
-				let modelPart: string;
-				let providerPart: string;
-
-				if (inParen.includes("claude") || inParen.includes("-")) {
-					// Format: "provider (model)" e.g. "anthropic (claude-sonnet-4-5)"
-					providerPart = beforeParen.toLowerCase();
-					modelPart = inParen;
-				} else {
-					// Format: "model (Provider)" e.g. "Claude Sonnet 4.5 (Anthropic)"
-					modelPart = beforeParen;
-					providerPart = inParen.toLowerCase();
-				}
-
-				// Extract model family: claude-sonnet-4-5 -> sonnet, Claude Sonnet 4.5 -> sonnet
-				let modelFamily: string;
-				const familyMatch = modelPart.match(/(?:claude[_-\s]*)?(opus|sonnet|haiku)/i);
-				if (familyMatch) {
-					modelFamily = familyMatch[1].toLowerCase();
-				} else {
-					// For other models, use last significant part
-					const parts = modelPart.split(/[-/\s]/);
-					modelFamily = parts.pop()?.toLowerCase() || modelPart.toLowerCase();
-				}
-
-				// Short provider names for disambiguation
-				const shortProvider = providerPart === "anthropic" ? "" :
-					providerPart === "batch" ? "/batch" :
-					providerPart === "openrouter" || providerPart === "or" ? "/or" :
-					providerPart === "local" ? "/local" :
-					providerPart === "claude code" || providerPart === "cc" ? "/cc" :
-					`/${providerPart.slice(0, 5)}`;
-
-				return modelFamily + shortProvider;
-			}
-
-			// For batch/sonnet or provider/model style
-			if (name.includes("/")) {
-				const parts = name.split("/");
-				const provider = parts[0].toLowerCase();
-				const modelOrAlias = parts.slice(1).join("/");
-
-				// Check for model family in the model part
-				const familyMatch = modelOrAlias.match(/(opus|sonnet|haiku)/i);
-				if (familyMatch) {
-					const modelFamily = familyMatch[1].toLowerCase();
-					// Add provider suffix if not anthropic
-					const shortProvider = provider === "anthropic" ? "" :
-						provider === "batch" ? "/batch" :
-						provider === "openrouter" || provider === "or" ? "/or" :
-						provider === "local" || provider === "lmstudio" || provider === "ollama" ? "/local" :
-						`/${provider.slice(0, 5)}`;
-					return modelFamily + shortProvider;
-				}
-				// Return as-is for non-claude models
-				return modelOrAlias.length > 20 ? modelOrAlias.slice(0, 20) : modelOrAlias;
-			}
-			return name;
-		};
-
-		// Helper to render a single row
-		const renderRow = (
-			name: string,
-			state: { completed: number; total: number; phase: string; done: boolean; started: boolean; error?: string; startTime: number; endTime?: number },
-			icon: string = "⏱"
-		) => {
-			const { completed, total, phase, done, started, error, startTime, endTime } = state;
-			const elapsedMs = started ? (endTime || Date.now()) - startTime : 0;
-			const elapsed = formatTime(elapsedMs);
-
-			// Get friendly display name
-			let displayName = extractDisplayName(name);
-			if (displayName.length > 30) {
-				displayName = displayName.slice(0, 27) + "...";
-			}
-
-			const width = 20;
-			let bar: string;
-			let percent: number;
-			let status: string;
-
-			if (error) {
-				bar = `${c.red}${"✗".repeat(width)}${c.reset}`;
-				percent = 0;
-				status = `${c.red}✗ error${c.reset}`;
-			} else if (done) {
-				bar = `${c.green}${"█".repeat(width)}${c.reset}`;
-				percent = 100;
-				status = `${c.green}✓ done${c.reset}`;
-			} else if (!started) {
-				bar = `${c.dim}${"░".repeat(width)}${c.reset}`;
-				percent = 0;
-				status = `${c.dim}⏳ waiting${c.reset}`;
-			} else {
-				percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-				const filledWidth = Math.round((completed / Math.max(total, 1)) * width);
-				const inProgressWidth = Math.min(1, width - filledWidth);
-				const emptyWidth = Math.max(0, width - filledWidth - inProgressWidth);
-
-				const filled = "█".repeat(filledWidth);
-				const animated = ANIM[animFrame];
-				const empty = "░".repeat(emptyWidth);
-				bar = filled + animated + empty;
-				// Show progress count for both generators and judges (per-test-case progress)
-				status = `${phase}: ${completed}/${total}`;
-			}
-
-			process.stdout.write(`\r${icon} ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${displayName.padEnd(30)} │ ${status.padEnd(25)}\x1b[K\n`);
-		};
-
-		const render = () => {
-			animFrame = (animFrame + 1) % ANIM.length;
-
-			// Move cursor up to overwrite previous lines (more portable than save/restore)
-			// Clear each line as we go up to ensure clean overwrites
-			for (let i = 0; i < totalLines; i++) {
-				process.stdout.write("\x1b[1A\x1b[2K");
-			}
-
-			// Render generator rows
-			for (const name of generatorNames) {
-				const state = generatorState.get(name)!;
-				renderRow(name, state, "⏱");
-			}
-
-			// Render separator and judge rows if judges exist
-			if (hasJudges) {
-				process.stdout.write(`\r${c.dim}${"─".repeat(90)}${c.reset}\x1b[K\n`);
-				for (const name of judgeNames) {
-					const state = judgeState.get(name)!;
-					renderRow(name, state, "⚖");
-				}
-			}
-
-			// Total line
-			const totalElapsed = formatTime(Date.now() - globalStartTime);
-			const genDoneCount = Array.from(generatorState.values()).filter(s => s.done).length;
-			const judgeDoneCount = Array.from(judgeState.values()).filter(s => s.done).length;
-			const statusParts = [`${genDoneCount}/${generatorNames.length} generators`];
-			if (hasJudges) {
-				statusParts.push(`${judgeDoneCount}/${judgeNames.length} judges`);
-			}
-			process.stdout.write(`\r${c.dim}⏱ ${totalElapsed} total │ ${globalPhase} │ ${statusParts.join(", ")}${c.reset}\x1b[K\n`);
-		};
-
-		return {
-			start() {
-				// Print initial state directly (no empty lines needed)
-				// This avoids cursor positioning issues on first render
-				for (const name of generatorNames) {
-					const state = generatorState.get(name)!;
-					renderRow(name, state, "⏱");
-				}
-				if (hasJudges) {
-					process.stdout.write(`\r${c.dim}${"─".repeat(90)}${c.reset}\x1b[K\n`);
-					for (const name of judgeNames) {
-						const state = judgeState.get(name)!;
-						renderRow(name, state, "⚖");
-					}
-				}
-				const totalElapsed = formatTime(0);
-				process.stdout.write(`\r${c.dim}⏱ ${totalElapsed} total │ preparing │ 0/${generatorNames.length} generators${hasJudges ? `, 0/${judgeNames.length} judges` : ""}${c.reset}\x1b[K\n`);
-
-				// Now start the interval for updates
-				interval = setInterval(render, 100);
-				if (interval.unref) interval.unref();
-			},
-			updateGenerator(name: string, completed: number, total: number, phase: string) {
-				const state = generatorState.get(name);
-				if (state) {
-					if (!state.started) {
-						state.started = true;
-						state.startTime = Date.now();
-					}
-					state.completed = completed;
-					state.total = total;
-					state.phase = phase;
-				}
-			},
-			finishGenerator(name: string) {
-				const state = generatorState.get(name);
-				if (state) {
-					state.done = true;
-					state.completed = state.total;
-					state.endTime = Date.now();
-				}
-			},
-			setGeneratorError(name: string, error: string) {
-				const state = generatorState.get(name);
-				if (state) {
-					state.error = error;
-					state.done = true;
-					state.endTime = Date.now();
-				}
-			},
-			updateJudge(name: string, completed: number, total: number, phase: string) {
-				const state = judgeState.get(name);
-				if (state) {
-					if (!state.started) {
-						state.started = true;
-						state.startTime = Date.now();
-					}
-					state.completed = completed;
-					state.total = total;
-					state.phase = phase;
-				}
-			},
-			finishJudge(name: string) {
-				const state = judgeState.get(name);
-				if (state) {
-					state.done = true;
-					state.completed = state.total;
-					state.endTime = Date.now();
-				}
-			},
-			setJudgeError(name: string, error: string) {
-				const state = judgeState.get(name);
-				if (state) {
-					state.error = error;
-					state.done = true;
-					state.endTime = Date.now();
-				}
-			},
-			setGlobalPhase(phase: string) {
-				globalPhase = phase;
-			},
-			stop() {
-				if (interval) {
-					clearInterval(interval);
-					interval = null;
-				}
-			},
-			finish() {
-				this.stop();
-				// Final render - move cursor up and clear each line
-				for (let i = 0; i < totalLines; i++) {
-					process.stdout.write("\x1b[1A\x1b[2K");
-				}
-
-				// Helper to render final row
-				const renderFinalRow = (name: string, state: typeof generatorState extends Map<string, infer V> ? V : never, icon: string) => {
-					const elapsedMs = state.endTime ? state.endTime - state.startTime : Date.now() - state.startTime;
-					const elapsed = formatTime(elapsedMs);
-
-					let displayName = extractDisplayName(name);
-					if (displayName.length > 30) {
-						displayName = displayName.slice(0, 27) + "...";
-					}
-
-					if (state.error) {
-						process.stdout.write(`\r${icon} ${elapsed} │ ${c.red}${"✗".repeat(20)}${c.reset}   0% │ ${displayName.padEnd(30)} │ ${c.red}✗ error${c.reset}\x1b[K\n`);
-					} else {
-						process.stdout.write(`\r${icon} ${elapsed} │ ${c.green}${"█".repeat(20)}${c.reset} 100% │ ${displayName.padEnd(30)} │ ${c.green}✓ done${c.reset}\x1b[K\n`);
-					}
-				};
-
-				// Render generator rows
-				for (const name of generatorNames) {
-					const state = generatorState.get(name)!;
-					renderFinalRow(name, state, "⏱");
-				}
-
-				// Render separator and judge rows if judges exist
-				if (hasJudges) {
-					process.stdout.write(`\r${c.dim}${"─".repeat(90)}${c.reset}\x1b[K\n`);
-					for (const name of judgeNames) {
-						const state = judgeState.get(name)!;
-						renderFinalRow(name, state, "⚖");
-					}
-				}
-
-				const totalElapsed = formatTime(Date.now() - globalStartTime);
-				process.stdout.write(`\r${c.green}✓${c.reset} ${c.bold}Completed in ${totalElapsed}${c.reset}\x1b[K\n\n`);
-			},
-		};
-	};
-
-	// Create multi-model progress display with generators and judges
-	const generatorDisplayNames = generatorConfigs.map(g => g.displayName);
-	const progress = createLLMMultiProgress(generatorDisplayNames, judgeModels);
-	progress.start();
-
-	// Map display names back to track progress
-	const displayNameToConfig = new Map(generatorConfigs.map(g => [g.displayName, g]));
-
-	const onProgress = (phase: BenchmarkPhase, completed: number, total: number, details?: string) => {
-		progress.setGlobalPhase(phase);
-		// Parse model name from details if present
-		if (details) {
-			// Check if this is a judge progress update (format: "Judge <judge>: <completed>/<total> for <generator>")
-			const judgeMatch = details.match(/^Judge\s+(.+?):\s*(\d+)\/(\d+)/);
-			if (judgeMatch) {
-				const judgeName = judgeMatch[1].trim();
-				const judgeCompleted = parseInt(judgeMatch[2], 10);
-				const judgeTotal = parseInt(judgeMatch[3], 10);
-				// Find matching judge
-				for (const jm of judgeModels) {
-					if (jm.includes(judgeName) || judgeName.includes(jm.split("/").pop() || jm)) {
-						if (judgeCompleted >= judgeTotal) {
-							progress.finishJudge(jm);
-						} else {
-							progress.updateJudge(jm, judgeCompleted, judgeTotal, "judging");
-						}
-						break;
-					}
-				}
-				return;
-			}
-
-			// Check for generator progress
-			const match = details.match(/(?:Running|Completed|Failed|Judging|Scoring)\s+(.+?)(?:\s*\(|\.\.\.|\s*$)/);
-			if (match) {
-				const modelName = match[1].trim();
-				// Find matching display name
-				for (const [displayName] of displayNameToConfig) {
-					if (displayName.includes(modelName) || modelName.includes(displayName.split(" ")[0])) {
-						if (details.includes("Failed")) {
-							// Extract error message from details
-							const errorMatch = details.match(/\((.+?)\)/);
-							const errorMsg = errorMatch ? errorMatch[1] : "all tests failed";
-							progress.setGeneratorError(displayName, errorMsg);
-						} else if (details.includes("Completed")) {
-							progress.finishGenerator(displayName);
-						} else {
-							progress.updateGenerator(displayName, completed, total, phase);
-						}
-						break;
-					}
-				}
-			}
-		}
-	};
-
-	// Run benchmark
-	const config: BenchmarkConfig = {
-		generators: generatorConfigs,
-		judges: judgeModels,
-		testCaseCount,
-		testCaseTypes: ["file_summary", "symbol_summary"],
-		projectPath: process.cwd(),
-		outputFormats: [outputFormat as ReportFormat],
-		onProgress,
-		verbose,
-	};
-
-	try {
-		// Suppress console.warn during benchmark to prevent progress display corruption
-		const originalWarn = console.warn;
-		console.warn = () => {};
-
-		const { results, flushDiagnostics } = await runBenchmark(config);
-
-		// Restore console.warn
-		console.warn = originalWarn;
-
-		// Finish progress display
-		progress.finish();
-
-		// Flush diagnostic messages now that progress display is stopped
-		flushDiagnostics();
-
-		// Generate report
-		const reporter = createReporter(outputFormat as ReportFormat);
-		const report = await reporter.report(results);
-		console.log(report);
-
-		// Save JSON if requested
-		if (outputFormat === "json" || args.includes("--save")) {
-			const { writeFileSync } = await import("node:fs");
-			const { join } = await import("node:path");
-			const outputPath = join(process.cwd(), ".claudemem", "llm-benchmark.json");
-			const jsonReporter = createReporter("json");
-			const jsonReport = await jsonReporter.report(results);
-			writeFileSync(outputPath, jsonReport);
-			console.log(`\n${c.dim}Results saved to ${outputPath}${c.reset}`);
-		}
-	} catch (error) {
-		// Restore console.warn in case of error
-		console.warn = console.warn || (() => {});
-		progress.stop();
-		console.error(`\n${c.red}Benchmark failed: ${error instanceof Error ? error.message : error}${c.reset}`);
-		process.exit(1);
-	}
+	const { runBenchmarkCLI } = await import("./benchmark-v2/index.js");
+	await runBenchmarkCLI(args);
 }
 
 // ============================================================================
@@ -3590,8 +3055,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}init${c.reset}                   Interactive setup wizard
   ${c.green}models${c.reset}                 List available embedding models
   ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
-  ${c.green}benchmark-llm${c.reset}          Compare LLM models for summary generation quality
-  ${c.green}benchmark-llm-v2${c.reset}       Comprehensive LLM evaluation (4 methods, resumable)
+  ${c.green}benchmark-llm${c.reset}          Comprehensive LLM evaluation (4 methods, resumable)
   ${c.green}benchmark-list${c.reset}         List all benchmark runs
   ${c.green}benchmark-show${c.reset}         Show results for a specific run
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
@@ -3636,23 +3100,19 @@ ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset} ${c.dim}(embedding benchmark)${c
   ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (any codebase)
   ${c.cyan}--verbose${c.reset}              Show detailed per-query results
 
-${c.yellow}${c.bold}BENCHMARK-LLM OPTIONS${c.reset} ${c.dim}(LLM summary benchmark)${c.reset}
+${c.yellow}${c.bold}BENCHMARK-LLM OPTIONS${c.reset} ${c.dim}(comprehensive LLM evaluation)${c.reset}
   ${c.cyan}--generators=${c.reset}<list>    LLM providers/models to test (comma-separated)
-                          ${c.dim}Formats: provider | provider/model${c.reset}
-                          ${c.dim}Examples: cc/opus, cc/sonnet, cc/haiku, openrouter/openai/gpt-4o${c.reset}
-                          ${c.dim}Providers: cc (Claude Code), anthropic, openrouter, local/ollama/lmstudio${c.reset}
-  ${c.cyan}--verbose${c.reset}, ${c.cyan}-v${c.reset}           Show detailed error messages during benchmark
-  ${c.cyan}--judges=${c.reset}<list>        LLM models to judge quality ${c.dim}(optional, enables blind eval)${c.reset}
-  ${c.cyan}--cases=${c.reset}<n|all>        Number of test cases or "all" for entire codebase ${c.dim}(default: 10)${c.reset}
-  ${c.cyan}--format=${c.reset}<fmt>         Output format: cli | json | detailed ${c.dim}(default: cli)${c.reset}
-
-${c.yellow}${c.bold}BENCHMARK-LLM-V2 OPTIONS${c.reset} ${c.dim}(comprehensive LLM evaluation)${c.reset}
-  ${c.cyan}--generators=${c.reset}<list>    LLM providers/models to test (comma-separated)
+                          ${c.dim}Examples: openrouter/openai/gpt-4o, anthropic/claude-3-5-sonnet${c.reset}
   ${c.cyan}--judges=${c.reset}<list>        LLM models for LLM-as-Judge evaluation
-  ${c.cyan}--cases=${c.reset}<n|all>        Target code units (default: 100)
+  ${c.cyan}--cases=${c.reset}<n>            Target code units (default: 20)
   ${c.cyan}--resume=${c.reset}<run-id>      Resume from previous run
   ${c.cyan}--local-parallelism=${c.reset}<n> Local models parallelism (1=seq, 2-4, all) ${c.dim}(default: 1)${c.reset}
+  ${c.cyan}--no-upload${c.reset}            Skip Firebase upload (local only)
+  ${c.cyan}--list${c.reset}, ${c.cyan}-l${c.reset}              List all benchmark runs
   ${c.cyan}--verbose${c.reset}, ${c.cyan}-v${c.reset}           Show detailed progress
+
+${c.yellow}${c.bold}BENCHMARK-LLM SUBCOMMANDS${c.reset}
+  ${c.green}benchmark-llm upload${c.reset} <run-id>  Upload a specific run to Firebase
   ${c.dim}Evaluation methods: LLM-as-Judge, Contrastive, Retrieval (P@K/MRR), Downstream${c.reset}
   ${c.dim}Outputs: JSON, Markdown, HTML reports${c.reset}
 
@@ -3752,15 +3212,6 @@ ${c.yellow}${c.bold}MORE INFO${c.reset}
 }
 
 // ============================================================================
-// Benchmark LLM V2 Handler
-// ============================================================================
-
-async function handleBenchmarkLLMv2(args: string[]): Promise<void> {
-	const { runBenchmarkCLI } = await import("./benchmark-v2/index.js");
-	await runBenchmarkCLI(args);
-}
-
-// ============================================================================
 // Benchmark List/Show Handlers
 // ============================================================================
 
@@ -3783,7 +3234,7 @@ async function handleBenchmarkList(args: string[]): Promise<void> {
 	const statusFilter = args.find(a => a.startsWith("--status="))?.split("=")[1] as "completed" | "failed" | "running" | undefined;
 	const projectPath = args.find(a => a.startsWith("--project="))?.split("=")[1] || process.cwd();
 
-	const dbPath = join(projectPath, ".claudemem", "benchmark-v2.db");
+	const dbPath = join(projectPath, ".claudemem", "benchmark.db");
 	if (!existsSync(dbPath)) {
 		console.log(`${c.yellow}No benchmark database found at ${dbPath}${c.reset}`);
 		console.log(`${c.dim}Run benchmarks first with: claudemem benchmark ...${c.reset}`);
@@ -3847,7 +3298,7 @@ async function handleBenchmarkShow(args: string[]): Promise<void> {
 	}
 
 	const projectPath = args.find(a => a.startsWith("--project="))?.split("=")[1] || process.cwd();
-	const dbPath = join(projectPath, ".claudemem", "benchmark-v2.db");
+	const dbPath = join(projectPath, ".claudemem", "benchmark.db");
 	if (!existsSync(dbPath)) {
 		console.log(`${c.yellow}No benchmark database found at ${dbPath}${c.reset}`);
 		return;

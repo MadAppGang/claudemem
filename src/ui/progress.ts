@@ -193,6 +193,21 @@ export function createBenchmarkProgress(itemIds: string[]) {
 			}
 		},
 
+		/** Mark all items as finished (used when phase transitions) */
+		finishAll() {
+			for (const [, state] of itemState) {
+				if (!state.done && state.started) {
+					state.done = true;
+					state.inProgress = 0;
+					// Keep completed at current value if total is 0 or unknown
+					if (state.total > 0) {
+						state.completed = state.total;
+					}
+					state.endTime = Date.now();
+				}
+			}
+		},
+
 		/** Stop the animation and optionally render final state */
 		stop(skipFinalRender = false) {
 			if (stopped) return; // Already stopped

@@ -178,8 +178,9 @@ export async function uploadBenchmarkResults(
 	latencyByModel: Map<string, number>,
 	costByModel: Map<string, number>
 ): Promise<{ success: boolean; docId?: string; error?: string }> {
-	// Quick timeout to prevent hanging on Firebase connection issues
-	const UPLOAD_TIMEOUT_MS = 10_000; // 10 seconds max
+	// Timeout to prevent hanging on Firebase connection issues
+	// 30 seconds to allow for SDK initialization + Firestore cold start
+	const UPLOAD_TIMEOUT_MS = 30_000;
 
 	const uploadPromise = async (): Promise<{ success: boolean; docId?: string; error?: string }> => {
 		const firestore = getFirebaseDb();

@@ -209,45 +209,79 @@ export async function displayBenchmarkResults(
 		},
 	};
 
+	// Get latency/cost values for stats (filter out 0/NaN)
+	const latencyValues = scoreArray
+		.map((s) => latencyByModel.get(s.modelId) || 0)
+		.filter((v) => v > 0);
+	const costValues = scoreArray
+		.map((s) => costByModel.get(s.modelId) || 0)
+		.filter((v) => v > 0);
+
+	const timeStats = {
+		min: latencyValues.length > 0 ? Math.min(...latencyValues) : 0,
+		max: latencyValues.length > 0 ? Math.max(...latencyValues) : 0,
+	};
+	const costStats = {
+		min: costValues.length > 0 ? Math.min(...costValues) : 0,
+		max: costValues.length > 0 ? Math.max(...costValues) : 0,
+	};
+
 	// Quality table header
 	console.log(
-		`  ${"Model".padEnd(26)} ${"Retr.".padEnd(10)} ${"Contr.".padEnd(10)} ${"Judge".padEnd(10)} ${"Overall".padEnd(10)}`
+		`  ${"Model".padEnd(26)} ${"Retr.".padEnd(9)} ${"Contr.".padEnd(9)} ${"Judge".padEnd(9)} ${"Overall".padEnd(9)} ${"Time".padEnd(8)} ${"Cost".padEnd(8)}`
 	);
 	console.log(
-		`  ${"─".repeat(26)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)}`
+		`  ${"─".repeat(26)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(7)} ${"─".repeat(7)}`
 	);
 
 	for (const s of scoreArray) {
 		const name = truncateName(s.modelId).padEnd(26);
 		const retr = highlight(
-			fmtPct(s.retrieval.combined).padEnd(10),
+			fmtPct(s.retrieval.combined).padEnd(9),
 			round(s.retrieval.combined) === stats.retr.max,
 			round(s.retrieval.combined) === stats.retr.min &&
 				stats.retr.min !== stats.retr.max,
 			shouldHighlight
 		);
 		const contr = highlight(
-			fmtPct(s.contrastive.combined).padEnd(10),
+			fmtPct(s.contrastive.combined).padEnd(9),
 			round(s.contrastive.combined) === stats.contr.max,
 			round(s.contrastive.combined) === stats.contr.min &&
 				stats.contr.min !== stats.contr.max,
 			shouldHighlight
 		);
 		const judge = highlight(
-			fmtPct(s.judge.combined).padEnd(10),
+			fmtPct(s.judge.combined).padEnd(9),
 			round(s.judge.combined) === stats.judge.max,
 			round(s.judge.combined) === stats.judge.min &&
 				stats.judge.min !== stats.judge.max,
 			shouldHighlight
 		);
 		const overall = highlight(
-			fmtPct(s.overall).padEnd(10),
+			fmtPct(s.overall).padEnd(9),
 			round(s.overall) === stats.overall.max,
 			round(s.overall) === stats.overall.min &&
 				stats.overall.min !== stats.overall.max,
 			shouldHighlight
 		);
-		console.log(`  ${name} ${retr} ${contr} ${judge} ${overall}`);
+
+		// Time and cost (lower is better, so swap max/min for highlighting)
+		const latency = latencyByModel.get(s.modelId) || 0;
+		const cost = costByModel.get(s.modelId) || 0;
+		const time = highlight(
+			fmtLatency(latency).padEnd(8),
+			latency > 0 && latency === timeStats.min, // green = fastest
+			latency > 0 && latency === timeStats.max && timeStats.min !== timeStats.max, // red = slowest
+			shouldHighlight
+		);
+		const costStr = highlight(
+			fmtCost(cost, s.modelId).padEnd(8),
+			cost > 0 && cost === costStats.min, // green = cheapest
+			cost > 0 && cost === costStats.max && costStats.min !== costStats.max, // red = most expensive
+			shouldHighlight
+		);
+
+		console.log(`  ${name} ${retr} ${contr} ${judge} ${overall} ${time} ${costStr}`);
 	}
 
 	// Quality explanations
@@ -282,13 +316,7 @@ export async function displayBenchmarkResults(
 	);
 	console.log();
 
-	// Calculate operational stats
-	const latencyValues = scoreArray
-		.map((s) => latencyByModel.get(s.modelId) || 0)
-		.filter((v) => v > 0);
-	const costValues = scoreArray
-		.map((s) => costByModel.get(s.modelId) || 0)
-		.filter((v) => v > 0);
+	// Calculate operational stats (reuse timeStats/costStats from quality section)
 	const opStats = {
 		latency:
 			latencyValues.length > 0

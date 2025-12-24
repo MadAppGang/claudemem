@@ -143,6 +143,20 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 				}
 
 				const content = data.choices[0].message.content;
+				const finishReason = data.choices[0].finish_reason;
+
+				// Check for empty response (common with Gemini content filtering)
+				if (!content || content.trim() === "") {
+					throw new Error(
+						`Empty response from ${body.model} (finish_reason: ${finishReason}). ` +
+						`This may be due to content filtering or rate limiting.`
+					);
+				}
+
+				// Check for truncation - warn but don't fail (useful for debugging)
+				if (finishReason === "length") {
+					console.warn(`[OpenRouter] Response truncated (hit max_tokens) for model ${body.model}`);
+				}
 
 				// Fetch actual cost from OpenRouter's generation endpoint
 				// Note: Data may not be immediately available, so we retry with delay

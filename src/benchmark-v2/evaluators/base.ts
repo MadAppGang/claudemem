@@ -38,12 +38,73 @@ export abstract class BaseEvaluator<TResult> implements IEvaluator<TResult> {
 	protected parseJSONResponse<T>(response: string): T {
 		// Try to extract JSON from markdown code blocks
 		const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
-		if (jsonMatch) {
-			return JSON.parse(jsonMatch[1].trim());
+		const jsonStr = jsonMatch ? jsonMatch[1].trim() : response.trim();
+
+		try {
+			return JSON.parse(jsonStr);
+		} catch (error) {
+			// Try to repair truncated JSON
+			const repaired = this.repairTruncatedJSON(jsonStr);
+			if (repaired) {
+				try {
+					return JSON.parse(repaired);
+				} catch {
+					// Fall through to original error
+				}
+			}
+
+			// Provide more helpful error message
+			const preview = jsonStr.slice(0, 200) + (jsonStr.length > 200 ? "..." : "");
+			const suffix = jsonStr.slice(-50);
+			throw new Error(
+				`JSON Parse error: ${error instanceof Error ? error.message : error}. ` +
+				`Response preview: "${preview}" ... ends with: "${suffix}"`
+			);
+		}
+	}
+
+	/**
+	 * Attempt to repair truncated JSON by closing open brackets/braces
+	 */
+	private repairTruncatedJSON(json: string): string | null {
+		// Count open brackets and braces
+		let braces = 0;
+		let brackets = 0;
+		let inString = false;
+		let escape = false;
+
+		for (const char of json) {
+			if (escape) {
+				escape = false;
+				continue;
+			}
+			if (char === "\\") {
+				escape = true;
+				continue;
+			}
+			if (char === '"') {
+				inString = !inString;
+				continue;
+			}
+			if (!inString) {
+				if (char === "{") braces++;
+				else if (char === "}") braces--;
+				else if (char === "[") brackets++;
+				else if (char === "]") brackets--;
+			}
 		}
 
-		// Try direct JSON parse
-		return JSON.parse(response.trim());
+		// If we have unclosed structures, try to close them
+		if (braces > 0 || brackets > 0) {
+			let repaired = json;
+			// Close any unclosed string
+			if (inString) repaired += '"';
+			// Close brackets and braces
+			repaired += "]".repeat(brackets) + "}".repeat(braces);
+			return repaired;
+		}
+
+		return null;
 	}
 
 	/**

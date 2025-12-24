@@ -255,7 +255,7 @@ export interface BenchmarkOptions {
 	projectPath: string;
 	/** Run name for identification */
 	runName?: string;
-	/** Database path (defaults to .claudemem/benchmark-v2.db) */
+	/** Database path (defaults to .claudemem/benchmark.db) */
 	dbPath?: string;
 	/** Output directory for reports */
 	outputDir?: string;
@@ -414,7 +414,7 @@ export async function runBenchmarkV2(
 ): Promise<BenchmarkResult> {
 	const {
 		projectPath,
-		dbPath = join(projectPath, ".claudemem", "benchmark-v2.db"),
+		dbPath = join(projectPath, ".claudemem", "benchmark.db"),
 		outputDir = join(projectPath, ".claudemem", "benchmark-reports"),
 		clients = {},
 		onProgress,
@@ -640,9 +640,191 @@ import {
 } from "../ui/index.js";
 
 /**
+ * List available benchmark runs
+ */
+async function handleListRuns(): Promise<void> {
+	const projectPath = process.cwd();
+	const dbPath = join(projectPath, ".claudemem", "benchmark.db");
+
+	printLogo();
+	printBenchmarkHeader("📋", "BENCHMARK RUNS");
+
+	if (!existsSync(dbPath)) {
+		console.log(`${c.yellow}No benchmark database found.${c.reset}`);
+		console.log(`Run a benchmark first: claudemem benchmark-llm`);
+		return;
+	}
+
+	const db = new BenchmarkDatabase(dbPath);
+
+	try {
+		const runs = db.listRuns();
+
+		if (runs.length === 0) {
+			console.log(`${c.yellow}No benchmark runs found.${c.reset}`);
+			return;
+		}
+
+		console.log(`Found ${runs.length} run(s):\n`);
+
+		for (const run of runs) {
+			const statusColor = run.status === "completed" ? c.green
+				: run.status === "running" ? c.yellow
+				: run.status === "failed" ? c.red : c.dim;
+
+			const date = new Date(run.startedAt).toLocaleDateString();
+			const scores = db.getAggregatedScores(run.id);
+			const modelCount = scores.size;
+
+			console.log(`  ${c.cyan}${run.id}${c.reset}`);
+			console.log(`    Name:     ${run.name}`);
+			console.log(`    Status:   ${statusColor}${run.status}${c.reset}`);
+			console.log(`    Date:     ${date}`);
+			console.log(`    Models:   ${modelCount > 0 ? modelCount : "N/A"}`);
+			console.log();
+		}
+
+		console.log(`${c.dim}To upload a run: claudemem benchmark-llm upload <runId>${c.reset}`);
+	} finally {
+		db.close();
+	}
+}
+
+/**
+ * Upload a specific benchmark run to Firebase
+ */
+async function handleUploadSubcommand(args: string[]): Promise<void> {
+	const runId = args[0];
+	const projectPath = process.cwd();
+
+	if (!runId) {
+		console.log(`${c.red}Error:${c.reset} Missing run ID`);
+		console.log(`\nUsage: claudemem benchmark-llm upload <runId>`);
+		console.log(`\nTo list available runs:`);
+		console.log(`  claudemem benchmark-llm --list`);
+		return;
+	}
+
+	printLogo();
+	printBenchmarkHeader("📤", "UPLOAD TO FIREBASE");
+
+	// Open database
+	const dbPath = join(projectPath, ".claudemem", "benchmark.db");
+	if (!existsSync(dbPath)) {
+		console.log(`${c.red}Error:${c.reset} No benchmark database found at ${dbPath}`);
+		console.log(`Run a benchmark first: claudemem benchmark-llm`);
+		return;
+	}
+
+	const db = new BenchmarkDatabase(dbPath);
+
+	try {
+		// Get the run
+		const run = db.getRun(runId);
+		renderInfo(`Found run: ${run.name} (${run.status})`);
+
+		// Get aggregated scores
+		const scores = db.getAggregatedScores(runId);
+		if (scores.size === 0) {
+			console.log(`${c.yellow}Warning:${c.reset} No scores found for this run`);
+			console.log(`The benchmark may not have completed evaluation phase.`);
+			return;
+		}
+
+		renderInfo(`Models: ${Array.from(scores.keys()).join(", ")}`);
+
+		// Calculate latency and cost per model from summaries
+		const summaries = db.getSummaries(runId);
+		const latencyByModel = new Map<string, number>();
+		const costByModel = new Map<string, number>();
+
+		for (const [modelId] of scores) {
+			const modelSummaries = summaries.filter((s) => s.modelId === modelId);
+			let totalLatency = 0;
+			let totalCost = 0;
+			for (const s of modelSummaries) {
+				totalLatency += s.generationMetadata.latencyMs || 0;
+				totalCost += s.generationMetadata.cost || 0;
+			}
+			latencyByModel.set(modelId, modelSummaries.length > 0 ? totalLatency / modelSummaries.length : 0);
+			costByModel.set(modelId, totalCost);
+		}
+
+		// Detect codebase type
+		const { detectCodebaseType } = await import("./codebase-detector.js");
+		const codebaseType = await detectCodebaseType(projectPath);
+		renderInfo(`Codebase type: ${codebaseType.label}`);
+
+		// Calculate total cost
+		let totalCost = 0;
+		for (const cost of costByModel.values()) {
+			totalCost += cost;
+		}
+
+		// Upload to Firebase
+		const { uploadBenchmarkResults } = await import("./firebase/index.js");
+		const projectName = projectPath.split("/").pop() || "unknown";
+
+		renderInfo(`Uploading to Firebase...`);
+
+		const uploadResult = await uploadBenchmarkResults(
+			run.id,
+			projectName,
+			projectPath,
+			codebaseType,
+			run.config.generators.map((g) => typeof g === "string" ? g : g.id),
+			run.config.judges,
+			run.config.sampleSize,
+			run.completedAt
+				? new Date(run.completedAt).getTime() - new Date(run.startedAt).getTime()
+				: 0,
+			totalCost,
+			scores,
+			latencyByModel,
+			costByModel
+		);
+
+		if (uploadResult.success) {
+			console.log(`\n${c.green}✓${c.reset} Successfully uploaded to Firebase!`);
+			console.log(`  Run ID: ${uploadResult.docId}`);
+		} else {
+			console.log(`\n${c.red}✗${c.reset} Upload failed: ${uploadResult.error}`);
+		}
+
+		// Force exit - Firebase SDK keeps connection open
+		process.exit(0);
+	} catch (error) {
+		if (error instanceof Error && error.message.includes("not found")) {
+			console.log(`${c.red}Error:${c.reset} Run "${runId}" not found`);
+			console.log(`\nAvailable runs:`);
+			const runs = db.listRuns();
+			for (const r of runs.slice(0, 10)) {
+				console.log(`  ${c.cyan}${r.id}${c.reset} - ${r.name} (${r.status})`);
+			}
+		} else {
+			console.log(`${c.red}Error:${c.reset} ${error instanceof Error ? error.message : error}`);
+		}
+	} finally {
+		db.close();
+	}
+}
+
+/**
  * CLI command handler for benchmark-llm-v2
  */
 export async function runBenchmarkCLI(args: string[]): Promise<void> {
+	// Handle subcommands first
+	if (args[0] === "upload") {
+		await handleUploadSubcommand(args.slice(1));
+		return;
+	}
+
+	// Handle --list flag to show available runs
+	if (args.includes("--list") || args.includes("-l")) {
+		await handleListRuns();
+		return;
+	}
+
 	const benchmarkStartTime = Date.now();
 
 	// Parse CLI arguments
@@ -740,6 +922,8 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 	// Helper to stop current progress bars
 	const stopActiveProgress = () => {
 		if (activeMultiProgress) {
+			// Mark all items as finished before stopping (handles incomplete items)
+			activeMultiProgress.finishAll();
 			activeMultiProgress.stop();
 			activeMultiProgress = null;
 		}
@@ -843,16 +1027,10 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 				const inProgressNum = parseInt(inProgressStr, 10);
 				const failuresNum = failuresStr ? parseInt(failuresStr, 10) : 0;
 
-				// When pairwise starts, stop pointwise progress bar and create new one for pairwise
+				// When pairwise starts, just note it - reuse existing progress bar
+				// (changing phase label is enough, no need for new progress bar)
 				if (isPairwise && !inPairwiseMode) {
 					inPairwiseMode = true;
-					// Stop the pointwise progress bar (keeps "✓ done" visible)
-					if (activeMultiProgress) {
-						activeMultiProgress.stop();
-					}
-					// Create new progress bar for pairwise
-					activeMultiProgress = createBenchmarkProgress(judgeModels);
-					activeMultiProgress.start();
 				}
 
 				const phaseLabel = isPairwise ? "pairwise" :
@@ -959,7 +1137,7 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			console.log();
 
 			// Get scores and evaluation results from database for console display
-			const dbPath = join(projectPath, ".claudemem", "benchmark-v2.db");
+			const dbPath = join(projectPath, ".claudemem", "benchmark.db");
 			const { BenchmarkDatabase } = await import("./storage/benchmark-db.js");
 			const db = new BenchmarkDatabase(dbPath);
 			const scores = db.getAggregatedScores(result.run.id);
@@ -1053,17 +1231,36 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 					overall: { max: round(Math.max(...scoreArray.map(s => s.overall))), min: round(Math.min(...scoreArray.map(s => s.overall))) },
 				};
 
+				// Get latency/cost values for stats (filter out 0/NaN)
+				const qualityLatencyValues = scoreArray.map(s => latencyByModel.get(s.modelId) || 0).filter(v => v > 0);
+				const qualityCostValues = scoreArray.map(s => costByModel.get(s.modelId) || 0).filter(v => v > 0);
+				const timeStats = {
+					min: qualityLatencyValues.length > 0 ? Math.min(...qualityLatencyValues) : 0,
+					max: qualityLatencyValues.length > 0 ? Math.max(...qualityLatencyValues) : 0,
+				};
+				const costStats = {
+					min: qualityCostValues.length > 0 ? Math.min(...qualityCostValues) : 0,
+					max: qualityCostValues.length > 0 ? Math.max(...qualityCostValues) : 0,
+				};
+
 				// Quality table header (ordered by weight importance)
-				console.log(`  ${"Model".padEnd(26)} ${"Retr.".padEnd(10)} ${"Contr.".padEnd(10)} ${"Judge".padEnd(10)} ${"Overall".padEnd(10)}`);
-				console.log(`  ${"─".repeat(26)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)}`);
+				console.log(`  ${"Model".padEnd(26)} ${"Retr.".padEnd(9)} ${"Contr.".padEnd(9)} ${"Judge".padEnd(9)} ${"Overall".padEnd(9)} ${"Time".padEnd(8)} ${"Cost".padEnd(8)}`);
+				console.log(`  ${"─".repeat(26)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(7)} ${"─".repeat(7)}`);
 
 				for (const s of scoreArray) {
 					const name = truncateName(s.modelId).padEnd(26);
-					const retr = highlight(fmtPct(s.retrieval.combined).padEnd(10), round(s.retrieval.combined) === stats.retr.max, round(s.retrieval.combined) === stats.retr.min && stats.retr.min !== stats.retr.max, shouldHighlight);
-					const contr = highlight(fmtPct(s.contrastive.combined).padEnd(10), round(s.contrastive.combined) === stats.contr.max, round(s.contrastive.combined) === stats.contr.min && stats.contr.min !== stats.contr.max, shouldHighlight);
-					const judge = highlight(fmtPct(s.judge.combined).padEnd(10), round(s.judge.combined) === stats.judge.max, round(s.judge.combined) === stats.judge.min && stats.judge.min !== stats.judge.max, shouldHighlight);
-					const overall = highlight(fmtPct(s.overall).padEnd(10), round(s.overall) === stats.overall.max, round(s.overall) === stats.overall.min && stats.overall.min !== stats.overall.max, shouldHighlight);
-					console.log(`  ${name} ${retr} ${contr} ${judge} ${overall}`);
+					const retr = highlight(fmtPct(s.retrieval.combined).padEnd(9), round(s.retrieval.combined) === stats.retr.max, round(s.retrieval.combined) === stats.retr.min && stats.retr.min !== stats.retr.max, shouldHighlight);
+					const contr = highlight(fmtPct(s.contrastive.combined).padEnd(9), round(s.contrastive.combined) === stats.contr.max, round(s.contrastive.combined) === stats.contr.min && stats.contr.min !== stats.contr.max, shouldHighlight);
+					const judge = highlight(fmtPct(s.judge.combined).padEnd(9), round(s.judge.combined) === stats.judge.max, round(s.judge.combined) === stats.judge.min && stats.judge.min !== stats.judge.max, shouldHighlight);
+					const overall = highlight(fmtPct(s.overall).padEnd(9), round(s.overall) === stats.overall.max, round(s.overall) === stats.overall.min && stats.overall.min !== stats.overall.max, shouldHighlight);
+
+					// Time and cost (lower is better)
+					const latency = latencyByModel.get(s.modelId) || 0;
+					const costVal = costByModel.get(s.modelId) || 0;
+					const time = highlightLatency(fmtLatency(latency).padEnd(8), latency > 0 && latency === timeStats.min, latency > 0 && latency === timeStats.max && timeStats.min !== timeStats.max, shouldHighlight);
+					const costStr = highlightLatency(fmtCost(costVal, s.modelId).padEnd(8), costVal > 0 && costVal === costStats.min, costVal > 0 && costVal === costStats.max && costStats.min !== costStats.max, shouldHighlight);
+
+					console.log(`  ${name} ${retr} ${contr} ${judge} ${overall} ${time} ${costStr}`);
 				}
 
 				// Quality column explanations
@@ -1476,6 +1673,9 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			}
 
 			console.log();
+
+			// Force exit - Firebase SDK keeps connection open
+			process.exit(0);
 		} else {
 			console.log();
 			renderError("Benchmark failed");
