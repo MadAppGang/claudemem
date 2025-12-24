@@ -1426,7 +1426,12 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			if (scores.size > 0 && !noUpload) {
 				try {
 					const { uploadBenchmarkResults } = await import("./firebase/index.js");
+					const { detectCodebaseType } = await import("./codebase-detector.js");
+
 					const projectName = projectPath.split("/").pop() || "unknown";
+
+					// Detect codebase type for categorization
+					const codebaseType = await detectCodebaseType(projectPath);
 
 					// Calculate total benchmark duration
 					const totalDuration = Date.now() - benchmarkStartTime;
@@ -1437,11 +1442,18 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 						totalBenchCost += cost;
 					}
 
-					renderInfo("Uploading to Firebase...");
+					renderInfo(`Uploading to Firebase (${codebaseType.label})...`);
 					const uploadResult = await uploadBenchmarkResults(
 						result.run.id,
 						projectName,
 						projectPath,
+						{
+							language: codebaseType.language,
+							category: codebaseType.category,
+							stack: codebaseType.stack,
+							label: codebaseType.label,
+							tags: codebaseType.tags,
+						},
 						generatorSpecs,
 						judgeModels,
 						targetCount,

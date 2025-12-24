@@ -56,6 +56,15 @@ export interface BenchmarkRunDocument {
 	projectName: string;
 	projectPath: string;
 
+	// Codebase type (for filtering/comparison)
+	codebaseType: {
+		language: string;
+		category: string;
+		stack: string;
+		label: string;
+		tags: string[];
+	};
+
 	// Configuration
 	generators: string[];
 	judges: string[];
@@ -153,6 +162,13 @@ export async function uploadBenchmarkResults(
 	runId: string,
 	projectName: string,
 	projectPath: string,
+	codebaseType: {
+		language: string;
+		category: string;
+		stack: string;
+		label: string;
+		tags: string[];
+	},
 	generators: string[],
 	judges: string[],
 	sampleSize: number,
@@ -228,6 +244,7 @@ export async function uploadBenchmarkResults(
 			timestamp: Timestamp.now(),
 			projectName,
 			projectPath,
+			codebaseType,
 			generators,
 			judges,
 			sampleSize,

@@ -104,6 +104,13 @@ export interface DisplayOptions {
 	showSelfEval?: boolean;
 	/** Show iterative refinement details */
 	showIterativeDetails?: boolean;
+	/** Codebase type info for display */
+	codebaseType?: {
+		language: string;
+		category: string;
+		stack: string;
+		label: string;
+	};
 }
 
 /**
@@ -151,6 +158,18 @@ export async function displayBenchmarkResults(
 		(a, b) => b.overall - a.overall
 	);
 	const shouldHighlight = scoreArray.length > 1;
+
+	// Show codebase type banner if available
+	if (options.codebaseType) {
+		const ct = options.codebaseType;
+		const typeLabel = ct.stack !== "unknown" && ct.stack !== ct.language
+			? `${ct.language} ${ct.category} (${ct.stack})`
+			: ct.label;
+		console.log(
+			`${c.dim}Codebase: ${c.reset}${c.bold}${typeLabel}${c.reset}`
+		);
+		console.log();
+	}
 
 	// ═══════════════════════════════════════════════════════════════════
 	// QUALITY SCORES TABLE
