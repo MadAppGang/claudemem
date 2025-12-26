@@ -985,6 +985,9 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 	};
 
 	const onProgress = (phase: string, progress: number, total: number, details?: string) => {
+		if (process.env.DEBUG_PROGRESS) {
+			console.error(`[Progress] onProgress: phase=${phase}, progress=${progress}, total=${total}, details=${details?.slice(0, 40) ?? "none"}`);
+		}
 		// Handle phase transitions
 		if (phase !== currentPhase) {
 			// Stop previous phase's progress bar
@@ -1044,6 +1047,9 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			// Create progress bars for phases
 			if (phase === "generation" || phase === "evaluation:iterative" || phase === "evaluation:self") {
 				// Multi-item progress bar for generation/refinement/self-eval (one per model)
+				if (process.env.DEBUG_PROGRESS) {
+					console.error(`[Progress] Creating progress bar for ${phase} with ${generatorSpecs.length} items: ${generatorSpecs.slice(0, 5).join(", ")}${generatorSpecs.length > 5 ? "..." : ""}`);
+				}
 				activeMultiProgress = createBenchmarkProgress(generatorSpecs);
 				activeMultiProgress.start();
 			} else if (phase === "evaluation:judge") {
@@ -1066,6 +1072,9 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 
 		// Update progress for multi-item phases
 		if (activeMultiProgress && details) {
+			if (process.env.DEBUG_PROGRESS) {
+				console.error(`[Progress] Update for ${phase}: ${details.slice(0, 60)}${details.length > 60 ? "..." : ""}`);
+			}
 			// Parse details: "model: completed/total/inProgress/failures|error" or "pw:model: completed/total/inProgress"
 			const isPairwise = details.startsWith("pw:") || details.startsWith("pairwise:");
 			// New format with failures: model: 5/6/0/1|error message
@@ -1074,12 +1083,26 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			const matchOld = details.match(/^(?:pw:|pairwise:)?(.+?):\s*(\d+)\/(\d+)\/(\d+)$/);
 			const match = matchWithFailures || matchOld;
 
+			if (!match && process.env.DEBUG_PROGRESS) {
+				console.error(`[Progress] WARNING: Details didn't match expected format: "${details}"`);
+			}
+
 			if (match) {
 				const [, model, completed, modelTotal, inProgressStr, failuresStr, errorMsg] = match;
 				const completedNum = parseInt(completed, 10);
 				const totalNum = parseInt(modelTotal, 10);
 				const inProgressNum = parseInt(inProgressStr, 10);
 				const failuresNum = failuresStr ? parseInt(failuresStr, 10) : 0;
+
+				// Debug: Check if model ID matches expected generators
+				if (process.env.DEBUG_PROGRESS) {
+					const isKnown = generatorSpecs.includes(model) || judgeModels.includes(model);
+					if (!isKnown) {
+						console.error(`[Progress] WARNING: Model "${model}" not in generatorSpecs or judgeModels`);
+						console.error(`[Progress]   generatorSpecs: ${generatorSpecs.join(", ")}`);
+						console.error(`[Progress]   judgeModels: ${judgeModels.join(", ")}`);
+					}
+				}
 
 				// When pairwise starts, just note it - reuse existing progress bar
 				// (changing phase label is enough, no need for new progress bar)

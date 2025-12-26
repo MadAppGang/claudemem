@@ -11,7 +11,7 @@
  * @see https://github.com/MadAppGang/claudemem
  */
 
-import type { Plugin } from "opencode"
+import type { Plugin } from "@opencode-ai/plugin"
 
 export const ClaudemumPlugin: Plugin = async (ctx) => {
   const { $ } = ctx

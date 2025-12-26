@@ -21,6 +21,7 @@ export interface OpenCodeStatus {
 	pluginDir?: string;
 	configUpdated?: boolean;
 	version?: string;
+	isOpenCodeProject?: boolean;
 }
 
 export type PluginType = "suggestion" | "tools" | "both";
@@ -29,9 +30,14 @@ export type PluginType = "suggestion" | "tools" | "both";
 // Plugin Templates
 // ============================================================================
 
+// Get version from package.json at runtime
+const VERSION = "0.7.0"; // Updated during build or read from package.json
+
 const PLUGIN_MARKER = "// claudemem-integration";
+const PLUGIN_VERSION_MARKER = `// claudemem-version: ${VERSION}`;
 
 const SUGGESTION_PLUGIN = `${PLUGIN_MARKER}
+${PLUGIN_VERSION_MARKER}
 /**
  * claudemem Suggestion Plugin for OpenCode
  *
@@ -97,6 +103,7 @@ export default ClaudemumPlugin;
 `;
 
 const TOOLS_PLUGIN = `${PLUGIN_MARKER}
+${PLUGIN_VERSION_MARKER}
 /**
  * claudemem Custom Tools Plugin for OpenCode
  *
@@ -106,7 +113,7 @@ const TOOLS_PLUGIN = `${PLUGIN_MARKER}
  * @see https://github.com/MadAppGang/claudemem
  */
 
-import { tool } from "opencode";
+import { tool } from "@opencode-ai/plugin";
 
 export const ClaudemumToolsPlugin = async (ctx) => {
   const { $ } = ctx;
@@ -275,13 +282,24 @@ export class OpenCodeIntegrationManager {
 		const suggestionPath = join(this.pluginDir, "claudemem.ts");
 		const toolsPath = join(this.pluginDir, "claudemem-tools.ts");
 
-		const hasSuggestion = existsSync(suggestionPath) &&
-			readFileSync(suggestionPath, "utf-8").includes(PLUGIN_MARKER);
-		const hasTools = existsSync(toolsPath) &&
-			readFileSync(toolsPath, "utf-8").includes(PLUGIN_MARKER);
+		let suggestionContent = "";
+		let toolsContent = "";
+
+		if (existsSync(suggestionPath)) {
+			suggestionContent = readFileSync(suggestionPath, "utf-8");
+		}
+		if (existsSync(toolsPath)) {
+			toolsContent = readFileSync(toolsPath, "utf-8");
+		}
+
+		const hasSuggestion = suggestionContent.includes(PLUGIN_MARKER);
+		const hasTools = toolsContent.includes(PLUGIN_MARKER);
 
 		if (!hasSuggestion && !hasTools) {
-			return { installed: false };
+			return {
+				installed: false,
+				isOpenCodeProject: this.isOpenCodeProject(),
+			};
 		}
 
 		let pluginType: PluginType;
@@ -291,6 +309,14 @@ export class OpenCodeIntegrationManager {
 			pluginType = "tools";
 		} else {
 			pluginType = "suggestion";
+		}
+
+		// Extract version from installed plugin
+		let version: string | undefined;
+		const contentToCheck = toolsContent || suggestionContent;
+		const versionMatch = contentToCheck.match(/claudemem-version: ([^\n]+)/);
+		if (versionMatch) {
+			version = versionMatch[1].trim();
 		}
 
 		// Check if config is updated
@@ -310,6 +336,8 @@ export class OpenCodeIntegrationManager {
 			pluginType,
 			pluginDir: this.pluginDir,
 			configUpdated,
+			version,
+			isOpenCodeProject: this.isOpenCodeProject(),
 		};
 	}
 
@@ -345,12 +373,12 @@ export class OpenCodeIntegrationManager {
 		// Remove any existing claudemem plugins
 		const filtered = plugins.filter(p => !p.includes("claudemem"));
 
-		// Add our plugins
+		// Add our plugins with absolute file:// paths (required by OpenCode)
 		if (type === "suggestion" || type === "both") {
-			filtered.push("file://.opencode/plugin/claudemem.ts");
+			filtered.push(`file://${join(this.pluginDir, "claudemem.ts")}`);
 		}
 		if (type === "tools" || type === "both") {
-			filtered.push("file://.opencode/plugin/claudemem-tools.ts");
+			filtered.push(`file://${join(this.pluginDir, "claudemem-tools.ts")}`);
 		}
 
 		config.plugin = filtered;

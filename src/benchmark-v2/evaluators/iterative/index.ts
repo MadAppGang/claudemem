@@ -288,6 +288,9 @@ export function createIterativePhaseExecutor(
 			const totalItems = summaries.length;
 			let completed = 0;
 
+			if (process.env.DEBUG_PROGRESS) {
+				console.error(`[Iterative] Starting phase with ${totalItems} items (${summariesByModel.size} models)`);
+			}
 			stateMachine.startPhase("evaluation:iterative", totalItems);
 
 			// Create refinement engine and strategy
@@ -389,6 +392,12 @@ export function createIterativePhaseExecutor(
 					inProgress: 0,
 					failures: 0,
 				});
+			}
+
+			// Debug: log the model IDs being tracked
+			if (process.env.DEBUG_PROGRESS) {
+				const modelIds = Array.from(summariesByModel.keys());
+				console.error(`[Iterative] Tracking ${modelIds.length} models: ${modelIds.join(", ")}`);
 			}
 
 			// Helper to report per-model progress

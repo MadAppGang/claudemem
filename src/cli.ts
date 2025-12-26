@@ -3059,6 +3059,12 @@ async function handleOpenCodeIntegration(
 	switch (subcommand) {
 		case "install":
 			try {
+				// Warn if not an OpenCode project
+				if (!manager.isOpenCodeProject()) {
+					console.log("\n⚠️  No opencode.json or .opencode/ found in this directory.");
+					console.log("   This will create a new OpenCode configuration.\n");
+				}
+
 				await manager.install(pluginType);
 				if (!noLogo) printLogo();
 				console.log("\n✅ OpenCode integration installed!\n");
@@ -3104,11 +3110,15 @@ async function handleOpenCodeIntegration(
 			const status = await manager.status();
 			if (!noLogo) printLogo();
 			console.log("\n🔌 OpenCode Integration Status\n");
+			console.log(`  OpenCode project: ${status.isOpenCodeProject ? "Yes" : "No"}`);
 			console.log(`  Installed: ${status.installed ? "Yes" : "No"}`);
 			if (status.installed) {
 				console.log(`  Plugin type: ${status.pluginType}`);
 				console.log(`  Location: ${status.pluginDir}`);
 				console.log(`  Config updated: ${status.configUpdated ? "Yes" : "No"}`);
+				if (status.version) {
+					console.log(`  Installed version: ${status.version}`);
+				}
 			}
 			console.log("");
 			break;
