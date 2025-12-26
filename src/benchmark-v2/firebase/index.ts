@@ -20,8 +20,8 @@ const CLOUD_FUNCTION_BASE_URL =
 	process.env.CLAUDEMEM_FIREBASE_URL ||
 	"https://us-central1-claudish-6da10.cloudfunctions.net";
 
-// API key for authenticated uploads (required for write operations)
-const API_KEY = process.env.CLAUDEMEM_API_KEY || "";
+// API key for authenticated uploads (provides basic abuse protection)
+const API_KEY = process.env.CLAUDEMEM_API_KEY || "6QgFCtDx9l9alTpb813ZbgHoy2yZBfHc";
 
 // ============================================================================
 // Types
@@ -210,16 +210,8 @@ export async function uploadBenchmarkResults(
 			durationMs,
 			totalCost,
 			modelScores,
-			claudememVersion: "0.6.0",
+			claudememVersion: "0.7.0",
 		};
-
-		// Check if API key is configured
-		if (!API_KEY) {
-			return {
-				success: false,
-				error: "CLAUDEMEM_API_KEY environment variable not set",
-			};
-		}
 
 		// POST to Cloud Function with timeout
 		const controller = new AbortController();
