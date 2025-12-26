@@ -149,13 +149,14 @@ export class PointwiseJudgeEvaluator extends BaseEvaluator<EvaluationResult> {
 
 		try {
 			// Gemini Pro models use internal "thinking" tokens that count against max_tokens
+			// They need significantly more tokens (16000+) to complete responses
 			const modelLower = this.judgeModelId.toLowerCase();
 			const isGeminiPro = modelLower.includes("gemini") && modelLower.includes("pro");
 			const isGemini = modelLower.includes("gemini");
 
 			const response = await this.llmClient.complete(messages, {
 				temperature: 0.1, // Low temperature for consistent judging
-				maxTokens: isGeminiPro ? 3000 : isGemini ? 1500 : 1000,
+				maxTokens: isGeminiPro ? 16000 : isGemini ? 4000 : 1000,
 			});
 
 			const parsed = this.parseJSONResponse<JudgeResponse>(response.content);

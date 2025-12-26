@@ -385,11 +385,11 @@ ${comp.summaryB.summary}`;
 
 		try {
 			// Gemini Pro models use internal "thinking" tokens that count against max_tokens
-			// They need much higher limits to produce any output
 			const modelLower = this.judgeModelId.toLowerCase();
 			const isGeminiPro = modelLower.includes("gemini") && modelLower.includes("pro");
 			const isGemini = modelLower.includes("gemini");
-			const tokensPerComparison = isGeminiPro ? 1500 : isGemini ? 500 : 300;
+			// Gemini Pro needs ~16000 tokens for thinking, allocate more per comparison
+			const tokensPerComparison = isGeminiPro ? 8000 : isGemini ? 2000 : 300;
 
 			const response = await this.llmClient.complete(messages, {
 				temperature: 0.1,
@@ -503,7 +503,7 @@ ${comp.summaryB.summary}`;
 
 			const response = await this.llmClient!.complete(messages, {
 				temperature: 0.1,
-				maxTokens: isGeminiPro ? 2000 : isGemini ? 800 : 500,
+				maxTokens: isGeminiPro ? 16000 : isGemini ? 4000 : 500,
 			});
 
 			return this.parseJSONResponse<PairwiseResponse>(response.content);
