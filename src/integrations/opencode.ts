@@ -31,7 +31,7 @@ export type PluginType = "suggestion" | "tools" | "both";
 // ============================================================================
 
 // Get version from package.json at runtime
-const VERSION = "0.7.0"; // Updated during build or read from package.json
+const VERSION = "0.7.1"; // Updated during build or read from package.json
 
 const PLUGIN_MARKER = "// claudemem-integration";
 const PLUGIN_VERSION_MARKER = `// claudemem-version: ${VERSION}`;
