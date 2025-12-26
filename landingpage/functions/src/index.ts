@@ -10,7 +10,6 @@
  */
 
 import { onRequest } from "firebase-functions/v2/https";
-import { defineSecret } from "firebase-functions/params";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 
@@ -22,10 +21,10 @@ if (getApps().length === 0) {
 const db = getFirestore();
 
 // ============================================================================
-// Security: API Key (stored as Firebase secret)
+// Security: API Key (hardcoded for simplicity - rate limiting provides protection)
 // ============================================================================
 
-const API_KEY = defineSecret("CLAUDEMEM_API_KEY");
+const API_KEY = "6QgFCtDx9l9alTpb813ZbgHoy2yZBfHc";
 
 // ============================================================================
 // Rate Limiting (in-memory, resets on cold start)
@@ -226,7 +225,6 @@ export const uploadBenchmarkResults = onRequest(
 		cors: true, // Allow CORS for CLI clients
 		maxInstances: 10,
 		timeoutSeconds: 60,
-		secrets: [API_KEY], // Access the secret
 	},
 	async (req, res) => {
 		// Only allow POST
@@ -237,7 +235,7 @@ export const uploadBenchmarkResults = onRequest(
 
 		// Validate API key
 		const apiKey = req.headers["x-api-key"];
-		const expectedKey = API_KEY.value();
+		const expectedKey = API_KEY;
 		if (!apiKey || apiKey !== expectedKey) {
 			res.status(401).json({ error: "Invalid or missing API key" });
 			return;
