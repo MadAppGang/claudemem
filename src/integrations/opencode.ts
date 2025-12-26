@@ -8,8 +8,8 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, dirname, sep } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 // ============================================================================
 // Types
@@ -51,10 +51,10 @@ ${PLUGIN_VERSION_MARKER}
 export const ClaudemumPlugin = async (ctx) => {
   const { $ } = ctx;
 
-  // Check if claudemem is available
+  // Check if claudemem is available (cross-platform)
   let ready = false;
   try {
-    const result = await $\`claudemem status 2>/dev/null\`;
+    const result = await $\`claudemem status\`.quiet();
     ready = result.exitCode === 0;
   } catch {
     ready = false;
@@ -118,10 +118,10 @@ import { tool } from "@opencode-ai/plugin";
 export const ClaudemumToolsPlugin = async (ctx) => {
   const { $ } = ctx;
 
-  // Check claudemem on load
+  // Check claudemem on load (cross-platform)
   let ready = false;
   try {
-    const result = await $\`claudemem status 2>/dev/null\`;
+    const result = await $\`claudemem status\`.quiet();
     ready = result.exitCode === 0;
     if (ready) {
       console.log("\\n✅ claudemem tools loaded\\n");
@@ -374,11 +374,12 @@ export class OpenCodeIntegrationManager {
 		const filtered = plugins.filter(p => !p.includes("claudemem"));
 
 		// Add our plugins with absolute file:// paths (required by OpenCode)
+		// Use pathToFileURL for cross-platform compatibility (handles Windows backslashes)
 		if (type === "suggestion" || type === "both") {
-			filtered.push(`file://${join(this.pluginDir, "claudemem.ts")}`);
+			filtered.push(pathToFileURL(join(this.pluginDir, "claudemem.ts")).href);
 		}
 		if (type === "tools" || type === "both") {
-			filtered.push(`file://${join(this.pluginDir, "claudemem-tools.ts")}`);
+			filtered.push(pathToFileURL(join(this.pluginDir, "claudemem-tools.ts")).href);
 		}
 
 		config.plugin = filtered;

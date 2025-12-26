@@ -16,16 +16,16 @@ import type { Plugin } from "@opencode-ai/plugin"
 export const ClaudemumPlugin: Plugin = async (ctx) => {
   const { $ } = ctx
 
-  // Check if claudemem is available
+  // Check if claudemem is available (cross-platform)
   let claudememAvailable = false
   let claudememIndexed = false
 
   try {
-    const whichResult = await $`which claudemem 2>/dev/null`
+    const whichResult = await $`which claudemem`.quiet()
     claudememAvailable = whichResult.exitCode === 0
 
     if (claudememAvailable) {
-      const statusResult = await $`claudemem status 2>/dev/null`
+      const statusResult = await $`claudemem status`.quiet()
       claudememIndexed = statusResult.exitCode === 0
     }
   } catch {
