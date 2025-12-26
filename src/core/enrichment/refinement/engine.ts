@@ -88,6 +88,9 @@ export class RefinementEngine {
 
 		// Check if initial summary is already good enough
 		if (strategy.isSuccess(initialResult)) {
+			if (process.env.DEBUG_ITERATIVE) {
+				console.log(`[ENGINE] Initial summary passed, returning rounds=0`);
+			}
 			return this.buildResult(
 				currentSummary,
 				0,
@@ -97,6 +100,10 @@ export class RefinementEngine {
 				initialResult.rank,
 				startTime
 			);
+		}
+
+		if (process.env.DEBUG_ITERATIVE) {
+			console.log(`[ENGINE] Initial summary FAILED (rank=${initialResult.rank}), entering refinement loop (maxRounds=${maxRounds})`);
 		}
 
 		// Iterative refinement loop
@@ -139,6 +146,9 @@ export class RefinementEngine {
 
 			// Check if we've achieved success
 			if (strategy.isSuccess(testResult)) {
+				if (process.env.DEBUG_ITERATIVE) {
+					console.log(`[ENGINE] Refinement succeeded at round ${round}, new rank=${testResult.rank}`);
+				}
 				return this.buildResult(
 					currentSummary,
 					round,
@@ -152,6 +162,9 @@ export class RefinementEngine {
 		}
 
 		// Max rounds reached without success
+		if (process.env.DEBUG_ITERATIVE) {
+			console.log(`[ENGINE] Max rounds (${maxRounds}) reached without success, returning rounds=${history.length}`);
+		}
 		return this.buildResult(
 			currentSummary,
 			history.length,

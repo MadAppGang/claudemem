@@ -104,22 +104,24 @@ claudemem index
 claudemem status
 ```
 
-### Step 3: Install the Code Analysis Plugin
+### Step 3: Add the MAG Claude Plugins Marketplace
 
 ```bash
-# In Claude Code, run:
-/plugin install code-analysis@mag-claude-plugins
+# In Claude Code, add the marketplace globally (one-time setup)
+/plugin marketplace add MadAppGang/claude-code
 ```
 
-Or add to your project's `.claude/settings.json`:
+Then enable the code-analysis plugin in your project's `.claude/settings.json`:
 
 ```json
 {
-  "plugins": [
-    "code-analysis@mag-claude-plugins"
-  ]
+  "enabledPlugins": {
+    "code-analysis@mag-claude-plugins": true
+  }
 }
 ```
+
+Commit this file to git so your team gets the same setup automatically.
 
 ### Step 4: Start Using
 
@@ -137,38 +139,51 @@ Claude will automatically use claudemem through the detective skills.
 
 ## Installing the Code Analysis Plugin
 
-### Option 1: Claude Code CLI
+### Step 1: Add the Marketplace (One-Time Setup)
+
+Each developer on your team does this once:
 
 ```bash
-# Start Claude Code in your project
-claude
-
-# Install the plugin
-/plugin install code-analysis@mag-claude-plugins
+# In Claude Code
+/plugin marketplace add MadAppGang/claude-code
 ```
 
-### Option 2: Settings File
+This registers the MAG Claude Plugins marketplace in your Claude Code installation.
 
-Create or edit `.claude/settings.json` in your project:
+### Step 2: Enable Plugin in Your Project
+
+Add or edit `.claude/settings.json` in your project root:
 
 ```json
 {
-  "plugins": [
-    "code-analysis@mag-claude-plugins"
-  ]
+  "enabledPlugins": {
+    "code-analysis@mag-claude-plugins": true
+  }
 }
 ```
 
-### Option 3: Global Installation
+**Commit this file to git** so team members get the same setup automatically.
 
-For all projects, edit `~/.claude/settings.json`:
+### Multiple Plugins
+
+Need more plugins from the marketplace? Add more entries:
 
 ```json
 {
-  "plugins": [
-    "code-analysis@mag-claude-plugins"
-  ]
+  "enabledPlugins": {
+    "code-analysis@mag-claude-plugins": true,
+    "frontend@mag-claude-plugins": true,
+    "orchestration@mag-claude-plugins": true
+  }
 }
+```
+
+### Updating Plugins
+
+To update to the latest version:
+
+```bash
+/plugin marketplace update mag-claude-plugins
 ```
 
 ### Verify Installation
@@ -580,14 +595,21 @@ Get a free key at https://openrouter.ai
 ### Plugin not working
 
 ```bash
-# Verify plugin installation
-# In Claude Code:
+# Verify marketplace is added
+/plugin marketplace list
+
+# Should show: mag-claude-plugins
+
+# If not listed, add it:
+/plugin marketplace add MadAppGang/claude-code
+
+# Verify plugin is enabled
 /plugin list
 
 # Should show: code-analysis@mag-claude-plugins
 
-# If not installed:
-/plugin install code-analysis@mag-claude-plugins
+# If not enabled, check .claude/settings.json has:
+# { "enabledPlugins": { "code-analysis@mag-claude-plugins": true } }
 ```
 
 ### Commands returning empty results
