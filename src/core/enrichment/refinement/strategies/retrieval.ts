@@ -205,12 +205,21 @@ export class RetrievalRefinementStrategy extends BaseRefinementStrategy {
 		const totalCandidates = competitors.length + 1;
 		const score = 1 - (roundedRank - 1) / totalCandidates;
 
+		// Adjust target rank based on number of candidates
+		// With few candidates, require being near the top (top 50%)
+		// This prevents trivial passes when there are only 2-3 candidates
+		const effectiveTargetRank = Math.min(
+			this.targetRank,
+			Math.max(1, Math.ceil(totalCandidates * 0.5))
+		);
+
 		return {
-			passed: roundedRank <= this.targetRank,
+			passed: roundedRank <= effectiveTargetRank,
 			rank: roundedRank,
 			score,
 			details: {
 				totalCandidates,
+				effectiveTargetRank,
 				winningSummary: winningSummary || undefined,
 				query: bestQuery,
 				winningModelId: winningModelId || undefined,
@@ -226,13 +235,16 @@ export class RetrievalRefinementStrategy extends BaseRefinementStrategy {
 		context: RefinementContext
 	): Promise<string> {
 		const { rank, details } = result;
-		const { totalCandidates, winningSummary, query } = details;
+		const { totalCandidates, effectiveTargetRank, winningSummary, query } = details;
+
+		// Use effective target rank if available (accounts for small candidate pools)
+		const targetRank = effectiveTargetRank ?? this.targetRank;
 
 		const lines: string[] = [];
 
 		// Rank information
 		lines.push(`📊 Your summary ranked #${rank} out of ${totalCandidates} summaries.`);
-		lines.push(`🎯 Target: Rank in the top ${this.targetRank} to succeed.`);
+		lines.push(`🎯 Target: Rank in the top ${targetRank} to succeed.`);
 		lines.push("");
 
 		// Query context
