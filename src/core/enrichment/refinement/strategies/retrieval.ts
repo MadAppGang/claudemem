@@ -213,6 +213,11 @@ export class RetrievalRefinementStrategy extends BaseRefinementStrategy {
 			Math.max(1, Math.ceil(totalCandidates * 0.5))
 		);
 
+		// Debug log to verify fix is applied
+		if (process.env.DEBUG_ITERATIVE) {
+			console.log(`[DEBUG] rank=${roundedRank}, target=${this.targetRank}, effective=${effectiveTargetRank}, candidates=${totalCandidates}, passed=${roundedRank <= effectiveTargetRank}`);
+		}
+
 		return {
 			passed: roundedRank <= effectiveTargetRank,
 			rank: roundedRank,
