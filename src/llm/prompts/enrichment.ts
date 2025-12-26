@@ -157,6 +157,12 @@ Guidelines:
 - Be concise but complete. Focus on what's unique to this project.
 
 Write for developers who are new to the codebase.`,
+
+	// External documentation types - not generated via LLM enrichment
+	// These are fetched from external sources (Context7, llms.txt, DevDocs)
+	framework_doc: "", // Not used - fetched from external sources
+	best_practice: "", // Not used - fetched from external sources
+	api_reference: "", // Not used - fetched from external sources
 };
 
 // ============================================================================

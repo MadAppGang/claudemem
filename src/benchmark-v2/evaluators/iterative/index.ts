@@ -30,6 +30,11 @@ import {
 	type RefinementResult,
 	calculateRefinementScore,
 } from "../../../core/enrichment/refinement/index.js";
+import {
+	MaxTokensError,
+	ContentFilterError,
+	RateLimitError,
+} from "../../../llm/providers/openrouter.js";
 
 // ============================================================================
 // Pre-computed Embeddings Cache
@@ -330,15 +335,21 @@ export function createIterativePhaseExecutor(
 			const failures: PhaseResult["failures"] = [];
 
 			// Timeout configuration per model type
+			// These patterns should match THINKING_MODEL_PATTERNS in openrouter.ts
 			const DEFAULT_TIMEOUT_MS = 120_000; // 2 minutes for regular models
-			const THINKING_TIMEOUT_MS = 600_000; // 10 minutes for thinking models (kimi, o1, etc.)
-			const THINKING_MODEL_PATTERNS = ["thinking", "kimi", "o1-", "o3-", "deepseek-r1"];
+			const THINKING_TIMEOUT_MS = 600_000; // 10 minutes for thinking models
+			const SLOW_MODEL_PATTERNS = [
+				// Thinking/reasoning models
+				"thinking", "kimi", "o1-", "o3-", "deepseek-r1", "qwq",
+				// Models from error logs that frequently timeout
+				"nemotron", "trinity", "olmo",
+			];
 
-			const isThinkingModel = (modelId: string): boolean =>
-				THINKING_MODEL_PATTERNS.some((p) => modelId.toLowerCase().includes(p));
+			const isSlowModel = (modelId: string): boolean =>
+				SLOW_MODEL_PATTERNS.some((p) => modelId.toLowerCase().includes(p));
 
 			const getTimeoutForModel = (modelId: string): number =>
-				isThinkingModel(modelId) ? THINKING_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+				isSlowModel(modelId) ? THINKING_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
 
 			// Timeout wrapper
 			const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
@@ -488,11 +499,31 @@ export function createIterativePhaseExecutor(
 							});
 						}
 					} catch (error) {
-						const message = error instanceof Error ? error.message : String(error);
+						// Categorize error for better reporting
+						let errorType: string;
+						let message: string;
+
+						if (error instanceof MaxTokensError) {
+							errorType = "max_tokens";
+							message = error.message;
+						} else if (error instanceof ContentFilterError) {
+							errorType = "content_filter";
+							message = error.message;
+						} else if (error instanceof RateLimitError) {
+							errorType = "rate_limit";
+							message = error.message;
+						} else if (error instanceof Error && error.message.includes("timeout")) {
+							errorType = "timeout";
+							message = error.message;
+						} else {
+							errorType = "unknown";
+							message = error instanceof Error ? error.message : String(error);
+						}
+
 						failures.push({
 							model: modelId,
 							count: 1,
-							error: message,
+							error: `[${errorType}] ${message}`,
 						});
 						p.failures++;
 					} finally {
@@ -504,30 +535,93 @@ export function createIterativePhaseExecutor(
 				}
 			};
 
-			// Run cloud models in parallel
-			if (cloudModels.length > 0) {
+			// Create cloud models stream (all run in parallel)
+			const runCloudModels = async () => {
+				if (cloudModels.length === 0) return;
 				await Promise.all(cloudModels.map(processModel));
-			}
+			};
 
-			// Run local models based on parallelism config
-			const localParallelism = config.localModelParallelism ?? 1;
-			if (localModels.length > 0) {
-				if (localParallelism === 0 || localParallelism >= localModels.length) {
-					// Run all local models in parallel
-					await Promise.all(localModels.map(processModel));
-				} else if (localParallelism === 1) {
-					// Run local models sequentially (default, safest for limited VRAM)
-					for (const modelId of localModels) {
-						await processModel(modelId);
+			// Create local models stream (respects localModelParallelism + large model isolation)
+			const runLocalModels = async () => {
+				if (localModels.length === 0) return;
+
+				const localParallelism = config.localModelParallelism ?? 1;
+				const largeModelThreshold = config.largeModelThreshold ?? 20;
+				const debug = process.env.DEBUG_MODEL_SIZE === "1";
+
+				// If threshold is 0, skip size-based isolation
+				if (largeModelThreshold === 0) {
+					if (localParallelism === 0 || localParallelism >= localModels.length) {
+						await Promise.all(localModels.map(processModel));
+					} else if (localParallelism === 1) {
+						for (const modelId of localModels) {
+							await processModel(modelId);
+						}
+					} else {
+						for (let i = 0; i < localModels.length; i += localParallelism) {
+							const batch = localModels.slice(i, i + localParallelism);
+							await Promise.all(batch.map(processModel));
+						}
 					}
-				} else {
-					// Run in batches of localParallelism
-					for (let i = 0; i < localModels.length; i += localParallelism) {
-						const batch = localModels.slice(i, i + localParallelism);
-						await Promise.all(batch.map(processModel));
+					return;
+				}
+
+				// Query model sizes to separate large from small
+				if (debug) console.error(`[Iterative] Querying sizes for ${localModels.length} local models, threshold=${largeModelThreshold}B`);
+				const modelSizes = new Map<string, number | undefined>();
+
+				await Promise.all(
+					localModels.map(async (modelId) => {
+						const client = generatorClients.get(modelId);
+						if (client && typeof client.getModelSizeB === "function") {
+							try {
+								const size = await client.getModelSizeB();
+								modelSizes.set(modelId, size);
+								if (debug) console.error(`[Iterative] ${modelId} → ${size ?? "unknown"}B ${size !== undefined && size >= largeModelThreshold ? "(LARGE)" : "(small)"}`);
+							} catch {
+								modelSizes.set(modelId, undefined);
+							}
+						}
+					})
+				);
+
+				// Separate large models (>= threshold) from small models
+				const largeModels: string[] = [];
+				const smallModels: string[] = [];
+
+				for (const modelId of localModels) {
+					const size = modelSizes.get(modelId);
+					if (size !== undefined && size >= largeModelThreshold) {
+						largeModels.push(modelId);
+					} else {
+						smallModels.push(modelId);
 					}
 				}
-			}
+
+				// Run large models sequentially first (they need full GPU memory)
+				for (const modelId of largeModels) {
+					await processModel(modelId);
+				}
+
+				// Then run small models with configured parallelism
+				if (smallModels.length > 0) {
+					if (localParallelism === 0 || localParallelism >= smallModels.length) {
+						await Promise.all(smallModels.map(processModel));
+					} else if (localParallelism === 1) {
+						for (const modelId of smallModels) {
+							await processModel(modelId);
+						}
+					} else {
+						for (let i = 0; i < smallModels.length; i += localParallelism) {
+							const batch = smallModels.slice(i, i + localParallelism);
+							await Promise.all(batch.map(processModel));
+						}
+					}
+				}
+			};
+
+			// Run BOTH streams in parallel - cloud and local don't block each other
+			await Promise.all([runCloudModels(), runLocalModels()]);
 
 			// Calculate final stats
 			stats.avgRounds =

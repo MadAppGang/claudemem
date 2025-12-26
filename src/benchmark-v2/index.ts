@@ -313,6 +313,13 @@ export interface BenchmarkOptions {
 	 * - 2-4 = run N local models concurrently
 	 */
 	localModelParallelism?: number;
+	/**
+	 * Large model threshold in billions of parameters.
+	 * Models >= this size run alone regardless of localModelParallelism.
+	 * Default: 20 (20B+ models run isolated)
+	 * Set to 0 to disable size-based isolation.
+	 */
+	largeModelThreshold?: number;
 }
 
 /**
@@ -395,6 +402,7 @@ export function createBenchmarkConfig(options: BenchmarkOptions): BenchmarkConfi
 		outputFormats: ["json", "markdown", "html"],
 		verbose: options.verbose,
 		localModelParallelism: options.localModelParallelism ?? 1, // Default: sequential for safety
+		largeModelThreshold: options.largeModelThreshold ?? 20, // Default: 20B+ models run isolated
 	};
 }
 
@@ -470,7 +478,7 @@ export async function runBenchmarkV2(
 		run = db.createRun(config);
 		// Always show run ID so users can resume if needed
 		console.log(`\x1b[36mRun ID: ${run.id}\x1b[0m`);
-		console.log(`\x1b[2m  To resume: claudemem benchmark --resume=${run.id} ...\x1b[0m`);
+		console.log(`\x1b[2m  To resume: claudemem benchmark-llm --resume=${run.id} ...\x1b[0m`);
 		console.log();
 	}
 
@@ -851,10 +859,16 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 	const resumeRunId = getFlag("resume");
 	const verbose = args.includes("--verbose") || args.includes("-v");
 	const noUpload = args.includes("--no-upload") || args.includes("--local");
+	const noSelfEval = args.includes("--no-self-eval") || args.includes("--no-self");
+	const noIterative = args.includes("--no-iterative") || args.includes("--no-refine");
 	const localParallelismStr = getFlag("local-parallelism") || getFlag("lp");
 	const localModelParallelism = localParallelismStr
 		? (localParallelismStr === "all" ? 0 : parseInt(localParallelismStr, 10))
 		: 1; // Default: sequential (safe for limited VRAM)
+	const largeModelThresholdStr = getFlag("large-model-threshold") || getFlag("lmt");
+	const largeModelThreshold = largeModelThresholdStr
+		? parseInt(largeModelThresholdStr, 10)
+		: 20; // Default: 20B+ models run isolated
 	const projectPath = process.cwd();
 
 	// Print logo and header
@@ -863,8 +877,8 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 
 	// Parse generators
 	// Format: "anthropic" or "openrouter/openai/gpt-4" (provider/model)
-	const generatorSpecs = generatorsStr.split(",").map((s) => s.trim());
-	const generators = generatorSpecs.map((spec) => {
+	let generatorSpecs = generatorsStr.split(",").map((s) => s.trim());
+	let generators = generatorSpecs.map((spec) => {
 		if (spec.startsWith("openrouter/")) {
 			// OpenRouter format: openrouter/provider/model
 			const model = spec.slice("openrouter/".length); // "openai/gpt-4"
@@ -895,12 +909,27 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 	});
 
 	// Parse judges
-	const judgeModels = judgesStr
+	let judgeModels = judgesStr
 		? judgesStr.split(",").map((s) => s.trim())
 		: ["claude-opus-4-5-20251101"];
 
 	// Parse case count
 	const targetCount = casesStr.toLowerCase() === "all" ? 1000 : parseInt(casesStr, 10);
+
+	// If resuming, load the run's config to use the correct generators/judges
+	if (resumeRunId) {
+		const { BenchmarkDatabase } = await import("./storage/benchmark-db.js");
+		const { join } = await import("node:path");
+		const dbPath = join(projectPath, ".claudemem", "benchmark.db");
+		const db = new BenchmarkDatabase(dbPath);
+		const existingRun = db.getRun(resumeRunId);
+		if (existingRun) {
+			// Update generators and judges from the resumed run
+			generatorSpecs = existingRun.config.generators.map((g) => g.id);
+			generators = existingRun.config.generators;
+			judgeModels = existingRun.config.judges;
+		}
+	}
 
 	renderInfo(`Generators: ${generatorSpecs.join(", ")}`);
 	renderInfo(`Judges: ${judgeModels.join(", ")}`);
@@ -961,6 +990,21 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			// Stop previous phase's progress bar
 			stopActiveProgress();
 
+			// If previous phase was in potentiallySkipped but never got work, show it as skipped
+			if (currentPhase && potentiallySkippedPhases.has(currentPhase) && !phasesWithWork.has(currentPhase)) {
+				const elapsed = Date.now() - (phaseStartTimes.get(currentPhase) || Date.now());
+				const elapsedStr = formatDuration(elapsed);
+				const label = phaseLabels[currentPhase] || currentPhase;
+				const skipReason = phaseSkipReasons.get(currentPhase);
+				// Clear the "starting..." line and show skipped
+				process.stdout.write("\r" + " ".repeat(60) + "\r"); // Clear line
+				if (skipReason) {
+					console.log(`${c.dim}⏱ ${elapsedStr} │ ${label}: skipped (${skipReason})${c.reset}`);
+				} else {
+					console.log(`${c.dim}⏱ ${elapsedStr} │ ${label}: skipped${c.reset}`);
+				}
+			}
+
 			// Complete previous phase with timing
 			if (currentPhase) {
 				// Print detailed failures if any
@@ -988,6 +1032,9 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			// Track phases that start with 0 items (might be skipped, or might update later)
 			if (total === 0 && !details) {
 				potentiallySkippedPhases.add(phase);
+				// Show a quick "starting..." message so user knows we're not stuck
+				const label = phaseLabels[phase] || phase;
+				process.stdout.write(`${c.dim}  ${label}: starting...${c.reset}\r`);
 				return; // Don't create progress bar yet - wait for updates
 			}
 
@@ -1065,6 +1112,14 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 		if (activeSimpleProgress) {
 			activeSimpleProgress.update(progress);
 		}
+
+		// Handle case where phase is "starting..." but we have details to show
+		// This happens when a phase starts with 0 items but then shows progress messages
+		if (!activeSimpleProgress && !activeMultiProgress && details && potentiallySkippedPhases.has(phase)) {
+			const label = phaseLabels[phase] || phase;
+			// Clear the "starting..." line and show the details
+			process.stdout.write(`\r${c.dim}  ${label}: ${details}${c.reset}${" ".repeat(20)}\r`);
+		}
 	};
 
 	// Import LLM resolver and embeddings client factories
@@ -1083,7 +1138,10 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			generators,
 			judgeModels,
 			sampling: { targetCount },
+			self: noSelfEval ? { enabled: false } : undefined,
+			iterative: noIterative ? { enabled: false } : undefined,
 			localModelParallelism,
+			largeModelThreshold,
 			onProgress,
 			onPhaseComplete: (phase, result) => {
 				// Store failures for display when phase transitions
@@ -1127,6 +1185,13 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 						testConnection: async () => {
 							const client = await getClient();
 							return client.testConnection();
+						},
+						getModelSizeB: async () => {
+							const client = await getClient();
+							if (typeof client.getModelSizeB === "function") {
+								return client.getModelSizeB();
+							}
+							return undefined;
 						},
 					} as ILLMClient;
 				},

@@ -36,6 +36,12 @@ const DEFAULT_DEPENDENCIES: Record<DocumentType, DocumentType[]> = {
 
 	// Project docs are the highest level - depend on summaries and idioms
 	project_doc: ["file_summary", "idiom"],
+
+	// External documentation types - no internal dependencies
+	// These come from external sources (Context7, llms.txt, DevDocs)
+	framework_doc: [],
+	best_practice: [],
+	api_reference: [],
 };
 
 // ============================================================================

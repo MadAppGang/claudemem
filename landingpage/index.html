@@ -1,10 +1,157 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>landingpage</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>claudemem - Local Semantic Code Search for AI Agents</title>
+    <meta name="description" content="Give Claude Code and AI assistants deep understanding of your codebase. Privacy-first indexing with hierarchical summaries and PageRank importance." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+              hand: ['Caveat', 'cursive'],
+            },
+            colors: {
+              claude: {
+                bg: '#0f0f0f',
+                accent: '#d97757',
+                secondary: '#333333',
+                dim: '#666666',
+                success: '#3fb950',
+                ish: '#00D4AA'
+              }
+            },
+            animation: {
+              'cursor-blink': 'cursor-blink 1s step-end infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'fadeIn': 'fadeIn 0.5s ease-out forwards',
+              'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'writeIn': 'writeIn 0.8s ease-out 0.5s forwards',
+              'strikethrough': 'strikethrough 0.4s ease-out forwards',
+              'draw': 'draw 1s ease-out forwards',
+              'flow-right': 'flow-right 1.5s linear infinite',
+              'flow-left': 'flow-left 1.5s linear infinite',
+              'flow-down': 'flow-down 1.5s linear infinite',
+              'flow-up': 'flow-up 1.5s linear infinite',
+            },
+            keyframes: {
+              'cursor-blink': {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0' },
+              },
+              'float': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+              'fadeIn': {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'writeIn': {
+                '0%': {
+                  opacity: '0',
+                  transform: 'rotate(-10deg) translateX(-10px)',
+                  clipPath: 'inset(0 100% 0 0)'
+                },
+                '100%': {
+                  opacity: '1',
+                  transform: 'rotate(-6deg) translateX(0)',
+                  clipPath: 'inset(0 0 0 0)'
+                }
+              },
+              'strikethrough': {
+                '0%': { width: '0%' },
+                '100%': { width: '100%' },
+              },
+              'draw': {
+                '0%': { strokeDashoffset: '1000' },
+                '100%': { strokeDashoffset: '0' },
+              },
+              'flow-right': {
+                '0%': { transform: 'translateX(-100%)', opacity: '0' },
+                '50%': { opacity: '1' },
+                '100%': { transform: 'translateX(100%)', opacity: '0' },
+              },
+              'flow-left': {
+                '0%': { transform: 'translateX(100%)', opacity: '0' },
+                '50%': { opacity: '1' },
+                '100%': { transform: 'translateX(-100%)', opacity: '0' },
+              },
+              'flow-down': {
+                '0%': { transform: 'translateY(-100%)', opacity: '0' },
+                '50%': { opacity: '1' },
+                '100%': { transform: 'translateY(100%)', opacity: '0' },
+              },
+              'flow-up': {
+                '0%': { transform: 'translateY(100%)', opacity: '0' },
+                '50%': { opacity: '1' },
+                '100%': { transform: 'translateY(-100%)', opacity: '0' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background-color: #0f0f0f;
+        color: #e6e6e6;
+        overflow-x: hidden;
+      }
+      .perspective-container {
+        perspective: 1200px;
+      }
+      .preserve-3d {
+        transform-style: preserve-3d;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+      /* Custom Dark Scrollbar */
+      .scrollbar-dark::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+      }
+      .scrollbar-dark::-webkit-scrollbar-track {
+        background: #0f0f0f;
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+      }
+      .scrollbar-dark::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 5px;
+        border: 2px solid #0f0f0f; /* Creates padding effect */
+      }
+      .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+      .scrollbar-dark::-webkit-scrollbar-corner {
+        background: #0f0f0f;
+      }
+
+      .strikethrough-line::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        height: 2px;
+        background-color: #6b7280;
+        width: 0%;
+        animation: strikethrough 0.4s ease-out forwards;
+        animation-delay: 0.2s;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

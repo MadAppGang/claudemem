@@ -60,12 +60,19 @@ export function createScoringPhaseExecutor(): (
 		const { db, run, config, stateMachine } = context;
 
 		try {
-			stateMachine.startPhase("aggregation", 1);
+			// Count models for progress tracking
+			const summaries = db.getSummaries(run.id);
+			const modelIds = new Set(summaries.map(s => s.modelId));
+			const totalSteps = modelIds.size + 1; // +1 for final save
+
+			stateMachine.startPhase("aggregation", totalSteps);
+			stateMachine.updateProgress("aggregation", 0, undefined, "Loading evaluation results...");
 
 			// Get all data
-			const summaries = db.getSummaries(run.id);
 			const evaluationResults = db.getEvaluationResults(run.id);
 			const pairwiseResults = db.getPairwiseResults(run.id);
+
+			stateMachine.updateProgress("aggregation", 0, undefined, "Aggregating scores...");
 
 			// Aggregate scores
 			const aggregator = createScoreAggregator(config);
@@ -77,6 +84,7 @@ export function createScoringPhaseExecutor(): (
 			});
 
 			// Save normalized scores to database
+			let savedCount = 0;
 			for (const [modelId, agg] of aggregations) {
 				const normalizedScores: NormalizedScores = {
 					modelId,
@@ -119,9 +127,11 @@ export function createScoringPhaseExecutor(): (
 					} : undefined,
 				};
 				db.saveAggregatedScores(run.id, modelId, normalizedScores);
+				savedCount++;
+				stateMachine.updateProgress("aggregation", savedCount, modelId, `Saved ${modelId}`);
 			}
 
-			stateMachine.updateProgress("aggregation", 1, "complete", "Scoring complete");
+			stateMachine.updateProgress("aggregation", totalSteps, "complete", "Scoring complete");
 
 			return {
 				success: true,

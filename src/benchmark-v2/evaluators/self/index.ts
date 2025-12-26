@@ -463,30 +463,93 @@ export function createSelfEvaluationPhaseExecutor(
 				}
 			};
 
-			// Run cloud models in parallel
-			if (cloudModels.length > 0) {
+			// Create cloud models stream (all run in parallel)
+			const runCloudModels = async () => {
+				if (cloudModels.length === 0) return;
 				await Promise.all(cloudModels.map(processModel));
-			}
+			};
 
-			// Run local models based on parallelism config
-			const localParallelism = config.localModelParallelism ?? 1;
-			if (localModels.length > 0) {
-				if (localParallelism === 0 || localParallelism >= localModels.length) {
-					// Run all local models in parallel
-					await Promise.all(localModels.map(processModel));
-				} else if (localParallelism === 1) {
-					// Run local models sequentially
-					for (const modelId of localModels) {
-						await processModel(modelId);
+			// Create local models stream (respects localModelParallelism + large model isolation)
+			const runLocalModels = async () => {
+				if (localModels.length === 0) return;
+
+				const localParallelism = config.localModelParallelism ?? 1;
+				const largeModelThreshold = config.largeModelThreshold ?? 20;
+				const debug = process.env.DEBUG_MODEL_SIZE === "1";
+
+				// If threshold is 0, skip size-based isolation
+				if (largeModelThreshold === 0) {
+					if (localParallelism === 0 || localParallelism >= localModels.length) {
+						await Promise.all(localModels.map(processModel));
+					} else if (localParallelism === 1) {
+						for (const modelId of localModels) {
+							await processModel(modelId);
+						}
+					} else {
+						for (let i = 0; i < localModels.length; i += localParallelism) {
+							const batch = localModels.slice(i, i + localParallelism);
+							await Promise.all(batch.map(processModel));
+						}
 					}
-				} else {
-					// Run in batches of localParallelism
-					for (let i = 0; i < localModels.length; i += localParallelism) {
-						const batch = localModels.slice(i, i + localParallelism);
-						await Promise.all(batch.map(processModel));
+					return;
+				}
+
+				// Query model sizes to separate large from small
+				if (debug) console.error(`[SelfEval] Querying sizes for ${localModels.length} local models, threshold=${largeModelThreshold}B`);
+				const modelSizes = new Map<string, number | undefined>();
+
+				await Promise.all(
+					localModels.map(async (modelId) => {
+						const client = generatorClients.get(modelId);
+						if (client && typeof client.getModelSizeB === "function") {
+							try {
+								const size = await client.getModelSizeB();
+								modelSizes.set(modelId, size);
+								if (debug) console.error(`[SelfEval] ${modelId} → ${size ?? "unknown"}B ${size !== undefined && size >= largeModelThreshold ? "(LARGE)" : "(small)"}`);
+							} catch {
+								modelSizes.set(modelId, undefined);
+							}
+						}
+					})
+				);
+
+				// Separate large models (>= threshold) from small models
+				const largeModels: string[] = [];
+				const smallModels: string[] = [];
+
+				for (const modelId of localModels) {
+					const size = modelSizes.get(modelId);
+					if (size !== undefined && size >= largeModelThreshold) {
+						largeModels.push(modelId);
+					} else {
+						smallModels.push(modelId);
 					}
 				}
-			}
+
+				// Run large models sequentially first (they need full GPU memory)
+				for (const modelId of largeModels) {
+					await processModel(modelId);
+				}
+
+				// Then run small models with configured parallelism
+				if (smallModels.length > 0) {
+					if (localParallelism === 0 || localParallelism >= smallModels.length) {
+						await Promise.all(smallModels.map(processModel));
+					} else if (localParallelism === 1) {
+						for (const modelId of smallModels) {
+							await processModel(modelId);
+						}
+					} else {
+						for (let i = 0; i < smallModels.length; i += localParallelism) {
+							const batch = smallModels.slice(i, i + localParallelism);
+							await Promise.all(batch.map(processModel));
+						}
+					}
+				}
+			};
+
+			// Run BOTH streams in parallel - cloud and local don't block each other
+			await Promise.all([runCloudModels(), runLocalModels()]);
 
 			return {
 				success: true,

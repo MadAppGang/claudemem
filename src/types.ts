@@ -893,6 +893,12 @@ export interface ILLMClient {
 	resetAccumulatedUsage(): void;
 	/** Check if this is a cloud provider (anthropic, openrouter, anthropic-batch) */
 	isCloud(): boolean;
+	/**
+	 * Get model size in billions of parameters.
+	 * For local models, queries the API (e.g., Ollama /api/show).
+	 * Returns undefined for cloud providers or if size unknown.
+	 */
+	getModelSizeB(): Promise<number | undefined>;
 }
 
 /** Progress callback for enrichment operations */

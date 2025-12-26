@@ -477,12 +477,45 @@ export function createContrastivePhaseExecutor(
 			let codeEmbeddings: Map<string, number[]> | undefined;
 			if (embeddingsClient) {
 				try {
+					// Show progress - this can be slow for large codebases
+					stateMachine.startPhase("evaluation:contrastive", 0);
+					stateMachine.updateProgress(
+						"evaluation:contrastive",
+						0,
+						undefined,
+						`Embedding ${codeUnits.length} code units for semantic distractors...`
+					);
+
+					// Embed in batches for progress visibility
+					const BATCH_SIZE = 50;
 					const codeTexts = codeUnits.map(u => u.content);
-					const result = await embeddingsClient.embed(codeTexts);
+					const allEmbeddings: number[][] = [];
+
+					for (let i = 0; i < codeTexts.length; i += BATCH_SIZE) {
+						const batchEnd = Math.min(i + BATCH_SIZE, codeTexts.length);
+						const batchTexts = codeTexts.slice(i, batchEnd);
+
+						stateMachine.updateProgress(
+							"evaluation:contrastive",
+							0,
+							undefined,
+							`Embedding code ${batchEnd}/${codeUnits.length}...`
+						);
+						const result = await embeddingsClient.embed(batchTexts);
+						allEmbeddings.push(...result.embeddings);
+					}
+
 					codeEmbeddings = new Map();
 					codeUnits.forEach((unit, idx) => {
-						codeEmbeddings!.set(unit.id, result.embeddings[idx]);
+						codeEmbeddings!.set(unit.id, allEmbeddings[idx]);
 					});
+
+					stateMachine.updateProgress(
+						"evaluation:contrastive",
+						0,
+						undefined,
+						"Generating distractor sets..."
+					);
 				} catch (error) {
 					// Fall back to non-semantic distractor selection (silent)
 				}

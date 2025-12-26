@@ -152,8 +152,13 @@ export class RetrievalEvaluator extends BaseEvaluator<EvaluationResult[]> {
 	 * Build a COMBINED index from ALL models' summaries
 	 * This enables cross-model competition where models compete to have
 	 * their summaries rank highest for each query.
+	 *
+	 * @param onProgress Optional callback for progress updates during embedding
 	 */
-	async buildCombinedIndex(summariesByModel: Map<string, GeneratedSummary[]>): Promise<void> {
+	async buildCombinedIndex(
+		summariesByModel: Map<string, GeneratedSummary[]>,
+		onProgress?: (message: string) => void
+	): Promise<void> {
 		this.index.clear();
 		this.modelIds = Array.from(summariesByModel.keys());
 
@@ -165,17 +170,31 @@ export class RetrievalEvaluator extends BaseEvaluator<EvaluationResult[]> {
 			}
 		}
 
-		// Embed all summaries in batches
-		const texts = allSummaries.map((s) => s.summary.summary);
-		const embedResult = await this.embeddingsClient.embed(texts);
+		const total = allSummaries.length;
+		onProgress?.(`Embedding ${total} summaries...`);
 
+		// Embed in batches for progress visibility
+		const BATCH_SIZE = 50;
+		const texts = allSummaries.map((s) => s.summary.summary);
+		const allEmbeddings: number[][] = [];
+
+		for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+			const batchEnd = Math.min(i + BATCH_SIZE, texts.length);
+			const batchTexts = texts.slice(i, batchEnd);
+
+			onProgress?.(`Embedding ${batchEnd}/${total} summaries...`);
+			const embedResult = await this.embeddingsClient.embed(batchTexts);
+			allEmbeddings.push(...embedResult.embeddings);
+		}
+
+		onProgress?.(`Indexing ${total} summaries...`);
 		for (let i = 0; i < allSummaries.length; i++) {
 			const { summary, modelId } = allSummaries[i];
 			this.index.add(
 				summary.id,
 				summary.codeUnitId,
 				modelId,
-				embedResult.embeddings[i]
+				allEmbeddings[i]
 			);
 		}
 	}
@@ -566,7 +585,10 @@ export function createRetrievalPhaseExecutor(
 			);
 
 			// Build ONE index with ALL summaries - models compete!
-			await evaluator.buildCombinedIndex(summariesByModel);
+			// Pass progress callback for embedding visibility
+			await evaluator.buildCombinedIndex(summariesByModel, (msg) => {
+				stateMachine.updateProgress("evaluation:retrieval", 0, undefined, msg);
+			});
 
 			// Evaluate each query with cross-model competition
 			for (const query of queries) {

@@ -35,3 +35,11 @@ logs/
 
 # Test coverage
 coverage/
+
+# Firebase cache
+landingpage/.firebase/
+landingpage/.backup/
+
+# Local models
+models/
+models

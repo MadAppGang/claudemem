@@ -1,0 +1,390 @@
+/**
+ * OpenCode Integration Manager
+ *
+ * Manages installation of claudemem plugins for OpenCode.
+ * Similar pattern to git hook manager.
+ *
+ * @see https://opencode.ai/docs/plugins/
+ */
+
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface OpenCodeStatus {
+	installed: boolean;
+	pluginType?: "suggestion" | "tools" | "both";
+	pluginDir?: string;
+	configUpdated?: boolean;
+	version?: string;
+}
+
+export type PluginType = "suggestion" | "tools" | "both";
+
+// ============================================================================
+// Plugin Templates
+// ============================================================================
+
+const PLUGIN_MARKER = "// claudemem-integration";
+
+const SUGGESTION_PLUGIN = `${PLUGIN_MARKER}
+/**
+ * claudemem Suggestion Plugin for OpenCode
+ *
+ * Intercepts grep/glob/list and suggests claudemem alternatives.
+ * Non-invasive - only shows tips, doesn't block original tools.
+ *
+ * Installed by: claudemem integrate opencode
+ * @see https://github.com/MadAppGang/claudemem
+ */
+
+export const ClaudemumPlugin = async (ctx) => {
+  const { $ } = ctx;
+
+  // Check if claudemem is available
+  let ready = false;
+  try {
+    const result = await $\`claudemem status 2>/dev/null\`;
+    ready = result.exitCode === 0;
+  } catch {
+    ready = false;
+  }
+
+  if (!ready) {
+    console.log("\\n⚠️  claudemem not ready. Run: claudemem index\\n");
+  }
+
+  return {
+    "tool.execute.before": async (input, output) => {
+      if (!ready) return;
+
+      const tool = input.tool;
+      const args = output.args || {};
+
+      // Intercept grep with semantic queries
+      if (tool === "grep" && args.pattern) {
+        const pattern = String(args.pattern);
+        const isSemanticQuery = !pattern.match(/[\\[\\]\\(\\)\\|\\+\\?\\{\\}\\\\^$]/)
+          && pattern.length > 3
+          && pattern.includes(" ");
+
+        if (isSemanticQuery) {
+          console.log(\`\\n💡 Tip: claudemem --nologo search "\${pattern}" --raw\\n\`);
+        }
+      }
+
+      // Intercept glob for broad searches
+      if (tool === "glob" && args.pattern) {
+        const pattern = String(args.pattern);
+        if (pattern.startsWith("**")) {
+          console.log("\\n💡 Tip: claudemem --nologo map --raw\\n");
+        }
+      }
+
+      // Intercept list
+      if (tool === "list") {
+        console.log("\\n💡 Tip: claudemem --nologo map --raw\\n");
+      }
+    },
+  };
+};
+
+export default ClaudemumPlugin;
+`;
+
+const TOOLS_PLUGIN = `${PLUGIN_MARKER}
+/**
+ * claudemem Custom Tools Plugin for OpenCode
+ *
+ * Adds claudemem as first-class tools the LLM can use.
+ *
+ * Installed by: claudemem integrate opencode
+ * @see https://github.com/MadAppGang/claudemem
+ */
+
+import { tool } from "opencode";
+
+export const ClaudemumToolsPlugin = async (ctx) => {
+  const { $ } = ctx;
+
+  // Check claudemem on load
+  let ready = false;
+  try {
+    const result = await $\`claudemem status 2>/dev/null\`;
+    ready = result.exitCode === 0;
+    if (ready) {
+      console.log("\\n✅ claudemem tools loaded\\n");
+    } else {
+      console.log("\\n⚠️  claudemem not indexed. Run: claudemem index\\n");
+    }
+  } catch {
+    console.log("\\n⚠️  claudemem not installed. Run: npm install -g claude-codemem\\n");
+  }
+
+  return {
+    tool: {
+      claudemem_search: tool({
+        description: "Semantic code search. Better than grep for natural language queries.",
+        args: {
+          query: tool.schema.string().describe("Natural language search query"),
+          limit: tool.schema.number().optional().describe("Max results (default: 10)"),
+        },
+        async execute({ query, limit = 10 }) {
+          const result = await $\`claudemem --nologo search \${query} --raw -n \${limit}\`;
+          return result.stdout || "No results found";
+        },
+      }),
+
+      claudemem_map: tool({
+        description: "Structural overview with PageRank-ranked symbols. Use first to understand codebase.",
+        args: {
+          query: tool.schema.string().optional().describe("Focus area (optional)"),
+        },
+        async execute({ query }) {
+          const cmd = query
+            ? $\`claudemem --nologo map \${query} --raw\`
+            : $\`claudemem --nologo map --raw\`;
+          const result = await cmd;
+          return result.stdout || "No symbols found";
+        },
+      }),
+
+      claudemem_symbol: tool({
+        description: "Find exact location of a symbol by name.",
+        args: {
+          name: tool.schema.string().describe("Symbol name to find"),
+        },
+        async execute({ name }) {
+          const result = await $\`claudemem --nologo symbol \${name} --raw\`;
+          return result.stdout || \`Symbol '\${name}' not found\`;
+        },
+      }),
+
+      claudemem_callers: tool({
+        description: "Find all code that calls a symbol. Essential before modifying code.",
+        args: {
+          name: tool.schema.string().describe("Symbol name"),
+        },
+        async execute({ name }) {
+          const result = await $\`claudemem --nologo callers \${name} --raw\`;
+          return result.stdout || \`No callers found for '\${name}'\`;
+        },
+      }),
+
+      claudemem_callees: tool({
+        description: "Find all symbols that a function calls. Traces dependencies.",
+        args: {
+          name: tool.schema.string().describe("Symbol name"),
+        },
+        async execute({ name }) {
+          const result = await $\`claudemem --nologo callees \${name} --raw\`;
+          return result.stdout || \`No callees found for '\${name}'\`;
+        },
+      }),
+
+      claudemem_context: tool({
+        description: "Full context: symbol + callers + callees. For complex modifications.",
+        args: {
+          name: tool.schema.string().describe("Symbol name"),
+        },
+        async execute({ name }) {
+          const result = await $\`claudemem --nologo context \${name} --raw\`;
+          return result.stdout || \`Context not found for '\${name}'\`;
+        },
+      }),
+    },
+  };
+};
+
+export default ClaudemumToolsPlugin;
+`;
+
+// ============================================================================
+// OpenCode Integration Manager
+// ============================================================================
+
+export class OpenCodeIntegrationManager {
+	private projectPath: string;
+	private pluginDir: string;
+	private configPath: string;
+
+	constructor(projectPath: string) {
+		this.projectPath = projectPath;
+		this.pluginDir = join(projectPath, ".opencode", "plugin");
+		this.configPath = join(projectPath, "opencode.json");
+	}
+
+	/**
+	 * Install claudemem plugin for OpenCode
+	 */
+	async install(type: PluginType = "tools"): Promise<void> {
+		// Create plugin directory if needed
+		if (!existsSync(this.pluginDir)) {
+			mkdirSync(this.pluginDir, { recursive: true });
+		}
+
+		// Write plugin files based on type
+		if (type === "suggestion" || type === "both") {
+			const suggestionPath = join(this.pluginDir, "claudemem.ts");
+			writeFileSync(suggestionPath, SUGGESTION_PLUGIN, "utf-8");
+		}
+
+		if (type === "tools" || type === "both") {
+			const toolsPath = join(this.pluginDir, "claudemem-tools.ts");
+			writeFileSync(toolsPath, TOOLS_PLUGIN, "utf-8");
+		}
+
+		// Update opencode.json
+		await this.updateConfig(type);
+	}
+
+	/**
+	 * Uninstall claudemem plugin
+	 */
+	async uninstall(): Promise<void> {
+		// Remove plugin files
+		const suggestionPath = join(this.pluginDir, "claudemem.ts");
+		const toolsPath = join(this.pluginDir, "claudemem-tools.ts");
+
+		if (existsSync(suggestionPath)) {
+			const content = readFileSync(suggestionPath, "utf-8");
+			if (content.includes(PLUGIN_MARKER)) {
+				unlinkSync(suggestionPath);
+			}
+		}
+
+		if (existsSync(toolsPath)) {
+			const content = readFileSync(toolsPath, "utf-8");
+			if (content.includes(PLUGIN_MARKER)) {
+				unlinkSync(toolsPath);
+			}
+		}
+
+		// Update opencode.json to remove our plugins
+		await this.removeFromConfig();
+	}
+
+	/**
+	 * Check installation status
+	 */
+	async status(): Promise<OpenCodeStatus> {
+		const suggestionPath = join(this.pluginDir, "claudemem.ts");
+		const toolsPath = join(this.pluginDir, "claudemem-tools.ts");
+
+		const hasSuggestion = existsSync(suggestionPath) &&
+			readFileSync(suggestionPath, "utf-8").includes(PLUGIN_MARKER);
+		const hasTools = existsSync(toolsPath) &&
+			readFileSync(toolsPath, "utf-8").includes(PLUGIN_MARKER);
+
+		if (!hasSuggestion && !hasTools) {
+			return { installed: false };
+		}
+
+		let pluginType: PluginType;
+		if (hasSuggestion && hasTools) {
+			pluginType = "both";
+		} else if (hasTools) {
+			pluginType = "tools";
+		} else {
+			pluginType = "suggestion";
+		}
+
+		// Check if config is updated
+		let configUpdated = false;
+		if (existsSync(this.configPath)) {
+			try {
+				const config = JSON.parse(readFileSync(this.configPath, "utf-8"));
+				const plugins = config.plugin || [];
+				configUpdated = plugins.some((p: string) => p.includes("claudemem"));
+			} catch {
+				configUpdated = false;
+			}
+		}
+
+		return {
+			installed: true,
+			pluginType,
+			pluginDir: this.pluginDir,
+			configUpdated,
+		};
+	}
+
+	/**
+	 * Check if this is an OpenCode project
+	 */
+	isOpenCodeProject(): boolean {
+		return existsSync(this.configPath) || existsSync(join(this.projectPath, ".opencode"));
+	}
+
+	/**
+	 * Update opencode.json to include our plugins
+	 */
+	private async updateConfig(type: PluginType): Promise<void> {
+		let config: Record<string, unknown> = {};
+
+		if (existsSync(this.configPath)) {
+			try {
+				config = JSON.parse(readFileSync(this.configPath, "utf-8"));
+			} catch {
+				// Invalid JSON, start fresh
+				config = {};
+			}
+		}
+
+		// Ensure plugin array exists
+		if (!Array.isArray(config.plugin)) {
+			config.plugin = [];
+		}
+
+		const plugins = config.plugin as string[];
+
+		// Remove any existing claudemem plugins
+		const filtered = plugins.filter(p => !p.includes("claudemem"));
+
+		// Add our plugins
+		if (type === "suggestion" || type === "both") {
+			filtered.push("file://.opencode/plugin/claudemem.ts");
+		}
+		if (type === "tools" || type === "both") {
+			filtered.push("file://.opencode/plugin/claudemem-tools.ts");
+		}
+
+		config.plugin = filtered;
+
+		// Write updated config
+		writeFileSync(this.configPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
+	}
+
+	/**
+	 * Remove our plugins from opencode.json
+	 */
+	private async removeFromConfig(): Promise<void> {
+		if (!existsSync(this.configPath)) {
+			return;
+		}
+
+		try {
+			const config = JSON.parse(readFileSync(this.configPath, "utf-8"));
+
+			if (Array.isArray(config.plugin)) {
+				config.plugin = config.plugin.filter((p: string) => !p.includes("claudemem"));
+			}
+
+			writeFileSync(this.configPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
+		} catch {
+			// Ignore errors
+		}
+	}
+}
+
+// ============================================================================
+// Factory Function
+// ============================================================================
+
+export function createOpenCodeIntegration(projectPath: string): OpenCodeIntegrationManager {
+	return new OpenCodeIntegrationManager(projectPath);
+}

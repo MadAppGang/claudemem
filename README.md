@@ -124,6 +124,50 @@ Then Claude Code can use these tools:
 - `get_status` — check what's indexed
 - `clear_index` — start fresh
 
+## IDE Integrations
+
+claudemem integrates with AI coding assistants to replace grep/glob with semantic search.
+
+### Claude Code
+
+Install the [code-analysis plugin](https://github.com/MadAppGang/claude-code) for automatic claudemem integration:
+
+```bash
+# In Claude Code
+/plugin marketplace add MadAppGang/claude-code
+
+# Enable the plugin in settings
+# Add to your Claude Code settings:
+{
+  "enabledPlugins": {
+    "code-analysis@mag-claude-plugins": true
+  }
+}
+```
+
+This gives you detective agents that use claudemem under the hood:
+- `developer-detective` — trace implementations, find usages
+- `architect-detective` — analyze architecture, find patterns
+- `tester-detective` — find test gaps, coverage analysis
+- `debugger-detective` — trace errors, find bug sources
+
+### OpenCode
+
+Automatic installation:
+
+```bash
+# Install plugins (suggestion + tools)
+claudemem install opencode
+
+# Check status
+claudemem install opencode status
+
+# Uninstall
+claudemem install opencode uninstall
+```
+
+Manual installation — see [docs/OPENCODE_INTEGRATION.md](docs/OPENCODE_INTEGRATION.md).
+
 ## VS Code autocomplete (experimental)
 
 This repo also contains an experimental VS Code inline completion extension that talks to a persistent `claudemem` autocomplete server.
@@ -276,6 +320,14 @@ claudemem watch             # auto-reindex on file changes (daemon mode)
 claudemem hooks install     # install git post-commit hook for auto-indexing
 claudemem hooks uninstall   # remove the hook
 claudemem hooks status      # check if hook is installed
+```
+
+### IDE integrations
+```
+claudemem install opencode                # install OpenCode plugins (suggestion + tools)
+claudemem install opencode --type tools   # install tools plugin only
+claudemem install opencode status         # check installation status
+claudemem install opencode uninstall      # remove plugins
 ```
 
 ### Documentation commands

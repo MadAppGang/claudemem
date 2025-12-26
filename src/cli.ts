@@ -109,7 +109,8 @@ export async function runCli(args: string[]): Promise<void> {
 	const command = args[0];
 
 	// Handle global flags
-	if (args.includes("--version") || args.includes("-v")) {
+	// Note: -v is reserved for --verbose in subcommands, use --version only for version
+	if (args.includes("--version")) {
 		console.log(`claudemem version ${VERSION}`);
 		return;
 	}
@@ -193,6 +194,9 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "hooks":
 			await handleHooks(args.slice(1));
+			break;
+		case "install":
+			await handleInstall(args.slice(1));
 			break;
 		// Documentation commands
 		case "docs":
@@ -2976,6 +2980,189 @@ Subcommands:
 }
 
 // ============================================================================
+// Integration Commands
+// ============================================================================
+
+/**
+ * Handle 'install' command - install integrations for AI coding tools
+ */
+async function handleInstall(args: string[]): Promise<void> {
+	const projectPath = resolve(".");
+	const tool = args[0];
+	const subcommand = args[1] || "install";
+
+	if (!tool || tool === "help") {
+		console.log(`
+Usage: claudemem install <tool> [subcommand]
+
+Tools:
+  opencode     Install plugin for OpenCode (opencode.ai)
+  claude-code  Show Claude Code integration instructions
+
+Subcommands:
+  install      Install integration (default)
+  uninstall    Remove integration
+  status       Check installation status
+
+Options:
+  --type <type>  Plugin type for OpenCode: both (default) | tools | suggestion
+
+Examples:
+  claudemem install opencode              Install OpenCode plugins
+  claudemem install opencode --type tools Install tools plugin only
+  claudemem install opencode status       Check if installed
+  claudemem install opencode uninstall    Remove plugins
+  claudemem install claude-code           Show Claude Code instructions
+`);
+		return;
+	}
+
+	switch (tool) {
+		case "opencode":
+			await handleOpenCodeIntegration(projectPath, subcommand, args.slice(2));
+			break;
+
+		case "claude-code":
+		case "claudecode":
+			handleClaudeCodeIntegration();
+			break;
+
+		default:
+			console.error(`Unknown tool: ${tool}`);
+			console.error('Available: opencode, claude-code');
+			console.error('Run "claudemem install help" for usage.');
+			process.exit(1);
+	}
+}
+
+/**
+ * Handle OpenCode integration
+ */
+async function handleOpenCodeIntegration(
+	projectPath: string,
+	subcommand: string,
+	args: string[]
+): Promise<void> {
+	const { createOpenCodeIntegration } = await import("./integrations/opencode.js");
+	const manager = createOpenCodeIntegration(projectPath);
+
+	// Parse --type option (default: both)
+	let pluginType: "suggestion" | "tools" | "both" = "both";
+	const typeIndex = args.indexOf("--type");
+	if (typeIndex !== -1 && args[typeIndex + 1]) {
+		const type = args[typeIndex + 1];
+		if (type === "suggestion" || type === "tools" || type === "both") {
+			pluginType = type;
+		}
+	}
+
+	switch (subcommand) {
+		case "install":
+			try {
+				await manager.install(pluginType);
+				if (!noLogo) printLogo();
+				console.log("\n✅ OpenCode integration installed!\n");
+				console.log(`  Plugin type: ${pluginType}`);
+				console.log(`  Location: .opencode/plugin/`);
+				console.log(`  Config: opencode.json (updated)\n`);
+
+				if (pluginType === "tools" || pluginType === "both") {
+					console.log("  Available tools:");
+					console.log("    • claudemem_search  - Semantic code search");
+					console.log("    • claudemem_map     - Structural overview");
+					console.log("    • claudemem_symbol  - Find symbol location");
+					console.log("    • claudemem_callers - Impact analysis");
+					console.log("    • claudemem_callees - Dependency tracing");
+					console.log("    • claudemem_context - Full context\n");
+				}
+
+				// Check if indexed
+				const { createVectorStore } = await import("./core/store.js");
+				const store = await createVectorStore(projectPath);
+				const stats = await store.getStats();
+				if (stats.totalChunks === 0) {
+					console.log("  ⚠️  Project not indexed. Run: claudemem index\n");
+				}
+			} catch (error) {
+				console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+				process.exit(1);
+			}
+			break;
+
+		case "uninstall":
+			try {
+				await manager.uninstall();
+				if (!noLogo) printLogo();
+				console.log("\n✅ OpenCode integration uninstalled!\n");
+			} catch (error) {
+				console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+				process.exit(1);
+			}
+			break;
+
+		case "status":
+			const status = await manager.status();
+			if (!noLogo) printLogo();
+			console.log("\n🔌 OpenCode Integration Status\n");
+			console.log(`  Installed: ${status.installed ? "Yes" : "No"}`);
+			if (status.installed) {
+				console.log(`  Plugin type: ${status.pluginType}`);
+				console.log(`  Location: ${status.pluginDir}`);
+				console.log(`  Config updated: ${status.configUpdated ? "Yes" : "No"}`);
+			}
+			console.log("");
+			break;
+
+		default:
+			// Treat unknown subcommand as install with --type
+			if (subcommand.startsWith("--")) {
+				// Parse as option
+				await handleOpenCodeIntegration(projectPath, "install", [subcommand, ...args]);
+			} else {
+				console.error(`Unknown subcommand: ${subcommand}`);
+				console.error('Run "claudemem install opencode help" for usage.');
+				process.exit(1);
+			}
+	}
+}
+
+/**
+ * Handle Claude Code integration (just shows instructions)
+ */
+function handleClaudeCodeIntegration(): void {
+	console.log(`
+Claude Code Integration
+=======================
+
+Claude Code uses plugin marketplaces. To integrate claudemem:
+
+1. Add the MAG plugins marketplace (one-time):
+
+   /plugin marketplace add MadAppGang/claude-code
+
+2. Enable the code-analysis plugin in .claude/settings.json:
+
+   {
+     "enabledPlugins": {
+       "code-analysis@mag-claude-plugins": true
+     }
+   }
+
+3. Commit settings.json so your team gets the same setup.
+
+The code-analysis plugin includes detective skills that use claudemem:
+  • developer-detective  - Implementation investigation
+  • architect-detective  - Architecture analysis
+  • tester-detective     - Test coverage gaps
+  • debugger-detective   - Bug investigation
+  • ultrathink-detective - Comprehensive analysis
+
+For full documentation:
+  https://github.com/MadAppGang/claudemem/blob/main/docs/CLAUDE_CODE_INTEGRATION.md
+`);
+}
+
+// ============================================================================
 // Documentation Commands
 // ============================================================================
 
@@ -3467,6 +3654,7 @@ ${c.yellow}${c.bold}CODE ANALYSIS COMMANDS${c.reset}
 ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
   ${c.green}watch${c.reset}                  Watch for changes and auto-reindex ${c.dim}(daemon mode)${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
+  ${c.green}integrate${c.reset} <tool>       Install integration ${c.dim}(opencode|claude-code)${c.reset}
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files

@@ -370,7 +370,17 @@ export function createJudgePhaseExecutor(
 					return { results, failures: pairwiseFailures, lastError };
 				});
 
-				const pairwiseResultArrays = await Promise.all(pairwisePromises);
+				// Add a global timeout to prevent hanging indefinitely
+				const PAIRWISE_GLOBAL_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes max for all pairwise
+				const pairwiseWithTimeout = Promise.race([
+					Promise.all(pairwisePromises),
+					new Promise<never>((_, reject) =>
+						setTimeout(() => reject(new Error(`Pairwise evaluation timed out after ${PAIRWISE_GLOBAL_TIMEOUT_MS / 60000} minutes`)), PAIRWISE_GLOBAL_TIMEOUT_MS)
+					),
+				]);
+
+				const pairwiseResultArrays = await pairwiseWithTimeout;
+
 				for (let i = 0; i < pairwiseResultArrays.length; i++) {
 					const { results, failures: pairFailures, lastError } = pairwiseResultArrays[i];
 					allPairwiseResults.push(...results);
@@ -386,7 +396,7 @@ export function createJudgePhaseExecutor(
 					"evaluation:judge",
 					completed,
 					undefined,
-					"saving pairwise results..."
+					`saving ${allPairwiseResults.length} pairwise results...`
 				);
 				db.insertPairwiseResults(run.id, allPairwiseResults);
 
@@ -395,15 +405,20 @@ export function createJudgePhaseExecutor(
 					"evaluation:judge",
 					completed,
 					undefined,
-					"aggregating tournament scores..."
+					`aggregating tournament (${config.generators.length} models)...`
 				);
 				const tournamentScores = aggregateTournamentResults(
 					allPairwiseResults,
 					config.generators.map((g) => g.id)
 				);
 
-				// Update summaries with pairwise scores (skip - this is slow and not needed for results)
-				// The tournament scores are already computed and will be shown in the report
+				// Update progress to show aggregation complete
+				stateMachine.updateProgress(
+					"evaluation:judge",
+					completed,
+					undefined,
+					"tournament aggregation complete"
+				);
 			}
 
 			return {

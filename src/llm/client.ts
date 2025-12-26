@@ -75,6 +75,15 @@ export abstract class BaseLLMClient implements ILLMClient {
 		return CLOUD_LLM_PROVIDERS.has(this.provider);
 	}
 
+	/**
+	 * Get model size in billions of parameters.
+	 * Default implementation returns undefined (cloud providers).
+	 * Overridden by LocalLLMClient to query Ollama/LM Studio API.
+	 */
+	async getModelSizeB(): Promise<number | undefined> {
+		return undefined;
+	}
+
 	getAccumulatedUsage() {
 		return { ...this.accumulatedUsage };
 	}

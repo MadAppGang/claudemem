@@ -637,6 +637,13 @@ export interface BenchmarkConfig {
 	 * - 2-4 = run N local models concurrently
 	 */
 	localModelParallelism?: number;
+	/**
+	 * Large model threshold in billions of parameters.
+	 * Models >= this size run alone regardless of localModelParallelism.
+	 * Default: 20 (20B+ models run isolated)
+	 * Set to 0 to disable size-based isolation.
+	 */
+	largeModelThreshold?: number;
 }
 
 // ============================================================================

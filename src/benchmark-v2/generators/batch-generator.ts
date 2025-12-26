@@ -32,6 +32,20 @@ export interface BatchGenerationOptions {
 	parallelModels?: boolean;
 	/** Concurrency for code unit generation per model (default: 5) */
 	concurrency?: number;
+	/**
+	 * Local model parallelism (lmstudio, ollama).
+	 * - 0 = all in parallel (may cause model swapping if VRAM limited)
+	 * - 1 = sequential (default, safest for limited VRAM)
+	 * - 2-4 = run N local models concurrently
+	 */
+	localModelParallelism?: number;
+	/**
+	 * Large model threshold in billions of parameters.
+	 * Models >= this size run alone (sequential) regardless of localModelParallelism.
+	 * Default: 20 (20B+ models like llama3.2:70b run isolated)
+	 * Set to 0 to disable this check.
+	 */
+	largeModelThreshold?: number;
 	/** Progress callback with inProgress, failures count, and last error for animated progress bars */
 	onProgress?: (model: string, completed: number, total: number, inProgress: number, failures: number, lastError?: string) => void;
 }
@@ -116,7 +130,7 @@ export class BatchGenerator {
 			}
 		}
 
-		// Helper to collect model result
+		// Helper to collect model result (thread-safe for parallel execution)
 		const collectResult = (modelResult: {
 			modelId: string;
 			summaries: GeneratedSummary[];
@@ -130,34 +144,127 @@ export class BatchGenerator {
 			result.totalTokens += modelResult.tokens;
 		};
 
-		// Run cloud models in parallel (they have separate API endpoints)
-		if (this.options.parallelModels && cloudModels.length > 1) {
-			const cloudResults = await Promise.all(
-				cloudModels.map(([modelId, generator]) =>
-					this.generateForModel(modelId, generator, codeUnits)
-				)
-			);
-			for (const modelResult of cloudResults) {
-				collectResult(modelResult);
-			}
-		} else {
-			// Run cloud models sequentially if parallelModels is false
-			for (const [modelId, generator] of cloudModels) {
-				const modelResult = await this.generateForModel(modelId, generator, codeUnits);
-				collectResult(modelResult);
-			}
-		}
+		// Create cloud models stream (all run in parallel)
+		const runCloudModels = async () => {
+			if (cloudModels.length === 0) return;
 
-		// Always run local models sequentially (they share hardware - GPU/CPU)
-		for (const [modelId, generator] of localModels) {
-			const modelResult = await this.generateForModel(
-				modelId,
-				generator,
-				codeUnits,
-				1 // Force concurrency=1 for local models
+			if (this.options.parallelModels && cloudModels.length > 1) {
+				const cloudResults = await Promise.all(
+					cloudModels.map(([modelId, generator]) =>
+						this.generateForModel(modelId, generator, codeUnits)
+					)
+				);
+				for (const modelResult of cloudResults) {
+					collectResult(modelResult);
+				}
+			} else {
+				// Run cloud models sequentially if parallelModels is false
+				for (const [modelId, generator] of cloudModels) {
+					const modelResult = await this.generateForModel(modelId, generator, codeUnits);
+					collectResult(modelResult);
+				}
+			}
+		};
+
+		// Create local models stream (respects localModelParallelism + large model isolation)
+		const runLocalModels = async () => {
+			if (localModels.length === 0) return;
+
+			const localParallelism = this.options.localModelParallelism ?? 1;
+			const largeModelThreshold = this.options.largeModelThreshold ?? 20; // Default 20B
+
+			// Helper to run a local model
+			const runLocalModel = async ([modelId, generator]: [string, SummaryGenerator]) => {
+				const modelResult = await this.generateForModel(
+					modelId,
+					generator,
+					codeUnits,
+					1 // Force concurrency=1 for code units within each local model
+				);
+				collectResult(modelResult);
+			};
+
+			// If threshold is 0, skip size-based isolation
+			if (largeModelThreshold === 0) {
+				// Original logic without size checking
+				if (localParallelism === 0 || localParallelism >= localModels.length) {
+					await Promise.all(localModels.map(runLocalModel));
+				} else if (localParallelism === 1) {
+					for (const model of localModels) {
+						await runLocalModel(model);
+					}
+				} else {
+					for (let i = 0; i < localModels.length; i += localParallelism) {
+						const batch = localModels.slice(i, i + localParallelism);
+						await Promise.all(batch.map(runLocalModel));
+					}
+				}
+				return;
+			}
+
+			// Query model sizes to separate large from small models
+			const modelSizes = new Map<string, number | undefined>();
+			const debug = process.env.DEBUG_MODEL_SIZE === "1";
+			if (debug) console.error(`[BatchGenerator] Querying sizes for ${localModels.length} local models, threshold=${largeModelThreshold}B`);
+
+			await Promise.all(
+				localModels.map(async ([modelId]) => {
+					const client = this.options.clients.get(modelId);
+					if (client && typeof client.getModelSizeB === "function") {
+						try {
+							const size = await client.getModelSizeB();
+							modelSizes.set(modelId, size);
+							if (debug) console.error(`[BatchGenerator] ${modelId} → ${size ?? "unknown"}B ${size !== undefined && size >= largeModelThreshold ? "(LARGE)" : "(small)"}`);
+						} catch (e) {
+							// Failed to get size - treat as unknown
+							modelSizes.set(modelId, undefined);
+							if (debug) console.error(`[BatchGenerator] ${modelId} → ERROR: ${e}`);
+						}
+					} else {
+						if (debug) console.error(`[BatchGenerator] ${modelId} → no getModelSizeB method`);
+					}
+				})
 			);
-			collectResult(modelResult);
-		}
+
+			// Separate large models (>= threshold) from small models
+			const largeModels: Array<[string, SummaryGenerator]> = [];
+			const smallModels: Array<[string, SummaryGenerator]> = [];
+
+			for (const model of localModels) {
+				const [modelId] = model;
+				const size = modelSizes.get(modelId);
+				// Models with unknown size are treated as small (safe default)
+				if (size !== undefined && size >= largeModelThreshold) {
+					largeModels.push(model);
+				} else {
+					smallModels.push(model);
+				}
+			}
+
+			// Run large models sequentially first (they need full GPU memory)
+			for (const model of largeModels) {
+				await runLocalModel(model);
+			}
+
+			// Then run small models with configured parallelism
+			if (smallModels.length > 0) {
+				if (localParallelism === 0 || localParallelism >= smallModels.length) {
+					await Promise.all(smallModels.map(runLocalModel));
+				} else if (localParallelism === 1) {
+					for (const model of smallModels) {
+						await runLocalModel(model);
+					}
+				} else {
+					for (let i = 0; i < smallModels.length; i += localParallelism) {
+						const batch = smallModels.slice(i, i + localParallelism);
+						await Promise.all(batch.map(runLocalModel));
+					}
+				}
+			}
+		};
+
+		// Run BOTH streams in parallel - cloud and local don't block each other
+		await Promise.all([runCloudModels(), runLocalModels()]);
 
 		return result;
 	}
@@ -330,6 +437,8 @@ export function createGenerationPhaseExecutor(
 				clients,
 				parallelModels: true,
 				concurrency: 20, // Process 20 code units in parallel per model
+				localModelParallelism: config.localModelParallelism ?? 1,
+				largeModelThreshold: config.largeModelThreshold ?? 20,
 				onProgress: (model, completed, total, inProgress, failures, lastError) => {
 					const overallCompleted = startIndex + completed;
 					// Encode progress info for CLI to parse: model: completed/total/inProgress/failures|error

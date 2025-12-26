@@ -31,6 +31,250 @@ function isModelContentionError(message: string): boolean {
 const MODEL_RETRY_DELAYS = [2000, 4000, 8000]; // 2s, 4s, 8s
 
 // ============================================================================
+// Model Info API (Ollama + LM Studio)
+// ============================================================================
+
+/**
+ * Model information from local provider APIs
+ */
+export interface LocalModelInfo {
+	/** Model name/key */
+	name: string;
+	/** Parameter size string (e.g., "70B", "7.6B") */
+	parameterSize?: string;
+	/** Parameter size in billions (parsed) */
+	parameterSizeB?: number;
+	/** Quantization level (e.g., "Q4_K_M") */
+	quantizationLevel?: string;
+	/** Model format (e.g., "gguf") */
+	format?: string;
+	/** Model family/architecture (e.g., "llama", "qwen") */
+	family?: string;
+}
+
+/** Cache for model info to avoid repeated API calls */
+const modelInfoCache = new Map<string, LocalModelInfo>();
+
+/** Cache for LM Studio SDK model list */
+let lmsModelsCache: Map<string, string> | null = null;
+let lmsCacheTime = 0;
+const LMS_CACHE_TTL = 60000; // 1 minute TTL
+
+/**
+ * Parse parameter size string to number in billions.
+ * E.g., "70B" → 70, "7.6B" → 7.6, "400M" → 0.4
+ */
+export function parseParameterSize(sizeStr: string): number | undefined {
+	const normalized = sizeStr.toUpperCase().trim();
+
+	// Match patterns like "70B", "7.6B", "400M"
+	const match = normalized.match(/^(\d+(?:\.\d+)?)\s*([BM])$/);
+	if (!match) return undefined;
+
+	const value = parseFloat(match[1]);
+	const unit = match[2];
+
+	if (unit === "M") {
+		return value / 1000; // Convert millions to billions
+	}
+	return value; // Already in billions
+}
+
+/**
+ * Get model information from Ollama's /api/show endpoint.
+ */
+async function getOllamaModelInfo(
+	modelName: string,
+	baseEndpoint: string
+): Promise<LocalModelInfo | undefined> {
+	try {
+		const response = await fetch(`${baseEndpoint}/api/show`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ name: modelName }),
+			signal: AbortSignal.timeout(5000),
+		});
+
+		if (!response.ok) return undefined;
+
+		const data = await response.json();
+		const details = data.details || {};
+
+		const info: LocalModelInfo = {
+			name: modelName,
+			parameterSize: details.parameter_size,
+			quantizationLevel: details.quantization_level,
+			format: details.format,
+			family: details.family,
+		};
+
+		if (info.parameterSize) {
+			info.parameterSizeB = parseParameterSize(info.parameterSize);
+		}
+
+		return info;
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Build a map of modelKey → paramsString using LM Studio SDK.
+ * This is the authoritative source for model parameter counts.
+ */
+async function getLMStudioModelSizeMap(): Promise<Map<string, string>> {
+	const now = Date.now();
+
+	// Return cached if still valid
+	if (lmsModelsCache && now - lmsCacheTime < LMS_CACHE_TTL) {
+		return lmsModelsCache;
+	}
+
+	try {
+		const { LMStudioClient } = await import("@lmstudio/sdk");
+		const client = new LMStudioClient({ baseUrl: "ws://127.0.0.1:1234" });
+
+		const downloadedModels = await client.system.listDownloadedModels();
+
+		// Build map: modelKey → paramsString
+		const map = new Map<string, string>();
+		for (const m of downloadedModels) {
+			if (m.type === "llm" && m.modelKey && m.paramsString) {
+				map.set(m.modelKey, m.paramsString);
+			}
+		}
+
+		lmsModelsCache = map;
+		lmsCacheTime = now;
+
+		return map;
+	} catch (e) {
+		if (process.env.DEBUG_MODEL_SIZE) {
+			console.error(`[getLMStudioModelSizeMap] SDK error: ${e}`);
+		}
+		return new Map();
+	}
+}
+
+/**
+ * Get model information from LM Studio using the SDK.
+ *
+ * Strategy: Get all downloaded models from SDK and find the best match
+ * for the requested model name using progressively looser matching.
+ */
+async function getLMStudioModelInfo(
+	modelName: string,
+	_baseEndpoint: string
+): Promise<LocalModelInfo | undefined> {
+	try {
+		const { LMStudioClient } = await import("@lmstudio/sdk");
+		const client = new LMStudioClient({ baseUrl: "ws://127.0.0.1:1234" });
+
+		const downloadedModels = await client.system.listDownloadedModels();
+		const llmModels = downloadedModels.filter((m) => m.type === "llm");
+
+		const debug = process.env.DEBUG_MODEL_SIZE === "1";
+		if (debug) {
+			console.error(`[getLMStudioModelInfo] Looking for: ${modelName}`);
+			console.error(`[getLMStudioModelInfo] Available models: ${llmModels.map(m => m.modelKey).join(", ")}`);
+		}
+
+		// Normalize the input model name for matching
+		const normalizedInput = modelName.toLowerCase();
+
+		// Try progressively looser matching strategies
+		let match = llmModels.find((m) => m.modelKey === modelName);
+
+		if (!match) {
+			// Try: modelKey ends with /modelName (e.g., "qwen/qwq-32b" matches "qwq-32b")
+			match = llmModels.find((m) => m.modelKey.endsWith(`/${modelName}`));
+		}
+
+		if (!match) {
+			// Try: modelKey contains the modelName (case-insensitive)
+			match = llmModels.find((m) => m.modelKey.toLowerCase().includes(normalizedInput));
+		}
+
+		if (!match) {
+			// Try: Extract base name and match (handles quantization suffixes)
+			// e.g., "qwq-32b" should match "qwen/qwq-32b-instruct-q4_k_m"
+			const baseName = normalizedInput.replace(/-q\d.*$/, "").replace(/-instruct.*$/, "");
+			match = llmModels.find((m) => m.modelKey.toLowerCase().includes(baseName));
+		}
+
+		if (!match) {
+			if (debug) console.error(`[getLMStudioModelInfo] No match found for ${modelName}`);
+			return undefined;
+		}
+
+		if (debug) {
+			console.error(`[getLMStudioModelInfo] Matched: ${match.modelKey} → ${match.paramsString}`);
+		}
+
+		const info: LocalModelInfo = {
+			name: match.modelKey,
+			parameterSize: match.paramsString,
+			format: match.format,
+			family: match.architecture,
+		};
+
+		if (info.parameterSize) {
+			info.parameterSizeB = parseParameterSize(info.parameterSize);
+		}
+
+		return info;
+	} catch (e) {
+		if (process.env.DEBUG_MODEL_SIZE === "1") {
+			console.error(`[getLMStudioModelInfo] Error: ${e}`);
+		}
+		return undefined;
+	}
+}
+
+/**
+ * Get model information from local provider (Ollama or LM Studio).
+ *
+ * Detects provider by endpoint port and queries only that provider:
+ * - Port 1234: LM Studio → `lms ls --json` CLI
+ * - Port 11434: Ollama → /api/show endpoint
+ *
+ * Results are cached for the session.
+ */
+export async function getLocalModelInfo(
+	modelName: string,
+	endpoint = "http://localhost:11434"
+): Promise<LocalModelInfo | undefined> {
+	// Check cache first
+	const cacheKey = `${endpoint}:${modelName}`;
+	if (modelInfoCache.has(cacheKey)) {
+		return modelInfoCache.get(cacheKey);
+	}
+
+	// Strip /v1 suffix if present
+	const baseEndpoint = endpoint.replace(/\/v1\/?$/, "");
+
+	// Detect provider by port: 1234 = LM Studio, 11434 = Ollama
+	const isLMStudio = endpoint.includes(":1234");
+
+	const info = isLMStudio
+		? await getLMStudioModelInfo(modelName, baseEndpoint)
+		: await getOllamaModelInfo(modelName, baseEndpoint);
+
+	if (info) {
+		modelInfoCache.set(cacheKey, info);
+	}
+
+	return info;
+}
+
+/**
+ * Clear the model info cache (useful for testing)
+ */
+export function clearModelInfoCache(): void {
+	modelInfoCache.clear();
+}
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -219,6 +463,18 @@ export class LocalLLMClient extends BaseLLMClient {
 			}
 			return false;
 		}
+	}
+
+	/**
+	 * Get model size in billions of parameters.
+	 * Queries local provider API (Ollama or LM Studio) for authoritative size info.
+	 */
+	async getModelSizeB(): Promise<number | undefined> {
+		const info = await getLocalModelInfo(this.model, this.endpoint);
+		if (process.env.DEBUG_MODEL_SIZE) {
+			console.error(`[getModelSizeB] model=${this.model} endpoint=${this.endpoint} → ${info?.parameterSizeB ?? "unknown"}B`);
+		}
+		return info?.parameterSizeB;
 	}
 
 	/**
