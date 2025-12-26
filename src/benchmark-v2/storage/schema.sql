@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS generated_queries (
     run_id TEXT NOT NULL REFERENCES benchmark_runs(id) ON DELETE CASCADE,
     code_unit_id TEXT NOT NULL REFERENCES code_units(id) ON DELETE CASCADE,
     type TEXT NOT NULL
-        CHECK (type IN ('vague', 'wrong_terminology', 'specific_behavior', 'integration', 'problem_based')),
+        CHECK (type IN ('vague', 'wrong_terminology', 'specific_behavior', 'integration', 'problem_based', 'doc_conceptual', 'doc_api_lookup', 'doc_best_practice')),
     query TEXT NOT NULL,
     should_find INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))

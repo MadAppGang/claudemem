@@ -29,13 +29,16 @@ const QUERY_GENERATION_USER_PROMPT = `Generate realistic search queries that a d
 - Name: {name}
 - Type: {type}
 
-Generate exactly 5 search queries of varying types:
+Generate exactly 8 search queries of varying types:
 
 1. **Vague query**: A partial or imprecise query (e.g., "something with users")
 2. **Wrong terminology**: Uses related but not exact terms (e.g., "authenticate" instead of "login")
 3. **Specific behavior**: Asks about a particular thing the code does
 4. **Integration query**: Asks how to use this with something else
 5. **Problem-based**: Describes a problem this code solves
+6. **Doc conceptual**: Documentation-style conceptual question (e.g., "What is X?", "How does X work?", "Explain X")
+7. **Doc API lookup**: Looking for API details (e.g., "X parameters", "X return type", "X function signature")
+8. **Doc best practice**: Seeking recommended patterns (e.g., "best way to use X", "X recommended approach", "when to use X")
 
 These should be realistic queries a developer would type, NOT perfect descriptions.
 
@@ -47,7 +50,10 @@ Respond with JSON only:
     {"type": "wrong_terminology", "query": "..."},
     {"type": "specific_behavior", "query": "..."},
     {"type": "integration", "query": "..."},
-    {"type": "problem_based", "query": "..."}
+    {"type": "problem_based", "query": "..."},
+    {"type": "doc_conceptual", "query": "..."},
+    {"type": "doc_api_lookup", "query": "..."},
+    {"type": "doc_best_practice", "query": "..."}
   ]
 }
 \`\`\``;
@@ -79,13 +85,16 @@ export class QueryGenerator {
 
 	constructor(options: QueryGeneratorOptions) {
 		this.llmClient = options.llmClient;
-		this.queriesPerUnit = options.queriesPerUnit ?? 5;
+		this.queriesPerUnit = options.queriesPerUnit ?? 8;
 		this.queryTypes = options.queryTypes ?? [
 			"vague",
 			"wrong_terminology",
 			"specific_behavior",
 			"integration",
 			"problem_based",
+			"doc_conceptual",
+			"doc_api_lookup",
+			"doc_best_practice",
 		];
 	}
 
@@ -184,6 +193,33 @@ export class QueryGenerator {
 			codeUnitId: codeUnit.id,
 			type: "problem_based",
 			query: `${type} that handles ${name.split(/(?=[A-Z])/).slice(-1)[0] || name}`,
+			shouldFind: true,
+		});
+
+		// Doc conceptual - "What is X?"
+		queries.push({
+			id: randomUUID(),
+			codeUnitId: codeUnit.id,
+			type: "doc_conceptual",
+			query: `what is ${name}`,
+			shouldFind: true,
+		});
+
+		// Doc API lookup - "X parameters" or "X signature"
+		queries.push({
+			id: randomUUID(),
+			codeUnitId: codeUnit.id,
+			type: "doc_api_lookup",
+			query: `${name} ${type === "function" || type === "method" ? "parameters" : "API"}`,
+			shouldFind: true,
+		});
+
+		// Doc best practice - "best way to use X"
+		queries.push({
+			id: randomUUID(),
+			codeUnitId: codeUnit.id,
+			type: "doc_best_practice",
+			query: `best practice ${name}`,
 			shouldFind: true,
 		});
 

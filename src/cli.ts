@@ -14,6 +14,7 @@ import {
 	ENV,
 	getAnthropicApiKey,
 	getApiKey,
+	getContext7ApiKey,
 	getEmbeddingModel,
 	getLLMSpec,
 	getVoyageApiKey,
@@ -192,6 +193,10 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "hooks":
 			await handleHooks(args.slice(1));
+			break;
+		// Documentation commands
+		case "docs":
+			await handleDocs(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -1116,6 +1121,60 @@ async function handleInit(): Promise<void> {
 	}
 
 	// ═══════════════════════════════════════════════════════════════════════════
+	// STEP 3: Documentation Sources
+	// ═══════════════════════════════════════════════════════════════════════════
+	console.log("\n─── Documentation Sources ───\n");
+	console.log("Automatically fetch framework docs for your project dependencies.");
+	console.log("Docs are searchable alongside your code.\n");
+
+	const enableDocs = await confirm({
+		message: "Enable automatic documentation fetching?",
+		default: true,
+	});
+
+	let context7ApiKey: string | undefined;
+
+	if (enableDocs) {
+		console.log(`
+Documentation providers (used in priority order):
+  • Context7 - 6000+ libraries, versioned code examples (requires API key)
+  • llms.txt - Official AI-friendly docs from framework sites (free)
+  • DevDocs  - Consistent offline documentation (free)
+`);
+
+		const configureContext7 = await confirm({
+			message: "Configure Context7 API for best coverage? (free tier available)",
+			default: true,
+		});
+
+		if (configureContext7) {
+			const existingKey = getContext7ApiKey();
+			if (existingKey) {
+				const useExisting = await confirm({
+					message: "Context7 API key already configured. Keep it?",
+					default: true,
+				});
+				if (!useExisting) {
+					console.log("Get your free API key at: https://context7.com/dashboard\n");
+					context7ApiKey = await input({
+						message: "Enter Context7 API key:",
+						validate: (v) => v.trim().length > 0 || "API key is required",
+					});
+				}
+			} else {
+				console.log("Get your free API key at: https://context7.com/dashboard\n");
+				context7ApiKey = await input({
+					message: "Enter Context7 API key (or press Enter to skip):",
+				});
+				// Clear empty input
+				if (context7ApiKey && !context7ApiKey.trim()) {
+					context7ApiKey = undefined;
+				}
+			}
+		}
+	}
+
+	// ═══════════════════════════════════════════════════════════════════════════
 	// Save Configuration
 	// ═══════════════════════════════════════════════════════════════════════════
 	saveGlobalConfig({
@@ -1129,6 +1188,7 @@ async function handleInit(): Promise<void> {
 		...(embeddingProvider === "local" && embeddingEndpoint ? { localEndpoint: embeddingEndpoint } : {}),
 		enableEnrichment,
 		...(llmSpec ? { llm: llmSpec } : {}),
+		...(context7ApiKey ? { context7ApiKey } : {}),
 	});
 
 	// ═══════════════════════════════════════════════════════════════════════════
@@ -1141,6 +1201,11 @@ async function handleInit(): Promise<void> {
 	if (embeddingEndpoint) console.log(`  Endpoint:           ${embeddingEndpoint}`);
 	console.log(`  LLM enrichment:     ${enableEnrichment ? "enabled" : "disabled"}`);
 	if (llmSpec) console.log(`  LLM model:          ${llmSpec}`);
+	console.log(`  Auto-fetch docs:    ${enableDocs ? "enabled" : "disabled"}`);
+	if (enableDocs) {
+		const hasContext7 = context7ApiKey || getContext7ApiKey();
+		console.log(`  Context7 API:       ${hasContext7 ? "configured" : "not configured (using llms.txt/DevDocs)"}`);
+	}
 	console.log("\nYou can now index your codebase:");
 	console.log("  claudemem index\n");
 }
@@ -2907,6 +2972,333 @@ Subcommands:
 			console.error(`Unknown subcommand: ${subcommand}`);
 			console.error('Run "claudemem hooks help" for usage.');
 			process.exit(1);
+	}
+}
+
+// ============================================================================
+// Documentation Commands
+// ============================================================================
+
+/**
+ * Handle 'docs' command - external documentation management
+ */
+async function handleDocs(args: string[]): Promise<void> {
+	const projectPath = resolve(".");
+	const subcommand = args[0];
+
+	if (!subcommand || subcommand === "help") {
+		console.log(`
+Usage: claudemem docs <subcommand> [options]
+
+Subcommands:
+  status              Show indexed libraries and cache state
+  fetch [library]     Fetch docs for all dependencies or specific library
+  refresh             Force refresh all cached documentation
+  providers           List available documentation providers
+  clear [library]     Clear cached documentation
+`);
+		return;
+	}
+
+	// Import required modules
+	const { createFileTracker } = await import("./core/tracker.js");
+	const { getIndexDbPath, isDocsEnabled, getDocsConfig, hasContext7ApiKey } = await import("./config.js");
+	const { createDocsFetcher, createProviders } = await import("./docs/index.js");
+
+	switch (subcommand) {
+		case "status":
+			await handleDocsStatus(projectPath);
+			break;
+
+		case "fetch":
+			await handleDocsFetch(projectPath, args.slice(1));
+			break;
+
+		case "refresh":
+			await handleDocsRefresh(projectPath);
+			break;
+
+		case "providers":
+			await handleDocsProviders(projectPath);
+			break;
+
+		case "clear":
+			await handleDocsClear(projectPath, args.slice(1));
+			break;
+
+		default:
+			console.error(`Unknown subcommand: ${subcommand}`);
+			console.error('Run "claudemem docs help" for usage.');
+			process.exit(1);
+	}
+}
+
+/**
+ * Show documentation status
+ */
+async function handleDocsStatus(projectPath: string): Promise<void> {
+	const { createFileTracker } = await import("./core/tracker.js");
+	const { getIndexDbPath, isDocsEnabled } = await import("./config.js");
+	const { existsSync } = await import("node:fs");
+
+	const indexDbPath = getIndexDbPath(projectPath);
+	if (!existsSync(indexDbPath)) {
+		console.log("\n📚 Documentation Status\n");
+		console.log("  No index found. Run 'claudemem index' first.\n");
+		return;
+	}
+
+	const tracker = createFileTracker(indexDbPath, projectPath);
+
+	try {
+		const stats = tracker.getIndexedDocsStats();
+		const docs = tracker.getAllIndexedDocs();
+
+		if (!noLogo) printLogo();
+		console.log("\n📚 Documentation Status\n");
+		console.log(`  Enabled:     ${isDocsEnabled(projectPath) ? "Yes" : "No"}`);
+		console.log(`  Libraries:   ${stats.totalLibraries}`);
+		console.log(`  Chunks:      ${stats.totalChunks}`);
+
+		if (stats.oldestFetch) {
+			const age = Date.now() - new Date(stats.oldestFetch).getTime();
+			const hours = Math.round(age / (1000 * 60 * 60));
+			console.log(`  Cache age:   ${hours}h`);
+		}
+
+		if (docs.length > 0) {
+			console.log("\n  Indexed Libraries:");
+			for (const doc of docs.slice(0, 20)) {
+				const version = doc.version ? `@${doc.version}` : "";
+				const provider = doc.provider.replace("_", ".");
+				console.log(`    • ${doc.library}${version} (${provider}, ${doc.chunkIds.length} chunks)`);
+			}
+			if (docs.length > 20) {
+				console.log(`    ... and ${docs.length - 20} more`);
+			}
+		}
+
+		console.log("");
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Fetch documentation for dependencies
+ */
+async function handleDocsFetch(projectPath: string, args: string[]): Promise<void> {
+	const { createDocsFetcher } = await import("./docs/index.js");
+	const { createFileTracker } = await import("./core/tracker.js");
+	const { createEmbeddingsClient } = await import("./core/embeddings.js");
+	const { createVectorStore } = await import("./core/store.js");
+	const { getIndexDbPath, getVectorStorePath, getEmbeddingModel } = await import("./config.js");
+	const { computeHash } = await import("./core/tracker.js");
+
+	const specificLibrary = args[0];
+
+	if (!noLogo) printLogo();
+	console.log("\n📚 Fetching Documentation\n");
+
+	const fetcher = createDocsFetcher(projectPath);
+	if (!fetcher.isEnabled()) {
+		console.log("  No documentation providers available.");
+		console.log("  Configure Context7 API key or use llms.txt/DevDocs providers.\n");
+		return;
+	}
+
+	// Initialize components
+	const indexDbPath = getIndexDbPath(projectPath);
+	const tracker = createFileTracker(indexDbPath, projectPath);
+	const embeddingsClient = createEmbeddingsClient({ model: getEmbeddingModel(projectPath) });
+	const vectorStore = createVectorStore(getVectorStorePath(projectPath));
+	await vectorStore.initialize();
+
+	try {
+		let libraries: Array<{ name: string; majorVersion?: string }>;
+
+		if (specificLibrary) {
+			libraries = [{ name: specificLibrary }];
+		} else {
+			const deps = await fetcher.detectDependencies(projectPath);
+			libraries = deps.map((d) => ({ name: d.name, majorVersion: d.majorVersion }));
+		}
+
+		if (libraries.length === 0) {
+			console.log("  No dependencies detected.\n");
+			return;
+		}
+
+		console.log(`  Found ${libraries.length} ${specificLibrary ? "library" : "dependencies"}\n`);
+
+		let successCount = 0;
+		for (const lib of libraries) {
+			process.stdout.write(`  Fetching ${lib.name}...`);
+
+			try {
+				const chunks = await fetcher.fetchAndChunk(lib.name, {
+					version: lib.majorVersion,
+				});
+
+				if (chunks.length === 0) {
+					console.log(" no docs found");
+					continue;
+				}
+
+				// Delete old docs
+				const docsPath = `docs:${lib.name}`;
+				await vectorStore.deleteByFile(docsPath);
+
+				// Embed and store
+				const texts = chunks.map((c) => c.content);
+				const embedResult = await embeddingsClient.embed(texts);
+
+				const fileHash = computeHash(chunks.map((c) => c.content).join(""));
+				const chunksWithEmbeddings = chunks.map((chunk, idx) => ({
+					id: chunk.id,
+					content: chunk.content,
+					filePath: docsPath,
+					startLine: 0,
+					endLine: 0,
+					language: "markdown",
+					chunkType: "module" as const,
+					contentHash: computeHash(chunk.content),
+					fileHash,
+					vector: embedResult.embeddings[idx],
+					name: chunk.title,
+					signature: chunk.sourceUrl,
+				}));
+
+				await vectorStore.addChunks(chunksWithEmbeddings);
+
+				tracker.markDocsIndexed(
+					lib.name,
+					lib.majorVersion || null,
+					chunks[0].provider,
+					fileHash,
+					chunks.map((c) => c.id),
+				);
+
+				console.log(` ✓ ${chunks.length} chunks`);
+				successCount++;
+			} catch (error) {
+				console.log(` ✗ ${error instanceof Error ? error.message : "failed"}`);
+			}
+		}
+
+		console.log(`\n  Fetched ${successCount}/${libraries.length} libraries\n`);
+	} finally {
+		tracker.close();
+		await vectorStore.close();
+	}
+}
+
+/**
+ * Force refresh all documentation
+ */
+async function handleDocsRefresh(projectPath: string): Promise<void> {
+	const { createFileTracker } = await import("./core/tracker.js");
+	const { getIndexDbPath } = await import("./config.js");
+	const { existsSync } = await import("node:fs");
+
+	const indexDbPath = getIndexDbPath(projectPath);
+	if (!existsSync(indexDbPath)) {
+		console.log("\n  No index found. Run 'claudemem index' first.\n");
+		return;
+	}
+
+	const tracker = createFileTracker(indexDbPath, projectPath);
+
+	try {
+		// Clear all indexed docs to force refresh on next index
+		tracker.clearAllIndexedDocs();
+
+		if (!noLogo) printLogo();
+		console.log("\n📚 Documentation cache cleared. Run 'claudemem index' to refresh.\n");
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * List available documentation providers
+ */
+async function handleDocsProviders(projectPath: string): Promise<void> {
+	const { createProviders } = await import("./docs/index.js");
+	const { getDocsConfig, hasContext7ApiKey } = await import("./config.js");
+
+	const config = getDocsConfig(projectPath);
+	const providers = createProviders(config);
+
+	if (!noLogo) printLogo();
+	console.log("\n📚 Documentation Providers\n");
+
+	const context7Configured = hasContext7ApiKey();
+
+	console.log(`  Context7:  ${context7Configured ? "✓ Configured" : "✗ No API key"}`);
+	console.log(`  llms.txt:  ✓ Available (free)`);
+	console.log(`  DevDocs:   ✓ Available (free)`);
+
+	if (!context7Configured) {
+		console.log("\n  To enable Context7:");
+		console.log("    1. Get API key from https://context7.com/dashboard");
+		console.log("    2. Run: export CONTEXT7_API_KEY=your_key");
+	}
+
+	console.log("\n  Provider priority: Context7 > llms.txt > DevDocs");
+	console.log(`  Active providers:  ${providers.length}\n`);
+}
+
+/**
+ * Clear cached documentation
+ */
+async function handleDocsClear(projectPath: string, args: string[]): Promise<void> {
+	const { createFileTracker } = await import("./core/tracker.js");
+	const { createVectorStore } = await import("./core/store.js");
+	const { getIndexDbPath, getVectorStorePath } = await import("./config.js");
+	const { existsSync } = await import("node:fs");
+
+	const specificLibrary = args[0];
+
+	const indexDbPath = getIndexDbPath(projectPath);
+	if (!existsSync(indexDbPath)) {
+		console.log("\n  No index found.\n");
+		return;
+	}
+
+	const tracker = createFileTracker(indexDbPath, projectPath);
+	const vectorStore = createVectorStore(getVectorStorePath(projectPath));
+	await vectorStore.initialize();
+
+	try {
+		if (specificLibrary) {
+			// Clear specific library
+			const state = tracker.getDocsState(specificLibrary);
+			if (!state) {
+				console.log(`\n  No documentation found for '${specificLibrary}'.\n`);
+				return;
+			}
+
+			await vectorStore.deleteByFile(`docs:${specificLibrary}`);
+			tracker.deleteIndexedDocs(specificLibrary);
+
+			if (!noLogo) printLogo();
+			console.log(`\n✓ Cleared documentation for '${specificLibrary}'\n`);
+		} else {
+			// Clear all documentation
+			const docs = tracker.getAllIndexedDocs();
+
+			for (const doc of docs) {
+				await vectorStore.deleteByFile(`docs:${doc.library}`);
+			}
+			tracker.clearAllIndexedDocs();
+
+			if (!noLogo) printLogo();
+			console.log(`\n✓ Cleared all documentation (${docs.length} libraries)\n`);
+		}
+	} finally {
+		tracker.close();
+		await vectorStore.close();
 	}
 }
 

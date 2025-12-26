@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, relative } from "node:path";
 import type {
 	DocumentType,
+	DocProviderType,
 	EnrichmentState,
 	FileState,
 	SymbolDefinition,
@@ -46,6 +47,22 @@ export interface TrackedDocument {
 	sourceIds: string[];
 	createdAt: string;
 	enrichedAt?: string;
+}
+
+/** State of indexed documentation for a library */
+export interface IndexedDocState {
+	/** Library name */
+	library: string;
+	/** Version indexed (e.g., "v18") */
+	version: string | null;
+	/** Provider used */
+	provider: DocProviderType;
+	/** Content hash for change detection */
+	contentHash: string;
+	/** When this was fetched */
+	fetchedAt: string;
+	/** Chunk IDs stored in vector store */
+	chunkIds: string[];
 }
 
 // ============================================================================
@@ -97,9 +114,21 @@ export class FileTracker {
         enriched_at TEXT
       );
 
+      CREATE TABLE IF NOT EXISTS indexed_docs (
+        library TEXT NOT NULL,
+        version TEXT,
+        provider TEXT NOT NULL,
+        content_hash TEXT NOT NULL,
+        fetched_at TEXT NOT NULL,
+        chunk_ids TEXT NOT NULL,
+        PRIMARY KEY (library, version, provider)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_files_content_hash ON files(content_hash);
       CREATE INDEX IF NOT EXISTS idx_documents_file_path ON documents(file_path);
       CREATE INDEX IF NOT EXISTS idx_documents_type ON documents(document_type);
+      CREATE INDEX IF NOT EXISTS idx_indexed_docs_library ON indexed_docs(library);
+      CREATE INDEX IF NOT EXISTS idx_indexed_docs_fetched ON indexed_docs(fetched_at);
     `);
 
 		// Symbol graph tables
@@ -369,6 +398,7 @@ export class FileTracker {
 		this.db.exec("DELETE FROM files");
 		this.db.exec("DELETE FROM metadata");
 		this.db.exec("DELETE FROM documents");
+		this.db.exec("DELETE FROM indexed_docs");
 	}
 
 	/**
@@ -646,6 +676,198 @@ export class FileTracker {
 	private computeFileHash(filePath: string): string {
 		const content = readFileSync(filePath);
 		return createHash("sha256").update(content).digest("hex");
+	}
+
+	// ========================================================================
+	// Indexed Documentation Methods
+	// ========================================================================
+
+	/**
+	 * Mark documentation as indexed for a library
+	 */
+	markDocsIndexed(
+		library: string,
+		version: string | null,
+		provider: DocProviderType,
+		contentHash: string,
+		chunkIds: string[],
+	): void {
+		const stmt = this.db.prepare(`
+			INSERT OR REPLACE INTO indexed_docs
+			(library, version, provider, content_hash, fetched_at, chunk_ids)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`);
+
+		stmt.run(
+			library,
+			version,
+			provider,
+			contentHash,
+			new Date().toISOString(),
+			JSON.stringify(chunkIds),
+		);
+	}
+
+	/**
+	 * Check if documentation needs refresh based on age
+	 */
+	needsDocsRefresh(
+		library: string,
+		version?: string,
+		maxAgeMs = 24 * 60 * 60 * 1000, // Default: 24 hours
+	): boolean {
+		const state = this.getDocsState(library, version);
+		if (!state) return true;
+
+		const fetchedAt = new Date(state.fetchedAt).getTime();
+		const age = Date.now() - fetchedAt;
+		return age > maxAgeMs;
+	}
+
+	/**
+	 * Get indexed documentation state for a library
+	 */
+	getDocsState(library: string, version?: string): IndexedDocState | null {
+		const stmt = this.db.prepare(`
+			SELECT library, version, provider, content_hash, fetched_at, chunk_ids
+			FROM indexed_docs
+			WHERE library = ? AND (version = ? OR (version IS NULL AND ? IS NULL))
+		`);
+
+		const row = stmt.get(library, version || null, version || null) as {
+			library: string;
+			version: string | null;
+			provider: string;
+			content_hash: string;
+			fetched_at: string;
+			chunk_ids: string;
+		} | undefined;
+
+		if (!row) return null;
+
+		return {
+			library: row.library,
+			version: row.version,
+			provider: row.provider as DocProviderType,
+			contentHash: row.content_hash,
+			fetchedAt: row.fetched_at,
+			chunkIds: JSON.parse(row.chunk_ids),
+		};
+	}
+
+	/**
+	 * Get all indexed documentation entries
+	 */
+	getAllIndexedDocs(): IndexedDocState[] {
+		const stmt = this.db.prepare(`
+			SELECT library, version, provider, content_hash, fetched_at, chunk_ids
+			FROM indexed_docs
+			ORDER BY library, version
+		`);
+
+		const rows = stmt.all() as Array<{
+			library: string;
+			version: string | null;
+			provider: string;
+			content_hash: string;
+			fetched_at: string;
+			chunk_ids: string;
+		}>;
+
+		return rows.map((row) => ({
+			library: row.library,
+			version: row.version,
+			provider: row.provider as DocProviderType,
+			contentHash: row.content_hash,
+			fetchedAt: row.fetched_at,
+			chunkIds: JSON.parse(row.chunk_ids),
+		}));
+	}
+
+	/**
+	 * Get chunk IDs for indexed documentation
+	 */
+	getDocsChunkIds(library: string, version?: string): string[] {
+		const state = this.getDocsState(library, version);
+		return state?.chunkIds || [];
+	}
+
+	/**
+	 * Delete indexed documentation for a library
+	 */
+	deleteIndexedDocs(library: string, version?: string): void {
+		if (version !== undefined) {
+			const stmt = this.db.prepare(
+				"DELETE FROM indexed_docs WHERE library = ? AND (version = ? OR (version IS NULL AND ? IS NULL))",
+			);
+			stmt.run(library, version, version);
+		} else {
+			const stmt = this.db.prepare("DELETE FROM indexed_docs WHERE library = ?");
+			stmt.run(library);
+		}
+	}
+
+	/**
+	 * Clear all indexed documentation
+	 */
+	clearAllIndexedDocs(): void {
+		this.db.exec("DELETE FROM indexed_docs");
+	}
+
+	/**
+	 * Get indexed documentation statistics
+	 */
+	getIndexedDocsStats(): {
+		totalLibraries: number;
+		totalChunks: number;
+		byProvider: Record<DocProviderType, number>;
+		oldestFetch: string | null;
+		newestFetch: string | null;
+	} {
+		const countStmt = this.db.prepare(
+			"SELECT COUNT(DISTINCT library) as count FROM indexed_docs",
+		);
+		const totalLibraries = (countStmt.get() as { count: number }).count;
+
+		// Count total chunks across all docs
+		const docsStmt = this.db.prepare("SELECT chunk_ids FROM indexed_docs");
+		const docs = docsStmt.all() as Array<{ chunk_ids: string }>;
+		let totalChunks = 0;
+		for (const doc of docs) {
+			try {
+				const chunks = JSON.parse(doc.chunk_ids);
+				totalChunks += chunks.length;
+			} catch {
+				// Ignore parse errors
+			}
+		}
+
+		// Count by provider
+		const providerStmt = this.db.prepare(
+			"SELECT provider, COUNT(*) as count FROM indexed_docs GROUP BY provider",
+		);
+		const providerRows = providerStmt.all() as Array<{
+			provider: string;
+			count: number;
+		}>;
+		const byProvider: Record<string, number> = {};
+		for (const row of providerRows) {
+			byProvider[row.provider] = row.count;
+		}
+
+		// Get oldest and newest fetch times
+		const timeStmt = this.db.prepare(`
+			SELECT MIN(fetched_at) as oldest, MAX(fetched_at) as newest FROM indexed_docs
+		`);
+		const times = timeStmt.get() as { oldest: string | null; newest: string | null };
+
+		return {
+			totalLibraries,
+			totalChunks,
+			byProvider: byProvider as Record<DocProviderType, number>,
+			oldestFetch: times.oldest,
+			newestFetch: times.newest,
+		};
 	}
 
 	// ========================================================================

@@ -204,7 +204,23 @@ export const ENV = {
 	ANTHROPIC_API_KEY: "ANTHROPIC_API_KEY",
 	/** Unified LLM spec (e.g., "a/sonnet", "or/openai/gpt-4o", "cc/sonnet") */
 	CLAUDEMEM_LLM: "CLAUDEMEM_LLM",
+	/** Context7 API key for documentation fetching */
+	CONTEXT7_API_KEY: "CONTEXT7_API_KEY",
+	/** Enable/disable documentation fetching (default: true) */
+	CLAUDEMEM_DOCS_ENABLED: "CLAUDEMEM_DOCS_ENABLED",
 } as const;
+
+/** Context7 API endpoint */
+export const CONTEXT7_API_URL = "https://context7.com/api/v2";
+
+/** DevDocs API endpoint */
+export const DEVDOCS_API_URL = "https://devdocs.io";
+
+/** Default documentation cache TTL in hours */
+export const DEFAULT_DOCS_CACHE_TTL = 24;
+
+/** Default max pages per library */
+export const DEFAULT_DOCS_MAX_PAGES = 10;
 
 // ============================================================================
 // Configuration Loading
@@ -650,4 +666,88 @@ export function isVectorEnabled(projectPath?: string): boolean {
 	}
 	// Default: true (vector embeddings enabled)
 	return true;
+}
+
+// ============================================================================
+// Documentation Fetching Configuration
+// ============================================================================
+
+import type { DocsConfig, DocProviderType } from "./types.js";
+
+/**
+ * Get Context7 API key from environment or config
+ * Priority: env > project config > global config
+ */
+export function getContext7ApiKey(projectPath?: string): string | undefined {
+	// First check environment variable
+	const envKey = process.env[ENV.CONTEXT7_API_KEY];
+	if (envKey) {
+		return envKey;
+	}
+
+	// Then check project config
+	if (projectPath) {
+		const projectConfig = loadProjectConfig(projectPath);
+		if (projectConfig?.docs?.context7ApiKey) {
+			return projectConfig.docs.context7ApiKey;
+		}
+	}
+
+	// Then check global config
+	const config = loadGlobalConfig();
+	return config.context7ApiKey;
+}
+
+/**
+ * Check if Context7 API key is configured
+ */
+export function hasContext7ApiKey(projectPath?: string): boolean {
+	return !!getContext7ApiKey(projectPath);
+}
+
+/**
+ * Check if documentation fetching is enabled
+ * Priority: env > project config > default (true if any provider can work)
+ */
+export function isDocsEnabled(projectPath?: string): boolean {
+	// Check environment variable first
+	const envEnabled = process.env[ENV.CLAUDEMEM_DOCS_ENABLED];
+	if (envEnabled !== undefined) {
+		return envEnabled.toLowerCase() !== "false" && envEnabled !== "0";
+	}
+
+	// Check project config
+	if (projectPath) {
+		const projectConfig = loadProjectConfig(projectPath);
+		if (projectConfig?.docs?.enabled !== undefined) {
+			return projectConfig.docs.enabled;
+		}
+	}
+
+	// Default: true (llms.txt and DevDocs work without API keys)
+	return true;
+}
+
+/**
+ * Get documentation configuration with defaults applied
+ */
+export function getDocsConfig(projectPath?: string): Required<DocsConfig> {
+	const projectConfig = projectPath ? loadProjectConfig(projectPath) : null;
+	const docsConfig = projectConfig?.docs ?? {};
+
+	return {
+		enabled: isDocsEnabled(projectPath),
+		context7ApiKey: getContext7ApiKey(projectPath) ?? "",
+		providers: docsConfig.providers ?? (["context7", "llms_txt", "devdocs"] as DocProviderType[]),
+		cacheTTL: docsConfig.cacheTTL ?? DEFAULT_DOCS_CACHE_TTL,
+		excludeLibraries: docsConfig.excludeLibraries ?? [],
+		maxPagesPerLibrary: docsConfig.maxPagesPerLibrary ?? DEFAULT_DOCS_MAX_PAGES,
+	};
+}
+
+/**
+ * Get path to docs cache directory
+ */
+export function getDocsCachePath(projectPath: string): string {
+	return join(getIndexDir(projectPath), "docs-cache");
 }

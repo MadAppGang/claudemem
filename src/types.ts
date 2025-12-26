@@ -387,6 +387,10 @@ export interface GlobalConfig {
 	anthropicApiKey?: string;
 	/** Enable LLM enrichment during indexing (default: true) */
 	enableEnrichment?: boolean;
+
+	// ─── External Documentation Settings ───
+	/** Context7 API key for fetching framework documentation */
+	context7ApiKey?: string;
 }
 
 export interface ProjectConfig {
@@ -418,6 +422,26 @@ export interface ProjectConfig {
 	enrichment?: boolean;
 	/** Override LLM spec for this project (e.g., "a/sonnet", "or/openai/gpt-4o") */
 	enrichmentModel?: string;
+
+	// ─── External Documentation Settings ───
+	/** Documentation fetching configuration */
+	docs?: DocsConfig;
+}
+
+/** Configuration for external documentation fetching */
+export interface DocsConfig {
+	/** Enable/disable documentation fetching (default: true if any provider configured) */
+	enabled?: boolean;
+	/** Context7 API key (overrides global) */
+	context7ApiKey?: string;
+	/** Providers to use, in priority order (default: ["context7", "llms_txt", "devdocs"]) */
+	providers?: DocProviderType[];
+	/** Cache TTL in hours (default: 24) */
+	cacheTTL?: number;
+	/** Libraries to exclude from fetching */
+	excludeLibraries?: string[];
+	/** Max pages to fetch per library (default: 10) */
+	maxPagesPerLibrary?: number;
 }
 
 export interface Config extends GlobalConfig {
@@ -640,7 +664,28 @@ export type DocumentType =
 	| "idiom"
 	| "usage_example"
 	| "anti_pattern"
-	| "project_doc";
+	| "project_doc"
+	// External documentation types
+	| "framework_doc"    // Official framework documentation
+	| "best_practice"    // Recommended patterns from docs
+	| "api_reference";   // API reference documentation
+
+/** Provider types for external documentation */
+export type DocProviderType = "context7" | "llms_txt" | "devdocs";
+
+/** Metadata for externally fetched documentation */
+export interface DocProviderMetadata {
+	/** Which provider fetched this document */
+	provider: DocProviderType;
+	/** Library name (e.g., "react" or "facebook/react") */
+	library: string;
+	/** Version fetched (e.g., "v18") */
+	version?: string;
+	/** Original source URL */
+	sourceUrl?: string;
+	/** When this was fetched */
+	fetchedAt: string;
+}
 
 /** Base interface for all document types */
 export interface BaseDocument {

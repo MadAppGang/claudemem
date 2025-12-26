@@ -1156,29 +1156,38 @@ function reciprocalRankFusion(
 
 /** Default weights per document type for each use case */
 const USE_CASE_WEIGHTS: Record<SearchUseCase, Partial<Record<DocumentType, number>>> = {
-	// FIM completion: prioritize code and examples
+	// FIM completion: prioritize code and examples, include API docs
 	fim: {
-		code_chunk: 0.5,
-		usage_example: 0.25,
-		idiom: 0.15,
-		symbol_summary: 0.1,
+		code_chunk: 0.40,
+		usage_example: 0.20,
+		idiom: 0.12,
+		symbol_summary: 0.08,
+		api_reference: 0.10, // API docs help with completion
+		framework_doc: 0.07, // Framework patterns
+		best_practice: 0.03, // Light best practice guidance
 	},
-	// Human search: balanced across summaries and code
+	// Human search: balanced across summaries, code, and external docs
 	search: {
-		file_summary: 0.25,
-		symbol_summary: 0.25,
-		code_chunk: 0.2,
-		idiom: 0.15,
-		usage_example: 0.1,
+		file_summary: 0.20,
+		symbol_summary: 0.20,
+		code_chunk: 0.15,
+		idiom: 0.12,
+		usage_example: 0.08,
 		anti_pattern: 0.05,
+		framework_doc: 0.10, // Official framework docs
+		best_practice: 0.05, // Best practices
+		api_reference: 0.05, // API reference
 	},
-	// Agent navigation: prioritize understanding structure
+	// Agent navigation: prioritize understanding structure and patterns
 	navigation: {
-		symbol_summary: 0.35,
-		file_summary: 0.3,
-		code_chunk: 0.2,
-		idiom: 0.1,
-		project_doc: 0.05,
+		symbol_summary: 0.28,
+		file_summary: 0.25,
+		code_chunk: 0.15,
+		idiom: 0.08,
+		project_doc: 0.04,
+		framework_doc: 0.10, // Framework understanding
+		api_reference: 0.08, // API navigation
+		best_practice: 0.02, // Light guidance
 	},
 };
 
@@ -1189,15 +1198,18 @@ function getUseCaseWeights(useCase?: SearchUseCase): Partial<Record<DocumentType
 	if (useCase && USE_CASE_WEIGHTS[useCase]) {
 		return USE_CASE_WEIGHTS[useCase];
 	}
-	// Default balanced weights
+	// Default balanced weights (includes external docs)
 	return {
-		code_chunk: 0.3,
-		file_summary: 0.15,
-		symbol_summary: 0.2,
-		idiom: 0.15,
-		usage_example: 0.1,
-		anti_pattern: 0.05,
+		code_chunk: 0.25,
+		file_summary: 0.12,
+		symbol_summary: 0.15,
+		idiom: 0.12,
+		usage_example: 0.08,
+		anti_pattern: 0.03,
 		project_doc: 0.05,
+		framework_doc: 0.10,
+		best_practice: 0.05,
+		api_reference: 0.05,
 	};
 }
 

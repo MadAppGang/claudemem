@@ -10,10 +10,12 @@ import { join, relative } from "node:path";
 import { minimatch } from "minimatch";
 import {
 	ensureProjectDir,
+	getDocsConfig,
 	getEmbeddingModel,
 	getExcludePatterns,
 	getIndexDbPath,
 	getVectorStorePath,
+	isDocsEnabled,
 	isEnrichmentEnabled,
 	isVectorEnabled,
 	loadProjectConfig,
@@ -46,6 +48,8 @@ import { createSymbolExtractor } from "./symbol-extractor.js";
 import { createReferenceGraphManager } from "./reference-graph.js";
 import { createRepoMapGenerator } from "./repo-map.js";
 import { createIndexLock, type IndexLock, type LockOptions } from "./lock.js";
+import { createDocsFetcher, type DocsFetcher } from "../docs/index.js";
+import { computeHash } from "./tracker.js";
 
 // ============================================================================
 // Errors
@@ -145,6 +149,7 @@ export class Indexer {
 	private llmClient: ILLMClient | null = null;
 	private enricher: Enricher | null = null;
 	private indexLock: IndexLock | null = null;
+	private docsFetcher: DocsFetcher | null = null;
 
 	// Smart incremental reindexing: cache of old chunk vectors by contentHash
 	// Used to reuse embeddings for unchanged content, saving API costs
@@ -236,6 +241,11 @@ export class Indexer {
 				);
 				this.enableEnrichment = false;
 			}
+		}
+
+		// Initialize docs fetcher if enabled
+		if (isDocsEnabled(this.projectPath) && this.vectorEnabled) {
+			this.docsFetcher = createDocsFetcher(this.projectPath);
 		}
 	}
 
@@ -610,6 +620,21 @@ export class Indexer {
 			totalCost += enrichmentResult.cost;
 		}
 
+		// Phase 6: Fetch external documentation for dependencies
+		if (this.docsFetcher?.isEnabled()) {
+			try {
+				const docsResult = await this.fetchExternalDocs();
+				if (docsResult.cost) {
+					totalCost += docsResult.cost;
+				}
+			} catch (error) {
+				console.warn(
+					"⚠️  Documentation fetching failed:",
+					error instanceof Error ? error.message : error,
+				);
+			}
+		}
+
 		// Save metadata
 		this.fileTracker!.setMetadata(
 			"embeddingModel",
@@ -954,6 +979,129 @@ export class Indexer {
 				`[analyzing] ${stats.totalSymbols} symbols, ${resolvedCount} refs resolved`,
 			);
 		}
+	}
+
+	/**
+	 * Fetch external documentation for project dependencies
+	 * Phase 6 of the indexing pipeline
+	 */
+	private async fetchExternalDocs(): Promise<{ librariesFetched: number; chunksAdded: number; cost?: number }> {
+		if (!this.docsFetcher || !this.embeddingsClient || !this.vectorStore || !this.fileTracker) {
+			return { librariesFetched: 0, chunksAdded: 0 };
+		}
+
+		const config = getDocsConfig(this.projectPath);
+		const cacheTTLMs = (config.cacheTTL || 24) * 60 * 60 * 1000;
+
+		// Detect dependencies
+		const deps = await this.docsFetcher.detectDependencies(this.projectPath);
+		if (deps.length === 0) {
+			return { librariesFetched: 0, chunksAdded: 0 };
+		}
+
+		// Filter to dependencies that need refresh
+		const depsToFetch = deps.filter((dep) =>
+			this.fileTracker!.needsDocsRefresh(dep.name, dep.majorVersion, cacheTTLMs),
+		);
+
+		if (depsToFetch.length === 0) {
+			if (this.onProgress) {
+				this.onProgress(deps.length, deps.length, `[docs] ${deps.length} libraries up-to-date`);
+			}
+			return { librariesFetched: 0, chunksAdded: 0 };
+		}
+
+		if (this.onProgress) {
+			this.onProgress(0, depsToFetch.length, `[docs] fetching ${depsToFetch.length} libraries...`);
+		}
+
+		let librariesFetched = 0;
+		let totalChunksAdded = 0;
+		let totalCost = 0;
+
+		for (let i = 0; i < depsToFetch.length; i++) {
+			const dep = depsToFetch[i];
+
+			if (this.onProgress) {
+				this.onProgress(i, depsToFetch.length, `[docs] ${dep.name}`);
+			}
+
+			try {
+				// Fetch and chunk documentation
+				const chunks = await this.docsFetcher.fetchAndChunk(dep.name, {
+					version: dep.majorVersion,
+				});
+
+				if (chunks.length === 0) {
+					continue;
+				}
+
+				// Virtual path for documentation chunks
+				const docsPath = `docs:${dep.name}`;
+
+				// Delete old chunks for this library first
+				await this.vectorStore!.deleteByFile(docsPath);
+
+				// Embed the chunks
+				const texts = chunks.map((c) => c.content);
+				const embedResult = await this.embeddingsClient!.embed(texts);
+
+				if (embedResult.cost) {
+					totalCost += embedResult.cost;
+				}
+
+				// Add chunks to vector store
+				const fileHash = computeHash(chunks.map((c) => c.content).join(""));
+				const chunksWithEmbeddings: import("../types.js").ChunkWithEmbedding[] = chunks.map((chunk, idx) => ({
+					id: chunk.id,
+					content: chunk.content,
+					filePath: docsPath,
+					startLine: 0,
+					endLine: 0,
+					language: "markdown",
+					chunkType: "module" as const, // Use module for docs
+					contentHash: computeHash(chunk.content),
+					fileHash,
+					vector: embedResult.embeddings[idx],
+					// Store doc-specific metadata in name field for now
+					name: chunk.title,
+					signature: chunk.sourceUrl,
+				}));
+
+				await this.vectorStore!.addChunks(chunksWithEmbeddings);
+
+				// Mark as indexed in tracker
+				this.fileTracker!.markDocsIndexed(
+					dep.name,
+					dep.majorVersion || null,
+					chunks[0].provider,
+					fileHash,
+					chunks.map((c) => c.id),
+				);
+
+				librariesFetched++;
+				totalChunksAdded += chunks.length;
+			} catch (error) {
+				console.warn(
+					`  ⚠️  Failed to fetch docs for ${dep.name}:`,
+					error instanceof Error ? error.message : error,
+				);
+			}
+		}
+
+		if (this.onProgress) {
+			this.onProgress(
+				depsToFetch.length,
+				depsToFetch.length,
+				`[docs] ${librariesFetched} libraries, ${totalChunksAdded} chunks`,
+			);
+		}
+
+		return {
+			librariesFetched,
+			chunksAdded: totalChunksAdded,
+			cost: totalCost > 0 ? totalCost : undefined,
+		};
 	}
 
 	/**

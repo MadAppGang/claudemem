@@ -23,6 +23,8 @@ export interface WatcherOptions {
 	ignoreDirs?: string[];
 	/** Callback when a file is re-indexed */
 	onReindex?: (filePath: string, success: boolean) => void;
+	/** Callback when dependency files change (triggers docs refresh) */
+	onDependencyChange?: (filePath: string) => void;
 }
 
 interface PendingChange {
@@ -44,6 +46,15 @@ const DEFAULT_IGNORE_DIRS = new Set([
 	"__pycache__", ".next", ".nuxt", "coverage", ".cache",
 ]);
 
+/** Dependency manifest files that trigger docs refresh */
+const DEPENDENCY_FILES = new Set([
+	"package.json",
+	"requirements.txt",
+	"pyproject.toml",
+	"go.mod",
+	"Cargo.toml",
+]);
+
 // ============================================================================
 // File Watcher Class
 // ============================================================================
@@ -54,10 +65,15 @@ export class FileWatcher {
 	private extensions: Set<string>;
 	private ignoreDirs: Set<string>;
 	private onReindex?: (filePath: string, success: boolean) => void;
+	private onDependencyChange?: (filePath: string) => void;
 
 	private watchers: Map<string, FSWatcher> = new Map();
 	private pendingChanges: Map<string, PendingChange> = new Map();
+	private pendingDependencyRefresh: NodeJS.Timeout | null = null;
 	private isRunning = false;
+
+	/** Longer debounce for dependency files (package managers may write multiple times) */
+	private static readonly DEPENDENCY_DEBOUNCE_MS = 5000;
 
 	constructor(projectPath: string, options: WatcherOptions = {}) {
 		this.projectPath = projectPath;
@@ -69,6 +85,7 @@ export class FileWatcher {
 			? new Set(options.ignoreDirs)
 			: DEFAULT_IGNORE_DIRS;
 		this.onReindex = options.onReindex;
+		this.onDependencyChange = options.onDependencyChange;
 	}
 
 	/**
@@ -104,6 +121,12 @@ export class FileWatcher {
 			clearTimeout(pending.timer);
 		}
 		this.pendingChanges.clear();
+
+		// Clear pending dependency refresh
+		if (this.pendingDependencyRefresh) {
+			clearTimeout(this.pendingDependencyRefresh);
+			this.pendingDependencyRefresh = null;
+		}
 	}
 
 	/**
@@ -160,6 +183,15 @@ export class FileWatcher {
 	 * Handle a file change event
 	 */
 	private handleChange(filePath: string, eventType: string): void {
+		// Get filename from path
+		const fileName = filePath.split("/").pop() || "";
+
+		// Check if this is a dependency file
+		if (DEPENDENCY_FILES.has(fileName)) {
+			this.scheduleDependencyRefresh(filePath);
+			return;
+		}
+
 		// Check if this is a file we care about
 		const ext = extname(filePath).toLowerCase();
 		if (!this.extensions.has(ext)) {
@@ -188,6 +220,53 @@ export class FileWatcher {
 		}, this.debounceMs);
 
 		this.pendingChanges.set(filePath, { filePath, timer });
+	}
+
+	/**
+	 * Schedule a dependency refresh with longer debounce
+	 */
+	private scheduleDependencyRefresh(filePath: string): void {
+		// Cancel existing timer
+		if (this.pendingDependencyRefresh) {
+			clearTimeout(this.pendingDependencyRefresh);
+		}
+
+		// Set new timer with longer debounce
+		this.pendingDependencyRefresh = setTimeout(() => {
+			this.pendingDependencyRefresh = null;
+
+			const relativePath = relative(this.projectPath, filePath);
+			console.log(`  Dependencies changed: ${relativePath}`);
+
+			// Notify callback if provided
+			if (this.onDependencyChange) {
+				this.onDependencyChange(filePath);
+			} else {
+				// Default behavior: trigger full reindex (includes docs refresh)
+				console.log(`  Triggering docs refresh...`);
+				this.triggerDocsRefresh();
+			}
+		}, FileWatcher.DEPENDENCY_DEBOUNCE_MS);
+	}
+
+	/**
+	 * Trigger documentation refresh
+	 */
+	private async triggerDocsRefresh(): Promise<void> {
+		try {
+			const indexer = createIndexer({
+				projectPath: this.projectPath,
+				enableEnrichment: false, // Skip enrichment for speed
+			});
+
+			// Run incremental index - will detect deps and refresh docs
+			await indexer.index(false);
+			await indexer.close();
+
+			console.log(`  ✓ Documentation refreshed`);
+		} catch (error) {
+			console.error(`  ✗ Docs refresh failed:`, (error as Error).message);
+		}
 	}
 
 	/**

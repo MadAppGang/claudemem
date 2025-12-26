@@ -315,7 +315,11 @@ export type QueryType =
 	| "wrong_terminology"
 	| "specific_behavior"
 	| "integration"
-	| "problem_based";
+	| "problem_based"
+	// Doc-style queries (test documentation search patterns)
+	| "doc_conceptual" // "What is X?", "How does X work?"
+	| "doc_api_lookup" // "X API", "X parameters", "X return type"
+	| "doc_best_practice"; // "best way to X", "recommended pattern for X"
 
 /** A generated search query for testing retrieval */
 export interface GeneratedQuery {

@@ -173,6 +173,67 @@ claudemem watch
 claudemem hooks install
 ```
 
+## Documentation indexing
+
+claudemem can automatically fetch and index documentation for your project dependencies. This gives you semantic search across both your code AND the frameworks you use.
+
+### How it works
+
+1. **Detects dependencies** from `package.json`, `requirements.txt`, `go.mod`, `Cargo.toml`
+2. **Fetches docs** using a provider hierarchy with automatic fallback:
+   - **Context7** — 6000+ libraries, versioned API docs & code examples (requires free API key)
+   - **llms.txt** — Official AI-optimized docs from framework sites (Vue, Nuxt, Langchain, etc.)
+   - **DevDocs** — Consistent offline documentation for 100+ languages
+3. **Chunks & indexes** documentation alongside your code
+4. **Search everything** with natural language queries
+
+### Setup
+
+```bash
+claudemem init  # prompts to enable docs & configure Context7
+```
+
+Or configure manually:
+```bash
+export CONTEXT7_API_KEY=your-key  # get free key at https://context7.com/dashboard
+```
+
+### Commands
+
+```bash
+claudemem docs fetch              # fetch docs for all detected dependencies
+claudemem docs fetch react vue    # fetch specific libraries
+claudemem docs status             # show indexed docs & cache state
+claudemem docs clear              # clear cached documentation
+```
+
+### What gets indexed
+
+| Source | Best For | Coverage | Auth Required |
+|--------|----------|----------|---------------|
+| **Context7** | Code examples, API reference | 6000+ libs | Free API key |
+| **llms.txt** | Official structured docs | 500+ sites | None |
+| **DevDocs** | Offline fallback | 100+ langs | None |
+
+### Configuration
+
+In `~/.claudemem/config.json`:
+```json
+{
+  "docs": {
+    "enabled": true,
+    "providers": ["context7", "llms_txt", "devdocs"],
+    "cacheTTL": 24,
+    "maxPagesPerLibrary": 10,
+    "excludeLibraries": ["lodash"]
+  }
+}
+```
+
+Environment variables:
+- `CONTEXT7_API_KEY` — Context7 API key (optional but recommended)
+- `CLAUDEMEM_DOCS_ENABLED` — disable docs entirely (`false`)
+
 ## Supported languages
 
 TypeScript, JavaScript, Python, Go, Rust, C, C++, Java.
@@ -217,6 +278,14 @@ claudemem hooks uninstall   # remove the hook
 claudemem hooks status      # check if hook is installed
 ```
 
+### Documentation commands
+```
+claudemem docs fetch        # fetch docs for all detected dependencies
+claudemem docs fetch <lib>  # fetch docs for specific library
+claudemem docs status       # show indexed docs and providers
+claudemem docs clear        # clear cached documentation
+```
+
 ### Search flags
 ```
 -n, --limit <n>       # max results (default: 10)
@@ -239,9 +308,10 @@ claudemem hooks status      # check if hook is installed
 Env vars:
 - `OPENROUTER_API_KEY` — for OpenRouter provider
 - `CLAUDEMEM_MODEL` — override embedding model
+- `CONTEXT7_API_KEY` — for documentation fetching (optional)
 
 Files:
-- `~/.claudemem/config.json` — global config (provider, model, endpoints)
+- `~/.claudemem/config.json` — global config (provider, model, docs settings)
 - `.claudemem/` — project index (add to .gitignore)
 
 ## Limitations

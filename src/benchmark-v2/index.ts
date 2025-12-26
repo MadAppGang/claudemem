@@ -101,7 +101,14 @@ export const DEFAULT_CONTRASTIVE_CONFIG: ContrastiveEvaluationConfig = {
 export const DEFAULT_RETRIEVAL_CONFIG: RetrievalEvaluationConfig = {
 	enabled: true,
 	kValues: [1, 3, 5, 10],
-	queryTypes: ["vague", "wrong_terminology", "specific_behavior"],
+	queryTypes: [
+		"vague",
+		"wrong_terminology",
+		"specific_behavior",
+		// Doc-style queries (test documentation search patterns)
+		"doc_conceptual",
+		"doc_api_lookup",
+	],
 };
 
 export const DEFAULT_DOWNSTREAM_CONFIG: DownstreamEvaluationConfig = {
