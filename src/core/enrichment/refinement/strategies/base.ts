@@ -42,10 +42,12 @@ export abstract class BaseRefinementStrategy implements IRefinementStrategy {
 	): Promise<string>;
 
 	/**
-	 * Default success check: rank within target
+	 * Default success check: use the passed flag from testQuality
+	 * The passed flag already accounts for effective target rank adjustments
+	 * (e.g., with 2 candidates, must be #1 even if configured targetRank is 3)
 	 */
 	isSuccess(result: QualityTestResult): boolean {
-		return result.passed || (result.rank !== null && result.rank <= this.targetRank);
+		return result.passed;
 	}
 
 	/**
