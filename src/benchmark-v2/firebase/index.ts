@@ -1,50 +1,27 @@
 /**
  * Firebase Integration for Benchmark Results
  *
- * Uploads benchmark results to Firestore for tracking and comparison.
+ * Uploads benchmark results via Cloud Functions (no credentials in client code).
  *
- * Firestore Schema:
- * - benchmark_runs/{runId}
- *   - metadata (project, timestamp, config)
- *   - modelScores[] (embedded for simple queries)
- *
- * - benchmark_leaderboard/{modelId}
- *   - Aggregated stats across all runs
+ * Cloud Function Endpoints:
+ * - POST /uploadBenchmarkResults - Upload benchmark run
+ * - GET /getLeaderboard - Get top models
+ * - GET /getRecentRuns - Get recent benchmark runs
  */
 
-import { initializeApp, type FirebaseApp } from "firebase/app";
-import {
-	getFirestore,
-	collection,
-	doc,
-	setDoc,
-	getDoc,
-	getDocs,
-	query,
-	orderBy,
-	limit,
-	Timestamp,
-	type Firestore,
-	setLogLevel,
-} from "firebase/firestore";
 import type { NormalizedScores } from "../types.js";
 
-// Suppress Firebase SDK console logging (it's very noisy on errors)
-setLogLevel("silent");
-
 // ============================================================================
-// Firebase Configuration
+// Cloud Function Configuration
 // ============================================================================
 
-const firebaseConfig = {
-	apiKey: "AIzaSyCNkRYx0x-dcjPQJSGgCqugOJ17BwOpcDQ",
-	authDomain: "claudish-6da10.firebaseapp.com",
-	projectId: "claudish-6da10",
-	storageBucket: "claudish-6da10.firebasestorage.app",
-	messagingSenderId: "1095565486978",
-	appId: "1:1095565486978:web:dc3f4ad44c77a0351d3d9b",
-	measurementId: "G-GCN13V7EJR",
-};
+// Cloud Function base URL (deployed to us-central1 by default)
+const CLOUD_FUNCTION_BASE_URL =
+	process.env.CLAUDEMEM_FIREBASE_URL ||
+	"https://us-central1-claudish-6da10.cloudfunctions.net";
+
+// API key for authenticated uploads (required for write operations)
+const API_KEY = process.env.CLAUDEMEM_API_KEY || "";
 
 // ============================================================================
 // Types
@@ -52,7 +29,7 @@ const firebaseConfig = {
 
 export interface BenchmarkRunDocument {
 	runId: string;
-	timestamp: Timestamp;
+	timestamp: string; // ISO string (Cloud Function adds server Timestamp)
 	projectName: string;
 	projectPath: string;
 
@@ -134,29 +111,15 @@ export interface LeaderboardEntry {
 	avgContrastiveScore: number;
 	avgJudgeScore: number;
 	bestQualityScore: number;
-	lastRunTimestamp: Timestamp;
+	lastRunTimestamp: string; // ISO string from server
 }
 
 // ============================================================================
-// Firebase Client
+// HTTP Client Helpers
 // ============================================================================
 
-let app: FirebaseApp | null = null;
-let db: Firestore | null = null;
-
 /**
- * Initialize Firebase (lazy initialization)
- */
-function getFirebaseDb(): Firestore {
-	if (!db) {
-		app = initializeApp(firebaseConfig);
-		db = getFirestore(app);
-	}
-	return db;
-}
-
-/**
- * Upload benchmark results to Firestore
+ * Upload benchmark results via Cloud Function
  */
 export async function uploadBenchmarkResults(
 	runId: string,
@@ -178,19 +141,15 @@ export async function uploadBenchmarkResults(
 	latencyByModel: Map<string, number>,
 	costByModel: Map<string, number>
 ): Promise<{ success: boolean; docId?: string; error?: string }> {
-	// Timeout to prevent hanging on Firebase connection issues
-	// 30 seconds to allow for SDK initialization + Firestore cold start
 	const UPLOAD_TIMEOUT_MS = 30_000;
 
-	const uploadPromise = async (): Promise<{ success: boolean; docId?: string; error?: string }> => {
-		const firestore = getFirebaseDb();
-
+	try {
 		// Build model scores array
 		const modelScores: ModelScoreEntry[] = [];
 		for (const [modelId, score] of scores) {
 			const displayName = modelId.split("/").pop() || modelId;
 
-			// Build details object without undefined values (Firestore doesn't accept undefined)
+			// Build details object without undefined values
 			const details: ModelScoreEntry["details"] = {
 				judge: {
 					pointwise: score.judge.pointwise,
@@ -239,116 +198,82 @@ export async function uploadBenchmarkResults(
 		// Sort by overall quality score
 		modelScores.sort((a, b) => b.quality.overall - a.quality.overall);
 
-		// Create the run document
-		const runDoc: BenchmarkRunDocument = {
+		// Build the payload for the Cloud Function
+		const payload = {
 			runId,
-			timestamp: Timestamp.now(),
 			projectName,
 			projectPath,
 			codebaseType,
 			generators,
 			judges,
 			sampleSize,
-			status: "completed",
 			durationMs,
 			totalCost,
 			modelScores,
-			claudememVersion: "0.5.0",
+			claudememVersion: "0.6.0",
 		};
 
-		// Upload to Firestore
-		const docRef = doc(collection(firestore, "benchmark_runs"), runId);
-		await setDoc(docRef, runDoc);
+		// Check if API key is configured
+		if (!API_KEY) {
+			return {
+				success: false,
+				error: "CLAUDEMEM_API_KEY environment variable not set",
+			};
+		}
 
-		// Update leaderboard entries
-		await updateLeaderboard(firestore, modelScores);
+		// POST to Cloud Function with timeout
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
 
-		return { success: true, docId: runId };
-	};
+		const response = await fetch(`${CLOUD_FUNCTION_BASE_URL}/uploadBenchmarkResults`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-API-Key": API_KEY,
+			},
+			body: JSON.stringify(payload),
+			signal: controller.signal,
+		});
 
-	// Race between upload and timeout
-	try {
-		return await Promise.race([
-			uploadPromise(),
-			new Promise<{ success: boolean; error: string }>((_, reject) =>
-				setTimeout(() => reject(new Error("Firebase upload timed out")), UPLOAD_TIMEOUT_MS)
-			),
-		]);
+		clearTimeout(timeoutId);
+
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+			return {
+				success: false,
+				error: errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+			};
+		}
+
+		const result = await response.json();
+		return { success: true, docId: result.docId };
 	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
+		const message =
+			error instanceof Error
+				? error.name === "AbortError"
+					? "Upload timed out"
+					: error.message
+				: String(error);
 		return { success: false, error: message };
-	}
-}
-
-/**
- * Update the leaderboard with new scores
- */
-async function updateLeaderboard(
-	firestore: Firestore,
-	modelScores: ModelScoreEntry[]
-): Promise<void> {
-	for (const score of modelScores) {
-		const leaderboardRef = doc(
-			collection(firestore, "benchmark_leaderboard"),
-			score.modelId.replace(/\//g, "_") // Firestore doesn't allow / in doc IDs
-		);
-
-		// Get existing entry
-		const existing = await getDoc(leaderboardRef);
-		const existingData = existing.data() as LeaderboardEntry | undefined;
-
-		const newEntry: LeaderboardEntry = {
-			modelId: score.modelId,
-			displayName: score.displayName,
-			runCount: (existingData?.runCount || 0) + 1,
-			avgQualityScore: existingData
-				? (existingData.avgQualityScore * existingData.runCount +
-						score.quality.overall) /
-					(existingData.runCount + 1)
-				: score.quality.overall,
-			avgRetrievalScore: existingData
-				? (existingData.avgRetrievalScore * existingData.runCount +
-						score.quality.retrieval) /
-					(existingData.runCount + 1)
-				: score.quality.retrieval,
-			avgContrastiveScore: existingData
-				? (existingData.avgContrastiveScore * existingData.runCount +
-						score.quality.contrastive) /
-					(existingData.runCount + 1)
-				: score.quality.contrastive,
-			avgJudgeScore: existingData
-				? (existingData.avgJudgeScore * existingData.runCount +
-						score.quality.judge) /
-					(existingData.runCount + 1)
-				: score.quality.judge,
-			bestQualityScore: Math.max(
-				existingData?.bestQualityScore || 0,
-				score.quality.overall
-			),
-			lastRunTimestamp: Timestamp.now(),
-		};
-
-		await setDoc(leaderboardRef, newEntry);
 	}
 }
 
 /**
  * Get the leaderboard (top models by average quality score)
  */
-export async function getLeaderboard(
-	topN = 20
-): Promise<LeaderboardEntry[]> {
+export async function getLeaderboard(topN = 20): Promise<LeaderboardEntry[]> {
 	try {
-		const firestore = getFirebaseDb();
-		const leaderboardRef = collection(firestore, "benchmark_leaderboard");
-		const q = query(
-			leaderboardRef,
-			orderBy("avgQualityScore", "desc"),
-			limit(topN)
+		const response = await fetch(
+			`${CLOUD_FUNCTION_BASE_URL}/getLeaderboard?limit=${topN}`
 		);
 
-		const snapshot = await getDocs(q);
-		return snapshot.docs.map((doc) => doc.data() as LeaderboardEntry);
+		if (!response.ok) {
+			console.error("Failed to get leaderboard:", response.statusText);
+			return [];
+		}
+
+		const data = await response.json();
+		return data.entries || [];
 	} catch (error) {
 		console.error("Failed to get leaderboard:", error);
 		return [];
@@ -362,16 +287,17 @@ export async function getRecentRuns(
 	limitCount = 10
 ): Promise<BenchmarkRunDocument[]> {
 	try {
-		const firestore = getFirebaseDb();
-		const runsRef = collection(firestore, "benchmark_runs");
-		const q = query(
-			runsRef,
-			orderBy("timestamp", "desc"),
-			limit(limitCount)
+		const response = await fetch(
+			`${CLOUD_FUNCTION_BASE_URL}/getRecentRuns?limit=${limitCount}`
 		);
 
-		const snapshot = await getDocs(q);
-		return snapshot.docs.map((doc) => doc.data() as BenchmarkRunDocument);
+		if (!response.ok) {
+			console.error("Failed to get recent runs:", response.statusText);
+			return [];
+		}
+
+		const data = await response.json();
+		return data.runs || [];
 	} catch (error) {
 		console.error("Failed to get recent runs:", error);
 		return [];
@@ -379,14 +305,14 @@ export async function getRecentRuns(
 }
 
 /**
- * Check if Firebase is configured and accessible
+ * Check if Cloud Functions are configured and accessible
  */
 export async function testFirebaseConnection(): Promise<boolean> {
 	try {
-		const firestore = getFirebaseDb();
-		// Try to access a collection (this will fail if not configured properly)
-		await getDocs(query(collection(firestore, "benchmark_runs"), limit(1)));
-		return true;
+		const response = await fetch(`${CLOUD_FUNCTION_BASE_URL}/health`, {
+			method: "GET",
+		});
+		return response.ok;
 	} catch {
 		return false;
 	}

@@ -9,5 +9,17 @@
 				"destination": "/index.html"
 			}
 		]
+	},
+	"functions": {
+		"source": "functions",
+		"codebase": "claudemem-functions",
+		"ignore": [
+			"node_modules",
+			".git",
+			"firebase-debug.log",
+			"firebase-debug.*.log",
+			"*.local"
+		],
+		"predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
 	}
 }
