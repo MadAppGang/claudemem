@@ -34,11 +34,33 @@ export abstract class BaseEvaluator<TResult> implements IEvaluator<TResult> {
 
 	/**
 	 * Helper to parse JSON from LLM response
+	 * Handles various LLM response formats including markdown code blocks
 	 */
 	protected parseJSONResponse<T>(response: string): T {
-		// Try to extract JSON from markdown code blocks
-		const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
-		const jsonStr = jsonMatch ? jsonMatch[1].trim() : response.trim();
+		let jsonStr = response.trim();
+
+		// Strategy 1: Try to extract JSON from markdown code blocks (greedy - last closing ```)
+		const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)```(?![\s\S]*```)/);
+		if (jsonMatch) {
+			jsonStr = jsonMatch[1].trim();
+		} else {
+			// Strategy 2: Strip opening ```json if present (handles missing closing ```)
+			const openMatch = jsonStr.match(/^```(?:json)?\s*([\s\S]*)/);
+			if (openMatch) {
+				jsonStr = openMatch[1].trim();
+				// Also try to strip trailing ``` if present
+				jsonStr = jsonStr.replace(/```\s*$/, "").trim();
+			}
+		}
+
+		// Strategy 3: Find first { and last } to extract JSON object
+		if (!jsonStr.startsWith("{") && !jsonStr.startsWith("[")) {
+			const firstBrace = jsonStr.indexOf("{");
+			const lastBrace = jsonStr.lastIndexOf("}");
+			if (firstBrace !== -1 && lastBrace > firstBrace) {
+				jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+			}
+		}
 
 		try {
 			return JSON.parse(jsonStr);
