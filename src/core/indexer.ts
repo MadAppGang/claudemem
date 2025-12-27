@@ -81,20 +81,26 @@ export class EmbeddingModelMismatchError extends Error {
  */
 export class IndexLockError extends Error {
 	constructor(
-		public holderPid: number,
-		public runningFor: number,
-		public reason: "already_running" | "timeout",
+		public holderPid: number | undefined,
+		public runningFor: number | undefined,
+		public reason: "already_running" | "timeout" | "error",
 	) {
-		const runningForSec = Math.round(runningFor / 1000);
-		super(
-			reason === "timeout"
-				? `Timed out waiting for indexing to complete.\n` +
-				  `  Another process (PID ${holderPid}) has been indexing for ${runningForSec}s.\n` +
-				  `  If the process is stuck, use --force-unlock to clear the lock.`
-				: `Another process (PID ${holderPid}) is currently indexing.\n` +
-				  `  It has been running for ${runningForSec}s.\n` +
-				  `  Use --wait to wait for it to finish, or --force-unlock if it's stuck.`
-		);
+		const runningForSec = runningFor !== undefined ? Math.round(runningFor / 1000) : 0;
+		let message: string;
+		if (reason === "error") {
+			message = `Failed to acquire index lock.\n` +
+				`  There may be a filesystem error or permissions issue.\n` +
+				`  Try running with --force-unlock to clear any stale locks.`;
+		} else if (reason === "timeout") {
+			message = `Timed out waiting for indexing to complete.\n` +
+				`  Another process (PID ${holderPid}) has been indexing for ${runningForSec}s.\n` +
+				`  If the process is stuck, use --force-unlock to clear the lock.`;
+		} else {
+			message = `Another process (PID ${holderPid}) is currently indexing.\n` +
+				`  It has been running for ${runningForSec}s.\n` +
+				`  Use --wait to wait for it to finish, or --force-unlock if it's stuck.`;
+		}
+		super(message);
 		this.name = "IndexLockError";
 	}
 }
@@ -258,6 +264,9 @@ export class Indexer {
 	async index(force = false): Promise<EnrichedIndexResult> {
 		const startTime = Date.now();
 
+		// Ensure project directory exists before acquiring lock
+		ensureProjectDir(this.projectPath);
+
 		// Acquire lock to prevent concurrent indexing
 		this.indexLock = createIndexLock(this.projectPath);
 		const lockResult = await this.indexLock.acquire({
@@ -267,9 +276,9 @@ export class Indexer {
 
 		if (!lockResult.acquired) {
 			throw new IndexLockError(
-				lockResult.holderPid!,
-				lockResult.runningFor!,
-				lockResult.reason as "already_running" | "timeout",
+				lockResult.holderPid,
+				lockResult.runningFor,
+				lockResult.reason as "already_running" | "timeout" | "error",
 			);
 		}
 
