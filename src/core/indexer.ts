@@ -291,6 +291,15 @@ export class Indexer {
 		}
 	}
 
+	/** Manifest files that trigger docs re-fetch when changed */
+	private static readonly MANIFEST_FILES = new Set([
+		"package.json",
+		"requirements.txt",
+		"pyproject.toml",
+		"go.mod",
+		"Cargo.toml",
+	]);
+
 	/**
 	 * Internal indexing logic (called after lock acquired)
 	 */
@@ -314,6 +323,7 @@ export class Indexer {
 		// Get changes
 		let filesToIndex: string[];
 		let deletedFiles: string[] = [];
+		let manifestFilesChanged = force; // Always refresh docs on force reindex
 
 		if (force) {
 			// Force re-index all files
@@ -328,6 +338,15 @@ export class Indexer {
 			const changes = this.fileTracker!.getChanges(allFiles);
 			filesToIndex = [...changes.newFiles, ...changes.modifiedFiles];
 			deletedFiles = changes.deletedFiles;
+
+			// Check if any manifest files changed (to decide if docs phase should run)
+			for (const file of filesToIndex) {
+				const basename = file.split("/").pop() || "";
+				if (Indexer.MANIFEST_FILES.has(basename)) {
+					manifestFilesChanged = true;
+					break;
+				}
+			}
 
 			// Remove deleted files from index
 			for (const deletedFile of deletedFiles) {
@@ -630,7 +649,8 @@ export class Indexer {
 		}
 
 		// Phase 6: Fetch external documentation for dependencies
-		if (this.docsFetcher?.isEnabled()) {
+		// Only run if manifest files changed (or force reindex), to avoid unnecessary network calls
+		if (this.docsFetcher?.isEnabled() && manifestFilesChanged) {
 			try {
 				const docsResult = await this.fetchExternalDocs();
 				if (docsResult.cost) {
@@ -993,6 +1013,8 @@ export class Indexer {
 	/**
 	 * Fetch external documentation for project dependencies
 	 * Phase 6 of the indexing pipeline
+	 *
+	 * Uses parallel fetching for better performance when fetching many libraries.
 	 */
 	private async fetchExternalDocs(): Promise<{ librariesFetched: number; chunksAdded: number; cost?: number }> {
 		if (!this.docsFetcher || !this.embeddingsClient || !this.vectorStore || !this.fileTracker) {
@@ -1024,25 +1046,39 @@ export class Indexer {
 			this.onProgress(0, depsToFetch.length, `[docs] fetching ${depsToFetch.length} libraries...`);
 		}
 
+		// Thread-safe counters (JS is single-threaded for sync ops)
 		let librariesFetched = 0;
 		let totalChunksAdded = 0;
 		let totalCost = 0;
+		let completed = 0;
+		const inProgress = new Set<string>();
+		const concurrency = this.enrichmentConcurrency; // Use same concurrency as enrichment
 
-		for (let i = 0; i < depsToFetch.length; i++) {
-			const dep = depsToFetch[i];
+		// Process a single dependency
+		const processDep = async (dep: typeof depsToFetch[0]): Promise<void> => {
+			inProgress.add(dep.name);
 
+			// Report progress with active items
 			if (this.onProgress) {
-				this.onProgress(i, depsToFetch.length, `[docs] ${dep.name}`);
+				const active = inProgress.size;
+				const activeList = Array.from(inProgress).slice(0, 3).join(", ");
+				const moreCount = active > 3 ? ` +${active - 3}` : "";
+				this.onProgress(
+					completed,
+					depsToFetch.length,
+					`[docs] ${completed}/${depsToFetch.length} (${active} active) ${activeList}${moreCount}`,
+					active,
+				);
 			}
 
 			try {
 				// Fetch and chunk documentation
-				const chunks = await this.docsFetcher.fetchAndChunk(dep.name, {
+				const chunks = await this.docsFetcher!.fetchAndChunk(dep.name, {
 					version: dep.majorVersion,
 				});
 
 				if (chunks.length === 0) {
-					continue;
+					return;
 				}
 
 				// Virtual path for documentation chunks
@@ -1095,7 +1131,16 @@ export class Indexer {
 					`  ⚠️  Failed to fetch docs for ${dep.name}:`,
 					error instanceof Error ? error.message : error,
 				);
+			} finally {
+				inProgress.delete(dep.name);
+				completed++;
 			}
+		};
+
+		// Process in parallel batches (same pattern as enricher)
+		for (let i = 0; i < depsToFetch.length; i += concurrency) {
+			const batch = depsToFetch.slice(i, i + concurrency);
+			await Promise.all(batch.map(processDep));
 		}
 
 		if (this.onProgress) {

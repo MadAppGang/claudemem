@@ -528,6 +528,27 @@ async function handleIndex(args: string[]): Promise<void> {
 
 			if (result.enrichment.errors.length > 0) {
 				console.log(`    Errors:       ${result.enrichment.errors.length}`);
+				// Group errors by error message for cleaner output
+				const errorGroups = new Map<string, { count: number; files: string[] }>();
+				for (const err of result.enrichment.errors) {
+					const key = err.error;
+					const existing = errorGroups.get(key);
+					if (existing) {
+						existing.count++;
+						if (existing.files.length < 3) {
+							existing.files.push(err.file);
+						}
+					} else {
+						errorGroups.set(key, { count: 1, files: [err.file] });
+					}
+				}
+				// Show unique errors with counts
+				console.log("\n  Enrichment errors:");
+				for (const [error, { count, files }] of errorGroups) {
+					const truncatedError = error.length > 100 ? error.slice(0, 100) + "..." : error;
+					console.log(`    ✖ ${truncatedError}`);
+					console.log(`      (${count}x) files: ${files.join(", ")}${count > files.length ? ` +${count - files.length} more` : ""}`);
+				}
 			}
 		}
 
@@ -989,6 +1010,7 @@ async function handleInit(): Promise<void> {
 				{ name: "OpenRouter (many models)", value: "openrouter" },
 				{ name: "LM Studio (local, OpenAI-compatible)", value: "lmstudio" },
 				{ name: "Ollama (local)", value: "ollama" },
+				{ name: "OpenAI-compatible (MLX, vLLM, llamafile, etc.)", value: "openai-compat" },
 			],
 		});
 
@@ -1121,6 +1143,43 @@ async function handleInit(): Promise<void> {
 				});
 				llmSpec = `ollama/${localModel}`;
 			}
+
+		} else if (llmProvider === "openai-compat") {
+			// Generic OpenAI-compatible server (MLX, vLLM, text-generation-inference, etc.)
+			const customEndpoint = await input({
+				message: "OpenAI-compatible server URL:",
+				default: "http://localhost:8080",
+			});
+
+			// Normalize endpoint
+			const normalizedEndpoint = customEndpoint.replace(/\/v1\/?$/, "").replace(/\/$/, "");
+
+			console.log("\n🔄 Fetching available models...");
+			const models = await fetchOpenAICompatibleModels(normalizedEndpoint, "llm");
+
+			let localModel: string;
+			if (models.length > 0) {
+				console.log(`✅ Found ${models.length} model(s)`);
+				localModel = await select({
+					message: "Select LLM model:",
+					choices: models.map((m) => ({
+						name: `${m.id}${m.publisher ? ` (${m.publisher})` : ""}`,
+						value: m.id,
+					})),
+				});
+			} else {
+				console.log("⚠️  Could not fetch models. Server might be starting up or doesn't support /v1/models.");
+				localModel = await input({
+					message: "Enter model name (check your server logs):",
+					default: "default",
+				});
+			}
+
+			// Save custom endpoint to config and use local provider
+			llmSpec = `local/${localModel}`;
+			// Store the endpoint separately - will be saved to config below
+			saveGlobalConfig({ llmEndpoint: `${normalizedEndpoint}/v1` });
+			console.log(`\n📝 Saved endpoint: ${normalizedEndpoint}/v1`);
 		}
 	}
 
@@ -1224,28 +1283,81 @@ interface LMStudioModel {
 /**
  * Fetch available models from LM Studio
  * Uses the new API: http://localhost:1234/api/v0/models
+ * Falls back to OpenAI-compatible /v1/models if that fails
  */
 async function fetchLMStudioModels(
 	endpoint: string,
 	filter?: "embedding" | "llm",
 ): Promise<LMStudioModel[]> {
+	const baseUrl = endpoint.replace(/\/v1\/?$/, ""); // Remove /v1 suffix if present
+
+	// Try LM Studio's native API first
 	try {
-		// Use the new API endpoint
-		const baseUrl = endpoint.replace(/\/v1\/?$/, ""); // Remove /v1 suffix if present
 		const response = await fetch(`${baseUrl}/api/v0/models`);
+		if (response.ok) {
+			const data = await response.json() as { data?: LMStudioModel[] };
+			let models = data.data || [];
+
+			// Filter by type if specified
+			if (filter === "embedding") {
+				models = models.filter((m) => m.type === "embeddings");
+			} else if (filter === "llm") {
+				models = models.filter((m) => m.type === "llm" || m.type === "vlm");
+			}
+
+			if (models.length > 0) {
+				return models;
+			}
+		}
+	} catch {
+		// Fall through to OpenAI-compatible API
+	}
+
+	// Fallback: Try OpenAI-compatible /v1/models endpoint
+	return fetchOpenAICompatibleModels(endpoint, filter);
+}
+
+/**
+ * Fetch models from an OpenAI-compatible API endpoint
+ * Works with MLX-server, vLLM, text-generation-inference, llamafile, etc.
+ */
+async function fetchOpenAICompatibleModels(
+	endpoint: string,
+	filter?: "embedding" | "llm",
+): Promise<LMStudioModel[]> {
+	try {
+		// Ensure endpoint has /v1 suffix
+		const baseUrl = endpoint.replace(/\/v1\/?$/, "");
+		const response = await fetch(`${baseUrl}/v1/models`, {
+			signal: AbortSignal.timeout(5000), // 5 second timeout
+		});
 
 		if (!response.ok) {
 			return [];
 		}
 
-		const data = await response.json() as { data?: LMStudioModel[] };
-		let models = data.data || [];
+		const data = await response.json() as { data?: Array<{ id: string; owned_by?: string }> };
+		const rawModels = data.data || [];
+
+		// Convert to LMStudioModel format
+		// OpenAI API doesn't expose model type, so we guess based on name
+		const models: LMStudioModel[] = rawModels.map((m) => {
+			const id = m.id;
+			const isEmbedding = id.toLowerCase().includes("embed") ||
+				id.toLowerCase().includes("e5") ||
+				id.toLowerCase().includes("bge");
+			return {
+				id,
+				type: isEmbedding ? "embeddings" : "llm",
+				publisher: m.owned_by,
+			};
+		});
 
 		// Filter by type if specified
 		if (filter === "embedding") {
-			models = models.filter((m) => m.type === "embeddings");
+			return models.filter((m) => m.type === "embeddings");
 		} else if (filter === "llm") {
-			models = models.filter((m) => m.type === "llm" || m.type === "vlm");
+			return models.filter((m) => m.type === "llm");
 		}
 
 		return models;
