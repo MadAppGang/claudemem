@@ -4,7 +4,7 @@ import { TerminalWindow } from './TerminalWindow';
 const DocsPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<
     'installation' | 'cli' | 'integration' | 'framework-docs' |
-    'comparisons-claude-context' | 'comparisons-context-engine' | 'comparisons-greptile' | 'comparisons-brokk' |
+    'comparisons-claude-mem' | 'comparisons-claude-context' | 'comparisons-context-engine' | 'comparisons-greptile' | 'comparisons-brokk' |
     'comparisons-serena' | 'comparisons-amp' | 'comparisons-supermemory'
   >('installation');
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['comparisons']);
@@ -29,6 +29,7 @@ const DocsPage: React.FC = () => {
   ];
 
   const comparisonItems = [
+    { id: 'comparisons-claude-mem', label: 'vs claude-mem ⚠️' },
     { id: 'comparisons-claude-context', label: 'vs claude-context' },
     { id: 'comparisons-context-engine', label: 'vs Context-Engine' },
     { id: 'comparisons-greptile', label: 'vs Greptile' },
@@ -1695,6 +1696,162 @@ const DocsPage: React.FC = () => {
                                     <li>• Long-running background agents</li>
                                     <li>• Multi-IDE teams</li>
                                     <li>• Budget for cloud AI tools</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* claude-mem Comparison - NAME SIMILARITY WARNING */}
+            {activeSection === 'comparisons-claude-mem' && (
+                <div className="space-y-12 animate-fadeIn">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs claude-mem</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            Similar names, completely different tools — code search vs session memory.
+                        </p>
+                    </div>
+
+                    <div className="bg-yellow-500/10 border-2 border-yellow-500/30 rounded-xl p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                            <span className="text-2xl">⚠️</span>
+                            <div className="text-lg text-yellow-400 font-bold uppercase tracking-widest">Name Similarity Notice</div>
+                        </div>
+                        <p className="text-gray-300 leading-relaxed">
+                            <strong className="text-white">claude-mem</strong> (<a href="https://github.com/thedotmack/claude-mem" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">~9.3k ★ GitHub</a>, AGPL-3.0) by <strong>@thedotmack</strong> is a
+                            <strong className="text-yellow-400"> session memory plugin</strong> that gives Claude Code persistent memory across sessions.
+                            <br/><br/>
+                            <strong className="text-white">claudemem</strong> (<a href="https://github.com/MadAppGang/claudemem" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">GitHub</a>, MIT) by <strong>MadAppGang</strong> is
+                            <strong className="text-claude-ish"> semantic code search</strong> with symbol graphs and PageRank.
+                            <br/><br/>
+                            <span className="text-gray-400">Despite the similar names, these are <strong className="text-white">completely different projects</strong> with different purposes, maintainers, and architectures.</span>
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Core Purpose</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
+                                <div className="text-claude-ish font-bold mb-2">claudemem (this project)</div>
+                                <p className="text-sm text-gray-400 mb-3">Semantic code search + symbol analysis</p>
+                                <ul className="text-xs text-gray-500 space-y-1">
+                                    <li>• Index code with tree-sitter AST parsing</li>
+                                    <li>• Search with natural language queries</li>
+                                    <li>• PageRank-based symbol importance</li>
+                                    <li>• Callers/callees relationship mapping</li>
+                                    <li>• Dead code & test gap detection</li>
+                                </ul>
+                            </div>
+                            <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-5">
+                                <div className="text-orange-400 font-bold mb-2">claude-mem (@thedotmack)</div>
+                                <p className="text-sm text-gray-400 mb-3">Session memory persistence plugin</p>
+                                <ul className="text-xs text-gray-500 space-y-1">
+                                    <li>• Persist context across Claude Code sessions</li>
+                                    <li>• Automatic tool usage observation capture</li>
+                                    <li>• AI-compressed memory summaries</li>
+                                    <li>• Natural language memory search</li>
+                                    <li>• Web viewer UI at localhost:37777</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Technical Architecture</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'claude-mem']}
+                            rows={[
+                                ['<strong class="text-white">Primary Function</strong>', '<span class="text-claude-ish">Code search & symbol analysis</span>', '<span class="text-orange-400">Session memory persistence</span>'],
+                                ['<strong class="text-white">How It Works</strong>', 'Indexes source code into vector embeddings', 'Captures tool observations, compresses with AI'],
+                                ['<strong class="text-white">Storage</strong>', 'LanceDB (embedded vector DB)', 'SQLite + Chroma (vector DB)'],
+                                ['<strong class="text-white">Search Backend</strong>', 'Hybrid: LanceDB vectors + BM25 keyword', 'Chroma semantic + keyword hybrid'],
+                                ['<strong class="text-white">Runtime</strong>', 'Bun', 'Bun + Python (uv)'],
+                                ['<strong class="text-white">Port</strong>', 'CLI only (no server)', 'HTTP API on :37777'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Features Comparison</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'claude-mem']}
+                            rows={[
+                                ['<strong class="text-white">Semantic Search</strong>', '<span class="text-green-400">✓ Code-focused</span>', '<span class="text-green-400">✓ Memory-focused</span>'],
+                                ['<strong class="text-white">Symbol Graph</strong>', '<span class="text-green-400">✓ PageRank callers/callees</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">AST Parsing</strong>', '<span class="text-green-400">✓ tree-sitter (12+ langs)</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Session Persistence</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Cross-session memory</span>'],
+                                ['<strong class="text-white">Tool Observation</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Auto-capture & compress</span>'],
+                                ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Test Gap Analysis</strong>', '<span class="text-green-400">✓</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Web UI</strong>', '<span class="text-gray-500">✗ CLI only</span>', '<span class="text-green-400">✓ localhost:37777</span>'],
+                                ['<strong class="text-white">Privacy Tags</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ &lt;private&gt; exclusion</span>'],
+                                ['<strong class="text-white">Citation System</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Reference by ID</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Integration</h3>
+                        <Table
+                            headers={['Integration', 'claudemem', 'claude-mem']}
+                            rows={[
+                                ['<strong class="text-white">Claude Code</strong>', '<span class="text-green-400">✓ MCP server</span>', '<span class="text-green-400">✓ Plugin with hooks</span>'],
+                                ['<strong class="text-white">Integration Method</strong>', 'MCP tools (search, index, status)', '5 lifecycle hooks + skill'],
+                                ['<strong class="text-white">OpenCode</strong>', '<span class="text-green-400">✓ Plugin support</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Cursor</strong>', '✓ Via MCP', '<span class="text-gray-500">✗</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Project Details</h3>
+                        <Table
+                            headers={['Detail', 'claudemem', 'claude-mem']}
+                            rows={[
+                                ['<strong class="text-white">Maintainer</strong>', 'MadAppGang', '@thedotmack'],
+                                ['<strong class="text-white">License</strong>', '<span class="text-green-400">MIT</span>', 'AGPL-3.0 (+ PolyForm NC for ragtime/)'],
+                                ['<strong class="text-white">GitHub Stars</strong>', 'Growing', '~9.3k ★'],
+                                ['<strong class="text-white">Latest Version</strong>', 'v0.8.0', 'v8.2.5 (146 releases)'],
+                                ['<strong class="text-white">Package</strong>', 'npm: claude-codemem', 'npm: claude-mem'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                        <div className="text-xs text-green-400 font-bold uppercase tracking-widest mb-2">Complementary Tools</div>
+                        <p className="text-sm text-gray-400">
+                            These tools solve <strong className="text-white">different problems</strong> and can be used together:
+                            <strong className="text-claude-ish"> claudemem</strong> helps you search and understand your codebase,
+                            while <strong className="text-orange-400">claude-mem</strong> helps Claude remember what you worked on across sessions.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Use claudemem for</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• "Where is authentication handled?"</li>
+                                    <li>• "What functions call this method?"</li>
+                                    <li>• "Find unused code in this project"</li>
+                                    <li>• "What's the architecture of this codebase?"</li>
+                                    <li>• Navigating large unfamiliar codebases</li>
+                                </ul>
+                            </div>
+                            <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Use claude-mem for</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• "What did I work on yesterday?"</li>
+                                    <li>• "Continue where I left off"</li>
+                                    <li>• Maintaining context across sessions</li>
+                                    <li>• Building institutional memory</li>
+                                    <li>• Resuming complex multi-day tasks</li>
                                 </ul>
                             </div>
                         </div>

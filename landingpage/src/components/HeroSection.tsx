@@ -96,10 +96,27 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToBenchmarks, onNav
             </h1>
             
             {/* Subtext */}
-            <div className="mb-14 text-lg md:text-2xl text-[#999] font-medium leading-relaxed max-w-4xl mx-auto px-4">
+            <div className="mb-8 text-lg md:text-2xl text-[#999] font-medium leading-relaxed max-w-4xl mx-auto px-4">
                 <p>
                     Give <span className="text-white font-bold border-b-2 border-white/10 hover:border-claude-ish/50 transition-colors">Claude Code</span>, <span className="text-white font-bold border-b-2 border-white/10 hover:border-claude-ish/50 transition-colors">Cursor</span>, and AI assistants deep understanding of your codebase. Privacy-first indexing with PageRank-powered symbol importance — <span className="text-gray-400">and benchmarks to find the best model for your code.</span>
                 </p>
+            </div>
+
+            {/* Name Similarity Notice */}
+            <div className="mb-10 px-4">
+                <a
+                    href="https://github.com/thedotmack/claude-mem"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-3 bg-[#1a1a1a]/80 border border-white/10 rounded-full px-5 py-2.5 text-sm text-gray-400 hover:border-white/20 hover:bg-[#1a1a1a] transition-all group"
+                >
+                    <span className="text-yellow-500/80">⚠</span>
+                    <span>
+                        Not to be confused with <span className="text-white font-semibold group-hover:text-claude-ish transition-colors">claude-mem</span> — a session memory plugin (9.3k ★).
+                        <span className="text-gray-500 ml-1">We do code search.</span>
+                    </span>
+                    <span className="text-gray-600 group-hover:text-gray-400 transition-colors">→</span>
+                </a>
             </div>
 
             {/* CTAs */}
