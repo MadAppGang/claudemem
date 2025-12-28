@@ -892,6 +892,8 @@ const ContextWinSection = () => {
 // --- 6. COMPARISON SECTION (Redesigned) ---
 
 const ComparisonSection: React.FC = () => {
+  const [category, setCategory] = useState<'local' | 'cloud'>('local');
+
   return (
     <section className="py-32 bg-[#050505] border-t border-white/5 relative" id="benchmarks">
       <div className="max-w-7xl mx-auto px-6">
@@ -900,48 +902,122 @@ const ComparisonSection: React.FC = () => {
             Market Analysis
           </div>
           <h2 className="text-4xl md:text-6xl font-black text-white mb-6">How claudemem Compares</h2>
-          <p className="text-xl text-gray-500 font-mono max-w-2xl mx-auto">
+          <p className="text-xl text-gray-500 font-mono max-w-2xl mx-auto mb-10">
             The code understanding landscape has exploded. claudemem is different. You pick the models. You run the benchmarks. You own the stack.
           </p>
+
+          {/* Toggle Controls */}
+          <div className="inline-flex bg-[#111] p-1 rounded-lg border border-white/10 relative overflow-hidden">
+
+             {/* Sliding Pill Background - simplified for React without motion lib */}
+             <div className={`absolute top-1 bottom-1 w-[140px] bg-[#222] rounded-md transition-all duration-300 ease-out ${category === 'local' ? 'left-1' : 'left-[145px]'}`}></div>
+
+             <button
+                onClick={() => setCategory('local')}
+                className={`relative px-6 py-2.5 rounded-md text-sm font-bold transition-colors z-10 w-[140px] ${category === 'local' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+             >
+                vs Open Source
+             </button>
+             <button
+                onClick={() => setCategory('cloud')}
+                className={`relative px-6 py-2.5 rounded-md text-sm font-bold transition-colors z-10 w-[140px] ${category === 'cloud' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+             >
+                vs Cloud / SaaS
+             </button>
+          </div>
         </div>
 
         {/* --- TABLE MATRIX --- */}
-        <div className="overflow-x-auto relative shadow-2xl rounded-2xl border border-white/10 bg-[#0c0c0c] scrollbar-dark pb-4 mb-24">
-          <table className="w-full text-left border-collapse min-w-[1200px]">
-            <thead>
-              <tr className="border-b border-white/10 bg-[#111]">
-                <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest w-[180px] sticky left-0 bg-[#111] z-20 shadow-[2px_0_10px_-2px_rgba(0,0,0,0.5)]">Feature</th>
-                <th className="p-6 font-mono text-xs text-claude-ish uppercase tracking-widest font-bold bg-claude-ish/5 border-l border-r border-claude-ish/20 w-[200px]">
-                  claudemem
-                </th>
-                <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest w-[150px]">claude-context</th>
-                <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest w-[150px]">Serena</th>
-                <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest w-[150px]">Brokk</th>
-                <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest w-[150px]">Code-Graph</th>
-                <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest w-[150px]">Greptile</th>
-                <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest w-[180px]">Sourcegraph AMP</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5 text-sm font-mono">
-              {COMPARISON_MATRIX.map((row, i) => (
-                <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
-                  <td className="p-6 font-bold text-white sticky left-0 bg-[#0c0c0c] z-10 group-hover:bg-[#111] transition-colors border-r border-white/5 shadow-[2px_0_10px_-2px_rgba(0,0,0,0.5)]">{row.feature}</td>
-                  
-                  <td className="p-6 text-white bg-claude-ish/5 border-l border-r border-claude-ish/20 font-bold relative">
-                    <div className="absolute inset-0 bg-claude-ish/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                    <span className="relative z-10">{row.claudemem}</span>
-                  </td>
+        <div className="overflow-hidden relative shadow-2xl rounded-2xl border border-white/10 bg-[#0c0c0c] mb-24">
+          <div className="overflow-x-auto scrollbar-dark pb-2">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#111]">
+                    <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest min-w-[180px] sticky left-0 bg-[#111] z-20 shadow-[2px_0_10px_-2px_rgba(0,0,0,0.5)]">Feature</th>
 
-                  <td className="p-6 text-gray-400">{row.context}</td>
-                  <td className="p-6 text-gray-400">{row.serena}</td>
-                  <td className="p-6 text-gray-400">{row.brokk}</td>
-                  <td className="p-6 text-gray-400">{row.graph}</td>
-                  <td className="p-6 text-gray-400">{row.greptile}</td>
-                  <td className="p-6 text-gray-400">{row.amp}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {/* Claudemem Column - Always Visible & Highlighted */}
+                    <th className="p-6 font-mono text-xs text-claude-ish uppercase tracking-widest font-bold bg-claude-ish/5 border-l border-r border-claude-ish/20 min-w-[200px]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-claude-ish"></div>
+                        claudemem
+                      </div>
+                    </th>
+
+                    {/* Dynamic Columns based on Category */}
+                    {category === 'local' ? (
+                        <>
+                            <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest min-w-[160px]">claude-context</th>
+                            <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest min-w-[160px]">Brokk</th>
+                            <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest min-w-[160px]">Code-Graph</th>
+                        </>
+                    ) : (
+                        <>
+                            <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest min-w-[180px]">Greptile</th>
+                            <th className="p-6 font-mono text-xs text-gray-500 uppercase tracking-widest min-w-[180px]">Sourcegraph AMP</th>
+                        </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-sm font-mono">
+                  {COMPARISON_MATRIX.map((row, i) => (
+                    <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
+
+                      {/* Feature Name */}
+                      <td className="p-6 font-bold text-white sticky left-0 bg-[#0c0c0c] z-10 group-hover:bg-[#111] transition-colors border-r border-white/5 shadow-[2px_0_10px_-2px_rgba(0,0,0,0.5)]">
+                        {row.feature}
+                      </td>
+
+                      {/* Claudemem Value */}
+                      <td className="p-6 text-white bg-claude-ish/5 border-l border-r border-claude-ish/20 font-bold relative">
+                        {/* Hover Highlight Effect */}
+                        <div className="absolute inset-0 bg-claude-ish/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+
+                        <span className="relative z-10 flex items-center gap-2">
+                            {row.claudemem.includes('✅') ? (
+                                <>
+                                    <span className="text-claude-ish text-lg">●</span>
+                                    <span>{row.claudemem.replace(/✅ ?/, '')}</span>
+                                </>
+                            ) : (
+                                row.claudemem
+                            )}
+                        </span>
+                      </td>
+
+                      {/* Competitor Values */}
+                      {category === 'local' ? (
+                          <>
+                            <td className="p-6 text-gray-400">
+                                {row.context.includes('❌') ? <span className="opacity-20 text-lg">●</span> : row.context.replace(/✅ ?/, '')}
+                            </td>
+                            <td className="p-6 text-gray-400">
+                                {row.brokk.includes('❌') ? <span className="opacity-20 text-lg">●</span> : row.brokk.replace(/✅ ?/, '')}
+                            </td>
+                            <td className="p-6 text-gray-400">
+                                {row.graph.includes('❌') ? <span className="opacity-20 text-lg">●</span> : row.graph.replace(/✅ ?/, '')}
+                            </td>
+                          </>
+                      ) : (
+                          <>
+                             <td className="p-6 text-gray-400">
+                                {row.greptile.includes('❌') ? <span className="opacity-20 text-lg">●</span> : row.greptile.replace(/✅ ?/, '')}
+                             </td>
+                             <td className="p-6 text-gray-400">
+                                {row.amp.includes('❌') ? <span className="opacity-20 text-lg">●</span> : row.amp.replace(/✅ ?/, '')}
+                             </td>
+                          </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+          </div>
+
+          {/* Legend / Info Footer for Table */}
+          <div className="bg-[#111] border-t border-white/5 p-4 flex justify-between items-center text-xs font-mono text-gray-600 px-6">
+             <div><span className="text-claude-ish">●</span> Included/Supported</div>
+             <div><span className="opacity-20">●</span> Not available</div>
+          </div>
         </div>
 
         {/* --- MODEL FREEDOM --- */}
@@ -951,121 +1027,109 @@ const ComparisonSection: React.FC = () => {
                 <p className="text-gray-400 leading-relaxed text-lg">
                     Every other tool makes model choices for you. claudemem doesn't.
                 </p>
-                <div className="space-y-4">
-                    <div className="bg-[#111] p-5 rounded-lg border border-gray-800">
-                        <h4 className="text-white font-bold mb-2">Embedding models — your choice</h4>
-                        <ul className="space-y-1 text-sm text-gray-400 font-mono">
-                            <li>• Cloud: OpenAI, Voyage, Cohere</li>
-                            <li>• Local: Ollama, LM Studio, any local model</li>
-                            <li>• Mix: Index with local (free), query with cloud (fast)</li>
-                        </ul>
-                    </div>
-                    <div className="bg-[#111] p-5 rounded-lg border border-gray-800">
-                        <h4 className="text-white font-bold mb-2">Summarizer LLMs — your choice</h4>
-                        <ul className="space-y-1 text-sm text-gray-400 font-mono">
-                            <li>• Cloud: GPT-4o, Claude, Gemini</li>
-                            <li>• Local: Llama, Mistral, Qwen via Ollama</li>
-                            <li className="text-claude-ish">• Claude Code: Use your existing subscription</li>
-                        </ul>
-                    </div>
+                <div className="space-y-6 text-sm font-mono text-gray-400 leading-relaxed bg-[#0c0c0c] p-8 rounded-xl border border-white/5">
+                    <h4 className="text-white font-bold uppercase tracking-widest mb-4">Why this matters</h4>
+                    <p>
+                        <strong className="text-white">Air-gapped?</strong> Everything must run locally. Done — use Ollama for both embeddings and summaries.
+                    </p>
+                    <p>
+                        <strong className="text-white">Best quality?</strong> Use Voyage embeddings + GPT-4o summaries for maximum retrieval accuracy.
+                    </p>
+                    <p>
+                        <strong className="text-white">Already paying for Claude?</strong> Use your Claude Code subscription for keyless access.
+                    </p>
+                    <p className="pt-4 border-t border-white/5 text-gray-500 italic">
+                        claudemem doesn't care. Plug in what works for you.
+                    </p>
                 </div>
             </div>
-            <div className="space-y-6 text-sm font-mono text-gray-400 leading-relaxed bg-[#0c0c0c] p-8 rounded-xl border border-white/5">
-                <h4 className="text-white font-bold uppercase tracking-widest mb-4">Why this matters</h4>
-                <p>
-                    <strong className="text-white">Air-gapped?</strong> Everything must run locally. Done — use Ollama for both embeddings and summaries.
-                </p>
-                <p>
-                    <strong className="text-white">Best quality?</strong> Use Voyage embeddings + GPT-4o summaries for maximum retrieval accuracy.
-                </p>
-                <p>
-                    <strong className="text-white">Already paying for Claude?</strong> Use your Claude Code subscription for summaries and local embeddings for indexing. Zero additional API costs.
-                </p>
-                <p className="pt-4 border-t border-white/5 text-gray-500 italic">
-                    claudemem doesn't care. Plug in what works for you.
-                </p>
-            </div>
+
+            {/* Visual placeholder - component removed */}
         </div>
 
         {/* --- COMPETITOR BREAKDOWNS --- */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-32">
-            
-            {/* vs claude-context */}
-            <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Reference</div>
-                <h4 className="text-xl font-bold text-white mb-4">vs claude-context</h4>
-                <p className="text-sm text-gray-400 mb-4">
-                    We build on their foundation (tree-sitter parsing).
-                </p>
-                <ul className="text-xs text-gray-300 space-y-2 font-mono">
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>PageRank importance sorting</span></li>
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Hierarchical summaries</span></li>
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Built-in benchmarks</span></li>
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>True local-first (no Cloud default)</span></li>
-                </ul>
-            </div>
+        <div className="mb-32">
 
-            {/* vs Serena */}
-            <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">LSP Tool</div>
-                <h4 className="text-xl font-bold text-white mb-4">vs Serena</h4>
-                <p className="text-sm text-gray-400 mb-4">
-                    Serena is compiler-accurate. We are semantic.
-                </p>
-                <div className="text-xs text-gray-300 space-y-3 font-mono">
-                    <p>Use <strong>Serena</strong> for exact symbol lookups.</p>
-                    <p>Use <strong>claudemem</strong> for natural language questions like "where is auth handled?" and discovery.</p>
+            {/* Section 1: Local / Open Source */}
+            <div className="mb-12">
+                <h4 className="text-white text-lg font-bold mb-6 flex items-center gap-3">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    vs Open Source & Local Tools
+                </h4>
+                <div className="grid md:grid-cols-2 gap-6">
+                    {/* vs claude-context */}
+                    <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Original Context Tool</div>
+                        <h4 className="text-xl font-bold text-white mb-4">vs claude-context</h4>
+                        <p className="text-sm text-gray-400 mb-4">
+                            We build on their foundation (tree-sitter parsing).
+                        </p>
+                        <ul className="text-sm text-gray-300 space-y-2 font-mono">
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>PageRank importance sorting</span></li>
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Hierarchical summaries</span></li>
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Built-in benchmarks</span></li>
+                        </ul>
+                    </div>
+
+                    {/* vs Brokk */}
+                    <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Enterprise Analysis</div>
+                        <h4 className="text-xl font-bold text-white mb-4">vs Brokk</h4>
+                        <p className="text-sm text-gray-400 mb-4">
+                            Brokk uses Joern for deep CPG analysis. Great for security, heavy for RAG.
+                        </p>
+                        <ul className="text-sm text-gray-300 space-y-2 font-mono">
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>12+ Languages (Brokk is Java focused)</span></li>
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Interactive CLI</span></li>
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>MIT License (Brokk is GPL)</span></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-            {/* vs Brokk */}
-            <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Enterprise Analysis</div>
-                <h4 className="text-xl font-bold text-white mb-4">vs Brokk</h4>
-                <p className="text-sm text-gray-400 mb-4">
-                    Brokk uses Joern for deep CPG analysis.
-                </p>
-                <ul className="text-xs text-gray-300 space-y-2 font-mono">
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>12+ Languages (Brokk is Java-focused)</span></li>
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Terminal-native CLI</span></li>
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>MIT License (Brokk is GPL)</span></li>
-                </ul>
-            </div>
-
-            {/* vs Greptile */}
-            <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">SaaS API</div>
-                <h4 className="text-xl font-bold text-white mb-4">vs Greptile</h4>
-                <p className="text-sm text-gray-400 mb-4">
-                    Greptile is a powerful cloud API ($30/mo).
-                </p>
-                <ul className="text-xs text-gray-300 space-y-2 font-mono">
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Free and Open Source</span></li>
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>100% Local (Air-gapped ready)</span></li>
-                    <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>You choose the models</span></li>
-                </ul>
-            </div>
-
-            {/* vs Sourcegraph AMP */}
-            <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors lg:col-span-2">
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">The Gold Standard</div>
-                <h4 className="text-xl font-bold text-white mb-4">vs Sourcegraph AMP</h4>
-                <div className="grid md:grid-cols-2 gap-8">
-                    <div>
+            {/* Section 2: Cloud / SaaS */}
+            <div>
+                <h4 className="text-white text-lg font-bold mb-6 flex items-center gap-3">
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                    vs Cloud & SaaS
+                </h4>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* vs Greptile */}
+                    <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">The SaaS API</div>
+                        <h4 className="text-xl font-bold text-white mb-4">vs Greptile</h4>
                         <p className="text-sm text-gray-400 mb-4">
-                            AMP is incredible for enterprise. We bring that power to individuals.
+                            Greptile is a powerful cloud API ($30/mo).
                         </p>
-                        <div className="flex items-center gap-4 text-sm font-mono text-white mb-2">
-                            <span className="text-red-500">$1,000+ min</span>
-                            <span>vs</span>
-                            <span className="text-claude-ish">Free / MIT</span>
+                        <ul className="text-sm text-gray-300 space-y-2 font-mono">
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Free and Open Source</span></li>
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>100% Local (Air-gapped ready)</span></li>
+                            <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>You choose the models</span></li>
+                        </ul>
+                    </div>
+
+                    {/* vs Sourcegraph AMP */}
+                    <div className="bg-[#111] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors lg:col-span-2">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">The Gold Standard</div>
+                        <h4 className="text-xl font-bold text-white mb-4">vs Sourcegraph AMP</h4>
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <p className="text-sm text-gray-400 mb-4">
+                                    AMP is incredible for enterprise. We bring that power to individuals.
+                                </p>
+                                <div className="flex items-center gap-4 text-sm font-mono text-white mb-2">
+                                    <span className="text-red-500">$1,000+ min</span>
+                                    <span>vs</span>
+                                    <span className="text-claude-ish">Free / MIT</span>
+                                </div>
+                            </div>
+                            <ul className="text-sm text-gray-300 space-y-2 font-mono">
+                                <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Any model (AMP is fixed)</span></li>
+                                <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>5 min deployment (vs days)</span></li>
+                                <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Full CLI toolkit</span></li>
+                            </ul>
                         </div>
                     </div>
-                    <ul className="text-xs text-gray-300 space-y-2 font-mono">
-                        <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Any model (AMP is fixed)</span></li>
-                        <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>5 min deployment (vs days)</span></li>
-                        <li className="flex gap-2"><span className="text-claude-ish">+</span> <span>Full CLI toolkit</span></li>
-                    </ul>
                 </div>
             </div>
 
@@ -1075,7 +1139,7 @@ const ComparisonSection: React.FC = () => {
         <div className="mb-32">
             <h3 className="text-3xl font-bold text-white mb-12 text-center">The Real Differentiators</h3>
             <div className="grid lg:grid-cols-3 gap-8">
-                
+
                 {/* 1. CLI First */}
                 <div className="space-y-4">
                     <h4 className="text-xl font-bold text-white">1. CLI-first design</h4>

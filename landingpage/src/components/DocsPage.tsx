@@ -2,17 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { TerminalWindow } from './TerminalWindow';
 
 const DocsPage: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<'installation' | 'cli' | 'integration' | 'framework-docs'>('installation');
+  const [activeSection, setActiveSection] = useState<
+    'installation' | 'cli' | 'integration' | 'framework-docs' |
+    'comparisons-claude-context' | 'comparisons-context-engine' | 'comparisons-greptile' | 'comparisons-brokk' |
+    'comparisons-serena' | 'comparisons-amp' | 'comparisons-supermemory'
+  >('installation');
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['comparisons']);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
 
   const navItems = [
     { id: 'installation', label: 'Installation & Setup' },
     { id: 'cli', label: 'CLI Usage' },
     { id: 'framework-docs', label: 'Framework Docs' },
     { id: 'integration', label: 'Claude Code Integration' },
+  ];
+
+  const comparisonItems = [
+    { id: 'comparisons-claude-context', label: 'vs claude-context' },
+    { id: 'comparisons-context-engine', label: 'vs Context-Engine' },
+    { id: 'comparisons-greptile', label: 'vs Greptile' },
+    { id: 'comparisons-brokk', label: 'vs Brokk' },
+    { id: 'comparisons-serena', label: 'vs Serena' },
+    { id: 'comparisons-amp', label: 'vs Amp' },
+    { id: 'comparisons-supermemory', label: 'vs Supermemory' },
   ];
 
   const Table = ({ headers, rows }: { headers: string[], rows: string[][] }) => (
@@ -61,6 +84,46 @@ const DocsPage: React.FC = () => {
                     {item.label}
                   </button>
                 ))}
+
+                {/* Comparisons Category */}
+                <div className="pt-2">
+                  <button
+                    onClick={() => toggleCategory('comparisons')}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm font-mono transition-colors flex items-center justify-between ${
+                      activeSection.startsWith('comparisons')
+                        ? 'text-white'
+                        : 'text-gray-500 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <span>Comparisons</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${expandedCategories.includes('comparisons') ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {expandedCategories.includes('comparisons') && (
+                    <div className="ml-4 mt-1 space-y-1 border-l border-white/10 pl-2">
+                      {comparisonItems.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setActiveSection(item.id as any)}
+                          className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-mono transition-colors ${
+                            activeSection === item.id
+                              ? 'bg-claude-ish/10 text-claude-ish font-bold border border-claude-ish/20'
+                              : 'text-gray-500 hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </nav>
             </div>
             
@@ -878,6 +941,910 @@ const DocsPage: React.FC = () => {
                         </div>
                     </div>
 
+                </div>
+            )}
+
+            {/* claude-context Comparison */}
+            {activeSection === 'comparisons-claude-context' && (
+                <div className="space-y-12 animate-fadeIn">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs claude-context</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            Local-first embedded storage vs cloud-dependent MCP server.
+                        </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-900/10 to-blue-900/10 border border-white/10 rounded-xl p-6">
+                        <p className="text-gray-400 leading-relaxed">
+                            <strong className="text-white">claude-context</strong> (<a href="https://github.com/zilliztech/claude-context" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">~4,900 ★ GitHub</a>, MIT) by Zilliz is a semantic code search MCP server using Milvus/Zilliz Cloud for vectors.
+                            <strong className="text-white"> claudemem</strong> uses embedded LanceDB — no cloud signup required, fully local operation possible.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Architecture Philosophy</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'claude-context (Zilliz)']}
+                            rows={[
+                                ['<strong class="text-white">Vector Database</strong>', '<span class="text-green-400">LanceDB (embedded, local)</span>', '<span class="text-yellow-400">Milvus / Zilliz Cloud (external)</span>'],
+                                ['<strong class="text-white">Cloud Dependency</strong>', '<span class="text-green-400">None (fully local possible)</span>', '<span class="text-yellow-400">Requires Zilliz Cloud + OpenAI signup</span>'],
+                                ['<strong class="text-white">Embedding Provider</strong>', 'OpenRouter, Ollama, or custom', 'OpenAI, VoyageAI, Gemini, Ollama'],
+                                ['<strong class="text-white">Language</strong>', 'TypeScript (Bun)', 'TypeScript monorepo (3 packages)'],
+                                ['<strong class="text-white">Interface</strong>', '<span class="text-green-400">CLI + MCP server</span>', 'MCP server only'],
+                            ]}
+                        />
+                        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mt-4">
+                            <div className="text-xs text-green-400 font-bold uppercase tracking-widest mb-2">claudemem's Key Advantage</div>
+                            <p className="text-sm text-gray-400">
+                                <strong className="text-white">Zero cloud signup required.</strong> claudemem works out-of-the-box with embedded LanceDB.
+                                claude-context requires creating accounts on both Zilliz Cloud and OpenAI before first use.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Code Understanding</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'claude-context']}
+                            rows={[
+                                ['<strong class="text-white">AST Parsing</strong>', 'Tree-sitter (12+ languages)', 'Tree-sitter (9 languages)'],
+                                ['<strong class="text-white">Chunking</strong>', 'Functions, classes, methods', 'Functions, classes, methods (2,500 char default)'],
+                                ['<strong class="text-white">Hybrid Search</strong>', '<span class="text-green-400">BM25 + vector</span>', '<span class="text-green-400">BM25 + vector + RRF reranking</span>'],
+                                ['<strong class="text-white">Symbol Graph</strong>', '<span class="text-green-400">✓ PageRank-ranked</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Test Gap Analysis</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Impact Analysis</strong>', '<span class="text-green-400">✓ Transitive callers</span>', '<span class="text-gray-500">✗</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Developer Experience</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'claude-context']}
+                            rows={[
+                                ['<strong class="text-white">Installation</strong>', '<span class="text-green-400">npm install -g claude-codemem</span>', 'npx + Zilliz Cloud signup + OpenAI key'],
+                                ['<strong class="text-white">CLI Commands</strong>', '<span class="text-green-400">map, symbol, callers, callees, context, dead-code, test-gaps</span>', '<span class="text-gray-500">None (MCP only)</span>'],
+                                ['<strong class="text-white">MCP Tools</strong>', '4 tools', '4 tools (index, search, status, clear)'],
+                                ['<strong class="text-white">Git Hooks</strong>', '<span class="text-green-400">✓ Post-commit auto-index</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Watch Mode</strong>', '<span class="text-green-400">✓ Native fs.watch</span>', 'Merkle tree change detection'],
+                                ['<strong class="text-white">VS Code Extension</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ semanticcodesearch</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Pricing & Requirements</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'claude-context']}
+                            rows={[
+                                ['<strong class="text-white">License</strong>', '<span class="text-green-400">MIT</span>', '<span class="text-green-400">MIT</span>'],
+                                ['<strong class="text-white">Cost</strong>', '<span class="text-green-400">Free (API costs optional)</span>', 'Free tier + OpenAI API costs'],
+                                ['<strong class="text-white">Required Accounts</strong>', '<span class="text-green-400">None (Ollama local option)</span>', '<span class="text-yellow-400">Zilliz Cloud + OpenAI (minimum)</span>'],
+                                ['<strong class="text-white">Node.js Version</strong>', 'Any (Bun preferred)', '>=20.0.0 and <24.0.0'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                        <div className="text-xs text-yellow-400 font-bold uppercase tracking-widest mb-2">Known claude-context Limitation</div>
+                        <p className="text-sm text-gray-400">
+                            <a href="https://github.com/zilliztech/claude-context/issues/226" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">GitHub Issue #226</a>: search_code may fail with "codebase not indexed" despite successful indexing.
+                            Workaround involves re-indexing or clearing cache.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose claudemem</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Zero-config, instant setup</li>
+                                    <li>• Air-gapped / privacy-first environments</li>
+                                    <li>• Need CLI tools (map, callers, dead-code)</li>
+                                    <li>• Symbol graph with PageRank analysis</li>
+                                    <li>• No cloud account requirements</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose claude-context</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Already using Zilliz Cloud / Milvus</li>
+                                    <li>• Want VS Code extension integration</li>
+                                    <li>• Prefer cloud-managed vector storage</li>
+                                    <li>• Need RRF (Reciprocal Rank Fusion) reranking</li>
+                                    <li>• Team sharing via cloud collections</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeSection === 'comparisons-context-engine' && (
+                <div className="space-y-12 animate-fadeIn">
+                    {/* Title */}
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs Context-Engine</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            How claudemem compares to Context-Engine for code intelligence.
+                        </p>
+                    </div>
+
+                    {/* Context-Engine Comparison */}
+                    <div className="space-y-8">
+
+                        <div className="bg-gradient-to-br from-purple-900/10 to-blue-900/10 border border-white/10 rounded-xl p-6">
+                            <p className="text-gray-400 leading-relaxed">
+                                <strong className="text-white">Context-Engine</strong> (<a href="https://github.com/m1rl0k/Context-Engine" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">177 ★ GitHub</a>, MIT license) is a Python-based MCP retrieval stack with ReFRAG micro-chunking and 6 Docker services.
+                                <strong className="text-white"> claudemem</strong> takes a different approach: single-binary, local-first with embedded LanceDB and PageRank symbol graphs.
+                            </p>
+                        </div>
+
+                        {/* Architecture Philosophy */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Architecture Philosophy</h3>
+                            <Table
+                                headers={['Aspect', 'claudemem', 'Context-Engine']}
+                                rows={[
+                                    ['<strong class="text-white">Language</strong>', '<span class="text-claude-ish">TypeScript (Bun runtime)</span>', 'Python (86.4%), JavaScript (9.8%)'],
+                                    ['<strong class="text-white">Deployment</strong>', '<span class="text-green-400">Single binary, zero Docker</span>', 'Docker Compose (6 services: Indexer, Memory, Qdrant, Upload, LLM, Learning)'],
+                                    ['<strong class="text-white">Vector DB</strong>', '<span class="text-blue-400">LanceDB (embedded, local)</span>', 'Qdrant (dedicated container, port 6333)'],
+                                    ['<strong class="text-white">Protocols</strong>', 'stdio (MCP standard)', 'SSE + RMCP (dual endpoint)'],
+                                    ['<strong class="text-white">Complexity</strong>', 'Minimal — one process', 'Multi-service orchestration with health checks'],
+                                ]}
+                            />
+                            <div className="bg-[#151515] border border-white/5 rounded-lg p-4 mt-4">
+                                <div className="text-xs text-claude-ish font-bold uppercase tracking-widest mb-2">Design Philosophy</div>
+                                <p className="text-sm text-gray-400">
+                                    claudemem follows the <strong className="text-white">"SQLite philosophy"</strong> — a single embedded solution that just works.
+                                    Context-Engine follows a microservices approach with specialized components. Both are valid but target different user profiles.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Code Understanding */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Code Understanding</h3>
+                            <Table
+                                headers={['Feature', 'claudemem', 'Context-Engine']}
+                                rows={[
+                                    ['<strong class="text-white">Chunking</strong>', '<span class="text-claude-ish">Tree-sitter AST (functions/classes)</span>', '<span class="text-blue-400">ReFRAG micro-chunking (5-50 lines) with 30x TTFT acceleration</span>'],
+                                    ['<strong class="text-white">Symbol Analysis</strong>', '<span class="text-green-400">PageRank graph with callers/callees</span>', 'Workspace-aware query collection'],
+                                    ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                    ['<strong class="text-white">Test Gap Analysis</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                    ['<strong class="text-white">Impact Analysis</strong>', '<span class="text-green-400">✓ Transitive callers</span>', '<span class="text-gray-500">✗</span>'],
+                                ]}
+                            />
+                            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mt-4">
+                                <div className="text-xs text-green-400 font-bold uppercase tracking-widest mb-2">claudemem's Key Differentiator</div>
+                                <p className="text-sm text-gray-400">
+                                    While Context-Engine focuses on retrieval, claudemem builds a <strong className="text-white">semantic understanding</strong> of your codebase through the symbol graph.
+                                    PageRank rankings identify which code is "central" to your architecture, enabling analysis that pure retrieval can't do.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Search Capabilities */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Search Capabilities</h3>
+                            <Table
+                                headers={['Feature', 'claudemem', 'Context-Engine']}
+                                rows={[
+                                    ['<strong class="text-white">Hybrid Search</strong>', 'BM25 + vector similarity', '<span class="text-blue-400">Semantic + BM25 + cross-encoder (3-stage)</span>'],
+                                    ['<strong class="text-white">Reranking</strong>', '<span class="text-gray-500">✗ No cross-encoder</span>', '<span class="text-green-400">✓ Cross-encoder via Qdrant FastEmbed</span>'],
+                                    ['<strong class="text-white">Team Memory</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Memory MCP service (port 8000)</span>'],
+                                    ['<strong class="text-white">MCP Tools</strong>', '4 tools (search, index, status, clear)', '10+ tools (repo_search, context_search, context_answer...)'],
+                                    ['<strong class="text-white">Adaptive Learning</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Learning worker improves with usage</span>'],
+                                ]}
+                            />
+                            <p className="text-sm text-gray-500 mt-2">
+                                Context-Engine's three-stage retrieval (dense → lexical → reranker) is theoretically more accurate for pure search relevance, but adds latency and complexity.
+                            </p>
+                        </div>
+
+                        {/* Developer Experience */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Developer Experience</h3>
+                            <Table
+                                headers={['Feature', 'claudemem', 'Context-Engine']}
+                                rows={[
+                                    ['<strong class="text-white">Setup Time</strong>', '<span class="text-green-400">npm install -g + claudemem init</span>', 'Docker Compose + VS Code extension'],
+                                    ['<strong class="text-white">Watch Mode</strong>', '<span class="text-green-400">✓ Native fs.watch</span>', '✓ Via VS Code extension'],
+                                    ['<strong class="text-white">Git Hooks</strong>', '<span class="text-green-400">✓ Built-in post-commit</span>', '<span class="text-gray-500">✗</span>'],
+                                    ['<strong class="text-white">Auto-reindex</strong>', '✓ On search', '✓ On file change'],
+                                ]}
+                            />
+                        </div>
+
+                        {/* MCP Integration */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">MCP Integration</h3>
+                            <Table
+                                headers={['Feature', 'claudemem', 'Context-Engine']}
+                                rows={[
+                                    ['<strong class="text-white">Transport</strong>', 'stdio (standard MCP)', 'SSE + RMCP (dual)'],
+                                    ['<strong class="text-white">Tools</strong>', '4 (search, index, status, clear)', '10+ specialized tools'],
+                                    ['<strong class="text-white">Learning</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Adaptive ranking worker</span>'],
+                                ]}
+                            />
+                        </div>
+
+                        {/* Documentation Indexing */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Documentation Indexing</h3>
+                            <Table
+                                headers={['Feature', 'claudemem', 'Context-Engine']}
+                                rows={[
+                                    ['<strong class="text-white">External Docs</strong>', '<span class="text-green-400">✓ Context7, llms.txt, DevDocs</span>', '<span class="text-gray-500">✗ Code only</span>'],
+                                    ['<strong class="text-white">Dependency Detection</strong>', '<span class="text-green-400">✓ package.json, requirements.txt, etc.</span>', '<span class="text-gray-500">✗</span>'],
+                                ]}
+                            />
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
+                                <div className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-2">Unique to claudemem</div>
+                                <p className="text-sm text-gray-400">
+                                    claudemem's documentation indexing lets you search React docs alongside your React code.
+                                    Useful for queries like <em>"how does React's useEffect work?"</em> during development.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Performance & Scaling */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Performance & Scaling</h3>
+                            <Table
+                                headers={['Aspect', 'claudemem', 'Context-Engine']}
+                                rows={[
+                                    ['<strong class="text-white">Memory</strong>', '<span class="text-green-400">Light (embedded LanceDB)</span>', 'Higher (Qdrant + 5 services)'],
+                                    ['<strong class="text-white">Startup</strong>', '<span class="text-green-400">Instant (single process)</span>', 'Slower (container orchestration)'],
+                                    ['<strong class="text-white">Large Codebases</strong>', 'Good (LanceDB handles millions)', 'Good (Qdrant built for scale)'],
+                                ]}
+                            />
+                        </div>
+
+                        {/* Summary Cards */}
+                        <div className="space-y-6 mt-8">
+                            <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-claude-ish rounded flex items-center justify-center text-black font-bold text-sm">M</div>
+                                        <h4 className="text-lg font-bold text-white">Choose claudemem</h4>
+                                    </div>
+                                    <ul className="space-y-2 text-sm text-gray-300">
+                                        <li className="flex gap-2"><span className="text-claude-ish">•</span> Zero-config, instant setup</li>
+                                        <li className="flex gap-2"><span className="text-claude-ish">•</span> Code analysis (dead code, test gaps, impact)</li>
+                                        <li className="flex gap-2"><span className="text-claude-ish">•</span> Architecture understanding (symbol graph, PageRank)</li>
+                                        <li className="flex gap-2"><span className="text-claude-ish">•</span> Single machine / personal projects</li>
+                                        <li className="flex gap-2"><span className="text-claude-ish">•</span> Documentation + code unified search</li>
+                                    </ul>
+                                </div>
+
+                                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center text-blue-400 font-bold text-sm">CE</div>
+                                        <h4 className="text-lg font-bold text-white">Choose Context-Engine</h4>
+                                    </div>
+                                    <ul className="space-y-2 text-sm text-gray-300">
+                                        <li className="flex gap-2"><span className="text-blue-400">•</span> Team memory (shared knowledge across devs)</li>
+                                        <li className="flex gap-2"><span className="text-blue-400">•</span> Highest retrieval accuracy (cross-encoder)</li>
+                                        <li className="flex gap-2"><span className="text-blue-400">•</span> Comfortable with Docker infrastructure</li>
+                                        <li className="flex gap-2"><span className="text-blue-400">•</span> Adaptive learning from usage patterns</li>
+                                        <li className="flex gap-2"><span className="text-blue-400">•</span> Multiple IDE users, one backend</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Future Opportunities */}
+                        <div className="bg-[#151515] border border-white/5 rounded-xl p-6 mt-8">
+                            <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Potential Future Enhancements</h4>
+                            <p className="text-sm text-gray-400 mb-4">Based on this comparison, features we might consider for claudemem:</p>
+                            <div className="grid md:grid-cols-3 gap-4 text-sm">
+                                <div className="bg-black/30 rounded-lg p-3">
+                                    <div className="text-claude-ish font-bold mb-1">Cross-encoder reranking</div>
+                                    <div className="text-gray-500 text-xs">Improved search precision at the cost of latency</div>
+                                </div>
+                                <div className="bg-black/30 rounded-lg p-3">
+                                    <div className="text-claude-ish font-bold mb-1">Team memory</div>
+                                    <div className="text-gray-500 text-xs">Persistent knowledge store across sessions</div>
+                                </div>
+                                <div className="bg-black/30 rounded-lg p-3">
+                                    <div className="text-claude-ish font-bold mb-1">Adaptive ranking</div>
+                                    <div className="text-gray-500 text-xs">Learning from user search patterns</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            )}
+
+            {/* Greptile Comparison */}
+            {activeSection === 'comparisons-greptile' && (
+                <div className="space-y-12 animate-fadeIn">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs Greptile</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            Local-first semantic search vs cloud-based AI code review platform.
+                        </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-900/10 to-blue-900/10 border border-white/10 rounded-xl p-6">
+                        <p className="text-gray-400 leading-relaxed">
+                            <strong className="text-white">Greptile</strong> (<a href="https://greptile.com" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">YC W24</a>, $29M+ funded) is a cloud PR code review platform claiming 82% bug catch rate via codegraph analysis.
+                            <strong className="text-white"> claudemem</strong> is a local-first semantic code search tool with PageRank symbol graphs — different goals, different tradeoffs.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Architecture</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'Greptile']}
+                            rows={[
+                                ['<strong class="text-white">Deployment</strong>', '<span class="text-green-400">Local-first, self-hosted</span>', 'Cloud SaaS (Docker Compose/K8s self-hosting available)'],
+                                ['<strong class="text-white">Data Handling</strong>', '<span class="text-green-400">100% local, no external calls</span>', 'Cloud (SOC2 Type II certified, air-gapped option)'],
+                                ['<strong class="text-white">Indexing</strong>', 'Tree-sitter AST + LanceDB vectors', '<span class="text-blue-400">Full AST parsing → codegraph (functions, classes, dependencies)</span>'],
+                                ['<strong class="text-white">Languages</strong>', '12+ (tree-sitter)', '<span class="text-blue-400">30+ (language-agnostic codegraph)</span>'],
+                                ['<strong class="text-white">Symbol Analysis</strong>', '<span class="text-green-400">PageRank graph</span>', '<span class="text-blue-400">Full dependency codegraph with cross-file analysis</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Primary Use Case</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
+                                <div className="text-claude-ish font-bold mb-2">claudemem</div>
+                                <p className="text-sm text-gray-400">Developer semantic search, dead-code detection, impact analysis, symbol navigation</p>
+                            </div>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5">
+                                <div className="text-blue-400 font-bold mb-2">Greptile</div>
+                                <p className="text-sm text-gray-400">Automated PR reviews, incident diagnosis, Sentry/Jira integration, security scanning</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Features</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'Greptile']}
+                            rows={[
+                                ['<strong class="text-white">Semantic Search</strong>', '✓ Hybrid BM25 + vector', '✓ NL-to-code via codegraph embeddings'],
+                                ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Test Gap Analysis</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">PR Review</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Primary feature (82% bug catch rate*)</span>'],
+                                ['<strong class="text-white">Custom Rules</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Plain English rules + team learning</span>'],
+                                ['<strong class="text-white">Integrations</strong>', 'Claude Code MCP', '<span class="text-blue-400">Jira, Notion, Google Docs, MCP v3</span>'],
+                                ['<strong class="text-white">Security Scanning</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Built-in</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Pricing</h3>
+                        <Table
+                            headers={['Plan', 'claudemem', 'Greptile']}
+                            rows={[
+                                ['<strong class="text-white">License</strong>', '<span class="text-green-400">MIT (free)</span>', 'Proprietary (Enterprise self-host available)'],
+                                ['<strong class="text-white">Trial</strong>', '<span class="text-green-400">Unlimited</span>', '14-day free trial (no credit card)'],
+                                ['<strong class="text-white">Team</strong>', '<span class="text-green-400">Free</span>', '<span class="text-yellow-400">$30/dev/month</span> (2nd highest in market)'],
+                                ['<strong class="text-white">Open Source</strong>', '<span class="text-green-400">Free</span>', 'Free for OSS projects'],
+                                ['<strong class="text-white">Startups</strong>', '<span class="text-green-400">Free</span>', '50% discount'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                        <div className="text-xs text-yellow-400 font-bold uppercase tracking-widest mb-2">* About the 82% Claim</div>
+                        <p className="text-sm text-gray-400">
+                            The 82% bug catch rate was <strong className="text-white">self-benchmarked by Greptile</strong> (July 2025) on 50 bugs from 5 OSS repos.
+                            Multiple sources note trust concerns; treat as directional, not absolute.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose claudemem</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Privacy-first / air-gapped environments</li>
+                                    <li>• Developer semantic search & navigation</li>
+                                    <li>• Code analysis (dead code, test gaps, impact)</li>
+                                    <li>• Zero recurring costs (MIT license)</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose Greptile</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Automated PR code review at scale</li>
+                                    <li>• Team-wide code quality rules</li>
+                                    <li>• Jira/Notion/Google Docs integration</li>
+                                    <li>• Budget for $30/dev/month SaaS</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Brokk Comparison */}
+            {activeSection === 'comparisons-brokk' && (
+                <div className="space-y-12 animate-fadeIn">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs Brokk</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            Lightweight semantic search vs full Code Property Graph analysis.
+                        </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-900/10 to-blue-900/10 border border-white/10 rounded-xl p-6">
+                        <p className="text-gray-400 leading-relaxed">
+                            <strong className="text-white">Brokk</strong> (<a href="https://github.com/BrokkAi/brokk" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">v0.19.0-beta1</a>, GPL-3.0) is a Java Swing IDE using Joern for full Code Property Graph (CPG) analysis with compiler-grade type inference.
+                            <strong className="text-white"> claudemem</strong> uses tree-sitter AST with PageRank symbol ranking — lightweight vs. heavy-duty.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Architecture</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'Brokk']}
+                            rows={[
+                                ['<strong class="text-white">Runtime</strong>', '<span class="text-green-400">Bun (lightweight CLI)</span>', 'JVM (JDK 21+ required, JetBrains Runtime recommended)'],
+                                ['<strong class="text-white">Tech Stack</strong>', 'TypeScript + LanceDB', 'Java Swing (94.5%) + langchain4j + JLama'],
+                                ['<strong class="text-white">Analysis Engine</strong>', 'Tree-sitter AST', '<span class="text-blue-400">Joern CPG (AST + CFG + PDG merged)</span>'],
+                                ['<strong class="text-white">Type System</strong>', 'Semantic embeddings', '<span class="text-blue-400">Full compiler-grade type inference</span>'],
+                                ['<strong class="text-white">Integration</strong>', '<span class="text-green-400">MCP server (Claude Code)</span>', 'Desktop app + MCP client (consumes MCP)'],
+                                ['<strong class="text-white">Local Inference</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ JLama (CPU-friendly, no GPU required)</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Code Property Graph vs Symbol Graph</h3>
+                        <div className="bg-[#151515] border border-white/5 rounded-lg p-5">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <div className="text-claude-ish font-bold mb-2">claudemem (Symbol Graph)</div>
+                                    <ul className="text-sm text-gray-400 space-y-1">
+                                        <li>• AST parsing via tree-sitter (12+ languages)</li>
+                                        <li>• PageRank importance scoring</li>
+                                        <li>• Caller/callee relationships</li>
+                                        <li>• Fast indexing (seconds for most projects)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <div className="text-blue-400 font-bold mb-2">Brokk (Full CPG via Joern)</div>
+                                    <ul className="text-sm text-gray-400 space-y-1">
+                                        <li>• AST + Control Flow Graph + Data Dependency</li>
+                                        <li>• Full type inference (Java primary)</li>
+                                        <li>• Tree-sitter summarization for Python/JS/C#</li>
+                                        <li>• Million-line repos in single-digit minutes</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Features</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'Brokk']}
+                            rows={[
+                                ['<strong class="text-white">Semantic Search</strong>', '<span class="text-green-400">✓ Hybrid BM25 + vector</span>', '✓ Via MiniLM-L6-v2 embeddings'],
+                                ['<strong class="text-white">Type Inference</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Compiler-grade (Java via Joern)</span>'],
+                                ['<strong class="text-white">Languages</strong>', '<span class="text-green-400">12+ (full support)</span>', 'Java (full CPG), Python/JS/C# (summarization only)'],
+                                ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Lutz Mode</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Research → Plan → Build workflow</span>'],
+                                ['<strong class="text-white">BlitzForge</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Parallel refactoring (100s of files)</span>'],
+                                ['<strong class="text-white">Dependency Decompilation</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ JAR → readable source</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Pricing</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'Brokk']}
+                            rows={[
+                                ['<strong class="text-white">License</strong>', '<span class="text-green-400">MIT (permissive)</span>', 'GPL-3.0 (copyleft obligations)'],
+                                ['<strong class="text-white">Cost</strong>', '<span class="text-green-400">Free</span>', '<span class="text-green-400">Free ($5 trial credit at brokk.ai)</span>'],
+                                ['<strong class="text-white">LLM Costs</strong>', 'Your API keys (OpenRouter)', 'Usage-based via langchain4j (Gemini, OpenAI, etc.)'],
+                                ['<strong class="text-white">Local Models</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ DeepSeek-V3.2, Qwen, via JLama</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose claudemem</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Multi-language codebases</li>
+                                    <li>• Fast semantic search</li>
+                                    <li>• Claude Code integration</li>
+                                    <li>• Lightweight, no JVM required</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose Brokk</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Large Java codebases</li>
+                                    <li>• Need full type inference</li>
+                                    <li>• AI-assisted refactoring</li>
+                                    <li>• Control flow analysis</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Serena Comparison */}
+            {activeSection === 'comparisons-serena' && (
+                <div className="space-y-12 animate-fadeIn">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs Serena</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            Semantic embeddings vs LSP-based structural analysis.
+                        </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-900/10 to-blue-900/10 border border-white/10 rounded-xl p-6">
+                        <p className="text-gray-400 leading-relaxed">
+                            <strong className="text-white">Serena</strong> (<a href="https://github.com/oraios/serena" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">17,780 ★ GitHub</a>, MIT) uses Language Server Protocol for structural code understanding with 35+ MCP tools — no embeddings, pure LSP.
+                            <strong className="text-white"> claudemem</strong> combines tree-sitter AST with vector embeddings for hybrid semantic search — fundamentally different approaches.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Fundamental Approach</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
+                                <div className="text-claude-ish font-bold mb-2">claudemem (Embeddings)</div>
+                                <p className="text-sm text-gray-400">AST → Vector embeddings → Semantic similarity search</p>
+                                <p className="text-xs text-gray-500 mt-2">Finds "similar authentication patterns" across codebase via fuzzy matching</p>
+                            </div>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5">
+                                <div className="text-blue-400 font-bold mb-2">Serena (LSP-based)</div>
+                                <p className="text-sm text-gray-400">Language servers → Structural understanding → Precise symbol navigation</p>
+                                <p className="text-xs text-gray-500 mt-2">Finds exact definitions, references, types via 35+ MCP tools — deterministic, not fuzzy</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Features</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'Serena']}
+                            rows={[
+                                ['<strong class="text-white">Semantic Search</strong>', '<span class="text-green-400">✓ Hybrid BM25 + vector</span>', '<span class="text-gray-500">✗ No embeddings — pure structural</span>'],
+                                ['<strong class="text-white">Symbol Navigation</strong>', '✓ Via AST + PageRank', '<span class="text-green-400">✓ Native LSP (find_symbol, find_referencing_symbols)</span>'],
+                                ['<strong class="text-white">Languages</strong>', '12+ (tree-sitter)', '<span class="text-green-400">33 via LSP + JetBrains plugin</span>'],
+                                ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Importance Ranking</strong>', '<span class="text-green-400">✓ PageRank</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Code Editing</strong>', 'Text-based', '<span class="text-green-400">✓ Symbol-precise (replace_symbol_body, insert_before_symbol)</span>'],
+                                ['<strong class="text-white">MCP Tools</strong>', '4 tools', '<span class="text-green-400">35+ tools (file, symbol, memory, shell, planning)</span>'],
+                                ['<strong class="text-white">Refactoring</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ rename_symbol via LSP</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Technical Stack</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'Serena']}
+                            rows={[
+                                ['<strong class="text-white">Backend</strong>', 'LanceDB + tree-sitter', 'Language servers via multilspy + Solid-LSP'],
+                                ['<strong class="text-white">Dependencies</strong>', '<span class="text-green-400">Self-contained</span>', 'Python 3.11, uv, language servers per language'],
+                                ['<strong class="text-white">Setup</strong>', '<span class="text-green-400">npm install -g claudemem</span>', 'uvx from git or Docker'],
+                                ['<strong class="text-white">IDE Plugin</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ JetBrains plugin (preferred)</span>'],
+                                ['<strong class="text-white">License</strong>', 'MIT', 'MIT'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
+                        <div className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-2">Complementary Tools</div>
+                        <p className="text-sm text-gray-400">
+                            Serena explicitly positions LSP and RAG as <strong className="text-white">complementary</strong> approaches.
+                            You could use both: claudemem for semantic discovery, Serena for precise symbol-level editing.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose claudemem</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• "Find code that does X" queries</li>
+                                    <li>• Semantic similarity search</li>
+                                    <li>• Dead code / test gap analysis</li>
+                                    <li>• Simpler setup (no language servers)</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose Serena</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Precise symbol navigation</li>
+                                    <li>• Large existing codebases</li>
+                                    <li>• Complex refactoring</li>
+                                    <li>• Need 30+ language support</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Amp Comparison */}
+            {activeSection === 'comparisons-amp' && (
+                <div className="space-y-12 animate-fadeIn">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs Amp</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            Local-first open source vs enterprise cloud AI coding agent.
+                        </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-900/10 to-blue-900/10 border border-white/10 rounded-xl p-6">
+                        <p className="text-gray-400 leading-relaxed">
+                            <strong className="text-white">Amp</strong> by Sourcegraph (<a href="https://ampcode.com" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">ampcode.com</a>) is an enterprise AI coding agent powered by Claude Opus 4.5 with credit-based pricing, SCIP indexing, and background agents.
+                            <strong className="text-white"> claudemem</strong> is free, local-first semantic search focused on code understanding — different scope entirely.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Architecture</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'Amp']}
+                            rows={[
+                                ['<strong class="text-white">Deployment</strong>', '<span class="text-green-400">Local, self-hosted</span>', '<span class="text-yellow-400">Cloud-only (no self-hosting)</span>'],
+                                ['<strong class="text-white">Data Handling</strong>', '<span class="text-green-400">100% local</span>', 'Cloud (ZDR available for enterprise)'],
+                                ['<strong class="text-white">Indexing</strong>', 'Full codebase AST + vectors', '<span class="text-blue-400">SCIP (10x faster, 4x smaller than LSIF)</span>'],
+                                ['<strong class="text-white">Context Window</strong>', 'Unlimited (local)', '200k tokens (Claude Opus 4.5), 1M optional'],
+                                ['<strong class="text-white">Symbol Analysis</strong>', 'PageRank symbol graph', '<span class="text-blue-400">SCIP via Sourcegraph MCP (cross-repo)</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Features</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'Amp']}
+                            rows={[
+                                ['<strong class="text-white">Semantic Search</strong>', '✓ Hybrid BM25 + vector', '✓ Via Sourcegraph MCP + Librarian subagent'],
+                                ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Background Agents</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ 10-15min autonomous tasks</span>'],
+                                ['<strong class="text-white">Multi-Model</strong>', 'Via OpenRouter', '<span class="text-green-400">✓ Claude Opus 4.5, Gemini 3, GPT-5</span>'],
+                                ['<strong class="text-white">Toolboxes & Skills</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Custom extensions from GitHub</span>'],
+                                ['<strong class="text-white">IDE Support</strong>', 'Claude Code CLI', '<span class="text-green-400">VS Code, Cursor, Windsurf, JetBrains, Neovim</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Pricing</h3>
+                        <Table
+                            headers={['Plan', 'claudemem', 'Amp']}
+                            rows={[
+                                ['<strong class="text-white">License</strong>', '<span class="text-green-400">MIT (open source)</span>', 'Proprietary (cloud service)'],
+                                ['<strong class="text-white">Free Tier</strong>', '<span class="text-green-400">Unlimited</span>', '$10 free credits (ad-supported tier)'],
+                                ['<strong class="text-white">Paid Model</strong>', '<span class="text-green-400">N/A (always free)</span>', '<span class="text-yellow-400">Credit-based (no subscriptions)</span>'],
+                                ['<strong class="text-white">Enterprise</strong>', '<span class="text-green-400">Free (self-host)</span>', '<span class="text-yellow-400">$1,000+ purchase = SSO + ZDR</span>'],
+                                ['<strong class="text-white">Privacy</strong>', '<span class="text-green-400">Air-gap compatible</span>', 'Zero Data Retention available (enterprise)'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">AGENTS.md vs CLAUDE.md</h3>
+                        <div className="bg-[#151515] border border-white/5 rounded-lg p-5">
+                            <p className="text-sm text-gray-400 mb-3">
+                                Amp uses <code className="text-blue-400">AGENTS.md</code> (an open spec now under Linux Foundation stewardship) for project-level AI guidance.
+                                claudemem integrates with Claude Code's <code className="text-claude-ish">CLAUDE.md</code> for similar purposes.
+                            </p>
+                            <p className="text-xs text-gray-500">Both support: build steps, test commands, coding conventions. AGENTS.md is cross-tool compatible (Codex, Jules, Cursor, Factory).</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose claudemem</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Air-gapped / privacy-first</li>
+                                    <li>• No recurring costs</li>
+                                    <li>• Code analysis (dead code, test gaps)</li>
+                                    <li>• Simple, focused tooling</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Choose Amp</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Enterprise with SSO/RBAC needs</li>
+                                    <li>• Long-running background agents</li>
+                                    <li>• Multi-IDE teams</li>
+                                    <li>• Budget for cloud AI tools</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Supermemory Comparison */}
+            {activeSection === 'comparisons-supermemory' && (
+                <div className="space-y-12 animate-fadeIn">
+                    <div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded font-mono">Comparisons</span>
+                            <span className="text-gray-600">/</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white mb-4 tracking-tight">claudemem vs Supermemory</h1>
+                        <p className="text-xl text-gray-400 leading-relaxed">
+                            Code intelligence vs personal knowledge management — different tools for different needs.
+                        </p>
+                    </div>
+
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6">
+                        <div className="text-xs text-yellow-400 font-bold uppercase tracking-widest mb-2">Different Categories</div>
+                        <p className="text-gray-400 leading-relaxed">
+                            <strong className="text-white">Supermemory</strong> (<a href="https://github.com/supermemoryai/supermemory" className="text-blue-400 hover:underline" target="_blank" rel="noreferrer">~13.9k ★ GitHub</a>, MIT) is an <strong className="text-yellow-400">"AI second brain"</strong> for saving URLs, bookmarks, PDFs, and notes.
+                            <strong className="text-white"> claudemem</strong> is <strong className="text-claude-ish">semantic code search</strong> with symbol graphs. These are <strong className="text-white">complementary tools</strong>, not competitors.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Fundamental Purpose</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
+                                <div className="text-claude-ish font-bold mb-2">claudemem</div>
+                                <p className="text-sm text-gray-400 mb-3">Semantic code search + symbol analysis</p>
+                                <ul className="text-xs text-gray-500 space-y-1">
+                                    <li>• Index source code with tree-sitter AST</li>
+                                    <li>• Find functions, classes, callers/callees</li>
+                                    <li>• PageRank importance ranking</li>
+                                    <li>• Dead code & test gap detection</li>
+                                </ul>
+                            </div>
+                            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-5">
+                                <div className="text-purple-400 font-bold mb-2">Supermemory</div>
+                                <p className="text-sm text-gray-400 mb-3">Personal knowledge management / "Second brain"</p>
+                                <ul className="text-xs text-gray-500 space-y-1">
+                                    <li>• Save URLs, PDFs, bookmarks, notes</li>
+                                    <li>• Organize into collections</li>
+                                    <li>• Chat with your saved content</li>
+                                    <li>• Cross-platform memory sharing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Technical Comparison</h3>
+                        <Table
+                            headers={['Aspect', 'claudemem', 'Supermemory']}
+                            rows={[
+                                ['<strong class="text-white">Content Type</strong>', '<span class="text-claude-ish">Source code (functions, classes, symbols)</span>', '<span class="text-purple-400">URLs, PDFs, bookmarks, notes, web pages</span>'],
+                                ['<strong class="text-white">Analysis</strong>', 'AST parsing + PageRank symbol graph', 'Knowledge graph + RAG pipeline'],
+                                ['<strong class="text-white">Storage</strong>', '<span class="text-green-400">Local (LanceDB embedded)</span>', 'Cloud (Cloudflare) or self-hosted'],
+                                ['<strong class="text-white">Tech Stack</strong>', 'TypeScript / Bun', 'TypeScript / Remix / Cloudflare Workers'],
+                                ['<strong class="text-white">Search Backend</strong>', 'LanceDB + BM25 hybrid', 'Trieve knowledge graph'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Features</h3>
+                        <Table
+                            headers={['Feature', 'claudemem', 'Supermemory']}
+                            rows={[
+                                ['<strong class="text-white">Semantic Search</strong>', '✓ Code-focused', '✓ Document-focused'],
+                                ['<strong class="text-white">Symbol Graph</strong>', '<span class="text-green-400">✓ PageRank callers/callees</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓</span>', '<span class="text-gray-500">✗ (not applicable)</span>'],
+                                ['<strong class="text-white">Browser Extension</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Chrome/Edge</span>'],
+                                ['<strong class="text-white">Collections/Canvas</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Visual organization</span>'],
+                                ['<strong class="text-white">Writing Assistant</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ AI markdown editor</span>'],
+                                ['<strong class="text-white">MCP Integration</strong>', '✓ 4 tools', '✓ 4 tools (addMemory, search, etc.)'],
+                                ['<strong class="text-white">CLI</strong>', '<span class="text-green-400">✓ Full CLI (map, callers, dead-code)</span>', '<span class="text-gray-500">✗ Web/API only</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Integrations</h3>
+                        <Table
+                            headers={['Platform', 'claudemem', 'Supermemory']}
+                            rows={[
+                                ['<strong class="text-white">Claude Code</strong>', '<span class="text-green-400">✓ MCP server</span>', '<span class="text-green-400">✓ MCP server</span>'],
+                                ['<strong class="text-white">Cursor</strong>', '✓ Via MCP', '✓ Via MCP'],
+                                ['<strong class="text-white">VS Code</strong>', '✓ Via MCP', '✓ Via MCP'],
+                                ['<strong class="text-white">Notion</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Import</span>'],
+                                ['<strong class="text-white">Google Drive</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Import</span>'],
+                                ['<strong class="text-white">Twitter/X</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Bookmark import</span>'],
+                                ['<strong class="text-white">Raycast</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Extension</span>'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">Pricing</h3>
+                        <Table
+                            headers={['Tier', 'claudemem', 'Supermemory']}
+                            rows={[
+                                ['<strong class="text-white">License</strong>', '<span class="text-green-400">MIT (open source)</span>', '<span class="text-green-400">MIT (open source)</span>'],
+                                ['<strong class="text-white">Free</strong>', '<span class="text-green-400">Unlimited (local)</span>', '1M tokens, 10K queries'],
+                                ['<strong class="text-white">Pro</strong>', '<span class="text-green-400">N/A (always free)</span>', '$19/month (3M tokens)'],
+                                ['<strong class="text-white">Scale</strong>', '<span class="text-green-400">N/A</span>', '$399/month (80M tokens)'],
+                                ['<strong class="text-white">Self-hosting</strong>', '<span class="text-green-400">✓ Full support</span>', '✓ Available'],
+                            ]}
+                        />
+                    </div>
+
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                        <div className="text-xs text-green-400 font-bold uppercase tracking-widest mb-2">Using Both Together</div>
+                        <p className="text-sm text-gray-400">
+                            These tools are <strong className="text-white">complementary</strong>: use <strong className="text-claude-ish">claudemem</strong> to search and analyze your codebase,
+                            and <strong className="text-purple-400">Supermemory</strong> to save research, documentation, and notes that inform your development.
+                            Both integrate with Claude Code via MCP.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">When to Use Each</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Use claudemem for</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• "Where is authentication handled?"</li>
+                                    <li>• "What calls this function?"</li>
+                                    <li>• "Find dead code in this project"</li>
+                                    <li>• "Show untested high-importance code"</li>
+                                    <li>• Navigating unfamiliar codebases</li>
+                                </ul>
+                            </div>
+                            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-6">
+                                <h4 className="text-lg font-bold text-white mb-3">Use Supermemory for</h4>
+                                <ul className="space-y-2 text-sm text-gray-300">
+                                    <li>• Saving API documentation pages</li>
+                                    <li>• Organizing research and bookmarks</li>
+                                    <li>• "What did I read about React hooks?"</li>
+                                    <li>• Cross-platform memory for AI tools</li>
+                                    <li>• Building a personal knowledge base</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
