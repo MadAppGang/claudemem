@@ -408,6 +408,14 @@ export class FileTracker {
 		this.db.close();
 	}
 
+	/**
+	 * Get the underlying database instance.
+	 * Used for integrations like the learning system.
+	 */
+	getDatabase(): SQLiteDatabase {
+		return this.db;
+	}
+
 	// ========================================================================
 	// Enrichment Tracking Methods
 	// ========================================================================

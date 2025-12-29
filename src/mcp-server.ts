@@ -16,6 +16,7 @@ import { createIndexer } from "./core/indexer.js";
 import { createCodeAnalyzer } from "./core/analysis/index.js";
 import { FileTracker } from "./core/tracker.js";
 import { discoverEmbeddingModels, formatModelInfo } from "./models/model-discovery.js";
+import { createLearningSystem } from "./learning/index.js";
 
 /**
  * Get file tracker for a project path
@@ -163,11 +164,58 @@ async function main() {
 					}
 				}
 
-				const results = await indexer.search(query, {
+				let results = await indexer.search(query, {
 					limit: limit || 10,
 					language,
 					useCase: useCase || "search",
 				});
+
+				// Apply adaptive ranking if learning system is available
+				const tracker = getFileTracker(projectPath);
+				let adaptiveApplied = false;
+				let sessionId: string | undefined;
+
+				if (tracker) {
+					try {
+						const learning = createLearningSystem(tracker.getDatabase());
+
+						// Record query for refinement detection
+						sessionId = `mcp_${Date.now()}`;
+						const refinement = learning.collector.recordSearch({
+							query,
+							sessionId,
+							resultCount: results.length,
+							useCase: useCase || "search",
+						});
+
+						if (refinement) {
+							console.error(`[claudemem] Detected query refinement from "${refinement.originalQuery}"`);
+						}
+
+						// Apply file boosts if we have learned data
+						if (learning.ranker.isActive(useCase || "search")) {
+							const fileBoosts = learning.ranker.getAllFileBoosts();
+							if (fileBoosts.size > 0) {
+								// Apply boosts to scores
+								results = results.map((r) => {
+									const boost = fileBoosts.get(r.chunk.filePath) ?? 1.0;
+									return {
+										...r,
+										score: r.score * boost,
+									};
+								});
+								// Re-sort by boosted score
+								results.sort((a, b) => b.score - a.score);
+								adaptiveApplied = true;
+							}
+						}
+					} catch (learningError) {
+						// Learning system error - log and continue without it
+						console.error("[claudemem] Learning system error:", learningError);
+					} finally {
+						tracker.close();
+					}
+				}
 
 				await indexer.close();
 
@@ -186,11 +234,18 @@ async function main() {
 				if (autoIndexed > 0) {
 					response += `*Auto-indexed ${autoIndexed} changed file(s) before search*\n\n`;
 				}
+				if (adaptiveApplied) {
+					response += `*Adaptive ranking applied based on learned preferences*\n\n`;
+				}
 				response += `Found ${results.length} result(s):\n\n`;
+
+				// Include chunk IDs for feedback reporting
+				const chunkIds: string[] = [];
 
 				for (let i = 0; i < results.length; i++) {
 					const r = results[i];
 					const chunk = r.chunk;
+					chunkIds.push(chunk.id);
 
 					response += `### ${i + 1}. \`${chunk.filePath}\`:${chunk.startLine}-${chunk.endLine}\n`;
 					response += `**${chunk.chunkType}**`;
@@ -201,7 +256,8 @@ async function main() {
 						response += ` (in \`${chunk.parentName}\`)`;
 					}
 					response += `\n`;
-					response += `Score: ${(r.score * 100).toFixed(1)}% (vector: ${(r.vectorScore * 100).toFixed(0)}%, keyword: ${(r.keywordScore * 100).toFixed(0)}%)\n\n`;
+					response += `Score: ${(r.score * 100).toFixed(1)}% (vector: ${(r.vectorScore * 100).toFixed(0)}%, keyword: ${(r.keywordScore * 100).toFixed(0)}%)\n`;
+					response += `ID: \`${chunk.id.slice(0, 12)}...\`\n\n`;
 					response += "```" + chunk.language + "\n";
 					response += chunk.content.slice(0, 1000);
 					if (chunk.content.length > 1000) {
@@ -209,6 +265,11 @@ async function main() {
 					}
 					response += "\n```\n\n";
 				}
+
+				// Add footer with feedback hint
+				response += `---\n`;
+				response += `*To improve future searches, call \`report_search_feedback\` with the chunk IDs of helpful results.*\n`;
+				response += `*Chunk IDs: ${chunkIds.map(id => id.slice(0, 8)).join(", ")}*\n`;
 
 				return { content: [{ type: "text", text: response }] };
 			} catch (error) {
@@ -637,6 +698,185 @@ async function main() {
 							response += `  - *... and ${callers.length - 5} more*\n`;
 						}
 						response += `\n`;
+					}
+				}
+
+				return { content: [{ type: "text", text: response }] };
+			} catch (error) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+						},
+					],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// ========================================================================
+	// Tool: report_search_feedback
+	// ========================================================================
+	server.tool(
+		"report_search_feedback",
+		"Report feedback on search results to improve future rankings. Call this after using search results to indicate which were helpful. This helps claudemem learn and improve over time.",
+		{
+			query: z
+				.string()
+				.describe("The search query that was executed"),
+			allResultIds: z
+				.array(z.string())
+				.describe("All chunk IDs that were returned from the search"),
+			helpfulIds: z
+				.array(z.string())
+				.optional()
+				.describe("Chunk IDs that were helpful/relevant to your task"),
+			unhelpfulIds: z
+				.array(z.string())
+				.optional()
+				.describe("Chunk IDs that were not helpful/relevant"),
+			sessionId: z
+				.string()
+				.optional()
+				.describe("Session identifier to group related searches (auto-generated if not provided)"),
+			useCase: z
+				.enum(["fim", "search", "navigation"])
+				.optional()
+				.describe("Search use case if known"),
+			path: z
+				.string()
+				.optional()
+				.describe("Project path (default: current directory)"),
+		},
+		async ({ query, allResultIds, helpfulIds, unhelpfulIds, sessionId, useCase, path }) => {
+			try {
+				const projectPath = path || process.cwd();
+				const tracker = getFileTracker(projectPath);
+
+				if (!tracker) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: "No index found. Run `index_codebase` first to enable feedback collection.",
+							},
+						],
+						isError: true,
+					};
+				}
+
+				// Create learning system
+				const learning = createLearningSystem(tracker.getDatabase());
+
+				// Record the feedback
+				learning.collector.captureExplicitFeedback({
+					query,
+					sessionId,
+					resultIds: allResultIds,
+					helpfulIds: helpfulIds || [],
+					unhelpfulIds: unhelpfulIds || [],
+					useCase,
+					source: "mcp",
+				});
+
+				// Get updated stats
+				const stats = learning.store.getStatistics();
+
+				tracker.close();
+
+				const helpfulCount = helpfulIds?.length || 0;
+				const unhelpfulCount = unhelpfulIds?.length || 0;
+
+				let response = `## Feedback Recorded\n\n`;
+				response += `- **Helpful results**: ${helpfulCount}\n`;
+				response += `- **Unhelpful results**: ${unhelpfulCount}\n`;
+				response += `- **Total feedback events**: ${stats.totalFeedbackEvents}\n`;
+				response += `\nSearch ranking will improve based on this feedback.`;
+
+				return { content: [{ type: "text", text: response }] };
+			} catch (error) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+						},
+					],
+					isError: true,
+				};
+			}
+		},
+	);
+
+	// ========================================================================
+	// Tool: get_learning_stats
+	// ========================================================================
+	server.tool(
+		"get_learning_stats",
+		"Get statistics about the adaptive learning system, including feedback counts, confidence levels, and current weight adjustments.",
+		{
+			path: z
+				.string()
+				.optional()
+				.describe("Project path (default: current directory)"),
+		},
+		async ({ path }) => {
+			try {
+				const projectPath = path || process.cwd();
+				const tracker = getFileTracker(projectPath);
+
+				if (!tracker) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: "No index found. Run `index_codebase` first.",
+							},
+						],
+						isError: true,
+					};
+				}
+
+				const learning = createLearningSystem(tracker.getDatabase());
+				const stats = learning.store.getStatistics();
+				const diagnostics = learning.ranker.getDiagnostics();
+
+				tracker.close();
+
+				let response = `## Adaptive Learning Statistics\n\n`;
+
+				response += `### Feedback Data\n`;
+				response += `- **Total feedback events**: ${stats.totalFeedbackEvents}\n`;
+				response += `- **Unique queries**: ${stats.uniqueQueries}\n`;
+				response += `- **Average acceptance rate**: ${(stats.averageAcceptanceRate * 100).toFixed(1)}%\n`;
+				if (stats.lastFeedbackAt) {
+					response += `- **Last feedback**: ${stats.lastFeedbackAt.toISOString()}\n`;
+				}
+				response += `\n`;
+
+				response += `### Current Weights\n`;
+				response += `- **Adaptive ranking active**: ${diagnostics.isActive ? "Yes" : "No (need more data)"}\n`;
+				response += `- **Confidence**: ${(diagnostics.confidence * 100).toFixed(1)}%\n`;
+				response += `- **Vector weight**: ${diagnostics.vectorWeight.toFixed(3)} (default: 0.6)\n`;
+				response += `- **BM25 weight**: ${diagnostics.bm25Weight.toFixed(3)} (default: 0.4)\n`;
+				response += `- **Files with custom boosts**: ${diagnostics.fileBoostCount}\n`;
+				response += `\n`;
+
+				if (diagnostics.topBoostedFiles.length > 0) {
+					response += `### Top Boosted Files\n`;
+					for (const { filePath, boost } of diagnostics.topBoostedFiles) {
+						const fileName = filePath.split("/").pop();
+						response += `- \`${fileName}\`: ${boost.toFixed(2)}x\n`;
+					}
+					response += `\n`;
+				}
+
+				if (stats.topQueries.length > 0) {
+					response += `### Most Common Queries\n`;
+					for (const { query, count } of stats.topQueries.slice(0, 5)) {
+						response += `- "${query}" (${count} times)\n`;
 					}
 				}
 

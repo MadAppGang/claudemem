@@ -53,6 +53,8 @@ import {
 	getFullSkillWithRole,
 	getCompactSkillWithRole,
 } from "./ai-skill.js";
+// Note: learning module is imported lazily to avoid startup errors
+// Use: const { createLearningSystem } = await import("./learning/index.js");
 import {
 	getLogo,
 	printLogo as printLogoUI,
@@ -201,6 +203,13 @@ export async function runCli(args: string[]): Promise<void> {
 		// Documentation commands
 		case "docs":
 			await handleDocs(args.slice(1));
+			break;
+		// Learning commands
+		case "feedback":
+			await handleFeedback(args.slice(1));
+			break;
+		case "learn":
+			await handleLearn(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -699,13 +708,40 @@ async function handleSearch(args: string[]): Promise<void> {
 			return;
 		}
 
+		// Record query for implicit feedback (refinement detection)
+		// This happens in background and doesn't block results
+		const tracker = getFileTracker(projectPath);
+		if (tracker) {
+			try {
+				const { createLearningSystem } = await import("./learning/index.js");
+				const learning = createLearningSystem(tracker.getDatabase());
+				// Generate a CLI session ID based on process start time
+				const cliSessionId = `cli_${process.pid}`;
+				learning.collector.recordSearch({
+					query,
+					sessionId: cliSessionId,
+					resultCount: results.length,
+					useCase,
+				});
+			} catch (learningError) {
+				// Learning system errors shouldn't break search
+				console.error("[claudemem] Learning system error:", learningError);
+			} finally {
+				tracker.close();
+			}
+		}
+
 		console.log(`Found ${results.length} result(s):\n`);
+
+		// Collect result IDs for feedback hint
+		const resultIds = results.map((r) => r.chunk.id);
 
 		for (let i = 0; i < results.length; i++) {
 			const r = results[i];
 			const chunk = r.chunk;
 
 			console.log(`━━━ ${i + 1}. ${chunk.filePath}:${chunk.startLine}-${chunk.endLine} ━━━`);
+			console.log(`ID: ${chunk.id}`);
 			console.log(`Type: ${chunk.chunkType}${chunk.name ? ` | Name: ${chunk.name}` : ""}${chunk.parentName ? ` | Parent: ${chunk.parentName}` : ""}`);
 			console.log(`Score: ${(r.score * 100).toFixed(1)}% (vector: ${(r.vectorScore * 100).toFixed(0)}%, keyword: ${(r.keywordScore * 100).toFixed(0)}%)`);
 			console.log("");
@@ -725,6 +761,10 @@ async function handleSearch(args: string[]): Promise<void> {
 
 			console.log("");
 		}
+
+		// Show feedback hint for agents
+		console.log(`💡 To provide feedback: claudemem feedback --query "${query}" --helpful <ids> --unhelpful <ids>`);
+		console.log(`   Result IDs: ${resultIds.join(",")}\n`);
 	} catch (error) {
 		if (error instanceof EmbeddingModelMismatchError) {
 			console.error(`\n❌ ${error.message}\n`);
@@ -3612,6 +3652,241 @@ async function handleDocsClear(projectPath: string, args: string[]): Promise<voi
 }
 
 // ============================================================================
+// Learning / Feedback Commands
+// ============================================================================
+
+/**
+ * Handle 'feedback' command - report search feedback for adaptive ranking
+ *
+ * Usage:
+ *   claudemem feedback --query "auth flow" --helpful id1,id2 --unhelpful id3
+ *   claudemem feedback --query "auth flow" --helpful id1 --unhelpful id2,id3
+ */
+async function handleFeedback(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
+	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
+
+	// Parse --query flag
+	const queryIdx = args.findIndex((a) => a === "-q" || a === "--query");
+	const query = queryIdx >= 0 ? args[queryIdx + 1] : undefined;
+
+	// Parse --helpful flag (comma-separated chunk IDs)
+	const helpfulIdx = args.findIndex((a) => a === "--helpful");
+	const helpfulIds = helpfulIdx >= 0 && args[helpfulIdx + 1]
+		? args[helpfulIdx + 1].split(",").map((id) => id.trim()).filter(Boolean)
+		: [];
+
+	// Parse --unhelpful flag (comma-separated chunk IDs)
+	const unhelpfulIdx = args.findIndex((a) => a === "--unhelpful");
+	const unhelpfulIds = unhelpfulIdx >= 0 && args[unhelpfulIdx + 1]
+		? args[unhelpfulIdx + 1].split(",").map((id) => id.trim()).filter(Boolean)
+		: [];
+
+	// Parse --results flag (all result IDs from the search)
+	const resultsIdx = args.findIndex((a) => a === "--results");
+	const resultIds = resultsIdx >= 0 && args[resultsIdx + 1]
+		? args[resultsIdx + 1].split(",").map((id) => id.trim()).filter(Boolean)
+		: [...helpfulIds, ...unhelpfulIds]; // Default to combined if not specified
+
+	if (!query) {
+		if (raw) {
+			console.log("error: --query is required");
+		} else {
+			console.error("Error: --query is required.");
+			console.error('Usage: claudemem feedback --query "your query" --helpful id1,id2 --unhelpful id3');
+		}
+		process.exit(1);
+	}
+
+	if (helpfulIds.length === 0 && unhelpfulIds.length === 0) {
+		if (raw) {
+			console.log("error: at least one of --helpful or --unhelpful is required");
+		} else {
+			console.error("Error: At least one of --helpful or --unhelpful is required.");
+			console.error('Usage: claudemem feedback --query "your query" --helpful id1,id2 --unhelpful id3');
+		}
+		process.exit(1);
+	}
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		if (raw) {
+			console.log("error: no index found");
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
+		process.exit(1);
+	}
+
+	try {
+		const { createLearningSystem } = await import("./learning/index.js");
+		const learning = createLearningSystem(tracker.getDatabase());
+
+		// Record the feedback
+		learning.collector.captureExplicitFeedback({
+			query,
+			resultIds,
+			helpfulIds,
+			unhelpfulIds,
+		});
+
+		// Train on the feedback
+		const weights = await learning.engine.train();
+
+		if (raw) {
+			console.log("ok");
+			console.log(`feedback_count:${weights.feedbackCount}`);
+			console.log(`confidence:${weights.confidence.toFixed(2)}`);
+			console.log(`vector_weight:${weights.vectorWeight.toFixed(3)}`);
+			console.log(`bm25_weight:${weights.bm25Weight.toFixed(3)}`);
+		} else {
+			if (!noLogo) printLogo();
+			console.log("\n✅ Feedback recorded\n");
+			console.log(`  Query: "${query}"`);
+			console.log(`  Helpful: ${helpfulIds.length} result(s)`);
+			console.log(`  Unhelpful: ${unhelpfulIds.length} result(s)`);
+			console.log(`\n📊 Updated weights:`);
+			console.log(`  Vector: ${(weights.vectorWeight * 100).toFixed(1)}%`);
+			console.log(`  BM25: ${(weights.bm25Weight * 100).toFixed(1)}%`);
+			console.log(`  Confidence: ${(weights.confidence * 100).toFixed(0)}%`);
+			console.log(`  Total feedback events: ${weights.feedbackCount}`);
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+/**
+ * Handle 'learn' command - show learning stats or reset
+ *
+ * Usage:
+ *   claudemem learn                 Show learning statistics
+ *   claudemem learn stats           Show detailed learning statistics
+ *   claudemem learn reset           Reset all learned weights
+ */
+async function handleLearn(args: string[]): Promise<void> {
+	const raw = args.includes("--raw");
+	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
+	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
+
+	const subcommand = args.find((a) => !a.startsWith("-"));
+
+	const tracker = getFileTracker(projectPath);
+	if (!tracker) {
+		if (raw) {
+			console.log("error: no index found");
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
+		process.exit(1);
+	}
+
+	try {
+		const { createLearningSystem } = await import("./learning/index.js");
+		const learning = createLearningSystem(tracker.getDatabase());
+
+		if (subcommand === "reset") {
+			// Reset learning
+			const force = args.includes("--force") || args.includes("-f");
+
+			if (!force && !raw) {
+				const confirmed = await confirm({
+					message: "Reset all learned weights? This cannot be undone.",
+					default: false,
+				});
+
+				if (!confirmed) {
+					console.log("Cancelled.");
+					return;
+				}
+			}
+
+			learning.engine.reset();
+
+			if (raw) {
+				console.log("ok");
+			} else {
+				if (!noLogo) printLogo();
+				console.log("\n✅ Learning data reset to defaults.\n");
+			}
+			return;
+		}
+
+		// Show stats (default or "stats" subcommand)
+		const stats = learning.store.getStatistics();
+		const weights = learning.engine.getWeights();
+
+		// Extract counts from eventsByType
+		const explicitCount = stats.eventsByType?.explicit ?? 0;
+		const refinementCount = stats.eventsByType?.refinement ?? 0;
+		const implicitCount = stats.eventsByType?.implicit ?? 0;
+		const trackedFilesCount = stats.topBoostedFiles?.length ?? 0;
+
+		if (raw) {
+			console.log(`total_feedback:${stats.totalFeedbackEvents}`);
+			console.log(`explicit_feedback:${explicitCount}`);
+			console.log(`refinement_feedback:${refinementCount}`);
+			console.log(`implicit_feedback:${implicitCount}`);
+			console.log(`unique_queries:${stats.uniqueQueries}`);
+			console.log(`tracked_files:${trackedFilesCount}`);
+			console.log(`vector_weight:${weights.vectorWeight.toFixed(3)}`);
+			console.log(`bm25_weight:${weights.bm25Weight.toFixed(3)}`);
+			console.log(`confidence:${weights.confidence.toFixed(2)}`);
+			if (stats.lastTrainingAt) {
+				console.log(`last_trained:${stats.lastTrainingAt.toISOString()}`);
+			}
+		} else {
+			if (!noLogo) printLogo();
+			console.log("\n📊 Learning Statistics\n");
+			console.log(`  Total feedback events: ${stats.totalFeedbackEvents}`);
+			console.log(`    Explicit: ${explicitCount}`);
+			console.log(`    Refinement: ${refinementCount}`);
+			console.log(`    Implicit: ${implicitCount}`);
+			console.log(`  Unique queries: ${stats.uniqueQueries}`);
+			console.log(`  Tracked files: ${trackedFilesCount}`);
+			if (stats.lastTrainingAt) {
+				console.log(`  Last trained: ${stats.lastTrainingAt.toISOString()}`);
+			}
+			console.log("\n📈 Current Weights\n");
+			console.log(`  Vector: ${(weights.vectorWeight * 100).toFixed(1)}%`);
+			console.log(`  BM25: ${(weights.bm25Weight * 100).toFixed(1)}%`);
+			console.log(`  Confidence: ${(weights.confidence * 100).toFixed(0)}%`);
+
+			// Show top file boosts if any
+			const fileBoosts = weights.fileBoosts;
+			if (fileBoosts.size > 0) {
+				console.log("\n📁 File Boosts (top 10)\n");
+				const sorted = [...fileBoosts.entries()]
+					.sort((a, b) => b[1] - a[1])
+					.slice(0, 10);
+				for (const [file, boost] of sorted) {
+					const boostPct = ((boost - 1) * 100).toFixed(0);
+					const sign = boost >= 1 ? "+" : "";
+					console.log(`  ${sign}${boostPct}%  ${file}`);
+				}
+			}
+
+			// Show document type weights
+			const docWeights = weights.documentTypeWeights;
+			if (Object.keys(docWeights).length > 0) {
+				console.log("\n📄 Document Type Weights\n");
+				const sorted = Object.entries(docWeights)
+					.sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
+				for (const [type, weight] of sorted) {
+					console.log(`  ${((weight ?? 0) * 100).toFixed(0)}%  ${type}`);
+				}
+			}
+
+			console.log("");
+		}
+	} finally {
+		tracker.close();
+	}
+}
+
+// ============================================================================
 // AI Instructions Command
 // ============================================================================
 
@@ -3778,6 +4053,11 @@ ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
   ${c.green}integrate${c.reset} <tool>       Install integration ${c.dim}(opencode|claude-code)${c.reset}
 
+${c.yellow}${c.bold}ADAPTIVE LEARNING${c.reset} ${c.dim}(improves ranking from feedback)${c.reset}
+  ${c.green}feedback${c.reset}               Report search feedback ${c.dim}(--query, --helpful, --unhelpful)${c.reset}
+  ${c.green}learn${c.reset}                  Show learning statistics
+  ${c.green}learn reset${c.reset}            Reset learned weights to defaults
+
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
   ${c.cyan}--no-llm${c.reset}               Disable LLM enrichment (summaries, idioms, etc.)
@@ -3834,6 +4114,17 @@ ${c.yellow}${c.bold}CODE ANALYSIS OPTIONS${c.reset}
 
 ${c.yellow}${c.bold}WATCH/HOOKS OPTIONS${c.reset}
   ${c.cyan}--debounce${c.reset} <ms>        Watch debounce time (default: 1000ms)
+
+${c.yellow}${c.bold}FEEDBACK OPTIONS${c.reset}
+  ${c.cyan}-q, --query${c.reset} <query>    The search query that was used
+  ${c.cyan}--helpful${c.reset} <ids>        Comma-separated IDs of helpful results
+  ${c.cyan}--unhelpful${c.reset} <ids>      Comma-separated IDs of unhelpful results
+  ${c.cyan}--results${c.reset} <ids>        All result IDs from the search (optional)
+  ${c.cyan}--raw${c.reset}                  Machine-readable output
+
+${c.yellow}${c.bold}LEARN OPTIONS${c.reset}
+  ${c.cyan}--raw${c.reset}                  Machine-readable output
+  ${c.cyan}-f, --force${c.reset}            Skip confirmation for reset
 
 ${c.yellow}${c.bold}AI OPTIONS${c.reset}
   ${c.cyan}-c, --compact${c.reset}          Minimal version (~50 tokens)
@@ -3906,6 +4197,11 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
 
   ${c.dim}# Developer experience${c.reset}
   ${c.cyan}claudemem watch${c.reset}                                   ${c.dim}# auto-reindex on changes${c.reset}
+
+  ${c.dim}# Adaptive learning (for AI agents)${c.reset}
+  ${c.cyan}claudemem feedback --query "auth" --helpful id1,id2 --unhelpful id3${c.reset}
+  ${c.cyan}claudemem learn --raw${c.reset}                             ${c.dim}# machine-readable stats${c.reset}
+  ${c.cyan}claudemem learn reset -f${c.reset}                          ${c.dim}# reset without prompt${c.reset}
   ${c.cyan}claudemem hooks install${c.reset}                           ${c.dim}# install git hook${c.reset}
 
 ${c.yellow}${c.bold}MORE INFO${c.reset}
