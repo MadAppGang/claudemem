@@ -585,6 +585,7 @@ const FeatureDeepDive: React.FC = () => {
         { id: 'pagerank', title: "PageRank Importance", subtitle: "Graph-based Relevance Scoring" },
         { id: 'intent', title: "Intent Summaries", subtitle: "Implementation vs. Purpose" },
         { id: 'hybrid', title: "Hybrid Retrieval", subtitle: "Vector + Keyword + Rank" },
+        { id: 'learning', title: "Adaptive Learning", subtitle: "Improves with Your Feedback" },
         { id: 'local', title: "100% Local & Private", subtitle: "No Cloud. No Leakage." },
     ];
 
@@ -645,7 +646,8 @@ const FeatureDeepDive: React.FC = () => {
                             {activeTab === 1 && <FeaturePageRank />}
                             {activeTab === 2 && <FeatureSummaries />}
                             {activeTab === 3 && <FeatureHybrid />}
-                            {activeTab === 4 && <FeatureLocal />}
+                            {activeTab === 4 && <FeatureLearning />}
+                            {activeTab === 5 && <FeatureLocal />}
                         </div>
                     </div>
                 </div>
@@ -805,6 +807,61 @@ const FeatureHybrid = () => (
                 <div className="pt-4 border-t border-gray-800 flex justify-between items-center">
                      <span className="text-gray-500 font-mono text-sm">Composite Score</span>
                      <span className="text-2xl font-black text-white">0.98</span>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const FeatureLearning = () => (
+    <div className="flex flex-col gap-8 animate-fadeIn h-full justify-center">
+        <div>
+            <h3 className="text-2xl font-bold text-white mb-2">Adaptive Learning</h3>
+            <p className="text-gray-400 leading-relaxed max-w-2xl">
+                Mark search results as helpful or unhelpful. claudemem learns which files and document types work best for your codebase using <span className="text-claude-ish">Exponential Moving Average (EMA)</span>.
+            </p>
+        </div>
+        <div className="bg-[#111] border border-gray-800 p-6 rounded-xl max-w-lg mx-auto w-full">
+            <div className="space-y-5">
+                {/* Feedback Animation */}
+                <div className="flex items-center gap-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <div className="text-green-400 text-2xl">👍</div>
+                    <div className="flex-1">
+                        <div className="text-sm text-white font-mono">src/auth/SecurityService.ts</div>
+                        <div className="text-xs text-green-400">Marked as helpful</div>
+                    </div>
+                    <div className="text-xs text-green-400 font-mono">+boost</div>
+                </div>
+
+                <div className="flex items-center gap-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg opacity-60">
+                    <div className="text-red-400 text-2xl">👎</div>
+                    <div className="flex-1">
+                        <div className="text-sm text-white font-mono">test/fixtures/mock.ts</div>
+                        <div className="text-xs text-red-400">Not relevant</div>
+                    </div>
+                    <div className="text-xs text-red-400 font-mono">-weight</div>
+                </div>
+
+                {/* Learning Stats */}
+                <div className="pt-4 border-t border-gray-800 space-y-3">
+                    <div className="flex justify-between text-xs font-mono">
+                        <span className="text-gray-500">Vector Weight</span>
+                        <span className="text-white">0.6 → <span className="text-claude-ish">0.65</span></span>
+                    </div>
+                    <div className="flex justify-between text-xs font-mono">
+                        <span className="text-gray-500">BM25 Weight</span>
+                        <span className="text-white">0.4 → <span className="text-claude-ish">0.35</span></span>
+                    </div>
+                    <div className="flex justify-between text-xs font-mono">
+                        <span className="text-gray-500">File Boost (auth/*)</span>
+                        <span className="text-white">1.0 → <span className="text-claude-ish">1.2</span></span>
+                    </div>
+                </div>
+
+                <div className="pt-3 text-center">
+                    <div className="inline-block bg-claude-ish/10 border border-claude-ish/30 text-claude-ish text-xs font-bold px-3 py-1.5 rounded-full">
+                        RANKING IMPROVED
+                    </div>
                 </div>
             </div>
         </div>

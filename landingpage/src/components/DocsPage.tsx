@@ -517,6 +517,46 @@ const DocsPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Learning Commands */}
+                    <div className="space-y-8">
+                        <h2 className="text-2xl font-bold text-white border-b border-white/10 pb-4">Learning Commands</h2>
+                        <p className="text-gray-400">Adaptive ranking that improves with your search feedback over time.</p>
+
+                        <div className="space-y-4">
+                             <h3 className="text-xl font-bold text-white font-mono flex items-center gap-2"><span className="text-claude-ish">feedback</span></h3>
+                             <p className="text-gray-400">Report search feedback to improve ranking quality.</p>
+                             <div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
+                                <span className="text-claude-ish">$</span> claudemem feedback --query "auth" --helpful chunk1,chunk2 --unhelpful chunk3
+                             </div>
+                             <Table
+                                headers={['Flag', 'Description']}
+                                rows={[
+                                    ['<code class="text-white">--query &lt;text&gt;</code>', 'The search query that produced these results'],
+                                    ['<code class="text-white">--helpful &lt;ids&gt;</code>', 'Comma-separated chunk IDs that were helpful'],
+                                    ['<code class="text-white">--unhelpful &lt;ids&gt;</code>', 'Comma-separated chunk IDs that were not relevant'],
+                                ]}
+                             />
+                        </div>
+
+                        <div className="space-y-4">
+                             <h3 className="text-xl font-bold text-white font-mono flex items-center gap-2"><span className="text-claude-ish">learn</span> <span className="text-gray-500 text-sm">&lt;action&gt;</span></h3>
+                             <p className="text-gray-400">View or manage learning statistics.</p>
+                             <div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300 space-y-1">
+                                <div><span className="text-claude-ish">$</span> claudemem learn stats <span className="text-gray-500"># View current weights and statistics</span></div>
+                                <div><span className="text-claude-ish">$</span> claudemem learn reset <span className="text-gray-500"># Reset all learned weights</span></div>
+                             </div>
+                        </div>
+
+                        <div className="bg-[#151515] border border-white/5 rounded-lg p-5 mt-4">
+                            <div className="text-xs text-claude-ish font-bold uppercase tracking-widest mb-2">How Learning Works</div>
+                            <p className="text-sm text-gray-400">
+                                claudemem uses <strong className="text-white">Exponential Moving Average (EMA)</strong> to adapt search ranking weights based on your feedback.
+                                When you mark results as helpful or unhelpful, the system learns which document types, files, and vector/BM25 balance work best for your codebase.
+                                After ~5 feedback events, you'll notice improved relevance in search results.
+                            </p>
+                        </div>
+                    </div>
+
                     {/* Benchmark Commands */}
                     <div className="space-y-8">
                         <h2 className="text-2xl font-bold text-white border-b border-white/10 pb-4">Benchmark Commands</h2>
@@ -1145,7 +1185,7 @@ const DocsPage: React.FC = () => {
                                     ['<strong class="text-white">Reranking</strong>', '<span class="text-gray-500">✗ No cross-encoder</span>', '<span class="text-green-400">✓ Cross-encoder via Qdrant FastEmbed</span>'],
                                     ['<strong class="text-white">Team Memory</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Memory MCP service (port 8000)</span>'],
                                     ['<strong class="text-white">MCP Tools</strong>', '4 tools (search, index, status, clear)', '10+ tools (repo_search, context_search, context_answer...)'],
-                                    ['<strong class="text-white">Adaptive Learning</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Learning worker improves with usage</span>'],
+                                    ['<strong class="text-white">Adaptive Learning</strong>', '<span class="text-green-400">✓ EMA-based ranking from search feedback</span>', '<span class="text-green-400">✓ Learning worker improves with usage</span>'],
                                 ]}
                             />
                             <p className="text-sm text-gray-500 mt-2">
@@ -1175,7 +1215,7 @@ const DocsPage: React.FC = () => {
                                 rows={[
                                     ['<strong class="text-white">Transport</strong>', 'stdio (standard MCP)', 'SSE + RMCP (dual)'],
                                     ['<strong class="text-white">Tools</strong>', '4 (search, index, status, clear)', '10+ specialized tools'],
-                                    ['<strong class="text-white">Learning</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Adaptive ranking worker</span>'],
+                                    ['<strong class="text-white">Learning</strong>', '<span class="text-green-400">✓ Adaptive ranking</span>', '<span class="text-green-400">✓ Adaptive ranking worker</span>'],
                                 ]}
                             />
                         </div>
@@ -1225,6 +1265,7 @@ const DocsPage: React.FC = () => {
                                         <li className="flex gap-2"><span className="text-claude-ish">•</span> Zero-config, instant setup</li>
                                         <li className="flex gap-2"><span className="text-claude-ish">•</span> Code analysis (dead code, test gaps, impact)</li>
                                         <li className="flex gap-2"><span className="text-claude-ish">•</span> Architecture understanding (symbol graph, PageRank)</li>
+                                        <li className="flex gap-2"><span className="text-claude-ish">•</span> Adaptive learning (improves with your feedback)</li>
                                         <li className="flex gap-2"><span className="text-claude-ish">•</span> Single machine / personal projects</li>
                                         <li className="flex gap-2"><span className="text-claude-ish">•</span> Documentation + code unified search</li>
                                     </ul>
@@ -1239,7 +1280,7 @@ const DocsPage: React.FC = () => {
                                         <li className="flex gap-2"><span className="text-blue-400">•</span> Team memory (shared knowledge across devs)</li>
                                         <li className="flex gap-2"><span className="text-blue-400">•</span> Highest retrieval accuracy (cross-encoder)</li>
                                         <li className="flex gap-2"><span className="text-blue-400">•</span> Comfortable with Docker infrastructure</li>
-                                        <li className="flex gap-2"><span className="text-blue-400">•</span> Adaptive learning from usage patterns</li>
+                                        <li className="flex gap-2"><span className="text-blue-400">•</span> Cross-encoder reranking (higher accuracy)</li>
                                         <li className="flex gap-2"><span className="text-blue-400">•</span> Multiple IDE users, one backend</li>
                                     </ul>
                                 </div>
@@ -1250,7 +1291,7 @@ const DocsPage: React.FC = () => {
                         <div className="bg-[#151515] border border-white/5 rounded-xl p-6 mt-8">
                             <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Potential Future Enhancements</h4>
                             <p className="text-sm text-gray-400 mb-4">Based on this comparison, features we might consider for claudemem:</p>
-                            <div className="grid md:grid-cols-3 gap-4 text-sm">
+                            <div className="grid md:grid-cols-2 gap-4 text-sm">
                                 <div className="bg-black/30 rounded-lg p-3">
                                     <div className="text-claude-ish font-bold mb-1">Cross-encoder reranking</div>
                                     <div className="text-gray-500 text-xs">Improved search precision at the cost of latency</div>
@@ -1258,10 +1299,6 @@ const DocsPage: React.FC = () => {
                                 <div className="bg-black/30 rounded-lg p-3">
                                     <div className="text-claude-ish font-bold mb-1">Team memory</div>
                                     <div className="text-gray-500 text-xs">Persistent knowledge store across sessions</div>
-                                </div>
-                                <div className="bg-black/30 rounded-lg p-3">
-                                    <div className="text-claude-ish font-bold mb-1">Adaptive ranking</div>
-                                    <div className="text-gray-500 text-xs">Learning from user search patterns</div>
                                 </div>
                             </div>
                         </div>
@@ -1327,6 +1364,7 @@ const DocsPage: React.FC = () => {
                                 ['<strong class="text-white">Semantic Search</strong>', '✓ Hybrid BM25 + vector', '✓ NL-to-code via codegraph embeddings'],
                                 ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
                                 ['<strong class="text-white">Test Gap Analysis</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Adaptive Learning</strong>', '<span class="text-green-400">✓ Learns from search feedback</span>', '<span class="text-gray-500">✗</span>'],
                                 ['<strong class="text-white">PR Review</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Primary feature (82% bug catch rate*)</span>'],
                                 ['<strong class="text-white">Custom Rules</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Plain English rules + team learning</span>'],
                                 ['<strong class="text-white">Integrations</strong>', 'Claude Code MCP', '<span class="text-blue-400">Jira, Notion, Google Docs, MCP v3</span>'],
@@ -1366,6 +1404,7 @@ const DocsPage: React.FC = () => {
                                     <li>• Privacy-first / air-gapped environments</li>
                                     <li>• Developer semantic search & navigation</li>
                                     <li>• Code analysis (dead code, test gaps, impact)</li>
+                                    <li>• Adaptive learning from your feedback</li>
                                     <li>• Zero recurring costs (MIT license)</li>
                                 </ul>
                             </div>
@@ -1454,6 +1493,7 @@ const DocsPage: React.FC = () => {
                                 ['<strong class="text-white">Type Inference</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Compiler-grade (Java via Joern)</span>'],
                                 ['<strong class="text-white">Languages</strong>', '<span class="text-green-400">12+ (full support)</span>', 'Java (full CPG), Python/JS/C# (summarization only)'],
                                 ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Adaptive Learning</strong>', '<span class="text-green-400">✓ Learns from feedback</span>', '<span class="text-gray-500">✗</span>'],
                                 ['<strong class="text-white">Lutz Mode</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Research → Plan → Build workflow</span>'],
                                 ['<strong class="text-white">BlitzForge</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Parallel refactoring (100s of files)</span>'],
                                 ['<strong class="text-white">Dependency Decompilation</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ JAR → readable source</span>'],
@@ -1546,6 +1586,7 @@ const DocsPage: React.FC = () => {
                                 ['<strong class="text-white">Symbol Navigation</strong>', '✓ Via AST + PageRank', '<span class="text-green-400">✓ Native LSP (find_symbol, find_referencing_symbols)</span>'],
                                 ['<strong class="text-white">Languages</strong>', '12+ (tree-sitter)', '<span class="text-green-400">33 via LSP + JetBrains plugin</span>'],
                                 ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Adaptive Learning</strong>', '<span class="text-green-400">✓ Learns from feedback</span>', '<span class="text-gray-500">✗</span>'],
                                 ['<strong class="text-white">Importance Ranking</strong>', '<span class="text-green-400">✓ PageRank</span>', '<span class="text-gray-500">✗</span>'],
                                 ['<strong class="text-white">Code Editing</strong>', 'Text-based', '<span class="text-green-400">✓ Symbol-precise (replace_symbol_body, insert_before_symbol)</span>'],
                                 ['<strong class="text-white">MCP Tools</strong>', '4 tools', '<span class="text-green-400">35+ tools (file, symbol, memory, shell, planning)</span>'],
@@ -1644,6 +1685,7 @@ const DocsPage: React.FC = () => {
                             rows={[
                                 ['<strong class="text-white">Semantic Search</strong>', '✓ Hybrid BM25 + vector', '✓ Via Sourcegraph MCP + Librarian subagent'],
                                 ['<strong class="text-white">Dead Code Detection</strong>', '<span class="text-green-400">✓ Built-in</span>', '<span class="text-gray-500">✗</span>'],
+                                ['<strong class="text-white">Adaptive Learning</strong>', '<span class="text-green-400">✓ Learns from feedback</span>', '<span class="text-gray-500">✗</span>'],
                                 ['<strong class="text-white">Background Agents</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ 10-15min autonomous tasks</span>'],
                                 ['<strong class="text-white">Multi-Model</strong>', 'Via OpenRouter', '<span class="text-green-400">✓ Claude Opus 4.5, Gemini 3, GPT-5</span>'],
                                 ['<strong class="text-white">Toolboxes & Skills</strong>', '<span class="text-gray-500">✗</span>', '<span class="text-green-400">✓ Custom extensions from GitHub</span>'],

@@ -100,6 +100,7 @@ export const COMPARISON_MATRIX = [
   { feature: "Privacy", claudemem: "100% Local", context: "Cloud default", serena: "Local", brokk: "Local", graph: "Local", greptile: "Cloud", amp: "Cloud only" },
   { feature: "CLI Tool", claudemem: "✅", context: "❌", serena: "❌", brokk: "❌", graph: "❌", greptile: "❌", amp: "❌" },
   { feature: "Claude Code Plugin", claudemem: "✅ MCP", context: "✅ MCP", serena: "✅ MCP", brokk: "❌ Desktop app", graph: "✅ MCP", greptile: "API", amp: "✅ MCP" },
+  { feature: "Adaptive Learning", claudemem: "✅ EMA-based", context: "✅", serena: "❌", brokk: "❌", graph: "❌", greptile: "❌", amp: "❌" },
   { feature: "Embedding Models", claudemem: "Any (cloud/local)", context: "Fixed", serena: "N/A", brokk: "Fixed", graph: "N/A", greptile: "Fixed", amp: "Fixed" },
   { feature: "Summarizer LLM", claudemem: "Any (cloud/local)", context: "N/A", serena: "N/A", brokk: "Fixed", graph: "N/A", greptile: "Fixed", amp: "Fixed" },
   { feature: "Built-in Benchmarks", claudemem: "✅ Full suite", context: "❌", serena: "❌", brokk: "❌", graph: "❌", greptile: "❌", amp: "❌" },
