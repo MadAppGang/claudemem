@@ -23,6 +23,11 @@ import type {
 	SearchUseCase,
 	UnitType,
 } from "../types.js";
+import {
+	createTestFileDetector,
+	type TestFileDetector,
+} from "./analysis/test-detector.js";
+import { getTestFileMode, type TestFileMode } from "../config.js";
 
 // ============================================================================
 // Constants
@@ -103,14 +108,20 @@ interface SearchOptions {
 
 export class VectorStore {
 	private dbPath: string;
+	private projectPath: string;
 	private db: lancedb.Connection | null = null;
 	private table: lancedb.Table | null = null;
 	private dimension: number | null = null;
 	private tableDimension: number | null = null;
 	private _dimensionMismatchCleared = false;
+	private testFileDetector: TestFileDetector;
 
-	constructor(dbPath: string) {
+	constructor(dbPath: string, projectPath?: string) {
 		this.dbPath = dbPath;
+		// Extract project path from dbPath if not provided
+		// dbPath is like: /path/to/project/.claudemem/vectors
+		this.projectPath = projectPath ?? dirname(dirname(dbPath));
+		this.testFileDetector = createTestFileDetector();
 	}
 
 	/**
@@ -297,12 +308,15 @@ export class VectorStore {
 			bm25Results = [];
 		}
 
-		// Reciprocal Rank Fusion
+		// Reciprocal Rank Fusion with test file handling
+		const testFileMode = getTestFileMode(this.projectPath);
 		const results = reciprocalRankFusion(
 			vectorResults,
 			bm25Results,
 			VECTOR_WEIGHT,
 			BM25_WEIGHT,
+			this.testFileDetector,
+			testFileMode,
 		);
 
 		// Convert to SearchResult format
@@ -675,13 +689,16 @@ export class VectorStore {
 		// Get weights for the use case
 		const weights = typeWeights || getUseCaseWeights(useCase);
 
-		// Type-aware RRF fusion
+		// Type-aware RRF fusion with test file handling
+		const testFileMode = getTestFileMode(this.projectPath);
 		const results = typeAwareRRFFusion(
 			vectorResults,
 			bm25Results,
 			VECTOR_WEIGHT,
 			BM25_WEIGHT,
 			weights,
+			this.testFileDetector,
+			testFileMode,
 		);
 
 		// Convert to EnrichedSearchResult format
@@ -1033,8 +1050,16 @@ export class VectorStore {
 			bm25Results = [];
 		}
 
-		// RRF fusion
-		const results = reciprocalRankFusion(vectorResults, bm25Results, VECTOR_WEIGHT, BM25_WEIGHT);
+		// RRF fusion with test file handling
+		const testFileMode = getTestFileMode(this.projectPath);
+		const results = reciprocalRankFusion(
+			vectorResults,
+			bm25Results,
+			VECTOR_WEIGHT,
+			BM25_WEIGHT,
+			this.testFileDetector,
+			testFileMode,
+		);
 
 		return results.slice(0, limit).map((r) => ({
 			...this.rowToCodeUnit(r),
@@ -1096,6 +1121,9 @@ interface FusedResult extends StoredChunk {
 	keywordScore?: number;
 }
 
+/** Test file weight multiplier for downranking */
+const TEST_FILE_WEIGHT = 0.3;
+
 /**
  * Combine results from vector and BM25 search using RRF
  */
@@ -1104,15 +1132,38 @@ function reciprocalRankFusion(
 	bm25Results: any[],
 	vectorWeight: number,
 	bm25Weight: number,
+	testFileDetector?: TestFileDetector,
+	testFileMode?: TestFileMode,
 	k = 60, // RRF constant
 ): FusedResult[] {
 	const scores = new Map<string, FusedResult>();
+
+	// Helper to check if result should be excluded
+	// Note: Empty/missing filePath returns false (safe default - don't exclude unknown sources)
+	const shouldExclude = (filePath: string): boolean => {
+		if (!filePath || !testFileDetector || testFileMode !== "exclude") return false;
+		return testFileDetector.isTestFile(filePath);
+	};
+
+	// Helper to get test file weight multiplier
+	// Note: Empty/missing filePath returns 1.0 (safe default - full weight for unknown sources)
+	const getTestWeight = (filePath: string): number => {
+		if (!filePath || !testFileDetector || testFileMode !== "downrank") return 1.0;
+		return testFileDetector.isTestFile(filePath) ? TEST_FILE_WEIGHT : 1.0;
+	};
 
 	// Add vector results with their ranks
 	for (let i = 0; i < vectorResults.length; i++) {
 		const result = vectorResults[i];
 		const id = result.id;
-		const rrf = vectorWeight / (k + i + 1);
+		const filePath = result.filePath || "";
+
+		// Skip excluded test files
+		if (shouldExclude(filePath)) continue;
+
+		// Apply test file weight
+		const testWeight = getTestWeight(filePath);
+		const rrf = (vectorWeight * testWeight) / (k + i + 1);
 
 		if (!scores.has(id)) {
 			scores.set(id, {
@@ -1131,7 +1182,14 @@ function reciprocalRankFusion(
 	for (let i = 0; i < bm25Results.length; i++) {
 		const result = bm25Results[i];
 		const id = result.id;
-		const rrf = bm25Weight / (k + i + 1);
+		const filePath = result.filePath || "";
+
+		// Skip excluded test files
+		if (shouldExclude(filePath)) continue;
+
+		// Apply test file weight
+		const testWeight = getTestWeight(filePath);
+		const rrf = (bm25Weight * testWeight) / (k + i + 1);
 
 		if (!scores.has(id)) {
 			scores.set(id, {
@@ -1226,17 +1284,39 @@ function typeAwareRRFFusion(
 	vectorWeight: number,
 	bm25Weight: number,
 	typeWeights: Partial<Record<DocumentType, number>>,
+	testFileDetector?: TestFileDetector,
+	testFileMode?: TestFileMode,
 	k = 60,
 ): FusedResult[] {
 	const scores = new Map<string, FusedResult>();
+
+	// Helper to check if result should be excluded
+	// Note: Empty/missing filePath returns false (safe default - don't exclude unknown sources)
+	const shouldExclude = (filePath: string): boolean => {
+		if (!filePath || !testFileDetector || testFileMode !== "exclude") return false;
+		return testFileDetector.isTestFile(filePath);
+	};
+
+	// Helper to get test file weight multiplier
+	// Note: Empty/missing filePath returns 1.0 (safe default - full weight for unknown sources)
+	const getTestWeight = (filePath: string): number => {
+		if (!filePath || !testFileDetector || testFileMode !== "downrank") return 1.0;
+		return testFileDetector.isTestFile(filePath) ? TEST_FILE_WEIGHT : 1.0;
+	};
 
 	// Process vector results
 	for (let i = 0; i < vectorResults.length; i++) {
 		const result = vectorResults[i];
 		const id = result.id;
+		const filePath = result.filePath || "";
+
+		// Skip excluded test files
+		if (shouldExclude(filePath)) continue;
+
 		const docType = (result.documentType || "code_chunk") as DocumentType;
 		const typeWeight = typeWeights[docType] ?? 0.1;
-		const rrf = (vectorWeight * typeWeight) / (k + i + 1);
+		const testWeight = getTestWeight(filePath);
+		const rrf = (vectorWeight * typeWeight * testWeight) / (k + i + 1);
 
 		if (!scores.has(id)) {
 			scores.set(id, {
@@ -1255,9 +1335,15 @@ function typeAwareRRFFusion(
 	for (let i = 0; i < bm25Results.length; i++) {
 		const result = bm25Results[i];
 		const id = result.id;
+		const filePath = result.filePath || "";
+
+		// Skip excluded test files
+		if (shouldExclude(filePath)) continue;
+
 		const docType = (result.documentType || "code_chunk") as DocumentType;
 		const typeWeight = typeWeights[docType] ?? 0.1;
-		const rrf = (bm25Weight * typeWeight) / (k + i + 1);
+		const testWeight = getTestWeight(filePath);
+		const rrf = (bm25Weight * typeWeight * testWeight) / (k + i + 1);
 
 		if (!scores.has(id)) {
 			scores.set(id, {
@@ -1282,7 +1368,9 @@ function typeAwareRRFFusion(
 
 /**
  * Create a vector store for a project
+ * @param dbPath - Path to the vector database (e.g., /project/.claudemem/vectors)
+ * @param projectPath - Optional explicit project path (derived from dbPath if not provided)
  */
-export function createVectorStore(dbPath: string): VectorStore {
-	return new VectorStore(dbPath);
+export function createVectorStore(dbPath: string, projectPath?: string): VectorStore {
+	return new VectorStore(dbPath, projectPath);
 }

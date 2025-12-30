@@ -426,6 +426,15 @@ export interface ProjectConfig {
 	// ─── External Documentation Settings ───
 	/** Documentation fetching configuration */
 	docs?: DocsConfig;
+
+	// ─── Search Settings ───
+	/**
+	 * How to handle test files in search results (default: 'downrank').
+	 * - 'downrank': Apply 0.3x weight to test files (lower in results)
+	 * - 'exclude': Filter out test files entirely
+	 * - 'include': Treat test files normally (no special handling)
+	 */
+	testFiles?: "downrank" | "exclude" | "include";
 }
 
 /** Configuration for external documentation fetching */

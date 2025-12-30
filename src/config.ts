@@ -751,3 +751,25 @@ export function getDocsConfig(projectPath?: string): Required<DocsConfig> {
 export function getDocsCachePath(projectPath: string): string {
 	return join(getIndexDir(projectPath), "docs-cache");
 }
+
+// ============================================================================
+// Test File Handling
+// ============================================================================
+
+/** Test file handling mode */
+export type TestFileMode = "downrank" | "exclude" | "include";
+
+/**
+ * Get test file handling mode for search results.
+ * Priority: project config > default ('downrank')
+ */
+export function getTestFileMode(projectPath?: string): TestFileMode {
+	if (projectPath) {
+		const projectConfig = loadProjectConfig(projectPath);
+		if (projectConfig?.testFiles !== undefined) {
+			return projectConfig.testFiles;
+		}
+	}
+	// Default: downrank test files in search results
+	return "downrank";
+}

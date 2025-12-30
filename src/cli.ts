@@ -96,11 +96,23 @@ function printLogo(): void {
 /** Global flag to suppress logo */
 let noLogo = false;
 
-/** Detect if running inside Claude Code (AI agent) */
+/** Global flag for plain output (no ANSI, no progress bars) */
+let plainMode = false;
+
+/** Detect if running inside an AI agent or non-interactive environment */
 function isClaudeCode(): boolean {
 	return (
+		plainMode ||
+		// Claude Code
 		process.env.CLAUDECODE === "1" ||
 		process.env.CLAUDE_CODE_ENTRYPOINT !== undefined ||
+		// OpenCode and other AI coding tools
+		process.env.OPENCODE === "1" ||
+		// Standard non-interactive indicators
+		process.env.NO_COLOR !== undefined ||
+		process.env.TERM === "dumb" ||
+		process.env.CI === "true" ||
+		// Not a TTY (piped, redirected, etc.)
 		!process.stdout.isTTY
 	);
 }
@@ -109,7 +121,7 @@ function isClaudeCode(): boolean {
 function printCompactHelp(): void {
 	console.log(`claudemem v${VERSION} - Semantic code search with AST analysis`);
 	console.log(`Commands: index search map symbol callers callees context dead-code test-gaps impact hook`);
-	console.log(`Use: claudemem <cmd> --help | Flags: --nologo --raw | Docs: https://github.com/MadAppGang/claudemem`);
+	console.log(`Use: claudemem <cmd> --help | Flags: --nologo --raw --plain | Docs: https://github.com/MadAppGang/claudemem`);
 }
 
 // ============================================================================
@@ -147,6 +159,14 @@ export async function runCli(args: string[]): Promise<void> {
 	if (args.includes("--nologo")) {
 		noLogo = true;
 		args = args.filter((a) => a !== "--nologo");
+	}
+
+	// --plain flag: disable all ANSI codes, progress bars, animations
+	// Use this when running in environments that don't support ANSI (e.g., OpenCode)
+	if (args.includes("--plain")) {
+		plainMode = true;
+		noLogo = true;
+		args = args.filter((a) => a !== "--plain");
 	}
 
 	// Auto-suppress logo in Claude Code / non-TTY environments
@@ -3582,7 +3602,8 @@ async function handleOpenCodeIntegration(
 
 				// Check if indexed
 				const { createVectorStore } = await import("./core/store.js");
-				const store = await createVectorStore(projectPath);
+				const { getVectorStorePath } = await import("./config.js");
+				const store = await createVectorStore(getVectorStorePath(projectPath));
 				const stats = await store.getStats();
 				if (stats.totalChunks === 0) {
 					console.log("  ⚠️  Project not indexed. Run: claudemem index\n");
@@ -4398,7 +4419,7 @@ ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
   ${c.green}watch${c.reset}                  Watch for changes and auto-reindex ${c.dim}(daemon mode)${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
   ${c.green}hook${c.reset}                   Claude Code hook handler ${c.dim}(reads JSON from stdin)${c.reset}
-  ${c.green}integrate${c.reset} <tool>       Install integration ${c.dim}(opencode|claude-code)${c.reset}
+  ${c.green}install${c.reset} <tool>         Install integration ${c.dim}(opencode|claude-code)${c.reset}
 
 ${c.yellow}${c.bold}ADAPTIVE LEARNING${c.reset} ${c.dim}(improves ranking from feedback)${c.reset}
   ${c.green}feedback${c.reset}               Report search feedback ${c.dim}(--query, --helpful, --unhelpful)${c.reset}
@@ -4483,6 +4504,7 @@ ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
   ${c.cyan}-h, --help${c.reset}             Show this help
   ${c.cyan}--nologo${c.reset}               Suppress ASCII logo (for scripts/agents)
+  ${c.cyan}--plain${c.reset}                Plain output: no ANSI codes, no progress bars (for OpenCode, CI)
   ${c.cyan}--models${c.reset}               List available embedding models (with --free, --refresh)
 
 ${c.yellow}${c.bold}MCP SERVER${c.reset}
