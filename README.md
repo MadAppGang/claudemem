@@ -352,7 +352,7 @@ claudemem docs clear        # clear cached documentation
 --min-pagerank <n>    # test-gaps threshold (default: 0.01)
 --max-depth <n>       # impact analysis depth (default: 10)
 --include-exported    # include exported symbols in dead-code scan
---raw                 # machine-readable output (for AI agents)
+--agent               # agent mode: no logo, compact output (for AI tools)
 ```
 
 ## Config

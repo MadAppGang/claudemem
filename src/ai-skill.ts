@@ -59,7 +59,7 @@ INDEXING:
 </capabilities>
 
 <tools>
-SYMBOL GRAPH COMMANDS (primary - always use --nologo --raw):
+SYMBOL GRAPH COMMANDS (primary - always use --agent):
   claudemem map [query]       # Repo structure, symbols ranked by PageRank
   claudemem symbol <name>     # Find symbol definition (file:line, signature)
   claudemem callers <name>    # What depends on this symbol
@@ -87,7 +87,7 @@ AI INSTRUCTIONS:
 </tools>
 
 <output-format>
-Raw output (--raw flag) for reliable parsing:
+Raw output ( flag) for reliable parsing:
 
 file: src/core/indexer.ts
 line: 75-758
@@ -108,38 +108,31 @@ Records separated by "---". Each field: "key: value" on own line.
 
 <workflow>
 1. MAP STRUCTURE (always start here)
-   claudemem --nologo map "task keywords" --raw
-   → See relevant symbols ranked by PageRank
+   claudemem --agent map "task keywords"   → See relevant symbols ranked by PageRank
    → High PageRank (>0.05) = heavily used, understand first
    → Low PageRank (<0.01) = utilities, defer
 
 2. LOCATE SYMBOL
-   claudemem --nologo symbol TargetClass --raw
-   → Get exact file:line, signature, export status
+   claudemem --agent symbol TargetClass   → Get exact file:line, signature, export status
    → Only read what you found, not entire files
 
 3. CHECK IMPACT (before modifying!)
-   claudemem --nologo callers TargetClass --raw
-   → Direct callers that will break if you change interface
-   claudemem impact TargetClass --raw
-   → ALL transitive callers (full blast radius)
+   claudemem --agent callers TargetClass   → Direct callers that will break if you change interface
+   claudemem impact TargetClass   → ALL transitive callers (full blast radius)
 
 4. UNDERSTAND DEPENDENCIES
-   claudemem --nologo callees TargetClass --raw
-   → What this code can use
+   claudemem --agent callees TargetClass   → What this code can use
    → Available utilities and interfaces
 
 5. GET FULL CONTEXT (complex changes)
-   claudemem --nologo context TargetClass --raw
-   → Symbol + all callers + all callees at once
+   claudemem --agent context TargetClass   → Symbol + all callers + all callees at once
 
 6. CODE ANALYSIS (when relevant)
-   claudemem dead-code --raw       → Find unused code
-   claudemem test-gaps --raw       → Find untested code
+   claudemem dead-code        → Find unused code
+   claudemem test-gaps        → Find untested code
 
 7. SEARCH (when needed)
-   claudemem --nologo search "specific query" --raw
-   → Use for natural language discovery
+   claudemem --agent search "specific query"   → Use for natural language discovery
    → After structure is understood
 </workflow>
 
@@ -168,14 +161,13 @@ LOW (<0.01):
 ✓ Check callers BEFORE modifying anything
 ✓ Use exact file:line from symbol output (not whole files)
 ✓ Trace full caller chain before complex changes
-✓ Use --nologo --raw for all agent commands
+✓ Use --agent for all agent commands
 </best-practices>
 
 <avoid>
 × grep for code discovery
   grep "auth" → 500 matches, no ranking, no relationships
-  INSTEAD: claudemem map "authentication" --raw
-
+  INSTEAD: claudemem map "authentication"
 × Reading entire files
   cat src/auth.ts → 80% irrelevant, token waste
   INSTEAD: claudemem symbol → read exact line range
@@ -192,48 +184,42 @@ LOW (<0.01):
   Search returns snippets, not structure
   INSTEAD: map → understand → then search if needed
 
-× Not using --raw for parsing
+× Not using  for parsing
   Decorated output breaks parsing
-  INSTEAD: Always use --nologo --raw
+  INSTEAD: Always use --agent
 </avoid>
 
 <scenarios>
 BUG FIX:
-  1. claudemem map "error keywords" --raw
-  2. claudemem symbol FunctionFromStackTrace --raw
-  3. claudemem callers FunctionFromStackTrace --raw
-  4. claudemem impact BuggyFunction --raw (assess scope)
+  1. claudemem map "error keywords"  2. claudemem symbol FunctionFromStackTrace  3. claudemem callers FunctionFromStackTrace  4. claudemem impact BuggyFunction  (assess scope)
   5. Read identified file:line ranges
   6. Fix bug, verify callers still work
 
 NEW FEATURE:
-  1. claudemem map "feature area" --raw
-  2. claudemem callees ExistingFeature --raw (see patterns)
-  3. claudemem context ModificationPoint --raw
-  4. Implement following existing patterns
-  5. claudemem test-gaps --raw (check coverage)
+  1. claudemem map "feature area"  2. claudemem callees ExistingFeature  (see patterns)
+  3. claudemem context ModificationPoint  4. Implement following existing patterns
+  5. claudemem test-gaps  (check coverage)
 
 REFACTORING:
-  1. claudemem symbol SymbolToRename --raw
-  2. claudemem impact SymbolToRename --raw (full scope)
+  1. claudemem symbol SymbolToRename  2. claudemem impact SymbolToRename  (full scope)
   3. Update all caller locations from output
   4. Verify each file:line updated
 
 UNDERSTANDING CODEBASE:
-  1. claudemem map --raw (overall structure)
+  1. claudemem map  (overall structure)
   2. Identify top 5 by PageRank
-  3. claudemem context <top-symbol> --raw for each
+  3. claudemem context <top-symbol>  for each
   4. Trace flow via callees
 
 CLEANUP (new!):
-  1. claudemem dead-code --raw (find unused)
+  1. claudemem dead-code  (find unused)
   2. Review each symbol for dynamic usage
   3. Remove confirmed dead code
 
 TEST PLANNING (new!):
-  1. claudemem test-gaps --raw (prioritized list)
+  1. claudemem test-gaps  (prioritized list)
   2. Focus on high PageRank symbols
-  3. claudemem impact <symbol> --raw for test scope
+  3. claudemem impact <symbol>  for test scope
 </scenarios>
 
 <supported-languages>
@@ -262,7 +248,7 @@ export const CLAUDEMEM_SKILL_COMPACT = `<skill name="claudemem">
 CODE INTELLIGENCE via symbol graph + semantic search + code analysis.
 STRUCTURE FIRST: map → symbol → callers → then read code.
 
-SYMBOL GRAPH (primary - use --nologo --raw):
+SYMBOL GRAPH (primary - use --agent):
   claudemem map [query]       # Repo structure, PageRank ranking
   claudemem symbol <name>     # Find definition (file:line)
   claudemem callers <name>    # What depends on this (BEFORE modifying!)
@@ -300,7 +286,7 @@ ${roleCompact}`;
  * Note: CLI commands preferred for agent workflows
  */
 export const CLAUDEMEM_MCP_SKILL = `<mcp-skill name="claudemem">
-NOTE: For AI agents, CLI commands with --nologo --raw are preferred.
+NOTE: For AI agents, CLI commands with --agent are preferred.
 MCP tools available for Claude Code integration:
 
 TOOLS:
@@ -310,14 +296,14 @@ TOOLS:
   clear_index(path?)                     # Reset index
 
 PREFERRED CLI WORKFLOW:
-  claudemem map "task" --raw             # Structure first
-  claudemem symbol <name> --raw          # Find definition
-  claudemem callers <name> --raw         # Check direct impact
-  claudemem impact <name> --raw          # Full transitive impact (blast radius)
-  claudemem callees <name> --raw         # Dependencies
-  claudemem dead-code --raw              # Find unused code
-  claudemem test-gaps --raw              # Find untested code
-  claudemem search "query" --raw         # When needed
+  claudemem map "task"              # Structure first
+  claudemem symbol <name>           # Find definition
+  claudemem callers <name>          # Check direct impact
+  claudemem impact <name>           # Full transitive impact (blast radius)
+  claudemem callees <name>          # Dependencies
+  claudemem dead-code               # Find unused code
+  claudemem test-gaps               # Find untested code
+  claudemem search "query"          # When needed
 
 WHEN TO USE MCP:
   ✓ Quick semantic searches
@@ -333,7 +319,7 @@ WHEN TO USE CLI:
 /**
  * Quick reference card (minimal tokens)
  */
-export const CLAUDEMEM_QUICK_REF = `claudemem: symbol graph + semantic search + code analysis (--nologo --raw)
+export const CLAUDEMEM_QUICK_REF = `claudemem: symbol graph + semantic search + code analysis (--agent)
   map [query]      # Structure overview, PageRank ranked
   symbol <name>    # Find definition (file:line)
   callers <name>   # What depends on this (BEFORE modifying!)

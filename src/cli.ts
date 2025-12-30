@@ -86,23 +86,20 @@ const packageJson = JSON.parse(
 );
 const VERSION = packageJson.version;
 
+/** Global flag for agent mode (--agent): no logo, plain output, compact format */
+let agentMode = false;
+
 /** Print logo for interactive commands */
 function printLogo(): void {
-	if (!noLogo) {
+	if (!agentMode) {
 		printLogoUI();
 	}
 }
 
-/** Global flag to suppress logo */
-let noLogo = false;
-
-/** Global flag for plain output (no ANSI, no progress bars) */
-let plainMode = false;
-
-/** Detect if running inside an AI agent or non-interactive environment */
-function isClaudeCode(): boolean {
+/** Check if running in agent/compact mode */
+function isAgentMode(): boolean {
 	return (
-		plainMode ||
+		agentMode ||
 		// Claude Code
 		process.env.CLAUDECODE === "1" ||
 		process.env.CLAUDE_CODE_ENTRYPOINT !== undefined ||
@@ -121,7 +118,7 @@ function isClaudeCode(): boolean {
 function printCompactHelp(): void {
 	console.log(`claudemem v${VERSION} - Semantic code search with AST analysis`);
 	console.log(`Commands: index search map symbol callers callees context dead-code test-gaps impact hook`);
-	console.log(`Use: claudemem <cmd> --help | Flags: --nologo --raw --plain | Docs: https://github.com/MadAppGang/claudemem`);
+	console.log(`Use: claudemem --agent <cmd> | Docs: https://github.com/MadAppGang/claudemem`);
 }
 
 // ============================================================================
@@ -155,23 +152,16 @@ function compactDuration(ms: number): string {
 // ============================================================================
 
 export async function runCli(args: string[]): Promise<void> {
-	// Parse global flags first
-	if (args.includes("--nologo")) {
-		noLogo = true;
-		args = args.filter((a) => a !== "--nologo");
+	// Parse --agent flag: enables compact output for AI agents/tools
+	// This replaces --nologo, --raw, --plain with a single flag
+	if (args.includes("--agent")) {
+		agentMode = true;
+		args = args.filter((a) => a !== "--agent");
 	}
 
-	// --plain flag: disable all ANSI codes, progress bars, animations
-	// Use this when running in environments that don't support ANSI (e.g., OpenCode)
-	if (args.includes("--plain")) {
-		plainMode = true;
-		noLogo = true;
-		args = args.filter((a) => a !== "--plain");
-	}
-
-	// Auto-suppress logo in Claude Code / non-TTY environments
-	if (isClaudeCode()) {
-		noLogo = true;
+	// Auto-enable agent mode in AI/non-TTY environments
+	if (isAgentMode()) {
+		agentMode = true;
 	}
 
 	// Parse command
@@ -185,7 +175,7 @@ export async function runCli(args: string[]): Promise<void> {
 	}
 
 	if (args.includes("--help") || args.includes("-h") || !command) {
-		if (isClaudeCode()) {
+		if (isAgentMode()) {
 			printCompactHelp();
 		} else {
 			printHelp();
@@ -513,7 +503,7 @@ async function handleIndex(args: string[]): Promise<void> {
 	// Get model info for display
 	const embeddingModel = getEmbeddingModel(projectPath);
 	const llmSpec = getLLMSpec(projectPath);
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 
 	// Compact mode: single line start message
 	if (compactMode) {
@@ -680,7 +670,7 @@ async function handleIndex(args: string[]): Promise<void> {
 }
 
 async function handleSearch(args: string[]): Promise<void> {
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 
 	// Parse arguments
 	const limitIdx = args.findIndex((a) => a === "-n" || a === "--limit");
@@ -847,7 +837,7 @@ async function handleSearch(args: string[]): Promise<void> {
 		// Compact mode: show results in condensed format
 		if (compactMode) {
 			// Plain mode: minimal output for tools/CI (no emojis, no hints)
-			if (plainMode) {
+			if (agentMode) {
 				const topResults = results.slice(0, 5).map((r) =>
 					`${r.chunk.filePath}:${r.chunk.startLine}`
 				).join("\n");
@@ -913,8 +903,8 @@ async function handleSearch(args: string[]): Promise<void> {
 }
 
 async function handleStatus(args: string[]): Promise<void> {
-	const compactMode = isClaudeCode();
-	if (!noLogo) printLogo();
+	const compactMode = agentMode;
+	printLogo();
 
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
@@ -965,7 +955,7 @@ async function handleStatus(args: string[]): Promise<void> {
 }
 
 async function handleClear(args: string[]): Promise<void> {
-	if (!noLogo) printLogo();
+	printLogo();
 
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
@@ -996,7 +986,7 @@ async function handleClear(args: string[]): Promise<void> {
 }
 
 async function handleInit(): Promise<void> {
-	if (!noLogo) printLogo();
+	printLogo();
 
 	console.log("🔧 Setup\n");
 
@@ -1581,7 +1571,7 @@ async function promptForVoyageApiKey(): Promise<string> {
 }
 
 async function handleModels(args: string[]): Promise<void> {
-	if (!noLogo) printLogo();
+	printLogo();
 
 	const freeOnly = args.includes("--free");
 	const forceRefresh = args.includes("--refresh");
@@ -1894,7 +1884,7 @@ async function discoverAndChunkFilesWithPaths(
 }
 
 async function handleBenchmark(args: string[]): Promise<void> {
-	if (!noLogo) printLogo();
+	printLogo();
 
 	const c = {
 		reset: "\x1b[0m",
@@ -2532,8 +2522,7 @@ function getFileTracker(projectPath: string): FileTracker | null {
  * Handle 'map' command - generate repo map
  */
 async function handleMap(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 
 	// Parse --tokens flag
 	let maxTokens = 2000;
@@ -2573,33 +2562,15 @@ async function handleMap(args: string[]): Promise<void> {
 	try {
 		const repoMapGen = createRepoMapGenerator(tracker);
 
-		if (raw) {
-			// Convert to raw format (same for compact and normal)
-			const structured = repoMapGen.generateStructured({ maxTokens: maxTokens * 2 });
-			const rawOutput = structured.map(entry => {
-				return entry.symbols.map(sym => [
-					`file: ${entry.filePath}`,
-					`line: ${sym.line}`,
-					`kind: ${sym.kind}`,
-					`name: ${sym.name}`,
-					sym.signature ? `signature: ${sym.signature}` : null,
-					`pagerank: ${sym.pagerankScore.toFixed(4)}`,
-				].filter(Boolean).join('\n')).join('\n---\n');
-			}).join('\n---\n');
-			console.log(rawOutput);
-		} else if (compactMode) {
-			// Compact mode: show top symbols summary
+		if (compactMode) {
+			// Agent mode: top symbols as file:line list
 			const structured = repoMapGen.generateStructured({ maxTokens: 1000 });
-			const totalFiles = structured.length;
-			const totalSymbols = structured.reduce((acc, e) => acc + e.symbols.length, 0);
-			// Get top 5 by pagerank
 			const allSymbols = structured.flatMap(e => e.symbols.map(s => ({ ...s, file: e.filePath })));
 			allSymbols.sort((a, b) => b.pagerankScore - a.pagerankScore);
-			const top5 = allSymbols.slice(0, 5);
-			const topStr = top5.map(s => `${s.name}(${s.kind})`).join(", ");
-			console.log(`✓ Map: ${totalFiles} files, ${totalSymbols} symbols${query ? ` matching "${query}"` : ""}`);
-			console.log(`Top: ${topStr}`);
-			console.log(`Detail: claudemem symbol <name> | claudemem callers <name> | claudemem callees <name>`);
+			const top10 = allSymbols.slice(0, 10);
+			for (const s of top10) {
+				console.log(`${s.file}:${s.line} ${s.name} (${s.kind})`);
+			}
 		} else {
 			let output: string;
 			if (query) {
@@ -2607,7 +2578,7 @@ async function handleMap(args: string[]): Promise<void> {
 			} else {
 				output = repoMapGen.generate({ maxTokens });
 			}
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n📊 Repository Map\n");
 			console.log(output);
 		}
@@ -2620,19 +2591,17 @@ async function handleMap(args: string[]): Promise<void> {
  * Handle 'symbol' command - find symbol by name
  */
 async function handleSymbol(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 	const projectPath = resolve(".");
 
 	// Get symbol name
 	const symbolName = args.find(a => !a.startsWith("-"));
 	if (!symbolName) {
 		if (compactMode) {
-			console.log(`✗ Missing symbol name`);
-			console.log(`Usage: claudemem symbol <name>`);
-			console.log(`Example: claudemem symbol handleSearch`);
+			console.log(`Missing symbol name`);
+			console.log(`Usage: claudemem --agent symbol <name>`);
 		} else {
-			console.error("Usage: claudemem symbol <name> [--file <hint>] [--raw]");
+			console.error("Usage: claudemem symbol <name> [--file <hint>]");
 		}
 		process.exit(1);
 	}
@@ -2674,16 +2643,11 @@ async function handleSymbol(args: string[]): Promise<void> {
 			process.exit(1);
 		}
 
-		if (raw) {
-			console.log(formatSymbolRaw(symbol));
-		} else if (compactMode) {
-			// Compact: 3-line output
-			const loc = `${symbol.filePath}:${symbol.startLine}`;
-			console.log(`✓ ${symbol.name} (${symbol.kind}) at ${loc} [PR:${symbol.pagerankScore.toFixed(3)}]`);
-			console.log(symbol.signature ? `Sig: ${symbol.signature}` : `Exported: ${symbol.isExported}`);
-			console.log(`Next: claudemem callers ${symbol.name} | claudemem callees ${symbol.name} | Read ${symbol.filePath}:${symbol.startLine}`);
+		if (compactMode) {
+			// Agent mode: file:line format
+			console.log(`${symbol.filePath}:${symbol.startLine} ${symbol.name} (${symbol.kind})`);
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n🔍 Symbol Found\n");
 			console.log(`  Name:      ${symbol.name}`);
 			console.log(`  Kind:      ${symbol.kind}`);
@@ -2703,8 +2667,7 @@ async function handleSymbol(args: string[]): Promise<void> {
  * Handle 'callers' command - find what calls a symbol
  */
 async function handleCallers(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 	const projectPath = resolve(".");
 
 	const symbolName = args.find(a => !a.startsWith("-"));
@@ -2714,7 +2677,7 @@ async function handleCallers(args: string[]): Promise<void> {
 			console.log(`Usage: claudemem callers <name>`);
 			console.log(`Example: claudemem callers handleSearch`);
 		} else {
-			console.error("Usage: claudemem callers <name> [--raw]");
+			console.error("Usage: claudemem callers <name>");
 		}
 		process.exit(1);
 	}
@@ -2748,32 +2711,17 @@ async function handleCallers(args: string[]): Promise<void> {
 
 		const callers = graphManager.getCallers(symbol.id);
 
-		if (raw) {
+		if (compactMode) {
+			// Agent mode: file:line list
 			if (callers.length === 0) {
-				console.log("# No callers found");
+				console.log("No callers found");
 			} else {
-				const output = callers.map(caller => [
-					`caller: ${caller.name}`,
-					`file: ${caller.filePath}`,
-					`line: ${caller.startLine}`,
-					`kind: ${caller.kind}`,
-				].join('\n')).join('\n---\n');
-				console.log(output);
-			}
-		} else if (compactMode) {
-			// Compact: 3-line output
-			if (callers.length === 0) {
-				console.log(`✓ ${symbolName}: 0 callers (unused or entry point)`);
-				console.log(`Check: claudemem dead-code | claudemem impact ${symbolName}`);
-				console.log(`Symbol at: ${symbol.filePath}:${symbol.startLine}`);
-			} else {
-				const callersList = callers.slice(0, 5).map(c => `${c.name}(${c.filePath.split('/').pop()}:${c.startLine})`).join(", ");
-				console.log(`✓ ${symbolName}: ${callers.length} callers`);
-				console.log(`Callers: ${callersList}${callers.length > 5 ? ` (+${callers.length - 5} more)` : ""}`);
-				console.log(`Next: claudemem callees ${symbolName} | claudemem context ${symbolName} | claudemem impact ${symbolName}`);
+				for (const caller of callers.slice(0, 10)) {
+					console.log(`${caller.filePath}:${caller.startLine} ${caller.name} (${caller.kind})`);
+				}
 			}
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log(`\n📞 Callers of '${symbolName}'\n`);
 			if (callers.length === 0) {
 				console.log("  No callers found.");
@@ -2794,8 +2742,7 @@ async function handleCallers(args: string[]): Promise<void> {
  * Handle 'callees' command - find what a symbol calls
  */
 async function handleCallees(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 	const projectPath = resolve(".");
 
 	const symbolName = args.find(a => !a.startsWith("-"));
@@ -2805,7 +2752,7 @@ async function handleCallees(args: string[]): Promise<void> {
 			console.log(`Usage: claudemem callees <name>`);
 			console.log(`Example: claudemem callees handleSearch`);
 		} else {
-			console.error("Usage: claudemem callees <name> [--raw]");
+			console.error("Usage: claudemem callees <name>");
 		}
 		process.exit(1);
 	}
@@ -2839,32 +2786,17 @@ async function handleCallees(args: string[]): Promise<void> {
 
 		const callees = graphManager.getCallees(symbol.id);
 
-		if (raw) {
+		if (compactMode) {
+			// Agent mode: file:line list
 			if (callees.length === 0) {
-				console.log("# No callees found");
+				console.log("No callees found");
 			} else {
-				const output = callees.map(callee => [
-					`callee: ${callee.name}`,
-					`file: ${callee.filePath}`,
-					`line: ${callee.startLine}`,
-					`kind: ${callee.kind}`,
-				].join('\n')).join('\n---\n');
-				console.log(output);
-			}
-		} else if (compactMode) {
-			// Compact: 3-line output
-			if (callees.length === 0) {
-				console.log(`✓ ${symbolName}: 0 callees (leaf function)`);
-				console.log(`This symbol doesn't call other functions`);
-				console.log(`Symbol at: ${symbol.filePath}:${symbol.startLine}`);
-			} else {
-				const calleesList = callees.slice(0, 5).map(c => `${c.name}(${c.filePath.split('/').pop()}:${c.startLine})`).join(", ");
-				console.log(`✓ ${symbolName}: ${callees.length} callees`);
-				console.log(`Calls: ${calleesList}${callees.length > 5 ? ` (+${callees.length - 5} more)` : ""}`);
-				console.log(`Next: claudemem callers ${symbolName} | claudemem context ${symbolName}`);
+				for (const callee of callees.slice(0, 10)) {
+					console.log(`${callee.filePath}:${callee.startLine} ${callee.name} (${callee.kind})`);
+				}
 			}
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log(`\n📤 Callees of '${symbolName}'\n`);
 			if (callees.length === 0) {
 				console.log("  No callees found.");
@@ -2885,8 +2817,7 @@ async function handleCallees(args: string[]): Promise<void> {
  * Handle 'context' command - get full symbol context
  */
 async function handleContext(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 	const projectPath = resolve(".");
 
 	const symbolName = args.find(a => !a.startsWith("-"));
@@ -2896,7 +2827,7 @@ async function handleContext(args: string[]): Promise<void> {
 			console.log(`Usage: claudemem context <name>`);
 			console.log(`Example: claudemem context handleSearch`);
 		} else {
-			console.error("Usage: claudemem context <name> [--callers N] [--callees N] [--raw]");
+			console.error("Usage: claudemem context <name> [--callers N] [--callees N]");
 		}
 		process.exit(1);
 	}
@@ -2947,49 +2878,23 @@ async function handleContext(args: string[]): Promise<void> {
 			maxCallees,
 		});
 
-		if (raw) {
-			const sections: string[] = [];
-
-			// Symbol section
-			sections.push("[symbol]");
-			sections.push(formatSymbolRaw(symbol));
-
-			// Callers section
-			sections.push("[callers]");
-			if (context.callers.length === 0) {
-				sections.push("# No callers");
-			} else {
-				sections.push(context.callers.map(caller => [
-					`caller: ${caller.name}`,
-					`file: ${caller.filePath}`,
-					`line: ${caller.startLine}`,
-					`kind: ${caller.kind}`,
-				].join('\n')).join('\n---\n'));
+		if (compactMode) {
+			// Agent mode: file:line list for symbol, callers, callees
+			console.log(`${symbol.filePath}:${symbol.startLine} ${symbol.name} (${symbol.kind})`);
+			if (context.callers.length > 0) {
+				console.log("# callers:");
+				for (const caller of context.callers.slice(0, 5)) {
+					console.log(`${caller.filePath}:${caller.startLine} ${caller.name}`);
+				}
 			}
-
-			// Callees section
-			sections.push("[callees]");
-			if (context.callees.length === 0) {
-				sections.push("# No callees");
-			} else {
-				sections.push(context.callees.map(callee => [
-					`callee: ${callee.name}`,
-					`file: ${callee.filePath}`,
-					`line: ${callee.startLine}`,
-					`kind: ${callee.kind}`,
-				].join('\n')).join('\n---\n'));
+			if (context.callees.length > 0) {
+				console.log("# callees:");
+				for (const callee of context.callees.slice(0, 5)) {
+					console.log(`${callee.filePath}:${callee.startLine} ${callee.name}`);
+				}
 			}
-
-			console.log(sections.join('\n'));
-		} else if (compactMode) {
-			// Compact: 3-line summary of context
-			const callerNames = context.callers.slice(0, 3).map(c => c.name).join(", ");
-			const calleeNames = context.callees.slice(0, 3).map(c => c.name).join(", ");
-			console.log(`✓ ${symbol.name} (${symbol.kind}) at ${symbol.filePath}:${symbol.startLine}`);
-			console.log(`Callers(${context.callers.length}): ${callerNames || "none"}${context.callers.length > 3 ? "..." : ""} | Callees(${context.callees.length}): ${calleeNames || "none"}${context.callees.length > 3 ? "..." : ""}`);
-			console.log(`Next: claudemem impact ${symbolName} | Read ${symbol.filePath}:${symbol.startLine}`);
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log(`\n🔮 Context for '${symbolName}'\n`);
 
 			// Symbol
@@ -3032,8 +2937,7 @@ async function handleContext(args: string[]): Promise<void> {
  * Handle 'dead-code' command - find potentially dead code
  */
 async function handleDeadCode(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 	const projectPath = resolve(".");
 
 	// Parse --max-pagerank flag
@@ -3076,34 +2980,17 @@ async function handleDeadCode(args: string[]): Promise<void> {
 			limit,
 		});
 
-		if (raw) {
+		if (compactMode) {
+			// Agent mode: file:line list
 			if (results.length === 0) {
-				console.log("# No dead code found");
+				console.log("No dead code found");
 			} else {
-				const output = results.map(r => [
-					`name: ${r.symbol.name}`,
-					`file: ${r.symbol.filePath}`,
-					`line: ${r.symbol.startLine}-${r.symbol.endLine}`,
-					`kind: ${r.symbol.kind}`,
-					`pagerank: ${r.symbol.pagerankScore.toFixed(6)}`,
-					`exported: ${r.symbol.isExported}`,
-				].join('\n')).join('\n---\n');
-				console.log(output);
-			}
-		} else if (compactMode) {
-			// Compact: 3-line summary
-			if (results.length === 0) {
-				console.log(`✓ No dead code found (PR < ${maxPageRank})`);
-				console.log(`Your codebase is clean!`);
-				console.log(`Check: claudemem test-gaps | claudemem impact <name>`);
-			} else {
-				const top5 = results.slice(0, 5).map(r => `${r.symbol.name}(${r.symbol.filePath.split('/').pop()}:${r.symbol.startLine})`).join(", ");
-				console.log(`⚠ Found ${results.length} potentially dead symbols`);
-				console.log(`Top: ${top5}${results.length > 5 ? ` (+${results.length - 5} more)` : ""}`);
-				console.log(`Review: claudemem callers <name> to verify | Use --raw for full list`);
+				for (const r of results.slice(0, 10)) {
+					console.log(`${r.symbol.filePath}:${r.symbol.startLine} ${r.symbol.name} (${r.symbol.kind})`);
+				}
 			}
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n💀 Dead Code Analysis\n");
 
 			if (results.length === 0) {
@@ -3127,8 +3014,7 @@ async function handleDeadCode(args: string[]): Promise<void> {
  * Handle 'test-gaps' command - find untested high-importance code
  */
 async function handleTestGaps(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 	const projectPath = resolve(".");
 
 	// Parse --min-pagerank flag
@@ -3166,35 +3052,17 @@ async function handleTestGaps(args: string[]): Promise<void> {
 			limit,
 		});
 
-		if (raw) {
+		if (compactMode) {
+			// Agent mode: file:line list
 			if (results.length === 0) {
-				console.log("# No test gaps found");
+				console.log("No test gaps found");
 			} else {
-				const output = results.map(r => [
-					`name: ${r.symbol.name}`,
-					`file: ${r.symbol.filePath}`,
-					`line: ${r.symbol.startLine}-${r.symbol.endLine}`,
-					`kind: ${r.symbol.kind}`,
-					`pagerank: ${r.symbol.pagerankScore.toFixed(6)}`,
-					`callers: ${r.callerCount}`,
-					`test_callers: ${r.testCallerCount}`,
-				].join('\n')).join('\n---\n');
-				console.log(output);
-			}
-		} else if (compactMode) {
-			// Compact: 3-line summary
-			if (results.length === 0) {
-				console.log(`✓ No test gaps found (PR > ${minPageRank})`);
-				console.log(`All high-importance code has test coverage!`);
-				console.log(`Check: claudemem dead-code | claudemem impact <name>`);
-			} else {
-				const top5 = results.slice(0, 5).map(r => `${r.symbol.name}(PR:${r.symbol.pagerankScore.toFixed(3)})`).join(", ");
-				console.log(`⚠ Found ${results.length} untested high-importance symbols`);
-				console.log(`Priority: ${top5}${results.length > 5 ? ` (+${results.length - 5} more)` : ""}`);
-				console.log(`Write tests for: claudemem context <name> | Use --raw for full list`);
+				for (const r of results.slice(0, 10)) {
+					console.log(`${r.symbol.filePath}:${r.symbol.startLine} ${r.symbol.name} (${r.symbol.kind})`);
+				}
 			}
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n🧪 Test Coverage Gaps\n");
 
 			if (results.length === 0) {
@@ -3218,8 +3086,7 @@ async function handleTestGaps(args: string[]): Promise<void> {
  * Handle 'impact' command - analyze change impact
  */
 async function handleImpact(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
-	const compactMode = isClaudeCode();
+	const compactMode = agentMode;
 	const projectPath = resolve(".");
 
 	// Get symbol name
@@ -3230,7 +3097,7 @@ async function handleImpact(args: string[]): Promise<void> {
 			console.log(`Usage: claudemem impact <name>`);
 			console.log(`Example: claudemem impact handleSearch`);
 		} else {
-			console.error("Usage: claudemem impact <symbol> [--max-depth N] [--raw]");
+			console.error("Usage: claudemem impact <symbol> [--max-depth N]");
 		}
 		process.exit(1);
 	}
@@ -3295,48 +3162,17 @@ async function handleImpact(args: string[]): Promise<void> {
 			process.exit(1);
 		}
 
-		if (raw) {
-			const sections: string[] = [];
-
-			// Target section
-			sections.push("[target]");
-			sections.push([
-				`name: ${impact.target.name}`,
-				`file: ${impact.target.filePath}`,
-				`line: ${impact.target.startLine}-${impact.target.endLine}`,
-				`kind: ${impact.target.kind}`,
-			].join('\n'));
-
-			// Summary
-			sections.push("[summary]");
-			sections.push([
-				`direct_callers: ${impact.directCallers.length}`,
-				`total_affected: ${impact.totalAffected}`,
-				`files_affected: ${impact.byFile.size}`,
-			].join('\n'));
-
-			// By file
-			sections.push("[by_file]");
-			for (const [filePath, results] of impact.byFile) {
-				sections.push(`file: ${filePath}`);
-				sections.push(`count: ${results.length}`);
-				for (const r of results) {
-					sections.push(`  caller: ${r.symbol.name}`);
-					sections.push(`  line: ${r.symbol.startLine}`);
-					sections.push(`  depth: ${r.depth}`);
-					sections.push(`  ---`);
+		if (compactMode) {
+			// Agent mode: affected files list
+			console.log(`${impact.target.filePath}:${impact.target.startLine} ${impact.target.name} (target)`);
+			console.log(`# ${impact.totalAffected} affected symbols in ${impact.byFile.size} files`);
+			for (const [filePath, results] of Array.from(impact.byFile.entries()).slice(0, 5)) {
+				for (const r of results.slice(0, 2)) {
+					console.log(`${filePath}:${r.symbol.startLine} ${r.symbol.name}`);
 				}
 			}
-
-			console.log(sections.join('\n'));
-		} else if (compactMode) {
-			// Compact: 3-line summary
-			const fileList = Array.from(impact.byFile.keys()).slice(0, 3).map(f => f.split('/').pop()).join(", ");
-			console.log(`✓ Impact of ${symbolName}: ${impact.totalAffected} symbols in ${impact.byFile.size} files`);
-			console.log(`Direct callers: ${impact.directCallers.length} | Files: ${fileList}${impact.byFile.size > 3 ? "..." : ""}`);
-			console.log(`High impact? ${impact.totalAffected > 10 ? "Yes - test thoroughly" : "Low"} | Detail: claudemem impact ${symbolName} --raw`);
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log(`\n🎯 Impact Analysis for '${symbolName}'\n`);
 
 			// Target info
@@ -3394,7 +3230,7 @@ async function handleWatch(args: string[]): Promise<void> {
 		const { createFileWatcher } = await import("./core/watcher/file-watcher.js");
 		const watcher = createFileWatcher(projectPath, debounceMs);
 
-		if (!noLogo) printLogo();
+		printLogo();
 		console.log("\n👁️  Watch Mode\n");
 		console.log(`  Watching for changes in: ${projectPath}`);
 		console.log(`  Debounce: ${debounceMs}ms`);
@@ -3447,7 +3283,7 @@ Subcommands:
 		case "install":
 			try {
 				await hookManager.install();
-				if (!noLogo) printLogo();
+				printLogo();
 				console.log("\n✅ Git hook installed successfully!\n");
 				console.log("  The post-commit hook will now auto-index changes after each commit.");
 				console.log("  Location: .git/hooks/post-commit\n");
@@ -3460,7 +3296,7 @@ Subcommands:
 		case "uninstall":
 			try {
 				await hookManager.uninstall();
-				if (!noLogo) printLogo();
+				printLogo();
 				console.log("\n✅ Git hook uninstalled successfully!\n");
 			} catch (error) {
 				console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -3470,7 +3306,7 @@ Subcommands:
 
 		case "status":
 			const status = await hookManager.status();
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n🔗 Git Hook Status\n");
 			console.log(`  Installed: ${status.installed ? "Yes" : "No"}`);
 			if (status.installed) {
@@ -3592,7 +3428,7 @@ async function handleOpenCodeIntegration(
 				}
 
 				await manager.install(pluginType);
-				if (!noLogo) printLogo();
+				printLogo();
 				console.log("\n✅ OpenCode integration installed!\n");
 				console.log(`  Plugin type: ${pluginType}`);
 				console.log(`  Location: .opencode/plugin/`);
@@ -3625,7 +3461,7 @@ async function handleOpenCodeIntegration(
 		case "uninstall":
 			try {
 				await manager.uninstall();
-				if (!noLogo) printLogo();
+				printLogo();
 				console.log("\n✅ OpenCode integration uninstalled!\n");
 			} catch (error) {
 				console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -3635,7 +3471,7 @@ async function handleOpenCodeIntegration(
 
 		case "status":
 			const status = await manager.status();
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n🔌 OpenCode Integration Status\n");
 			console.log(`  OpenCode project: ${status.isOpenCodeProject ? "Yes" : "No"}`);
 			console.log(`  Installed: ${status.installed ? "Yes" : "No"}`);
@@ -3778,7 +3614,7 @@ async function handleDocsStatus(projectPath: string): Promise<void> {
 		const stats = tracker.getIndexedDocsStats();
 		const docs = tracker.getAllIndexedDocs();
 
-		if (!noLogo) printLogo();
+		printLogo();
 		console.log("\n📚 Documentation Status\n");
 		console.log(`  Enabled:     ${isDocsEnabled(projectPath) ? "Yes" : "No"}`);
 		console.log(`  Libraries:   ${stats.totalLibraries}`);
@@ -3821,7 +3657,7 @@ async function handleDocsFetch(projectPath: string, args: string[]): Promise<voi
 
 	const specificLibrary = args[0];
 
-	if (!noLogo) printLogo();
+	printLogo();
 	console.log("\n📚 Fetching Documentation\n");
 
 	const fetcher = createDocsFetcher(projectPath);
@@ -3937,7 +3773,7 @@ async function handleDocsRefresh(projectPath: string): Promise<void> {
 		// Clear all indexed docs to force refresh on next index
 		tracker.clearAllIndexedDocs();
 
-		if (!noLogo) printLogo();
+		printLogo();
 		console.log("\n📚 Documentation cache cleared. Run 'claudemem index' to refresh.\n");
 	} finally {
 		tracker.close();
@@ -3954,7 +3790,7 @@ async function handleDocsProviders(projectPath: string): Promise<void> {
 	const config = getDocsConfig(projectPath);
 	const providers = createProviders(config);
 
-	if (!noLogo) printLogo();
+	printLogo();
 	console.log("\n📚 Documentation Providers\n");
 
 	const context7Configured = hasContext7ApiKey();
@@ -4006,7 +3842,7 @@ async function handleDocsClear(projectPath: string, args: string[]): Promise<voi
 			await vectorStore.deleteByFile(`docs:${specificLibrary}`);
 			tracker.deleteIndexedDocs(specificLibrary);
 
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log(`\n✓ Cleared documentation for '${specificLibrary}'\n`);
 		} else {
 			// Clear all documentation
@@ -4017,7 +3853,7 @@ async function handleDocsClear(projectPath: string, args: string[]): Promise<voi
 			}
 			tracker.clearAllIndexedDocs();
 
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log(`\n✓ Cleared all documentation (${docs.length} libraries)\n`);
 		}
 	} finally {
@@ -4038,7 +3874,7 @@ async function handleDocsClear(projectPath: string, args: string[]): Promise<voi
  *   claudemem feedback --query "auth flow" --helpful id1 --unhelpful id2,id3
  */
 async function handleFeedback(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
+	const compactMode = agentMode;
 	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
 	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
 
@@ -4065,7 +3901,7 @@ async function handleFeedback(args: string[]): Promise<void> {
 		: [...helpfulIds, ...unhelpfulIds]; // Default to combined if not specified
 
 	if (!query) {
-		if (raw) {
+		if (compactMode) {
 			console.log("error: --query is required");
 		} else {
 			console.error("Error: --query is required.");
@@ -4075,7 +3911,7 @@ async function handleFeedback(args: string[]): Promise<void> {
 	}
 
 	if (helpfulIds.length === 0 && unhelpfulIds.length === 0) {
-		if (raw) {
+		if (compactMode) {
 			console.log("error: at least one of --helpful or --unhelpful is required");
 		} else {
 			console.error("Error: At least one of --helpful or --unhelpful is required.");
@@ -4086,7 +3922,7 @@ async function handleFeedback(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (raw) {
+		if (compactMode) {
 			console.log("error: no index found");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
@@ -4109,14 +3945,10 @@ async function handleFeedback(args: string[]): Promise<void> {
 		// Train on the feedback
 		const weights = await learning.engine.train();
 
-		if (raw) {
+		if (compactMode) {
 			console.log("ok");
-			console.log(`feedback_count:${weights.feedbackCount}`);
-			console.log(`confidence:${weights.confidence.toFixed(2)}`);
-			console.log(`vector_weight:${weights.vectorWeight.toFixed(3)}`);
-			console.log(`bm25_weight:${weights.bm25Weight.toFixed(3)}`);
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n✅ Feedback recorded\n");
 			console.log(`  Query: "${query}"`);
 			console.log(`  Helpful: ${helpfulIds.length} result(s)`);
@@ -4142,7 +3974,7 @@ async function handleFeedback(args: string[]): Promise<void> {
  *   claudemem learn reset           Reset all learned weights
  */
 async function handleLearn(args: string[]): Promise<void> {
-	const raw = args.includes("--raw");
+	const compactMode = agentMode;
 	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
 	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
 
@@ -4150,7 +3982,7 @@ async function handleLearn(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (raw) {
+		if (compactMode) {
 			console.log("error: no index found");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
@@ -4166,7 +3998,7 @@ async function handleLearn(args: string[]): Promise<void> {
 			// Reset learning
 			const force = args.includes("--force") || args.includes("-f");
 
-			if (!force && !raw) {
+			if (!force && !compactMode) {
 				const confirmed = await confirm({
 					message: "Reset all learned weights? This cannot be undone.",
 					default: false,
@@ -4180,10 +4012,10 @@ async function handleLearn(args: string[]): Promise<void> {
 
 			learning.engine.reset();
 
-			if (raw) {
+			if (compactMode) {
 				console.log("ok");
 			} else {
-				if (!noLogo) printLogo();
+				printLogo();
 				console.log("\n✅ Learning data reset to defaults.\n");
 			}
 			return;
@@ -4199,21 +4031,10 @@ async function handleLearn(args: string[]): Promise<void> {
 		const implicitCount = stats.eventsByType?.implicit ?? 0;
 		const trackedFilesCount = stats.topBoostedFiles?.length ?? 0;
 
-		if (raw) {
-			console.log(`total_feedback:${stats.totalFeedbackEvents}`);
-			console.log(`explicit_feedback:${explicitCount}`);
-			console.log(`refinement_feedback:${refinementCount}`);
-			console.log(`implicit_feedback:${implicitCount}`);
-			console.log(`unique_queries:${stats.uniqueQueries}`);
-			console.log(`tracked_files:${trackedFilesCount}`);
-			console.log(`vector_weight:${weights.vectorWeight.toFixed(3)}`);
-			console.log(`bm25_weight:${weights.bm25Weight.toFixed(3)}`);
-			console.log(`confidence:${weights.confidence.toFixed(2)}`);
-			if (stats.lastTrainingAt) {
-				console.log(`last_trained:${stats.lastTrainingAt.toISOString()}`);
-			}
+		if (compactMode) {
+			console.log(`feedback:${stats.totalFeedbackEvents} queries:${stats.uniqueQueries}`);
 		} else {
-			if (!noLogo) printLogo();
+			printLogo();
 			console.log("\n📊 Learning Statistics\n");
 			console.log(`  Total feedback events: ${stats.totalFeedbackEvents}`);
 			console.log(`    Explicit: ${explicitCount}`);
@@ -4277,14 +4098,13 @@ function handleAiInstructions(args: string[]): void {
 	};
 
 	const compact = args.includes("--compact") || args.includes("-c");
-	const raw = args.includes("--raw") || args.includes("-r");
 	const mcp = args.includes("--mcp-format") || args.includes("-m");
 	const quick = args.includes("--quick") || args.includes("-q");
 	const targetArg = args.find((a) => !a.startsWith("-"));
 
 	// No target specified - show help
 	if (!targetArg) {
-		if (!noLogo) printLogo();
+		printLogo();
 		console.log(`\n${c.orange}${c.bold}AI AGENT INSTRUCTIONS${c.reset}\n`);
 		console.log("Print instructions for AI agents using claudemem.\n");
 		console.log(`${c.yellow}${c.bold}USAGE${c.reset}`);
@@ -4298,13 +4118,12 @@ function handleAiInstructions(args: string[]): void {
 		console.log(`${c.yellow}${c.bold}OPTIONS${c.reset}`);
 		console.log(`  ${c.cyan}-c, --compact${c.reset}       Minimal version (~50 tokens)`);
 		console.log(`  ${c.cyan}-q, --quick${c.reset}         Quick reference (~30 tokens)`);
-		console.log(`  ${c.cyan}-m, --mcp-format${c.reset}    MCP tools format`);
-		console.log(`  ${c.cyan}-r, --raw${c.reset}           No colors (for piping)\n`);
+		console.log(`  ${c.cyan}-m, --mcp-format${c.reset}    MCP tools format\n`);
 		console.log(`${c.yellow}${c.bold}EXAMPLES${c.reset}`);
 		console.log(`  ${c.dim}# Full skill document for CLAUDE.md${c.reset}`);
-		console.log(`  ${c.cyan}claudemem ai skill --raw >> CLAUDE.md${c.reset}\n`);
+		console.log(`  ${c.cyan}claudemem --agent ai skill >> CLAUDE.md${c.reset}\n`);
 		console.log(`  ${c.dim}# Compact skill + role for system prompt${c.reset}`);
-		console.log(`  ${c.cyan}claudemem ai developer --compact --raw${c.reset}\n`);
+		console.log(`  ${c.cyan}claudemem --agent ai developer --compact${c.reset}\n`);
 		console.log(`  ${c.dim}# MCP tools reference${c.reset}`);
 		console.log(`  ${c.cyan}claudemem ai skill -m${c.reset}\n`);
 		console.log(`  ${c.dim}# Quick reference (minimal tokens)${c.reset}`);
@@ -4351,15 +4170,15 @@ function handleAiInstructions(args: string[]): void {
 	}
 
 	// Output
-	if (raw) {
+	if (agentMode) {
 		console.log(output);
 	} else {
-		if (!noLogo) printLogo();
+		printLogo();
 		console.log(`\n${c.orange}${c.bold}${title}${c.reset}`);
 		console.log(`${c.dim}${"─".repeat(60)}${c.reset}\n`);
 		console.log(output);
 		console.log(`\n${c.dim}${"─".repeat(60)}${c.reset}`);
-		console.log(`${c.dim}Use --raw for clipboard: claudemem ai ${target} --raw | pbcopy${c.reset}\n`);
+		console.log(`${c.dim}For piping: claudemem --agent ai ${target} | pbcopy${c.reset}\n`);
 	}
 }
 
@@ -4411,7 +4230,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}benchmark-show${c.reset}         Show results for a specific run
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
 
-${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(for AI agents - use --raw for parsing)${c.reset}
+${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(use --agent for compact output)${c.reset}
   ${c.green}map${c.reset} [query]            Get repo structure ${c.dim}(optionally filtered by query)${c.reset}
   ${c.green}symbol${c.reset} <name>          Find symbol definition
   ${c.green}callers${c.reset} <name>         Find what calls a symbol
@@ -4475,7 +4294,6 @@ ${c.yellow}${c.bold}BENCHMARK-LLM SUBCOMMANDS${c.reset}
   ${c.dim}Outputs: JSON, Markdown, HTML reports${c.reset}
 
 ${c.yellow}${c.bold}SYMBOL GRAPH OPTIONS${c.reset}
-  ${c.cyan}--raw${c.reset}                  Machine-readable output (line-based, for parsing)
   ${c.cyan}--tokens${c.reset} <n>           Max tokens for map output (default: 2000)
   ${c.cyan}--file${c.reset} <hint>          Disambiguate symbol by file path
   ${c.cyan}--callers${c.reset} <n>          Max callers to show (default: 10)
@@ -4496,23 +4314,19 @@ ${c.yellow}${c.bold}FEEDBACK OPTIONS${c.reset}
   ${c.cyan}--helpful${c.reset} <ids>        Comma-separated IDs of helpful results
   ${c.cyan}--unhelpful${c.reset} <ids>      Comma-separated IDs of unhelpful results
   ${c.cyan}--results${c.reset} <ids>        All result IDs from the search (optional)
-  ${c.cyan}--raw${c.reset}                  Machine-readable output
 
 ${c.yellow}${c.bold}LEARN OPTIONS${c.reset}
-  ${c.cyan}--raw${c.reset}                  Machine-readable output
   ${c.cyan}-f, --force${c.reset}            Skip confirmation for reset
 
 ${c.yellow}${c.bold}AI OPTIONS${c.reset}
   ${c.cyan}-c, --compact${c.reset}          Minimal version (~50 tokens)
   ${c.cyan}-q, --quick${c.reset}            Quick reference (~30 tokens)
   ${c.cyan}-m, --mcp-format${c.reset}       MCP tools format
-  ${c.cyan}-r, --raw${c.reset}              No colors (for piping)
 
 ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
   ${c.cyan}-h, --help${c.reset}             Show this help
-  ${c.cyan}--nologo${c.reset}               Suppress ASCII logo (for scripts/agents)
-  ${c.cyan}--plain${c.reset}                Plain output: no ANSI codes, no progress bars (for OpenCode, CI)
+  ${c.cyan}--agent${c.reset}                Agent mode: no logo, compact output (for tools/scripts)
   ${c.cyan}--models${c.reset}               List available embedding models (with --free, --refresh)
 
 ${c.yellow}${c.bold}MCP SERVER${c.reset}
@@ -4554,32 +4368,32 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.cyan}claudemem benchmark --models=qwen/qwen3-embedding-8b,openai/text-embedding-3-small${c.reset}
 
   ${c.dim}# Get AI agent instructions${c.reset}
-  ${c.cyan}claudemem ai${c.reset}                          ${c.dim}# show help${c.reset}
-  ${c.cyan}claudemem ai skill${c.reset}                    ${c.dim}# full skill document${c.reset}
-  ${c.cyan}claudemem ai skill --raw >> CLAUDE.md${c.reset} ${c.dim}# append to CLAUDE.md${c.reset}
-  ${c.cyan}claudemem ai developer --compact${c.reset}      ${c.dim}# role + skill (minimal)${c.reset}
+  ${c.cyan}claudemem ai${c.reset}                              ${c.dim}# show help${c.reset}
+  ${c.cyan}claudemem ai skill${c.reset}                        ${c.dim}# full skill document${c.reset}
+  ${c.cyan}claudemem --agent ai skill >> CLAUDE.md${c.reset}   ${c.dim}# append to CLAUDE.md${c.reset}
+  ${c.cyan}claudemem ai developer --compact${c.reset}          ${c.dim}# role + skill (minimal)${c.reset}
 
   ${c.dim}# Symbol graph commands (for AI agents)${c.reset}
-  ${c.cyan}claudemem --nologo map --raw${c.reset}                      ${c.dim}# repo structure${c.reset}
-  ${c.cyan}claudemem --nologo map "auth" --raw${c.reset}               ${c.dim}# focused on query${c.reset}
-  ${c.cyan}claudemem --nologo symbol Indexer --raw${c.reset}           ${c.dim}# find symbol${c.reset}
-  ${c.cyan}claudemem --nologo callers VectorStore --raw${c.reset}      ${c.dim}# what uses it?${c.reset}
-  ${c.cyan}claudemem --nologo callees VectorStore --raw${c.reset}      ${c.dim}# what it uses?${c.reset}
-  ${c.cyan}claudemem --nologo context VectorStore --raw${c.reset}      ${c.dim}# full context${c.reset}
+  ${c.cyan}claudemem --agent map${c.reset}                     ${c.dim}# repo structure${c.reset}
+  ${c.cyan}claudemem --agent map "auth"${c.reset}              ${c.dim}# focused on query${c.reset}
+  ${c.cyan}claudemem --agent symbol Indexer${c.reset}          ${c.dim}# find symbol${c.reset}
+  ${c.cyan}claudemem --agent callers VectorStore${c.reset}     ${c.dim}# what uses it?${c.reset}
+  ${c.cyan}claudemem --agent callees VectorStore${c.reset}     ${c.dim}# what it uses?${c.reset}
+  ${c.cyan}claudemem --agent context VectorStore${c.reset}     ${c.dim}# full context${c.reset}
 
   ${c.dim}# Code analysis commands${c.reset}
-  ${c.cyan}claudemem dead-code${c.reset}                               ${c.dim}# find dead code${c.reset}
-  ${c.cyan}claudemem test-gaps${c.reset}                               ${c.dim}# find untested code${c.reset}
-  ${c.cyan}claudemem impact createIndexer${c.reset}                    ${c.dim}# change impact analysis${c.reset}
+  ${c.cyan}claudemem dead-code${c.reset}                       ${c.dim}# find dead code${c.reset}
+  ${c.cyan}claudemem test-gaps${c.reset}                       ${c.dim}# find untested code${c.reset}
+  ${c.cyan}claudemem impact createIndexer${c.reset}            ${c.dim}# change impact analysis${c.reset}
 
   ${c.dim}# Developer experience${c.reset}
-  ${c.cyan}claudemem watch${c.reset}                                   ${c.dim}# auto-reindex on changes${c.reset}
+  ${c.cyan}claudemem watch${c.reset}                           ${c.dim}# auto-reindex on changes${c.reset}
 
-  ${c.dim}# Adaptive learning (for AI agents)${c.reset}
+  ${c.dim}# Adaptive learning${c.reset}
   ${c.cyan}claudemem feedback --query "auth" --helpful id1,id2 --unhelpful id3${c.reset}
-  ${c.cyan}claudemem learn --raw${c.reset}                             ${c.dim}# machine-readable stats${c.reset}
-  ${c.cyan}claudemem learn reset -f${c.reset}                          ${c.dim}# reset without prompt${c.reset}
-  ${c.cyan}claudemem hooks install${c.reset}                           ${c.dim}# install git hook${c.reset}
+  ${c.cyan}claudemem learn${c.reset}                           ${c.dim}# show learning stats${c.reset}
+  ${c.cyan}claudemem learn reset -f${c.reset}                  ${c.dim}# reset without prompt${c.reset}
+  ${c.cyan}claudemem hooks install${c.reset}                   ${c.dim}# install git hook${c.reset}
 
 ${c.yellow}${c.bold}MORE INFO${c.reset}
   ${c.blue}https://github.com/MadAppGang/claudemem${c.reset}

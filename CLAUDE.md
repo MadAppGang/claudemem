@@ -105,7 +105,7 @@ Multiple skill document variants for different contexts:
 
 ## Common Gotchas
 
-1. **Always use `--nologo --raw`** for machine-parseable output
+1. **Always use `--agent`** for machine-parseable output (replaces --nologo --raw --plain)
 2. **PageRank > 0.05** indicates high-importance symbols
 3. **Test file detection** is language-specific (see test-detector.ts)
 4. **Impact analysis** uses BFS with depth limiting to avoid infinite loops
