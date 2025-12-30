@@ -846,6 +846,14 @@ async function handleSearch(args: string[]): Promise<void> {
 
 		// Compact mode: show results in condensed format
 		if (compactMode) {
+			// Plain mode: minimal output for tools/CI (no emojis, no hints)
+			if (plainMode) {
+				const topResults = results.slice(0, 5).map((r) =>
+					`${r.chunk.filePath}:${r.chunk.startLine}`
+				).join("\n");
+				console.log(topResults);
+				return;
+			}
 			// Line 1: Summary
 			console.log(`✓ Found ${results.length} results for "${query}"`);
 			// Line 2: Top results (file:line score%)

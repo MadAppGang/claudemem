@@ -106,7 +106,7 @@ export const ClaudemumToolsPlugin = async (ctx) => {
           limit: tool.schema.number().optional().describe("Max results (default: 10)"),
         },
         async execute({ query, limit = 10 }) {
-          const result = await $\`claudemem --nologo search \${query} --raw -n \${limit}\`;
+          const result = await $\`claudemem --nologo --plain search \${query} --raw -n \${limit}\`;
           return result.stdout || "No results found";
         },
       }),
@@ -118,8 +118,8 @@ export const ClaudemumToolsPlugin = async (ctx) => {
         },
         async execute({ query }) {
           const cmd = query
-            ? $\`claudemem --nologo map \${query} --raw\`
-            : $\`claudemem --nologo map --raw\`;
+            ? $\`claudemem --nologo --plain map \${query} --raw\`
+            : $\`claudemem --nologo --plain map --raw\`;
           const result = await cmd;
           return result.stdout || "No symbols found";
         },
@@ -131,7 +131,7 @@ export const ClaudemumToolsPlugin = async (ctx) => {
           name: tool.schema.string().describe("Symbol name to find"),
         },
         async execute({ name }) {
-          const result = await $\`claudemem --nologo symbol \${name} --raw\`;
+          const result = await $\`claudemem --nologo --plain symbol \${name} --raw\`;
           return result.stdout || \`Symbol '\${name}' not found\`;
         },
       }),
@@ -142,7 +142,7 @@ export const ClaudemumToolsPlugin = async (ctx) => {
           name: tool.schema.string().describe("Symbol name"),
         },
         async execute({ name }) {
-          const result = await $\`claudemem --nologo callers \${name} --raw\`;
+          const result = await $\`claudemem --nologo --plain callers \${name} --raw\`;
           return result.stdout || \`No callers found for '\${name}'\`;
         },
       }),
@@ -153,7 +153,7 @@ export const ClaudemumToolsPlugin = async (ctx) => {
           name: tool.schema.string().describe("Symbol name"),
         },
         async execute({ name }) {
-          const result = await $\`claudemem --nologo callees \${name} --raw\`;
+          const result = await $\`claudemem --nologo --plain callees \${name} --raw\`;
           return result.stdout || \`No callees found for '\${name}'\`;
         },
       }),
@@ -164,7 +164,7 @@ export const ClaudemumToolsPlugin = async (ctx) => {
           name: tool.schema.string().describe("Symbol name"),
         },
         async execute({ name }) {
-          const result = await $\`claudemem --nologo context \${name} --raw\`;
+          const result = await $\`claudemem --nologo --plain context \${name} --raw\`;
           return result.stdout || \`Context not found for '\${name}'\`;
         },
       }),
