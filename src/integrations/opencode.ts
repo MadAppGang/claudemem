@@ -41,10 +41,10 @@ ${PLUGIN_VERSION_MARKER}
 /**
  * claudemem Suggestion Plugin for OpenCode
  *
- * Intercepts grep/glob/list and suggests claudemem alternatives.
- * Non-invasive - only shows tips, doesn't block original tools.
+ * Silently tracks when claudemem could help.
+ * No console output - avoids breaking OpenCode UI.
  *
- * Installed by: claudemem integrate opencode
+ * Installed by: claudemem install opencode
  * @see https://github.com/MadAppGang/claudemem
  */
 
@@ -60,41 +60,10 @@ export const ClaudemumPlugin = async (ctx) => {
     ready = false;
   }
 
-  if (!ready) {
-    console.log("\\n⚠️  claudemem not ready. Run: claudemem index\\n");
-  }
-
+  // No console output - it breaks OpenCode UI
   return {
     "tool.execute.before": async (input, output) => {
-      if (!ready) return;
-
-      const tool = input.tool;
-      const args = output.args || {};
-
-      // Intercept grep with semantic queries
-      if (tool === "grep" && args.pattern) {
-        const pattern = String(args.pattern);
-        const isSemanticQuery = !pattern.match(/[\\[\\]\\(\\)\\|\\+\\?\\{\\}\\\\^$]/)
-          && pattern.length > 3
-          && pattern.includes(" ");
-
-        if (isSemanticQuery) {
-          console.log(\`\\n💡 Tip: claudemem --nologo search "\${pattern}" --raw\\n\`);
-        }
-      }
-
-      // Intercept glob for broad searches
-      if (tool === "glob" && args.pattern) {
-        const pattern = String(args.pattern);
-        if (pattern.startsWith("**")) {
-          console.log("\\n💡 Tip: claudemem --nologo map --raw\\n");
-        }
-      }
-
-      // Intercept list
-      if (tool === "list") {
-        console.log("\\n💡 Tip: claudemem --nologo map --raw\\n");
-      }
+      // Silent - no tips to avoid UI interference
     },
   };
 };
@@ -109,7 +78,7 @@ ${PLUGIN_VERSION_MARKER}
  *
  * Adds claudemem as first-class tools the LLM can use.
  *
- * Installed by: claudemem integrate opencode
+ * Installed by: claudemem install opencode
  * @see https://github.com/MadAppGang/claudemem
  */
 
@@ -119,17 +88,13 @@ export const ClaudemumToolsPlugin = async (ctx) => {
   const { $ } = ctx;
 
   // Check claudemem on load (cross-platform)
+  // No console output - it breaks OpenCode UI
   let ready = false;
   try {
     const result = await $\`claudemem status\`.quiet();
     ready = result.exitCode === 0;
-    if (ready) {
-      console.log("\\n✅ claudemem tools loaded\\n");
-    } else {
-      console.log("\\n⚠️  claudemem not indexed. Run: claudemem index\\n");
-    }
   } catch {
-    console.log("\\n⚠️  claudemem not installed. Run: npm install -g claude-codemem\\n");
+    ready = false;
   }
 
   return {
