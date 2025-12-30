@@ -96,6 +96,48 @@ function printLogo(): void {
 /** Global flag to suppress logo */
 let noLogo = false;
 
+/** Detect if running inside Claude Code (AI agent) */
+function isClaudeCode(): boolean {
+	return (
+		process.env.CLAUDECODE === "1" ||
+		process.env.CLAUDE_CODE_ENTRYPOINT !== undefined ||
+		!process.stdout.isTTY
+	);
+}
+
+/** Print compact help for AI agents (3 lines) */
+function printCompactHelp(): void {
+	console.log(`claudemem v${VERSION} - Semantic code search with AST analysis`);
+	console.log(`Commands: index search map symbol callers callees context dead-code test-gaps impact hook`);
+	console.log(`Use: claudemem <cmd> --help | Flags: --nologo --raw | Docs: https://github.com/MadAppGang/claudemem`);
+}
+
+// ============================================================================
+// Compact Output for Claude Code (3 lines max, no animations)
+// ============================================================================
+
+/** Compact output: 3 lines for AI agents */
+function compactOutput(line1: string, line2: string, line3: string): void {
+	console.log(line1);
+	console.log(line2);
+	console.log(line3);
+}
+
+/** Format file path compactly */
+function compactPath(path: string, maxLen = 40): string {
+	if (path.length <= maxLen) return path;
+	const parts = path.split("/");
+	if (parts.length <= 2) return path.slice(-maxLen);
+	return "..." + path.slice(-(maxLen - 3));
+}
+
+/** Format duration compactly */
+function compactDuration(ms: number): string {
+	if (ms < 1000) return `${ms}ms`;
+	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+	return `${(ms / 60000).toFixed(1)}m`;
+}
+
 // ============================================================================
 // CLI Entry Point
 // ============================================================================
@@ -107,18 +149,27 @@ export async function runCli(args: string[]): Promise<void> {
 		args = args.filter((a) => a !== "--nologo");
 	}
 
+	// Auto-suppress logo in Claude Code / non-TTY environments
+	if (isClaudeCode()) {
+		noLogo = true;
+	}
+
 	// Parse command
 	const command = args[0];
 
 	// Handle global flags
 	// Note: -v is reserved for --verbose in subcommands, use --version only for version
 	if (args.includes("--version")) {
-		console.log(`claudemem version ${VERSION}`);
+		console.log(`claudemem v${VERSION}`);
 		return;
 	}
 
 	if (args.includes("--help") || args.includes("-h") || !command) {
-		printHelp();
+		if (isClaudeCode()) {
+			printCompactHelp();
+		} else {
+			printHelp();
+		}
 		return;
 	}
 
@@ -196,6 +247,10 @@ export async function runCli(args: string[]): Promise<void> {
 			break;
 		case "hooks":
 			await handleHooks(args.slice(1));
+			break;
+		case "hook":
+			// Claude Code hook handler - reads JSON from stdin
+			await handleHookCommand(args.slice(1));
 			break;
 		case "install":
 			await handleInstall(args.slice(1));
@@ -438,28 +493,34 @@ async function handleIndex(args: string[]): Promise<void> {
 	// Get model info for display
 	const embeddingModel = getEmbeddingModel(projectPath);
 	const llmSpec = getLLMSpec(projectPath);
+	const compactMode = isClaudeCode();
 
-	console.log(`\nIndexing ${projectPath}...`);
-	if (vectorEnabled) {
-		console.log(`  Embedding model: ${embeddingModel}`);
+	// Compact mode: single line start message
+	if (compactMode) {
+		console.log(`Indexing ${compactPath(projectPath, 50)}...`);
 	} else {
-		console.log(`  Vector mode: disabled (BM25 keyword search only)`);
+		console.log(`\nIndexing ${projectPath}...`);
+		if (vectorEnabled) {
+			console.log(`  Embedding model: ${embeddingModel}`);
+		} else {
+			console.log(`  Vector mode: disabled (BM25 keyword search only)`);
+		}
+		if (!noLlm) {
+			console.log(`  LLM for enrichment: ${llmSpec.displayName}`);
+		}
+		if (force) {
+			console.log("(Force mode: re-indexing all files)");
+		}
+		if (noLlm) {
+			console.log("(LLM enrichment disabled)");
+		} else {
+			console.log(`(Enrichment: ${concurrency} parallel requests)`);
+		}
+		console.log("");
 	}
-	if (!noLlm) {
-		console.log(`  LLM for enrichment: ${llmSpec.displayName}`);
-	}
-	if (force) {
-		console.log("(Force mode: re-indexing all files)");
-	}
-	if (noLlm) {
-		console.log("(LLM enrichment disabled)");
-	} else {
-		console.log(`(Enrichment: ${concurrency} parallel requests)`);
-	}
-	console.log("");
 
-	// Create progress renderer with continuous timer and animation
-	const progress = createProgressRenderer();
+	// Create progress renderer (skip in compact mode)
+	const progress = compactMode ? null : createProgressRenderer();
 	let waitingMessageShown = false;
 
 	const { createIndexer, IndexLockError } = await import("./core/indexer.js");
@@ -480,14 +541,27 @@ async function handleIndex(args: string[]): Promise<void> {
 		},
 	});
 
-	// Start progress only after we know we have the lock
-	progress.start();
+	// Start progress only after we know we have the lock (skip in compact mode)
+	if (progress) progress.start();
 
 	try {
 		const result = await indexer.index(force);
 
 		// Show final state and stop progress renderer
-		progress.finish();
+		if (progress) progress.finish();
+
+		// Compact mode: 3-line summary
+		if (compactMode) {
+			const costStr = result.cost !== undefined ? ` | Cost: $${result.cost.toFixed(4)}` : "";
+			const errStr = result.errors.length > 0 ? ` | ${result.errors.length} errors` : "";
+			compactOutput(
+				`✓ Indexed ${result.filesIndexed} files → ${result.chunksCreated} chunks in ${compactDuration(result.durationMs)}${costStr}${errStr}`,
+				`Model: ${embeddingModel}${result.enrichment ? ` | Enriched: ${result.enrichment.documentsCreated} docs` : ""}`,
+				`Next: claudemem search "query" | claudemem map | claudemem symbol <name>`
+			);
+			await indexer.close();
+			return;
+		}
 
 		const totalElapsed = formatElapsed(result.durationMs);
 		console.log(`✅ Indexing complete in ${totalElapsed}!\n`);
@@ -571,7 +645,7 @@ async function handleIndex(args: string[]): Promise<void> {
 			}
 		}
 	} catch (error) {
-		progress.stop();
+		if (progress) progress.stop();
 
 		if (error instanceof IndexLockError) {
 			console.error(`\n❌ ${error.message}`);
@@ -580,12 +654,14 @@ async function handleIndex(args: string[]): Promise<void> {
 
 		throw error;
 	} finally {
-		progress.stop();
+		if (progress) progress.stop();
 		await indexer.close();
 	}
 }
 
 async function handleSearch(args: string[]): Promise<void> {
+	const compactMode = isClaudeCode();
+
 	// Parse arguments
 	const limitIdx = args.findIndex((a) => a === "-n" || a === "--limit");
 	const limit =
@@ -670,41 +746,56 @@ async function handleSearch(args: string[]): Promise<void> {
 			console.log(`✅ Indexed ${result.filesIndexed} files (${result.chunksCreated} chunks)\n`);
 		} else if (!noReindex) {
 			// Index exists - auto-reindex changed files with progress display
-			// First, check if there are changes (quick check before showing progress)
-			const progress = createProgressRenderer();
-			let hasChanges = false;
+			// In compact mode, do silent reindex
+			if (compactMode) {
+				const { createIndexer: createTempIndexer } = await import("./core/indexer.js");
+				const tempIndexer = createTempIndexer({ projectPath });
+				await tempIndexer.index(false);
+			} else {
+				// First, check if there are changes (quick check before showing progress)
+				const progress = createProgressRenderer();
+				let hasChanges = false;
 
-			// Create a temporary indexer with progress callback
-			const { createIndexer: createTempIndexer } = await import("./core/indexer.js");
-			const tempIndexer = createTempIndexer({
-				projectPath,
-				onProgress: (current, total, detail, inProgress) => {
-					if (!hasChanges && current > 0) {
-						hasChanges = true;
-						console.log("\n🔄 Auto-reindexing changed files...\n");
-						progress.start();
-					}
-					if (hasChanges) {
-						progress.update(current, total, detail, inProgress ?? 0);
-					}
-				},
-			});
+				// Create a temporary indexer with progress callback
+				const { createIndexer: createTempIndexer } = await import("./core/indexer.js");
+				const tempIndexer = createTempIndexer({
+					projectPath,
+					onProgress: (current, total, detail, inProgress) => {
+						if (!hasChanges && current > 0) {
+							hasChanges = true;
+							console.log("\n🔄 Auto-reindexing changed files...\n");
+							progress.start();
+						}
+						if (hasChanges) {
+							progress.update(current, total, detail, inProgress ?? 0);
+						}
+					},
+				});
 
-			const result = await tempIndexer.index(false); // incremental
+				const result = await tempIndexer.index(false); // incremental
 
-			if (hasChanges) {
-				progress.finish();
-				console.log(`✅ Auto-indexed ${result.filesIndexed} changed file(s)\n`);
+				if (hasChanges) {
+					progress.finish();
+					console.log(`✅ Auto-indexed ${result.filesIndexed} changed file(s)\n`);
+				}
 			}
 		}
 
-		console.log(`Searching for: "${query}"${keywordOnly ? " (keyword-only)" : ""}`);
+		if (!compactMode) {
+			console.log(`Searching for: "${query}"${keywordOnly ? " (keyword-only)" : ""}`);
+		}
 
 		const results = await indexer.search(query, { limit, language, useCase, keywordOnly });
 
 		if (results.length === 0) {
-			console.log("\nNo results found.");
-			console.log("Make sure the codebase is indexed: claudemem index");
+			if (compactMode) {
+				console.log(`✗ No results for "${query}"`);
+				console.log(`Index may be stale: claudemem index`);
+				console.log(`Try: claudemem map | claudemem symbol <name>`);
+			} else {
+				console.log("\nNo results found.");
+				console.log("Make sure the codebase is indexed: claudemem index");
+			}
 			return;
 		}
 
@@ -724,11 +815,28 @@ async function handleSearch(args: string[]): Promise<void> {
 					useCase,
 				});
 			} catch (learningError) {
-				// Learning system errors shouldn't break search
-				console.error("[claudemem] Learning system error:", learningError);
+				// Learning system errors shouldn't break search (silent in compact mode)
+				if (!compactMode) {
+					console.error("[claudemem] Learning system error:", learningError);
+				}
 			} finally {
 				tracker.close();
 			}
+		}
+
+		// Compact mode: show results in condensed format
+		if (compactMode) {
+			// Line 1: Summary
+			console.log(`✓ Found ${results.length} results for "${query}"`);
+			// Line 2: Top results (file:line score%)
+			const topResults = results.slice(0, 5).map((r) =>
+				`${compactPath(r.chunk.filePath, 25)}:${r.chunk.startLine} (${(r.score * 100).toFixed(0)}%)`
+			).join(" | ");
+			console.log(topResults);
+			// Line 3: Use Read tool hint
+			const firstFile = results[0]?.chunk.filePath;
+			console.log(`Read: ${firstFile}:${results[0]?.chunk.startLine} | More: claudemem symbol <name>`);
+			return;
 		}
 
 		console.log(`Found ${results.length} result(s):\n`);
@@ -777,6 +885,7 @@ async function handleSearch(args: string[]): Promise<void> {
 }
 
 async function handleStatus(args: string[]): Promise<void> {
+	const compactMode = isClaudeCode();
 	if (!noLogo) printLogo();
 
 	const pathArg = args.find((a) => !a.startsWith("-"));
@@ -789,8 +898,25 @@ async function handleStatus(args: string[]): Promise<void> {
 		const status = await indexer.getStatus();
 
 		if (!status.exists) {
-			console.log("\nNo index found for this project.");
-			console.log("Run 'claudemem index' to create one.");
+			if (compactMode) {
+				console.log(`✗ No index at ${compactPath(projectPath, 40)}`);
+				console.log(`Create: claudemem index`);
+				console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+			} else {
+				console.log("\nNo index found for this project.");
+				console.log("Run 'claudemem index' to create one.");
+			}
+			return;
+		}
+
+		// Compact mode: 3-line status
+		if (compactMode) {
+			const age = status.lastUpdated
+				? compactDuration(Date.now() - status.lastUpdated.getTime()) + " ago"
+				: "unknown";
+			console.log(`✓ Index: ${status.totalFiles} files, ${status.totalChunks} chunks (${age})`);
+			console.log(`Languages: ${status.languages.join(", ") || "none"} | Model: ${status.embeddingModel || "none"}`);
+			console.log(`Commands: search map symbol callers callees context dead-code test-gaps impact`);
 			return;
 		}
 
@@ -2379,6 +2505,7 @@ function getFileTracker(projectPath: string): FileTracker | null {
  */
 async function handleMap(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 
 	// Parse --tokens flag
 	let maxTokens = 2000;
@@ -2405,22 +2532,21 @@ async function handleMap(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
 	try {
 		const repoMapGen = createRepoMapGenerator(tracker);
 
-		let output: string;
-		if (query) {
-			output = repoMapGen.generateForQuery(query, { maxTokens });
-		} else {
-			output = repoMapGen.generate({ maxTokens });
-		}
-
 		if (raw) {
-			// Convert to raw format
+			// Convert to raw format (same for compact and normal)
 			const structured = repoMapGen.generateStructured({ maxTokens: maxTokens * 2 });
 			const rawOutput = structured.map(entry => {
 				return entry.symbols.map(sym => [
@@ -2433,7 +2559,26 @@ async function handleMap(args: string[]): Promise<void> {
 				].filter(Boolean).join('\n')).join('\n---\n');
 			}).join('\n---\n');
 			console.log(rawOutput);
+		} else if (compactMode) {
+			// Compact mode: show top symbols summary
+			const structured = repoMapGen.generateStructured({ maxTokens: 1000 });
+			const totalFiles = structured.length;
+			const totalSymbols = structured.reduce((acc, e) => acc + e.symbols.length, 0);
+			// Get top 5 by pagerank
+			const allSymbols = structured.flatMap(e => e.symbols.map(s => ({ ...s, file: e.filePath })));
+			allSymbols.sort((a, b) => b.pagerankScore - a.pagerankScore);
+			const top5 = allSymbols.slice(0, 5);
+			const topStr = top5.map(s => `${s.name}(${s.kind})`).join(", ");
+			console.log(`✓ Map: ${totalFiles} files, ${totalSymbols} symbols${query ? ` matching "${query}"` : ""}`);
+			console.log(`Top: ${topStr}`);
+			console.log(`Detail: claudemem symbol <name> | claudemem callers <name> | claudemem callees <name>`);
 		} else {
+			let output: string;
+			if (query) {
+				output = repoMapGen.generateForQuery(query, { maxTokens });
+			} else {
+				output = repoMapGen.generate({ maxTokens });
+			}
 			if (!noLogo) printLogo();
 			console.log("\n📊 Repository Map\n");
 			console.log(output);
@@ -2448,12 +2593,19 @@ async function handleMap(args: string[]): Promise<void> {
  */
 async function handleSymbol(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 	const projectPath = resolve(".");
 
 	// Get symbol name
 	const symbolName = args.find(a => !a.startsWith("-"));
 	if (!symbolName) {
-		console.error("Usage: claudemem symbol <name> [--file <hint>] [--raw]");
+		if (compactMode) {
+			console.log(`✗ Missing symbol name`);
+			console.log(`Usage: claudemem symbol <name>`);
+			console.log(`Example: claudemem symbol handleSearch`);
+		} else {
+			console.error("Usage: claudemem symbol <name> [--file <hint>] [--raw]");
+		}
 		process.exit(1);
 	}
 
@@ -2466,7 +2618,13 @@ async function handleSymbol(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
@@ -2478,12 +2636,24 @@ async function handleSymbol(args: string[]): Promise<void> {
 		});
 
 		if (!symbol) {
-			console.error(`Symbol '${symbolName}' not found.`);
+			if (compactMode) {
+				console.log(`✗ Symbol '${symbolName}' not found`);
+				console.log(`Try: claudemem map "${symbolName}" | claudemem search "${symbolName}"`);
+				console.log(`Fuzzy: similar names may exist with different casing`);
+			} else {
+				console.error(`Symbol '${symbolName}' not found.`);
+			}
 			process.exit(1);
 		}
 
 		if (raw) {
 			console.log(formatSymbolRaw(symbol));
+		} else if (compactMode) {
+			// Compact: 3-line output
+			const loc = `${symbol.filePath}:${symbol.startLine}`;
+			console.log(`✓ ${symbol.name} (${symbol.kind}) at ${loc} [PR:${symbol.pagerankScore.toFixed(3)}]`);
+			console.log(symbol.signature ? `Sig: ${symbol.signature}` : `Exported: ${symbol.isExported}`);
+			console.log(`Next: claudemem callers ${symbol.name} | claudemem callees ${symbol.name} | Read ${symbol.filePath}:${symbol.startLine}`);
 		} else {
 			if (!noLogo) printLogo();
 			console.log("\n🔍 Symbol Found\n");
@@ -2506,17 +2676,30 @@ async function handleSymbol(args: string[]): Promise<void> {
  */
 async function handleCallers(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 	const projectPath = resolve(".");
 
 	const symbolName = args.find(a => !a.startsWith("-"));
 	if (!symbolName) {
-		console.error("Usage: claudemem callers <name> [--raw]");
+		if (compactMode) {
+			console.log(`✗ Missing symbol name`);
+			console.log(`Usage: claudemem callers <name>`);
+			console.log(`Example: claudemem callers handleSearch`);
+		} else {
+			console.error("Usage: claudemem callers <name> [--raw]");
+		}
 		process.exit(1);
 	}
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
@@ -2525,7 +2708,13 @@ async function handleCallers(args: string[]): Promise<void> {
 		const symbol = graphManager.findSymbol(symbolName, { preferExported: true });
 
 		if (!symbol) {
-			console.error(`Symbol '${symbolName}' not found.`);
+			if (compactMode) {
+				console.log(`✗ Symbol '${symbolName}' not found`);
+				console.log(`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`);
+				console.log(`Check spelling and casing`);
+			} else {
+				console.error(`Symbol '${symbolName}' not found.`);
+			}
 			process.exit(1);
 		}
 
@@ -2542,6 +2731,18 @@ async function handleCallers(args: string[]): Promise<void> {
 					`kind: ${caller.kind}`,
 				].join('\n')).join('\n---\n');
 				console.log(output);
+			}
+		} else if (compactMode) {
+			// Compact: 3-line output
+			if (callers.length === 0) {
+				console.log(`✓ ${symbolName}: 0 callers (unused or entry point)`);
+				console.log(`Check: claudemem dead-code | claudemem impact ${symbolName}`);
+				console.log(`Symbol at: ${symbol.filePath}:${symbol.startLine}`);
+			} else {
+				const callersList = callers.slice(0, 5).map(c => `${c.name}(${c.filePath.split('/').pop()}:${c.startLine})`).join(", ");
+				console.log(`✓ ${symbolName}: ${callers.length} callers`);
+				console.log(`Callers: ${callersList}${callers.length > 5 ? ` (+${callers.length - 5} more)` : ""}`);
+				console.log(`Next: claudemem callees ${symbolName} | claudemem context ${symbolName} | claudemem impact ${symbolName}`);
 			}
 		} else {
 			if (!noLogo) printLogo();
@@ -2566,17 +2767,30 @@ async function handleCallers(args: string[]): Promise<void> {
  */
 async function handleCallees(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 	const projectPath = resolve(".");
 
 	const symbolName = args.find(a => !a.startsWith("-"));
 	if (!symbolName) {
-		console.error("Usage: claudemem callees <name> [--raw]");
+		if (compactMode) {
+			console.log(`✗ Missing symbol name`);
+			console.log(`Usage: claudemem callees <name>`);
+			console.log(`Example: claudemem callees handleSearch`);
+		} else {
+			console.error("Usage: claudemem callees <name> [--raw]");
+		}
 		process.exit(1);
 	}
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
@@ -2585,7 +2799,13 @@ async function handleCallees(args: string[]): Promise<void> {
 		const symbol = graphManager.findSymbol(symbolName, { preferExported: true });
 
 		if (!symbol) {
-			console.error(`Symbol '${symbolName}' not found.`);
+			if (compactMode) {
+				console.log(`✗ Symbol '${symbolName}' not found`);
+				console.log(`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`);
+				console.log(`Check spelling and casing`);
+			} else {
+				console.error(`Symbol '${symbolName}' not found.`);
+			}
 			process.exit(1);
 		}
 
@@ -2602,6 +2822,18 @@ async function handleCallees(args: string[]): Promise<void> {
 					`kind: ${callee.kind}`,
 				].join('\n')).join('\n---\n');
 				console.log(output);
+			}
+		} else if (compactMode) {
+			// Compact: 3-line output
+			if (callees.length === 0) {
+				console.log(`✓ ${symbolName}: 0 callees (leaf function)`);
+				console.log(`This symbol doesn't call other functions`);
+				console.log(`Symbol at: ${symbol.filePath}:${symbol.startLine}`);
+			} else {
+				const calleesList = callees.slice(0, 5).map(c => `${c.name}(${c.filePath.split('/').pop()}:${c.startLine})`).join(", ");
+				console.log(`✓ ${symbolName}: ${callees.length} callees`);
+				console.log(`Calls: ${calleesList}${callees.length > 5 ? ` (+${callees.length - 5} more)` : ""}`);
+				console.log(`Next: claudemem callers ${symbolName} | claudemem context ${symbolName}`);
 			}
 		} else {
 			if (!noLogo) printLogo();
@@ -2626,11 +2858,18 @@ async function handleCallees(args: string[]): Promise<void> {
  */
 async function handleContext(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 	const projectPath = resolve(".");
 
 	const symbolName = args.find(a => !a.startsWith("-"));
 	if (!symbolName) {
-		console.error("Usage: claudemem context <name> [--callers N] [--callees N] [--raw]");
+		if (compactMode) {
+			console.log(`✗ Missing symbol name`);
+			console.log(`Usage: claudemem context <name>`);
+			console.log(`Example: claudemem context handleSearch`);
+		} else {
+			console.error("Usage: claudemem context <name> [--callers N] [--callees N] [--raw]");
+		}
 		process.exit(1);
 	}
 
@@ -2648,7 +2887,13 @@ async function handleContext(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
@@ -2657,7 +2902,13 @@ async function handleContext(args: string[]): Promise<void> {
 		const symbol = graphManager.findSymbol(symbolName, { preferExported: true });
 
 		if (!symbol) {
-			console.error(`Symbol '${symbolName}' not found.`);
+			if (compactMode) {
+				console.log(`✗ Symbol '${symbolName}' not found`);
+				console.log(`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`);
+				console.log(`Check spelling and casing`);
+			} else {
+				console.error(`Symbol '${symbolName}' not found.`);
+			}
 			process.exit(1);
 		}
 
@@ -2702,6 +2953,13 @@ async function handleContext(args: string[]): Promise<void> {
 			}
 
 			console.log(sections.join('\n'));
+		} else if (compactMode) {
+			// Compact: 3-line summary of context
+			const callerNames = context.callers.slice(0, 3).map(c => c.name).join(", ");
+			const calleeNames = context.callees.slice(0, 3).map(c => c.name).join(", ");
+			console.log(`✓ ${symbol.name} (${symbol.kind}) at ${symbol.filePath}:${symbol.startLine}`);
+			console.log(`Callers(${context.callers.length}): ${callerNames || "none"}${context.callers.length > 3 ? "..." : ""} | Callees(${context.callees.length}): ${calleeNames || "none"}${context.callees.length > 3 ? "..." : ""}`);
+			console.log(`Next: claudemem impact ${symbolName} | Read ${symbol.filePath}:${symbol.startLine}`);
 		} else {
 			if (!noLogo) printLogo();
 			console.log(`\n🔮 Context for '${symbolName}'\n`);
@@ -2747,6 +3005,7 @@ async function handleContext(args: string[]): Promise<void> {
  */
 async function handleDeadCode(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 	const projectPath = resolve(".");
 
 	// Parse --max-pagerank flag
@@ -2768,7 +3027,13 @@ async function handleDeadCode(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
@@ -2797,6 +3062,18 @@ async function handleDeadCode(args: string[]): Promise<void> {
 				].join('\n')).join('\n---\n');
 				console.log(output);
 			}
+		} else if (compactMode) {
+			// Compact: 3-line summary
+			if (results.length === 0) {
+				console.log(`✓ No dead code found (PR < ${maxPageRank})`);
+				console.log(`Your codebase is clean!`);
+				console.log(`Check: claudemem test-gaps | claudemem impact <name>`);
+			} else {
+				const top5 = results.slice(0, 5).map(r => `${r.symbol.name}(${r.symbol.filePath.split('/').pop()}:${r.symbol.startLine})`).join(", ");
+				console.log(`⚠ Found ${results.length} potentially dead symbols`);
+				console.log(`Top: ${top5}${results.length > 5 ? ` (+${results.length - 5} more)` : ""}`);
+				console.log(`Review: claudemem callers <name> to verify | Use --raw for full list`);
+			}
 		} else {
 			if (!noLogo) printLogo();
 			console.log("\n💀 Dead Code Analysis\n");
@@ -2823,6 +3100,7 @@ async function handleDeadCode(args: string[]): Promise<void> {
  */
 async function handleTestGaps(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 	const projectPath = resolve(".");
 
 	// Parse --min-pagerank flag
@@ -2841,7 +3119,13 @@ async function handleTestGaps(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
@@ -2869,6 +3153,18 @@ async function handleTestGaps(args: string[]): Promise<void> {
 				].join('\n')).join('\n---\n');
 				console.log(output);
 			}
+		} else if (compactMode) {
+			// Compact: 3-line summary
+			if (results.length === 0) {
+				console.log(`✓ No test gaps found (PR > ${minPageRank})`);
+				console.log(`All high-importance code has test coverage!`);
+				console.log(`Check: claudemem dead-code | claudemem impact <name>`);
+			} else {
+				const top5 = results.slice(0, 5).map(r => `${r.symbol.name}(PR:${r.symbol.pagerankScore.toFixed(3)})`).join(", ");
+				console.log(`⚠ Found ${results.length} untested high-importance symbols`);
+				console.log(`Priority: ${top5}${results.length > 5 ? ` (+${results.length - 5} more)` : ""}`);
+				console.log(`Write tests for: claudemem context <name> | Use --raw for full list`);
+			}
 		} else {
 			if (!noLogo) printLogo();
 			console.log("\n🧪 Test Coverage Gaps\n");
@@ -2895,12 +3191,19 @@ async function handleTestGaps(args: string[]): Promise<void> {
  */
 async function handleImpact(args: string[]): Promise<void> {
 	const raw = args.includes("--raw");
+	const compactMode = isClaudeCode();
 	const projectPath = resolve(".");
 
 	// Get symbol name
 	const symbolName = args.find(a => !a.startsWith("-"));
 	if (!symbolName) {
-		console.error("Usage: claudemem impact <symbol> [--max-depth N] [--raw]");
+		if (compactMode) {
+			console.log(`✗ Missing symbol name`);
+			console.log(`Usage: claudemem impact <name>`);
+			console.log(`Example: claudemem impact handleSearch`);
+		} else {
+			console.error("Usage: claudemem impact <symbol> [--max-depth N] [--raw]");
+		}
 		process.exit(1);
 	}
 
@@ -2920,7 +3223,13 @@ async function handleImpact(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		console.error("No index found. Run 'claudemem index' first.");
+		if (compactMode) {
+			console.log(`✗ No index found`);
+			console.log(`Create: claudemem index`);
+			console.log(`Docs: https://github.com/MadAppGang/claudemem`);
+		} else {
+			console.error("No index found. Run 'claudemem index' first.");
+		}
 		process.exit(1);
 	}
 
@@ -2931,7 +3240,13 @@ async function handleImpact(args: string[]): Promise<void> {
 		// Find the target symbol
 		const target = analyzer.findSymbolForImpact(symbolName, fileHint);
 		if (!target) {
-			console.error(`Symbol '${symbolName}' not found.`);
+			if (compactMode) {
+				console.log(`✗ Symbol '${symbolName}' not found`);
+				console.log(`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`);
+				console.log(`Check spelling and casing`);
+			} else {
+				console.error(`Symbol '${symbolName}' not found.`);
+			}
 			process.exit(1);
 		}
 
@@ -2942,7 +3257,13 @@ async function handleImpact(args: string[]): Promise<void> {
 		});
 
 		if (!impact) {
-			console.error("Failed to analyze impact.");
+			if (compactMode) {
+				console.log(`✗ Failed to analyze impact`);
+				console.log(`Symbol: ${symbolName} at ${target.filePath}:${target.startLine}`);
+				console.log(`Try: claudemem callers ${symbolName}`);
+			} else {
+				console.error("Failed to analyze impact.");
+			}
 			process.exit(1);
 		}
 
@@ -2980,6 +3301,12 @@ async function handleImpact(args: string[]): Promise<void> {
 			}
 
 			console.log(sections.join('\n'));
+		} else if (compactMode) {
+			// Compact: 3-line summary
+			const fileList = Array.from(impact.byFile.keys()).slice(0, 3).map(f => f.split('/').pop()).join(", ");
+			console.log(`✓ Impact of ${symbolName}: ${impact.totalAffected} symbols in ${impact.byFile.size} files`);
+			console.log(`Direct callers: ${impact.directCallers.length} | Files: ${fileList}${impact.byFile.size > 3 ? "..." : ""}`);
+			console.log(`High impact? ${impact.totalAffected > 10 ? "Yes - test thoroughly" : "Low"} | Detail: claudemem impact ${symbolName} --raw`);
 		} else {
 			if (!noLogo) printLogo();
 			console.log(`\n🎯 Impact Analysis for '${symbolName}'\n`);
@@ -3128,6 +3455,25 @@ Subcommands:
 			console.error(`Unknown subcommand: ${subcommand}`);
 			console.error('Run "claudemem hooks help" for usage.');
 			process.exit(1);
+	}
+}
+
+/**
+ * Handle 'hook' command - Claude Code hook event handler
+ * Reads JSON from stdin and dispatches to appropriate handler
+ */
+async function handleHookCommand(args: string[]): Promise<void> {
+	const debug = args.includes("--debug");
+
+	try {
+		const { handleHook } = await import("./hooks/index.js");
+		await handleHook({ debug });
+		process.exit(0);
+	} catch (error) {
+		if (debug) {
+			console.error("Hook error:", error);
+		}
+		process.exit(2); // Blocking error
 	}
 }
 
@@ -4051,6 +4397,7 @@ ${c.yellow}${c.bold}CODE ANALYSIS COMMANDS${c.reset}
 ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
   ${c.green}watch${c.reset}                  Watch for changes and auto-reindex ${c.dim}(daemon mode)${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
+  ${c.green}hook${c.reset}                   Claude Code hook handler ${c.dim}(reads JSON from stdin)${c.reset}
   ${c.green}integrate${c.reset} <tool>       Install integration ${c.dim}(opencode|claude-code)${c.reset}
 
 ${c.yellow}${c.bold}ADAPTIVE LEARNING${c.reset} ${c.dim}(improves ranking from feedback)${c.reset}
