@@ -60,7 +60,12 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 	constructor(batchClient: AnthropicBatchLLMClient, info: GeneratorInfo) {
 		this.batchClient = batchClient;
 		this.info = info;
-		this.accumulatedUsage = { inputTokens: 0, outputTokens: 0, cost: 0, calls: 0 };
+		this.accumulatedUsage = {
+			inputTokens: 0,
+			outputTokens: 0,
+			cost: 0,
+			calls: 0,
+		};
 	}
 
 	/**
@@ -71,7 +76,7 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 		filePath: string,
 		fileContent: string,
 		language: string,
-		codeChunks: CodeChunk[]
+		codeChunks: CodeChunk[],
 	): Promise<GenerationResult<FileSummary>> {
 		return new Promise((resolve, reject) => {
 			const id = `file_${this.requestCounter++}`;
@@ -82,7 +87,7 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 				filePath,
 				fileContent,
 				language,
-				codeChunks
+				codeChunks,
 			);
 
 			this.requestQueue.set(id, {
@@ -95,7 +100,9 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 				fileContent,
 				language,
 				codeChunks,
-				resolve: resolve as (result: GenerationResult<FileSummary | SymbolSummary>) => void,
+				resolve: resolve as (
+					result: GenerationResult<FileSummary | SymbolSummary>,
+				) => void,
 				reject,
 			});
 		});
@@ -108,7 +115,7 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 	async generateSymbolSummary(
 		chunk: CodeChunk,
 		fileContent: string,
-		language: string
+		language: string,
 	): Promise<GenerationResult<SymbolSummary>> {
 		return new Promise((resolve, reject) => {
 			const id = `symbol_${this.requestCounter++}`;
@@ -118,7 +125,7 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 			const { systemPrompt, userPrompt } = this.buildSymbolSummaryPrompt(
 				chunk,
 				fileContent,
-				language
+				language,
 			);
 
 			this.requestQueue.set(id, {
@@ -128,7 +135,9 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 				systemPrompt,
 				startTime,
 				chunk,
-				resolve: resolve as (result: GenerationResult<FileSummary | SymbolSummary>) => void,
+				resolve: resolve as (
+					result: GenerationResult<FileSummary | SymbolSummary>,
+				) => void,
 				reject,
 			});
 		});
@@ -158,57 +167,60 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 			requestMap.set(id, request);
 
 			// Queue the request in the batch client
-			const clientPromise = this.batchClient.complete(
-				[
-					{ role: "user", content: request.prompt }
-				],
-				{
+			const clientPromise = this.batchClient
+				.complete([{ role: "user", content: request.prompt }], {
 					systemPrompt: request.systemPrompt,
 					maxTokens: 4096,
-				}
-			).then(response => {
-				const durationMs = Date.now() - request.startTime;
+				})
+				.then((response) => {
+					const durationMs = Date.now() - request.startTime;
 
-				try {
-					// Parse the JSON response
-					let content = response.content.trim();
-					if (content.startsWith("```json")) {
-						content = content.slice(7);
-					} else if (content.startsWith("```")) {
-						content = content.slice(3);
+					try {
+						// Parse the JSON response
+						let content = response.content.trim();
+						if (content.startsWith("```json")) {
+							content = content.slice(7);
+						} else if (content.startsWith("```")) {
+							content = content.slice(3);
+						}
+						if (content.endsWith("```")) {
+							content = content.slice(0, -3);
+						}
+						content = content.trim();
+
+						const parsed = JSON.parse(content);
+
+						// Build the result
+						const result: GenerationResult<FileSummary | SymbolSummary> = {
+							result:
+								request.type === "file"
+									? this.parseFileSummaryResponse(parsed, request)
+									: this.parseSymbolSummaryResponse(parsed, request),
+							durationMs,
+							usage: {
+								inputTokens: response.usage?.inputTokens || 0,
+								outputTokens: response.usage?.outputTokens || 0,
+								cost: response.usage?.cost || 0,
+							},
+						};
+
+						// Accumulate usage
+						this.accumulateUsage(result.usage);
+
+						request.resolve(result);
+					} catch (parseError) {
+						request.reject(
+							new Error(
+								`Failed to parse response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+							),
+						);
 					}
-					if (content.endsWith("```")) {
-						content = content.slice(0, -3);
-					}
-					content = content.trim();
-
-					const parsed = JSON.parse(content);
-
-					// Build the result
-					const result: GenerationResult<FileSummary | SymbolSummary> = {
-						result: request.type === "file"
-							? this.parseFileSummaryResponse(parsed, request)
-							: this.parseSymbolSummaryResponse(parsed, request),
-						durationMs,
-						usage: {
-							inputTokens: response.usage?.inputTokens || 0,
-							outputTokens: response.usage?.outputTokens || 0,
-							cost: response.usage?.cost || 0,
-						},
-					};
-
-					// Accumulate usage
-					this.accumulateUsage(result.usage);
-
-					request.resolve(result);
-				} catch (parseError) {
-					request.reject(new Error(
-						`Failed to parse response: ${parseError instanceof Error ? parseError.message : String(parseError)}`
-					));
-				}
-			}).catch(error => {
-				request.reject(error instanceof Error ? error : new Error(String(error)));
-			});
+				})
+				.catch((error) => {
+					request.reject(
+						error instanceof Error ? error : new Error(String(error)),
+					);
+				});
 
 			requestPromises.push(clientPromise as Promise<void>);
 		}
@@ -232,12 +244,21 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 	}
 
 	resetUsage(): void {
-		this.accumulatedUsage = { inputTokens: 0, outputTokens: 0, cost: 0, calls: 0 };
+		this.accumulatedUsage = {
+			inputTokens: 0,
+			outputTokens: 0,
+			cost: 0,
+			calls: 0,
+		};
 		this.requestQueue.clear();
 		this.requestCounter = 0;
 	}
 
-	private accumulateUsage(usage: { inputTokens: number; outputTokens: number; cost: number }): void {
+	private accumulateUsage(usage: {
+		inputTokens: number;
+		outputTokens: number;
+		cost: number;
+	}): void {
 		this.accumulatedUsage.inputTokens += usage.inputTokens;
 		this.accumulatedUsage.outputTokens += usage.outputTokens;
 		this.accumulatedUsage.cost += usage.cost;
@@ -252,7 +273,7 @@ export class BatchSummaryGenerator implements ISummaryGenerator {
 		filePath: string,
 		fileContent: string,
 		language: string,
-		codeChunks: CodeChunk[]
+		codeChunks: CodeChunk[],
 	): { systemPrompt: string; userPrompt: string } {
 		const systemPrompt = `You are a code documentation expert. Analyze the provided source file and generate a comprehensive summary.
 
@@ -269,9 +290,18 @@ Output JSON with this structure:
 Be concise but comprehensive. Focus on what a developer needs to understand to work with this code.`;
 
 		const chunkSummary = codeChunks
-			.filter(c => c.name && (c.chunkType === "function" || c.chunkType === "class" || c.chunkType === "method"))
+			.filter(
+				(c) =>
+					c.name &&
+					(c.chunkType === "function" ||
+						c.chunkType === "class" ||
+						c.chunkType === "method"),
+			)
 			.slice(0, 20)
-			.map(c => `- ${c.chunkType}: ${c.name}${c.signature ? ` - ${c.signature}` : ""}`)
+			.map(
+				(c) =>
+					`- ${c.chunkType}: ${c.name}${c.signature ? ` - ${c.signature}` : ""}`,
+			)
 			.join("\n");
 
 		const userPrompt = `Analyze this ${language} file: ${filePath}
@@ -292,7 +322,7 @@ Generate a JSON summary following the schema in your instructions.`;
 	private buildSymbolSummaryPrompt(
 		chunk: CodeChunk,
 		fileContent: string,
-		language: string
+		language: string,
 	): { systemPrompt: string; userPrompt: string } {
 		const systemPrompt = `You are a code documentation expert. Analyze the provided code symbol and generate a detailed summary.
 
@@ -326,19 +356,22 @@ Generate a JSON summary following the schema in your instructions.`;
 	// Response Parsing
 	// ============================================================================
 
-	private parseFileSummaryResponse(parsed: Record<string, unknown>, request: QueuedRequest): FileSummary {
+	private parseFileSummaryResponse(
+		parsed: Record<string, unknown>,
+		request: QueuedRequest,
+	): FileSummary {
 		const summary = String(parsed.summary || "");
-		const responsibilities = Array.isArray(parsed.responsibilities) ? parsed.responsibilities : [];
+		const responsibilities = Array.isArray(parsed.responsibilities)
+			? parsed.responsibilities
+			: [];
 		const exports = Array.isArray(parsed.exports) ? parsed.exports : [];
-		const dependencies = Array.isArray(parsed.dependencies) ? parsed.dependencies : [];
+		const dependencies = Array.isArray(parsed.dependencies)
+			? parsed.dependencies
+			: [];
 		const patterns = Array.isArray(parsed.patterns) ? parsed.patterns : [];
 
 		// Create content for embedding
-		const content = [
-			summary,
-			...responsibilities,
-			...exports,
-		].join("\n");
+		const content = [summary, ...responsibilities, ...exports].join("\n");
 
 		return {
 			id: `fs-${request.filePath}`,
@@ -355,11 +388,16 @@ Generate a JSON summary following the schema in your instructions.`;
 		};
 	}
 
-	private parseSymbolSummaryResponse(parsed: Record<string, unknown>, request: QueuedRequest): SymbolSummary {
-		// Map ChunkType to SymbolSummary.symbolType (filter out "block")
+	private parseSymbolSummaryResponse(
+		parsed: Record<string, unknown>,
+		request: QueuedRequest,
+	): SymbolSummary {
+		// Map ChunkType to SymbolSummary.symbolType (filter out new types and "block")
 		const chunkType = request.chunk!.chunkType;
 		const symbolType: "function" | "class" | "method" | "module" =
-			chunkType === "block" ? "function" : chunkType;
+			chunkType === "function" || chunkType === "class" || chunkType === "method" || chunkType === "module"
+				? chunkType
+				: "function"; // Default for block, document-section, docstring, etc.
 
 		const summary = String(parsed.summary || "");
 		const symbolName = request.chunk!.name || "unknown";
@@ -369,7 +407,9 @@ Generate a JSON summary following the schema in your instructions.`;
 			`${symbolType} ${symbolName}`,
 			summary,
 			parsed.usageContext ? String(parsed.usageContext) : "",
-		].filter(Boolean).join("\n");
+		]
+			.filter(Boolean)
+			.join("\n");
 
 		return {
 			id: `ss-${request.chunk!.filePath}-${symbolName}`,
@@ -380,9 +420,13 @@ Generate a JSON summary following the schema in your instructions.`;
 			filePath: request.chunk!.filePath,
 			summary,
 			parameters: Array.isArray(parsed.parameters) ? parsed.parameters : [],
-			returnDescription: parsed.returnDescription ? String(parsed.returnDescription) : undefined,
+			returnDescription: parsed.returnDescription
+				? String(parsed.returnDescription)
+				: undefined,
 			sideEffects: Array.isArray(parsed.sideEffects) ? parsed.sideEffects : [],
-			usageContext: parsed.usageContext ? String(parsed.usageContext) : undefined,
+			usageContext: parsed.usageContext
+				? String(parsed.usageContext)
+				: undefined,
 			createdAt: new Date().toISOString(),
 		};
 	}
@@ -391,6 +435,11 @@ Generate a JSON summary following the schema in your instructions.`;
 /**
  * Check if a generator is a batch generator.
  */
-export function isBatchGenerator(generator: ISummaryGenerator): generator is BatchSummaryGenerator {
-	return "isBatch" in generator && (generator as BatchSummaryGenerator).isBatch === true;
+export function isBatchGenerator(
+	generator: ISummaryGenerator,
+): generator is BatchSummaryGenerator {
+	return (
+		"isBatch" in generator &&
+		(generator as BatchSummaryGenerator).isBatch === true
+	);
 }

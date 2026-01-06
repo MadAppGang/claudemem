@@ -8,6 +8,10 @@
 import { createHash } from "node:crypto";
 import type { Node, Tree } from "web-tree-sitter";
 import { getParserManager } from "../parsers/parser-manager.js";
+import {
+	isDocumentFormat,
+	chunkDocument,
+} from "../parsers/document-chunker.js";
 import type {
 	ChunkType,
 	CodeChunk,
@@ -41,6 +45,11 @@ export async function chunkFile(
 	language: SupportedLanguage,
 	fileHash: string,
 ): Promise<CodeChunk[]> {
+	// Route document formats to document chunker
+	if (isDocumentFormat(language)) {
+		return chunkDocument(source, filePath, language as any, fileHash);
+	}
+
 	const parserManager = getParserManager();
 
 	// Parse the source
@@ -134,10 +143,7 @@ function extractChunks(
 /**
  * Walk tree recursively
  */
-function walkTree(
-	node: Node,
-	callback: (node: Node) => boolean,
-): void {
+function walkTree(node: Node, callback: (node: Node) => boolean): void {
 	const shouldContinue = callback(node);
 	if (shouldContinue) {
 		for (let i = 0; i < node.childCount; i++) {
@@ -153,6 +159,31 @@ function getChunkType(
 	nodeType: string,
 	language: SupportedLanguage,
 ): ChunkType | null {
+	// Document sections (handled by document-chunker)
+	if (["atx_heading", "section"].includes(nodeType)) {
+		return "document-section" as any;
+	}
+
+	// CSS rulesets
+	if (nodeType === "rule_set") {
+		return "stylesheet-rule" as any;
+	}
+
+	// GraphQL types
+	if (["type_definition", "interface_definition"].includes(nodeType)) {
+		return "type" as any;
+	}
+
+	// Shell functions
+	if (nodeType === "function_definition" && language === "bash") {
+		return "shell-function" as any;
+	}
+
+	// GraphQL queries
+	if (nodeType === "query") {
+		return "query" as any;
+	}
+
 	// Function types
 	const functionTypes = [
 		"function_declaration",
@@ -358,7 +389,9 @@ function createCodeChunk(
 	// Used to detect unchanged content even when lines shift
 	// Includes name+type+content to differentiate similar code with different purposes
 	const contentHashInput = `${parsed.name || ""}:${parsed.chunkType}:${parsed.content}`;
-	const contentHash = createHash("sha256").update(contentHashInput).digest("hex");
+	const contentHash = createHash("sha256")
+		.update(contentHashInput)
+		.digest("hex");
 
 	return {
 		id,
@@ -405,7 +438,9 @@ function splitLargeChunk(chunk: ParsedChunk, source: string): ParsedChunk[] {
 				startLine: currentStartLine,
 				endLine: currentStartLine + currentLines.length - 1,
 				chunkType: "block",
-				name: chunk.name ? `${chunk.name} (part ${chunks.length + 1})` : undefined,
+				name: chunk.name
+					? `${chunk.name} (part ${chunks.length + 1})`
+					: undefined,
 				parentName: chunk.parentName,
 			});
 
@@ -421,7 +456,9 @@ function splitLargeChunk(chunk: ParsedChunk, source: string): ParsedChunk[] {
 			startLine: currentStartLine,
 			endLine: currentStartLine + currentLines.length - 1,
 			chunkType: "block",
-			name: chunk.name ? `${chunk.name} (part ${chunks.length + 1})` : undefined,
+			name: chunk.name
+				? `${chunk.name} (part ${chunks.length + 1})`
+				: undefined,
 			parentName: chunk.parentName,
 		});
 	}
@@ -459,7 +496,9 @@ function fallbackChunk(
 				const id = createHash("sha256").update(hashInput).digest("hex");
 				// Content hash for diffing (stable across line shifts)
 				const contentHashInput = `:block:${content}`;
-				const contentHash = createHash("sha256").update(contentHashInput).digest("hex");
+				const contentHash = createHash("sha256")
+					.update(contentHashInput)
+					.digest("hex");
 				chunks.push({
 					id,
 					contentHash,
@@ -488,7 +527,9 @@ function fallbackChunk(
 			const id = createHash("sha256").update(hashInput).digest("hex");
 			// Content hash for diffing (stable across line shifts)
 			const contentHashInput = `:block:${content}`;
-			const contentHash = createHash("sha256").update(contentHashInput).digest("hex");
+			const contentHash = createHash("sha256")
+				.update(contentHashInput)
+				.digest("hex");
 			chunks.push({
 				id,
 				contentHash,

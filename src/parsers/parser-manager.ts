@@ -354,6 +354,243 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
           (type_identifier) @ref.implements))
     `,
 	},
+	html: {
+		id: "html",
+		extensions: [".html", ".htm"],
+		grammarFile: "tree-sitter-html.wasm",
+		chunkQuery: `
+      ; Extract HTML elements as chunks
+      (element
+        (start_tag
+          (tag_name) @tag_name)
+        (#match? @tag_name "^(section|article|div|header|footer|nav|main|aside)$")) @chunk
+      ; Script tags
+      (script_element) @chunk
+      ; Style tags
+      (style_element) @chunk
+    `,
+		referenceQuery: `
+      ; Class references in attributes
+      (attribute
+        (attribute_name) @attr (#eq? @attr "class")
+        (quoted_attribute_value) @ref.class)
+      ; ID references
+      (attribute
+        (attribute_name) @attr (#eq? @attr "id")
+        (quoted_attribute_value) @ref.id)
+    `,
+	},
+	css: {
+		id: "css",
+		extensions: [".css"],
+		grammarFile: "tree-sitter-css.wasm",
+		chunkQuery: `
+      ; CSS rulesets
+      (rule_set
+        (selectors) @name) @chunk
+      ; Media queries
+      (media_statement) @chunk
+      ; Keyframe animations
+      (keyframes_statement
+        (keyframes_name) @name) @chunk
+    `,
+		referenceQuery: `
+      ; No references tracked for CSS (no call relationships)
+    `,
+	},
+	scss: {
+		id: "scss",
+		extensions: [".scss", ".sass"],
+		grammarFile: "tree-sitter-scss.wasm",
+		chunkQuery: `
+      ; SCSS rulesets
+      (rule_set
+        (selectors) @name) @chunk
+      ; Mixins
+      (mixin_statement
+        (name) @name) @chunk
+      ; Functions
+      (function_statement
+        (name) @name) @chunk
+      ; Media queries
+      (media_statement) @chunk
+    `,
+		referenceQuery: `
+      ; Mixin includes
+      (include_statement
+        (identifier) @ref.call)
+    `,
+	},
+	bash: {
+		id: "bash",
+		extensions: [".sh", ".bash"],
+		grammarFile: "tree-sitter-bash.wasm",
+		chunkQuery: `
+      ; Function definitions
+      (function_definition
+        name: (word) @name) @chunk
+    `,
+		referenceQuery: `
+      ; Command calls
+      (command
+        name: (command_name) @ref.call)
+    `,
+	},
+	zsh: {
+		id: "zsh",
+		extensions: [".zsh"],
+		grammarFile: "tree-sitter-bash.wasm", // Zsh uses bash grammar
+		chunkQuery: `
+      ; Function definitions
+      (function_definition
+        name: (word) @name) @chunk
+    `,
+		referenceQuery: `
+      ; Command calls
+      (command
+        name: (command_name) @ref.call)
+    `,
+	},
+	fish: {
+		id: "fish",
+		extensions: [".fish"],
+		grammarFile: "tree-sitter-fish.wasm",
+		chunkQuery: `
+      ; Function definitions
+      (function_definition
+        (word) @name) @chunk
+    `,
+		referenceQuery: `
+      ; Command calls
+      (command
+        (word) @ref.call)
+    `,
+	},
+	graphql: {
+		id: "graphql",
+		extensions: [".graphql", ".gql"],
+		grammarFile: "tree-sitter-graphql.wasm",
+		chunkQuery: `
+      ; Type definitions
+      (object_type_definition
+        (name) @name) @chunk
+      ; Interface definitions
+      (interface_type_definition
+        (name) @name) @chunk
+      ; Enum definitions
+      (enum_type_definition
+        (name) @name) @chunk
+      ; Input type definitions
+      (input_object_type_definition
+        (name) @name) @chunk
+      ; Operation definitions (queries, mutations, subscriptions)
+      (operation_definition
+        (name) @name) @chunk
+      ; Fragment definitions
+      (fragment_definition
+        (fragment_name) @name) @chunk
+    `,
+		referenceQuery: `
+      ; Type references
+      (named_type
+        (name) @ref.type)
+      ; Fragment spreads
+      (fragment_spread
+        (fragment_name) @ref.call)
+    `,
+	},
+	json: {
+		id: "json",
+		extensions: [".json"],
+		grammarFile: "tree-sitter-json.wasm",
+		chunkQuery: `
+      ; Top-level objects and arrays
+      (pair
+        key: (string) @name) @chunk
+    `,
+		referenceQuery: `
+      ; No references tracked for JSON
+    `,
+	},
+	yaml: {
+		id: "yaml",
+		extensions: [".yaml", ".yml"],
+		grammarFile: "tree-sitter-yaml.wasm",
+		chunkQuery: `
+      ; Top-level mappings
+      (block_mapping_pair
+        key: (flow_node) @name) @chunk
+    `,
+		referenceQuery: `
+      ; No references tracked for YAML
+    `,
+	},
+	toml: {
+		id: "toml",
+		extensions: [".toml"],
+		grammarFile: "tree-sitter-toml.wasm",
+		chunkQuery: `
+      ; Top-level tables
+      (table
+        (dotted_key) @name) @chunk
+      ; Array of tables
+      (table_array_element
+        (dotted_key) @name) @chunk
+    `,
+		referenceQuery: `
+      ; No references tracked for TOML
+    `,
+	},
+	markdown: {
+		id: "markdown",
+		extensions: [".md", ".markdown"],
+		grammarFile: "tree-sitter-markdown.wasm",
+		chunkQuery: `
+      ; Header-based chunking handled by document-chunker.ts
+      ; This query is used as fallback if document chunker is unavailable
+      (atx_heading) @chunk
+      (setext_heading) @chunk
+    `,
+		referenceQuery: `
+      ; No references tracked for Markdown
+    `,
+	},
+	rst: {
+		id: "rst",
+		extensions: [".rst"],
+		grammarFile: "tree-sitter-rst.wasm",
+		chunkQuery: `
+      ; Header-based chunking handled by document-chunker.ts
+      ; Fallback to full-file chunk if tree-sitter unavailable
+    `,
+		referenceQuery: `
+      ; No references tracked for RST
+    `,
+	},
+	asciidoc: {
+		id: "asciidoc",
+		extensions: [".adoc", ".asciidoc"],
+		grammarFile: "tree-sitter-asciidoc.wasm",
+		chunkQuery: `
+      ; Header-based chunking handled by document-chunker.ts
+      ; Fallback to full-file chunk if tree-sitter unavailable
+    `,
+		referenceQuery: `
+      ; No references tracked for AsciiDoc
+    `,
+	},
+	org: {
+		id: "org",
+		extensions: [".org"],
+		grammarFile: "tree-sitter-org.wasm",
+		chunkQuery: `
+      ; Header-based chunking handled by document-chunker.ts
+      ; Fallback to full-file chunk if tree-sitter unavailable
+    `,
+		referenceQuery: `
+      ; No references tracked for Org
+    `,
+	},
 };
 
 // ============================================================================
@@ -461,7 +698,9 @@ export class ParserManager {
 	 * Get a Language object for query execution
 	 * This is needed because web-tree-sitter Parser doesn't expose its Language
 	 */
-	async getLanguageObject(language: SupportedLanguage): Promise<Language | null> {
+	async getLanguageObject(
+		language: SupportedLanguage,
+	): Promise<Language | null> {
 		return this.loadLanguage(language);
 	}
 

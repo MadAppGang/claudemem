@@ -6,7 +6,20 @@
 // Code Chunk Types
 // ============================================================================
 
-export type ChunkType = "function" | "class" | "method" | "module" | "block";
+export type ChunkType =
+	| "function"
+	| "class"
+	| "method"
+	| "module"
+	| "block"
+	// NEW: Document types
+	| "document-section"
+	| "docstring"
+	// NEW: Language-specific types
+	| "stylesheet-rule"
+	| "config-section"
+	| "shell-function"
+	| "query";
 
 export interface CodeChunk {
 	/** SHA256 hash of content + position (unique per location) */
@@ -40,10 +53,22 @@ export interface CodeChunk {
 // ============================================================================
 
 /** Code unit types in hierarchical order */
-export type UnitType = "file" | "class" | "interface" | "function" | "method" | "type" | "enum";
+export type UnitType =
+	| "file"
+	| "class"
+	| "interface"
+	| "function"
+	| "method"
+	| "type"
+	| "enum";
 
 /** Visibility modifiers */
-export type Visibility = "public" | "private" | "protected" | "internal" | "exported";
+export type Visibility =
+	| "public"
+	| "private"
+	| "protected"
+	| "internal"
+	| "exported";
 
 /** AST metadata extracted from code units */
 export interface ASTMetadata {
@@ -122,11 +147,11 @@ export interface CodeUnitWithEmbedding extends CodeUnit {
 
 /** Query intent classification types */
 export type QueryIntent =
-	| "symbol_lookup"    // Looking for a specific named entity
-	| "structural"       // Asking about code relationships or structure
-	| "semantic"         // Natural language question about functionality
-	| "similarity"       // Looking for code similar to an example
-	| "location";        // Looking for code in a specific location
+	| "symbol_lookup" // Looking for a specific named entity
+	| "structural" // Asking about code relationships or structure
+	| "semantic" // Natural language question about functionality
+	| "similarity" // Looking for code similar to an example
+	| "location"; // Looking for code in a specific location
 
 /** Result of query classification */
 export interface QueryClassification {
@@ -281,14 +306,19 @@ export interface FileState {
 // ============================================================================
 
 /** Supported embedding providers */
-export type EmbeddingProvider = "openrouter" | "ollama" | "lmstudio" | "local" | "voyage";
+export type EmbeddingProvider =
+	| "openrouter"
+	| "ollama"
+	| "lmstudio"
+	| "local"
+	| "voyage";
 
 /** Progress callback for embedding operations */
 export type EmbeddingProgressCallback = (
 	completed: number,
 	total: number,
 	/** Number of items currently being processed (for animation) */
-	inProgress?: number
+	inProgress?: number,
 ) => void;
 
 /** Result of embedding operation with usage stats */
@@ -306,7 +336,10 @@ export interface EmbedResult {
  */
 export interface IEmbeddingsClient {
 	/** Generate embeddings for multiple texts */
-	embed(texts: string[], onProgress?: EmbeddingProgressCallback): Promise<EmbedResult>;
+	embed(
+		texts: string[],
+		onProgress?: EmbeddingProgressCallback,
+	): Promise<EmbedResult>;
 	/** Generate embedding for a single text */
 	embedOne(text: string): Promise<number[]>;
 	/** Get the model being used */
@@ -514,7 +547,26 @@ export type SupportedLanguage =
 	| "rust"
 	| "c"
 	| "cpp"
-	| "java";
+	| "java"
+	// NEW: Web languages
+	| "html"
+	| "css"
+	| "scss"
+	// NEW: Shell scripts
+	| "bash"
+	| "fish"
+	| "zsh"
+	// NEW: Data languages
+	| "graphql"
+	// NEW: Config formats
+	| "json"
+	| "yaml"
+	| "toml"
+	// NEW: Document formats
+	| "markdown"
+	| "rst"
+	| "asciidoc"
+	| "org";
 
 export interface LanguageConfig {
 	/** Language identifier */
@@ -690,9 +742,9 @@ export type DocumentType =
 	| "anti_pattern"
 	| "project_doc"
 	// External documentation types
-	| "framework_doc"    // Official framework documentation
-	| "best_practice"    // Recommended patterns from docs
-	| "api_reference";   // API reference documentation
+	| "framework_doc" // Official framework documentation
+	| "best_practice" // Recommended patterns from docs
+	| "api_reference"; // API reference documentation
 
 /** Provider types for external documentation */
 export type DocProviderType = "context7" | "llms_txt" | "devdocs";
@@ -829,7 +881,12 @@ export interface ProjectDoc extends BaseDocument {
 	/** Document title */
 	title: string;
 	/** Category of documentation */
-	category: "architecture" | "getting_started" | "api" | "contributing" | "standards";
+	category:
+		| "architecture"
+		| "getting_started"
+		| "api"
+		| "contributing"
+		| "standards";
 	/** Document sections */
 	sections: Array<{
 		heading: string;
@@ -851,7 +908,12 @@ export type Document =
 // ============================================================================
 
 /** Supported LLM providers for enrichment */
-export type LLMProvider = "claude-code" | "anthropic" | "anthropic-batch" | "openrouter" | "local";
+export type LLMProvider =
+	| "claude-code"
+	| "anthropic"
+	| "anthropic-batch"
+	| "openrouter"
+	| "local";
 
 /** Message in LLM conversation */
 export interface LLMMessage {
@@ -902,9 +964,15 @@ export interface LLMUsageStats {
 
 export interface ILLMClient {
 	/** Generate completion from messages */
-	complete(messages: LLMMessage[], options?: LLMGenerateOptions): Promise<LLMResponse>;
+	complete(
+		messages: LLMMessage[],
+		options?: LLMGenerateOptions,
+	): Promise<LLMResponse>;
 	/** Generate completion and parse as JSON */
-	completeJSON<T>(messages: LLMMessage[], options?: LLMGenerateOptions): Promise<T>;
+	completeJSON<T>(
+		messages: LLMMessage[],
+		options?: LLMGenerateOptions,
+	): Promise<T>;
 	/** Get the provider being used */
 	getProvider(): LLMProvider;
 	/** Get the model being used */
@@ -933,7 +1001,7 @@ export type EnrichmentProgressCallback = (
 	/** Status message (e.g., files being processed) */
 	status?: string,
 	/** Number of items currently in progress (for animation) */
-	inProgress?: number
+	inProgress?: number,
 ) => void;
 
 // ============================================================================
@@ -969,7 +1037,10 @@ export interface IDocumentExtractor {
 	/** Get the document type this extractor produces */
 	getDocumentType(): DocumentType;
 	/** Extract documents from the given context */
-	extract(context: ExtractionContext, llmClient: ILLMClient): Promise<BaseDocument[]>;
+	extract(
+		context: ExtractionContext,
+		llmClient: ILLMClient,
+	): Promise<BaseDocument[]>;
 	/** Check if extraction is needed (for incremental updates) */
 	needsUpdate(context: ExtractionContext): boolean;
 	/** Get document types this extractor depends on */

@@ -6,7 +6,13 @@
  * Downloads pre-built WASM grammars from GitHub releases or builds them.
  */
 
-import { existsSync, mkdirSync, writeFileSync, readdirSync, copyFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	writeFileSync,
+	readdirSync,
+	copyFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 
@@ -14,7 +20,10 @@ const GRAMMARS_DIR = join(import.meta.dir, "../grammars");
 
 // Grammar packages and their expected WASM file names
 const GRAMMAR_PACKAGES = [
-	{ pkg: "tree-sitter-typescript", wasm: ["tree-sitter-typescript.wasm", "tree-sitter-tsx.wasm"] },
+	{
+		pkg: "tree-sitter-typescript",
+		wasm: ["tree-sitter-typescript.wasm", "tree-sitter-tsx.wasm"],
+	},
 	{ pkg: "tree-sitter-javascript", wasm: ["tree-sitter-javascript.wasm"] },
 	{ pkg: "tree-sitter-python", wasm: ["tree-sitter-python.wasm"] },
 	{ pkg: "tree-sitter-go", wasm: ["tree-sitter-go.wasm"] },
@@ -22,32 +31,80 @@ const GRAMMAR_PACKAGES = [
 	{ pkg: "tree-sitter-c", wasm: ["tree-sitter-c.wasm"] },
 	{ pkg: "tree-sitter-cpp", wasm: ["tree-sitter-cpp.wasm"] },
 	{ pkg: "tree-sitter-java", wasm: ["tree-sitter-java.wasm"] },
+	// NEW: Web languages
+	{ pkg: "tree-sitter-html", wasm: ["tree-sitter-html.wasm"] },
+	{ pkg: "tree-sitter-css", wasm: ["tree-sitter-css.wasm"] },
+	// NEW: Shell scripts
+	{ pkg: "tree-sitter-bash", wasm: ["tree-sitter-bash.wasm"] },
+	// NEW: Config formats
+	{ pkg: "tree-sitter-json", wasm: ["tree-sitter-json.wasm"] },
+	{ pkg: "tree-sitter-yaml", wasm: ["tree-sitter-yaml.wasm"] },
 ];
 
 // Alternative: GitHub release URLs for pre-built WASM files
 const GITHUB_RELEASES: Record<string, string> = {
-	"tree-sitter-typescript.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-typescript.wasm",
-	"tree-sitter-tsx.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-tsx.wasm",
-	"tree-sitter-javascript.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-javascript.wasm",
-	"tree-sitter-python.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-python.wasm",
-	"tree-sitter-go.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-go.wasm",
-	"tree-sitter-rust.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-rust.wasm",
-	"tree-sitter-c.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-c.wasm",
-	"tree-sitter-cpp.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-cpp.wasm",
-	"tree-sitter-java.wasm": "https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-java.wasm",
+	"tree-sitter-typescript.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-typescript.wasm",
+	"tree-sitter-tsx.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-tsx.wasm",
+	"tree-sitter-javascript.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-javascript.wasm",
+	"tree-sitter-python.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-python.wasm",
+	"tree-sitter-go.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-go.wasm",
+	"tree-sitter-rust.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-rust.wasm",
+	"tree-sitter-c.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-c.wasm",
+	"tree-sitter-cpp.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-cpp.wasm",
+	"tree-sitter-java.wasm":
+		"https://github.com/nickshanks347/tree-sitter-wasm/releases/download/v1.0.3/tree-sitter-java.wasm",
+	// NEW: Web languages (from AntoineCoumo releases)
+	"tree-sitter-html.wasm":
+		"https://github.com/AntoineCoumo/tree-sitter-grammars-wasm/releases/download/v1.0.3/tree-sitter-html.wasm",
+	"tree-sitter-css.wasm":
+		"https://github.com/AntoineCoumo/tree-sitter-grammars-wasm/releases/download/v1.0.3/tree-sitter-css.wasm",
+	// NEW: Shell scripts (from AntoineCoumo releases)
+	"tree-sitter-bash.wasm":
+		"https://github.com/AntoineCoumo/tree-sitter-grammars-wasm/releases/download/v1.0.3/tree-sitter-bash.wasm",
+	// NEW: Config formats (from AntoineCoumo releases)
+	"tree-sitter-json.wasm":
+		"https://github.com/AntoineCoumo/tree-sitter-grammars-wasm/releases/download/v1.0.3/tree-sitter-json.wasm",
 };
 
 // Backup: UNPKG CDN for npm packages that include pre-built WASM
 const UNPKG_URLS: Record<string, string> = {
-	"tree-sitter-javascript.wasm": "https://unpkg.com/tree-sitter-javascript/tree-sitter-javascript.wasm",
-	"tree-sitter-typescript.wasm": "https://unpkg.com/tree-sitter-typescript/tree-sitter-typescript.wasm",
-	"tree-sitter-tsx.wasm": "https://unpkg.com/tree-sitter-typescript/tree-sitter-tsx.wasm",
-	"tree-sitter-python.wasm": "https://unpkg.com/tree-sitter-python/tree-sitter-python.wasm",
+	"tree-sitter-javascript.wasm":
+		"https://unpkg.com/tree-sitter-javascript/tree-sitter-javascript.wasm",
+	"tree-sitter-typescript.wasm":
+		"https://unpkg.com/tree-sitter-typescript/tree-sitter-typescript.wasm",
+	"tree-sitter-tsx.wasm":
+		"https://unpkg.com/tree-sitter-typescript/tree-sitter-tsx.wasm",
+	"tree-sitter-python.wasm":
+		"https://unpkg.com/tree-sitter-python/tree-sitter-python.wasm",
 	"tree-sitter-go.wasm": "https://unpkg.com/tree-sitter-go/tree-sitter-go.wasm",
-	"tree-sitter-rust.wasm": "https://unpkg.com/tree-sitter-rust/tree-sitter-rust.wasm",
+	"tree-sitter-rust.wasm":
+		"https://unpkg.com/tree-sitter-rust/tree-sitter-rust.wasm",
 	"tree-sitter-c.wasm": "https://unpkg.com/tree-sitter-c/tree-sitter-c.wasm",
-	"tree-sitter-cpp.wasm": "https://unpkg.com/tree-sitter-cpp/tree-sitter-cpp.wasm",
-	"tree-sitter-java.wasm": "https://unpkg.com/tree-sitter-java/tree-sitter-java.wasm",
+	"tree-sitter-cpp.wasm":
+		"https://unpkg.com/tree-sitter-cpp/tree-sitter-cpp.wasm",
+	"tree-sitter-java.wasm":
+		"https://unpkg.com/tree-sitter-java/tree-sitter-java.wasm",
+	// NEW: Web languages (unpkg fallback)
+	"tree-sitter-html.wasm":
+		"https://unpkg.com/tree-sitter-html@latest/tree-sitter-html.wasm",
+	"tree-sitter-css.wasm":
+		"https://unpkg.com/tree-sitter-css@latest/tree-sitter-css.wasm",
+	// NEW: Shell scripts (unpkg fallback)
+	"tree-sitter-bash.wasm":
+		"https://unpkg.com/tree-sitter-bash@latest/tree-sitter-bash.wasm",
+	// NEW: Config formats (unpkg fallback)
+	"tree-sitter-json.wasm":
+		"https://unpkg.com/tree-sitter-json@latest/tree-sitter-json.wasm",
+	"tree-sitter-yaml.wasm":
+		"https://unpkg.com/tree-sitter-yaml@latest/tree-sitter-yaml.wasm",
 };
 
 async function downloadFromUrl(name: string, url: string): Promise<boolean> {
@@ -100,7 +157,9 @@ async function downloadGrammar(name: string): Promise<void> {
 	}
 
 	console.error(`✗ ${name}: Could not download from any source`);
-	console.error(`  You may need to build it manually: npx tree-sitter build --wasm`);
+	console.error(
+		`  You may need to build it manually: npx tree-sitter build --wasm`,
+	);
 }
 
 async function copyTreeSitterRuntime(): Promise<void> {
@@ -129,7 +188,9 @@ async function copyTreeSitterRuntime(): Promise<void> {
 		}
 	}
 
-	console.warn("⚠ tree-sitter.wasm not found in node_modules - will use default location");
+	console.warn(
+		"⚠ tree-sitter.wasm not found in node_modules - will use default location",
+	);
 }
 
 async function main() {
