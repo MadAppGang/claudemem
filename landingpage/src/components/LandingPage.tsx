@@ -27,7 +27,7 @@ const HeroSection: React.FC = () => {
 	const [copied, setCopied] = useState(false);
 
 	const handleCopy = () => {
-		navigator.clipboard.writeText("npm install -g claudemem");
+		navigator.clipboard.writeText("bun install -g claude-codemem");
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
 	};
@@ -116,7 +116,7 @@ const HeroSection: React.FC = () => {
 					>
 						<span className="text-[#00d4aa] font-mono font-bold">$</span>
 						<code className="text-gray-300 font-mono">
-							npm install -g claudemem
+							bun install -g claude-codemem
 						</code>
 						<span className="text-gray-500 group-hover:text-[#00d4aa] transition-colors">
 							{copied ? "✓" : "⎘"}
@@ -777,7 +777,7 @@ const QuickStartSection: React.FC = () => {
 		{
 			step: 1,
 			label: "Install",
-			command: "npm install -g claudemem",
+			command: "bun install -g claude-codemem",
 			description: "Install the CLI globally",
 		},
 		{
