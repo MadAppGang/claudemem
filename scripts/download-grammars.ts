@@ -38,7 +38,7 @@ const GRAMMAR_PACKAGES = [
 	{ pkg: "tree-sitter-bash", wasm: ["tree-sitter-bash.wasm"] },
 	// NEW: Config formats
 	{ pkg: "tree-sitter-json", wasm: ["tree-sitter-json.wasm"] },
-	{ pkg: "tree-sitter-yaml", wasm: ["tree-sitter-yaml.wasm"] },
+	// NOTE: yaml, toml, markdown removed - no pre-built WASM available
 	// NEW: Dingo (pre-built WASM committed to repo)
 	{ pkg: "tree-sitter-dingo", wasm: ["tree-sitter-dingo.wasm"] },
 ];
@@ -105,8 +105,6 @@ const UNPKG_URLS: Record<string, string> = {
 	// NEW: Config formats (unpkg fallback)
 	"tree-sitter-json.wasm":
 		"https://unpkg.com/tree-sitter-json@latest/tree-sitter-json.wasm",
-	"tree-sitter-yaml.wasm":
-		"https://unpkg.com/tree-sitter-yaml@latest/tree-sitter-yaml.wasm",
 };
 
 async function downloadFromUrl(name: string, url: string): Promise<boolean> {

@@ -323,7 +323,7 @@ function createProgressRenderer() {
 	const globalStartTime = Date.now();
 	let animFrame = 0;
 	let interval: ReturnType<typeof setInterval> | null = null;
-	let linesWritten = 0; // Track how many lines we've actually rendered
+	let maxLinesWritten = 0; // Track MAXIMUM lines ever written (for cursor movement)
 
 	// Track multiple phases simultaneously (for parallel execution)
 	const phases = new Map<string, PhaseState>();
@@ -365,9 +365,13 @@ function createProgressRenderer() {
 	function render() {
 		animFrame = (animFrame + 1) % INDEX_ANIM_FRAMES.length;
 
-		// Move cursor up to redraw only the lines we previously wrote
-		if (linesWritten > 0) {
-			process.stdout.write(`\x1b[${linesWritten}A`);
+		// Calculate how many lines we'll write THIS render (phases + total)
+		const linesToWrite = phaseOrder.length + 1;
+
+		// Move cursor up by the MAXIMUM lines ever written (not current count)
+		// This ensures we always start from the same position
+		if (maxLinesWritten > 0) {
+			process.stdout.write(`\x1b[${maxLinesWritten}A`);
 		}
 
 		// Render each phase in order
@@ -394,8 +398,8 @@ function createProgressRenderer() {
 		const totalElapsed = formatElapsed(Date.now() - globalStartTime);
 		process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
 
-		// Track how many lines we wrote (phases + total line)
-		linesWritten = phaseOrder.length + 1;
+		// Update max lines (phases can only increase, so this tracks growth)
+		maxLinesWritten = Math.max(maxLinesWritten, linesToWrite);
 	}
 
 	return {
@@ -458,10 +462,10 @@ function createProgressRenderer() {
 				phase.inProgress = 0;
 			}
 
-			// Final render - use linesWritten to avoid overwriting unrelated lines
+			// Final render - use maxLinesWritten to properly overwrite all previous lines
 			animFrame = 0;
-			if (linesWritten > 0) {
-				process.stdout.write(`\x1b[${linesWritten}A`);
+			if (maxLinesWritten > 0) {
+				process.stdout.write(`\x1b[${maxLinesWritten}A`);
 			}
 
 			for (const phaseName of phaseOrder) {
@@ -478,8 +482,8 @@ function createProgressRenderer() {
 			const totalElapsed = formatElapsed(Date.now() - globalStartTime);
 			process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
 
-			// Update linesWritten for consistency
-			linesWritten = phaseOrder.length + 1;
+			// Update maxLinesWritten for consistency
+			maxLinesWritten = Math.max(maxLinesWritten, phaseOrder.length + 1);
 		},
 	};
 }

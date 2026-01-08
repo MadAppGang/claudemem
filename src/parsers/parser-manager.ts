@@ -566,49 +566,8 @@ const LANGUAGE_CONFIGS: Record<SupportedLanguage, LanguageConfig> = {
       ; No references tracked for JSON
     `,
 	},
-	yaml: {
-		id: "yaml",
-		extensions: [".yaml", ".yml"],
-		grammarFile: "tree-sitter-yaml.wasm",
-		chunkQuery: `
-      ; Top-level mappings
-      (block_mapping_pair
-        key: (flow_node) @name) @chunk
-    `,
-		referenceQuery: `
-      ; No references tracked for YAML
-    `,
-	},
-	toml: {
-		id: "toml",
-		extensions: [".toml"],
-		grammarFile: "tree-sitter-toml.wasm",
-		chunkQuery: `
-      ; Top-level tables
-      (table
-        (dotted_key) @name) @chunk
-      ; Array of tables
-      (table_array_element
-        (dotted_key) @name) @chunk
-    `,
-		referenceQuery: `
-      ; No references tracked for TOML
-    `,
-	},
-	markdown: {
-		id: "markdown",
-		extensions: [".md", ".markdown"],
-		grammarFile: "tree-sitter-markdown.wasm",
-		chunkQuery: `
-      ; Header-based chunking handled by document-chunker.ts
-      ; This query is used as fallback if document chunker is unavailable
-      (atx_heading) @chunk
-      (setext_heading) @chunk
-    `,
-		referenceQuery: `
-      ; No references tracked for Markdown
-    `,
-	},
+	// NOTE: yaml, toml, markdown removed - no pre-built WASM grammars available
+	// These file types are still indexed as plain text chunks
 	rst: {
 		id: "rst",
 		extensions: [".rst"],
@@ -667,6 +626,7 @@ export class ParserManager {
 	private initialized = false;
 	private parsers: Map<SupportedLanguage, Parser> = new Map();
 	private languages: Map<SupportedLanguage, Language> = new Map();
+	private missingGrammars: Set<SupportedLanguage> = new Set(); // Track warned grammars
 	private grammarsPath: string;
 
 	constructor(grammarsPath?: string) {
@@ -772,9 +732,12 @@ export class ParserManager {
 		const config = LANGUAGE_CONFIGS[language];
 		const grammarPath = join(this.grammarsPath, config.grammarFile);
 
-		// Check if grammar file exists
+		// Check if grammar file exists (only warn once per language)
 		if (!existsSync(grammarPath)) {
-			console.warn(`Grammar file not found: ${grammarPath}`);
+			if (!this.missingGrammars.has(language)) {
+				this.missingGrammars.add(language);
+				console.warn(`Grammar file not found: ${grammarPath}`);
+			}
 			return null;
 		}
 

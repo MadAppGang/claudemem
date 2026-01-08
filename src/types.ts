@@ -560,10 +560,8 @@ export type SupportedLanguage =
 	| "graphql"
 	// NEW: Config formats
 	| "json"
-	| "yaml"
-	| "toml"
-	// NEW: Document formats
-	| "markdown"
+	// NOTE: yaml, toml, markdown removed - no pre-built WASM grammars available
+	// NEW: Document formats (limited support)
 	| "rst"
 	| "asciidoc"
 	| "org"
