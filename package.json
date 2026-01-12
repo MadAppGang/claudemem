@@ -1,6 +1,6 @@
 {
 	"name": "claude-codemem",
-	"version": "0.16.4",
+	"version": "0.16.6",
 	"description": "Local code indexing tool with semantic search for Claude Code - MCP server and CLI",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -18,7 +18,7 @@
 		"link": "npm link",
 		"unlink": "npm unlink -g claudemem",
 		"install-global": "bun run build && npm link",
-		"postinstall": "bun run download-grammars || true",
+		"postinstall": "node scripts/postinstall.cjs || true",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome check .",
 		"format": "biome format --write .",
