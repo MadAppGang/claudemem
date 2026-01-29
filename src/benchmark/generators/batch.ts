@@ -395,7 +395,10 @@ Generate a JSON summary following the schema in your instructions.`;
 		// Map ChunkType to SymbolSummary.symbolType (filter out new types and "block")
 		const chunkType = request.chunk!.chunkType;
 		const symbolType: "function" | "class" | "method" | "module" =
-			chunkType === "function" || chunkType === "class" || chunkType === "method" || chunkType === "module"
+			chunkType === "function" ||
+			chunkType === "class" ||
+			chunkType === "method" ||
+			chunkType === "module"
 				? chunkType
 				: "function"; // Default for block, document-section, docstring, etc.
 

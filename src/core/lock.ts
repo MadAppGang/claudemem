@@ -38,16 +38,16 @@ export interface LockOptions {
 	waitTimeout?: number;
 	/** Interval to check if lock is released (ms). Default: 1000 */
 	pollInterval?: number;
-	/** Time after which a lock is considered stale (ms). Default: 60000 */
+	/** Time after which a lock is considered stale (ms). Default: 10000 */
 	staleTimeout?: number;
 	/** Callback when waiting for another process */
 	onWaiting?: (holderPid: number, waitedMs: number) => void;
 }
 
 const LOCK_FILENAME = ".indexing.lock";
-const DEFAULT_STALE_TIMEOUT = 60000; // 60 seconds without heartbeat = stale
+const DEFAULT_STALE_TIMEOUT = 10000; // 10 seconds without heartbeat = stale
 const DEFAULT_POLL_INTERVAL = 1000; // Check every second
-const HEARTBEAT_INTERVAL = 5000; // Update heartbeat every 5 seconds
+const HEARTBEAT_INTERVAL = 1000; // Update heartbeat every 1 second
 
 /**
  * Check if a process is still running (cross-platform: Windows, Linux, macOS)

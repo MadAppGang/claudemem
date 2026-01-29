@@ -1139,7 +1139,9 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								</p>
 								<div className="space-y-4">
 									<div>
-										<p className="text-xs text-gray-500 mb-2">Programming Languages</p>
+										<p className="text-xs text-gray-500 mb-2">
+											Programming Languages
+										</p>
 										<div className="flex flex-wrap gap-2 font-mono text-xs">
 											{[
 												"TypeScript",
@@ -1191,7 +1193,9 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										</div>
 									</div>
 									<div>
-										<p className="text-xs text-gray-500 mb-2">Documentation (header-based chunking)</p>
+										<p className="text-xs text-gray-500 mb-2">
+											Documentation (header-based chunking)
+										</p>
 										<div className="flex flex-wrap gap-2 font-mono text-xs">
 											{["Markdown", "RST", "AsciiDoc", "Org"].map((lang) => (
 												<span

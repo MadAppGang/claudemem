@@ -137,63 +137,63 @@ const App: React.FC = () => {
 
 			{/* Footer for old views */}
 			<footer className="py-20 bg-[#050505] border-t border-white/5">
-					<div className="max-w-6xl mx-auto px-8">
-						<div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
-							<div className="space-y-4">
-								<div className="text-white font-mono font-black text-2xl tracking-tighter flex items-center gap-3">
-									<div className="w-8 h-8 bg-[#00d4aa] rounded flex items-center justify-center text-[14px] text-black">
-										M
-									</div>
-									claudemem
+				<div className="max-w-6xl mx-auto px-8">
+					<div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
+						<div className="space-y-4">
+							<div className="text-white font-mono font-black text-2xl tracking-tighter flex items-center gap-3">
+								<div className="w-8 h-8 bg-[#00d4aa] rounded flex items-center justify-center text-[14px] text-black">
+									M
 								</div>
-								<p className="text-gray-500 text-sm max-w-xs">
-									Local-first semantic code intelligence for AI agents.
-								</p>
+								claudemem
 							</div>
-							<div className="flex gap-12">
-								<div>
-									<h4 className="text-white font-bold mb-4 text-sm uppercase tracking-wider">
-										Product
-									</h4>
-									<ul className="space-y-2 text-sm text-gray-500">
-										<li>
-											<button
-												onClick={() => setView("docs")}
-												className="hover:text-[#00d4aa] transition-colors"
-											>
-												Documentation
-											</button>
-										</li>
-										<li>
-											<button
-												onClick={() => setView("benchmarks")}
-												className="hover:text-[#00d4aa] transition-colors"
-											>
-												Benchmarks
-											</button>
-										</li>
-									</ul>
-								</div>
-								<div>
-									<h4 className="text-white font-bold mb-4 text-sm uppercase tracking-wider">
-										Community
-									</h4>
-									<ul className="space-y-2 text-sm text-gray-500">
-										<li>
-											<a
-												href="https://github.com/MadAppGang/claudemem"
-												className="hover:text-[#00d4aa] transition-colors"
-											>
-												GitHub
-											</a>
-										</li>
-									</ul>
-								</div>
+							<p className="text-gray-500 text-sm max-w-xs">
+								Local-first semantic code intelligence for AI agents.
+							</p>
+						</div>
+						<div className="flex gap-12">
+							<div>
+								<h4 className="text-white font-bold mb-4 text-sm uppercase tracking-wider">
+									Product
+								</h4>
+								<ul className="space-y-2 text-sm text-gray-500">
+									<li>
+										<button
+											onClick={() => setView("docs")}
+											className="hover:text-[#00d4aa] transition-colors"
+										>
+											Documentation
+										</button>
+									</li>
+									<li>
+										<button
+											onClick={() => setView("benchmarks")}
+											className="hover:text-[#00d4aa] transition-colors"
+										>
+											Benchmarks
+										</button>
+									</li>
+								</ul>
+							</div>
+							<div>
+								<h4 className="text-white font-bold mb-4 text-sm uppercase tracking-wider">
+									Community
+								</h4>
+								<ul className="space-y-2 text-sm text-gray-500">
+									<li>
+										<a
+											href="https://github.com/MadAppGang/claudemem"
+											className="hover:text-[#00d4aa] transition-colors"
+										>
+											GitHub
+										</a>
+									</li>
+								</ul>
 							</div>
 						</div>
-						<div className="pt-8 border-t border-white/5 text-center text-gray-600 text-sm">
-							© 2025 MadAppGang. MIT License.
-						</div>
+					</div>
+					<div className="pt-8 border-t border-white/5 text-center text-gray-600 text-sm">
+						© 2025 MadAppGang. MIT License.
+					</div>
 				</div>
 			</footer>
 

@@ -61,8 +61,7 @@ const indexingSteps: LayerStep[] = [
 		type: "local",
 		time: "< 1s",
 		cost: "Free",
-		description:
-			"Google's algorithm adapted to rank code symbol importance",
+		description: "Google's algorithm adapted to rank code symbol importance",
 		detail:
 			"Applies eigenvector centrality analysis to identify critical infrastructure (high PageRank) vs isolated utilities (low PageRank). Your AI assistant now knows which code matters most to your architecture.",
 	},
@@ -107,8 +106,7 @@ const retrievalSteps: LayerStep[] = [
 		type: "ai",
 		time: "100ms",
 		cost: "Tiny",
-		description:
-			"Transforms natural language query into vector representation",
+		description: "Transforms natural language query into vector representation",
 		detail:
 			"Your question becomes a point in the same semantic space as your code. 'Where is authentication handled?' maps to vectors near your auth logic, regardless of variable names.",
 	},
@@ -129,8 +127,7 @@ const retrievalSteps: LayerStep[] = [
 		type: "local",
 		time: "5ms",
 		cost: "Free",
-		description:
-			"Weighted ranking: 50% semantic + 30% keyword + 20% PageRank",
+		description: "Weighted ranking: 50% semantic + 30% keyword + 20% PageRank",
 		detail:
 			"Results are ranked by relevance AND architectural importance. A high-PageRank match in core infrastructure ranks above a low-importance utility, surfacing critical code first.",
 	},
@@ -140,8 +137,7 @@ const retrievalSteps: LayerStep[] = [
 		type: "local",
 		time: "20ms",
 		cost: "Free",
-		description:
-			"Enriches results with imports, type definitions, and callers",
+		description: "Enriches results with imports, type definitions, and callers",
 		detail:
 			"Beyond the matched code, retrieves surrounding context: what it imports, what types it uses, what calls it. Your AI code assistant gets complete understanding, not isolated snippets.",
 	},
@@ -161,8 +157,7 @@ const retrievalSteps: LayerStep[] = [
 		type: "output",
 		time: "~200ms",
 		cost: "Free",
-		description:
-			"Complete code intelligence delivered to your AI assistant",
+		description: "Complete code intelligence delivered to your AI assistant",
 		detail:
 			"Zero file exploration needed. Your AI code assistant starts with the exact relevant code, its dependencies, and architectural context. From question to answer in 200ms.",
 	},
@@ -281,8 +276,7 @@ export const ArchitectureDiagram: React.FC = () => {
 						How Semantic Code Search Works
 					</h2>
 					<p className="text-gray-500 text-base max-w-3xl mx-auto leading-relaxed">
-						claudemem combines{" "}
-						<span className="text-white">AST parsing</span>,{" "}
+						claudemem combines <span className="text-white">AST parsing</span>,{" "}
 						<span className="text-white">PageRank scoring</span>, and{" "}
 						<span className="text-white">vector embeddings</span> to give AI
 						code assistants deep understanding of your codebase.
@@ -495,9 +489,9 @@ export const ArchitectureDiagram: React.FC = () => {
 							</h4>
 							<p>
 								PageRank scoring identifies your codebase's critical
-								infrastructure. AI assistants receive context about high-importance
-								code first, avoiding irrelevant utility functions that pollute
-								context windows.
+								infrastructure. AI assistants receive context about
+								high-importance code first, avoiding irrelevant utility
+								functions that pollute context windows.
 							</p>
 						</div>
 						<div>
