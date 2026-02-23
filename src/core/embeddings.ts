@@ -10,6 +10,7 @@
 
 import {
 	DEFAULT_EMBEDDING_MODEL,
+	LOCAL_EMBEDDING_PROVIDERS,
 	OPENROUTER_EMBEDDINGS_URL,
 	OPENROUTER_HEADERS,
 	VOYAGE_EMBEDDINGS_URL,
@@ -24,13 +25,6 @@ import type {
 	EmbedResult,
 	IEmbeddingsClient,
 } from "../types.js";
-
-/** Local embedding providers (no network API call to cloud) */
-const LOCAL_EMBEDDING_PROVIDERS: Set<EmbeddingProvider> = new Set([
-	"ollama",
-	"lmstudio",
-	"local",
-]);
 
 // ============================================================================
 // Constants

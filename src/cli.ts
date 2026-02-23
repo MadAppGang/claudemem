@@ -31,9 +31,10 @@ import {
 	getApiKey,
 	getContext7ApiKey,
 	getEmbeddingModel,
+	getEmbeddingProvider,
 	getLLMSpec,
 	getVoyageApiKey,
-	hasApiKey,
+	hasValidEmbeddingCredentials,
 	isLearningEnabled,
 	isVectorEnabled,
 	loadGlobalConfig,
@@ -147,6 +148,16 @@ function compactPath(path: string, maxLen = 40): string {
 	const parts = path.split("/");
 	if (parts.length <= 2) return path.slice(-maxLen);
 	return `...${path.slice(-(maxLen - 3))}`;
+}
+
+/** Exit with an error if the embedding provider is missing required credentials */
+function assertValidEmbeddingCredentials(): void {
+	if (hasValidEmbeddingCredentials()) {
+		return;
+	}
+	console.error(`Error: API key not configured for embedding provider '${getEmbeddingProvider()}'.`);
+	console.error("Run 'claudemem init' to set up.");
+	process.exit(1);
 }
 
 /** Format duration compactly */
@@ -551,11 +562,9 @@ async function handleIndex(args: string[]): Promise<void> {
 	// Check if vector mode is enabled
 	const vectorEnabled = isVectorEnabled(projectPath);
 
-	// Check for API key (not needed when vector mode is disabled)
-	if (vectorEnabled && !hasApiKey()) {
-		console.error("Error: OpenRouter API key not configured.");
-		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
-		process.exit(1);
+	// Check for API key (not needed for local providers or when vector mode is disabled)
+	if (vectorEnabled) {
+		assertValidEmbeddingCredentials();
 	}
 
 	// Get model info for display
@@ -815,11 +824,9 @@ async function handleSearch(args: string[]): Promise<void> {
 	// Check if vector mode is enabled in config
 	const vectorEnabled = isVectorEnabled(projectPath);
 
-	// Check for API key (not needed for keyword-only search or when vector mode disabled)
-	if (!keywordOnly && vectorEnabled && !hasApiKey()) {
-		console.error("Error: OpenRouter API key not configured.");
-		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
-		process.exit(1);
+	// Check for API key (not needed for local providers, keyword-only search, or when vector mode disabled)
+	if (!keywordOnly && vectorEnabled) {
+		assertValidEmbeddingCredentials();
 	}
 
 	const { createIndexer, EmbeddingModelMismatchError } = await import(
@@ -2202,11 +2209,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	};
 
 	// Check for API key
-	if (!hasApiKey()) {
-		console.error("Error: OpenRouter API key not configured.");
-		console.error("Run 'claudemem init' to set up, or set OPENROUTER_API_KEY.");
-		process.exit(1);
-	}
+	assertValidEmbeddingCredentials();
 
 	// Parse flags
 	const useRealData = args.includes("--real");

@@ -8,7 +8,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { Config, GlobalConfig, ProjectConfig } from "./types.js";
+import type {
+	Config,
+	EmbeddingProvider,
+	GlobalConfig,
+	ProjectConfig,
+} from "./types.js";
 
 // ============================================================================
 // Constants
@@ -522,6 +527,37 @@ export function getApiKey(): string | undefined {
  */
 export function hasApiKey(): boolean {
 	return !!getApiKey();
+}
+
+/**
+ * Get the configured embedding provider.
+ * Priority: global config > default ('openrouter')
+ */
+export function getEmbeddingProvider(): EmbeddingProvider {
+	const globalConfig = loadGlobalConfig();
+	return globalConfig.embeddingProvider || "openrouter";
+}
+
+/** Local embedding providers (no network API call to cloud) */
+export const LOCAL_EMBEDDING_PROVIDERS: Set<EmbeddingProvider> = new Set([
+	"ollama",
+	"lmstudio",
+	"local",
+]);
+
+/**
+ * Check if the configured embedding provider has valid credentials.
+ * Local providers need no API key; cloud providers require their respective key.
+ */
+export function hasValidEmbeddingCredentials(): boolean {
+	const provider = getEmbeddingProvider();
+	if (LOCAL_EMBEDDING_PROVIDERS.has(provider)) {
+		return true;
+	}
+	if (provider === "voyage") {
+		return hasVoyageApiKey();
+	}
+	return hasApiKey();
 }
 
 /**
