@@ -216,6 +216,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 		let totalCost = 0;
 
 		let failedCount = 0;
+		const warnings: string[] = [];
 
 		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
 			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
@@ -237,7 +238,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 					if (msg.includes("401") || msg.includes("403")) {
 						throw error;
 					}
-					console.error(`  ⚠️  Batch failed: ${msg.slice(0, 60)}...`);
+					warnings.push(msg);
 					failedCount += batch.length;
 					return { embeddings: batch.map(() => [] as number[]) };
 				}
@@ -255,7 +256,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 		}
 
 		if (failedCount > 0) {
-			console.error(`  ⚠️  ${failedCount}/${texts.length} chunks skipped`);
+			warnings.push(`${failedCount}/${texts.length} chunks skipped`);
 		}
 
 		// Final progress report (all complete)
@@ -267,6 +268,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 			embeddings: results,
 			totalTokens: totalTokens > 0 ? totalTokens : undefined,
 			cost: totalCost > 0 ? totalCost : undefined,
+			warnings: warnings.length > 0 ? warnings : undefined,
 		};
 	}
 
@@ -374,6 +376,7 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 		// Ollama processes one text at a time
 		const results: number[][] = [];
 		let failedCount = 0;
+		const warnings: string[] = [];
 
 		for (let i = 0; i < texts.length; i++) {
 			// Report "starting to process" (1 item at a time)
@@ -400,8 +403,7 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 				if (msg.includes("ECONNREFUSED") || msg.includes("Cannot connect")) {
 					throw error;
 				}
-				// Log warning but continue for other errors
-				console.error(`  ⚠️  Chunk ${i + 1} failed: ${msg.slice(0, 60)}...`);
+				warnings.push(`Chunk ${i + 1}: ${msg}`);
 			}
 		}
 
@@ -411,11 +413,11 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 		}
 
 		if (failedCount > 0) {
-			console.error(`  ⚠️  ${failedCount}/${texts.length} chunks skipped`);
+			warnings.push(`${failedCount}/${texts.length} chunks skipped`);
 		}
 
 		// Ollama doesn't report cost (local model)
-		return { embeddings: results };
+		return { embeddings: results, warnings: warnings.length > 0 ? warnings : undefined };
 	}
 
 	private async embedSingle(text: string): Promise<number[]> {
@@ -646,6 +648,7 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 		let totalTokens = 0;
 
 		let failedCount = 0;
+		const warnings: string[] = [];
 
 		for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
 			const batchGroup = batches.slice(i, i + PARALLEL_BATCHES);
@@ -665,7 +668,7 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 					if (msg.includes("401") || msg.includes("403")) {
 						throw error;
 					}
-					console.error(`  ⚠️  Batch failed: ${msg.slice(0, 60)}...`);
+					warnings.push(msg);
 					failedCount += batch.length;
 					return { embeddings: batch.map(() => [] as number[]) };
 				}
@@ -682,7 +685,7 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 		}
 
 		if (failedCount > 0) {
-			console.error(`  ⚠️  ${failedCount}/${texts.length} chunks skipped`);
+			warnings.push(`${failedCount}/${texts.length} chunks skipped`);
 		}
 
 		if (onProgress) {
@@ -696,6 +699,7 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 			embeddings: results,
 			totalTokens: totalTokens > 0 ? totalTokens : undefined,
 			cost,
+			warnings: warnings.length > 0 ? warnings : undefined,
 		};
 	}
 

@@ -328,6 +328,8 @@ export interface EmbedResult {
 	totalTokens?: number;
 	/** Cost in USD (if reported by provider) */
 	cost?: number;
+	/** Warnings/errors that occurred during embedding (non-fatal) */
+	warnings?: string[];
 }
 
 /**
@@ -483,6 +485,15 @@ export interface ProjectConfig {
 	 * When enabled, claudemem learns from interactions to improve search quality.
 	 */
 	learning?: boolean;
+
+	// ─── Index Format ───
+	/**
+	 * Index format version. Used to detect when re-indexing is needed.
+	 * v1 = basic code chunks (legacy/default)
+	 * v2 = hierarchical code units with AST metadata
+	 * Absence of this field is treated as v1.
+	 */
+	indexVersion?: number;
 }
 
 /** Configuration for external documentation fetching */
@@ -1134,4 +1145,6 @@ export interface EnrichmentResult {
 export interface EnrichedIndexResult extends IndexResult {
 	/** Enrichment statistics */
 	enrichment?: EnrichmentResult;
+	/** Number of code units created (AST-aware hierarchical units) */
+	codeUnitsCreated?: number;
 }

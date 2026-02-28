@@ -70,6 +70,13 @@ export function createBenchmarkProgress(itemIds: string[]) {
 	function doRender() {
 		animFrame = (animFrame + 1) % ANIM_FRAMES.length;
 
+		// Calculate max status width to prevent line wrapping
+		// Line format: "⏱ 00:03 │ <20-char bar> 100% │ <25-char name> │ <status>"
+		// Fixed prefix = 2 + 5 + 3 + 20 + 1 + 4 + 3 + 25 + 3 = 66 chars
+		const PREFIX_WIDTH = 66;
+		const termCols = process.stdout.columns || 80;
+		const maxStatusWidth = Math.max(10, termCols - PREFIX_WIDTH - 1);
+
 		// Move cursor up to overwrite previous lines
 		if (itemIds.length > 0) {
 			process.stdout.write(`\x1b[${itemIds.length}A`);
@@ -108,9 +115,10 @@ export function createBenchmarkProgress(itemIds: string[]) {
 			if (error) {
 				bar = `${c.red}${"✗".repeat(width)}${c.reset}`;
 				percent = 0;
-				// Show truncated error message
+				// Truncate error to fit terminal width (full error shown in results table)
+				const maxErrLen = maxStatusWidth - 2; // "✗ " prefix
 				const truncatedError =
-					error.length > 40 ? error.slice(0, 37) + "..." : error;
+					error.length > maxErrLen ? error.slice(0, maxErrLen - 1) + "…" : error;
 				status = `${c.red}✗ ${truncatedError}${c.reset}`;
 			} else if (done) {
 				bar = `${c.green}${"█".repeat(width)}${c.reset}`;
@@ -280,9 +288,13 @@ export function createSimpleProgress(label: string, total: number) {
 		const percent = total > 0 ? Math.round((current / total) * 100) : 0;
 		const width = 20; // Match multi-item progress bar width
 		const filled = Math.round((current / total) * width);
-		const bar = "█".repeat(filled) + "░".repeat(width - filled);
+		const empty = width - filled;
+		const bar = `${c.green}${"█".repeat(filled)}${c.reset}${"░".repeat(empty)}`;
+		const status = current >= total
+			? `${c.green}✓ ${label}${c.reset}`
+			: `${label}: ${current}/${total}`;
 		process.stdout.write(
-			`\r⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${label}: ${current}/${total}\x1b[K`,
+			`\r\x1b[2K⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${label.padEnd(25)} │ ${status}`,
 		);
 	}
 

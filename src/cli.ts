@@ -80,6 +80,8 @@ import {
 	renderTable,
 	truncate,
 } from "./ui/index.js";
+import { createOutput } from "./output/index.js";
+import { agentOutput } from "./output/agent.js";
 
 // ============================================================================
 // Version & Branding
@@ -154,6 +156,27 @@ function compactDuration(ms: number): string {
 	if (ms < 1000) return `${ms}ms`;
 	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
 	return `${(ms / 60000).toFixed(1)}m`;
+}
+
+// ============================================================================
+// Version Check Helpers
+// ============================================================================
+
+/**
+ * Print index version warning to stderr if the index is outdated.
+ * Uses lazy import to avoid loading the module at startup.
+ * Non-blocking: command continues regardless.
+ */
+async function printVersionWarning(projectPath: string): Promise<void> {
+	try {
+		const { checkIndexVersion } = await import("./core/index-version.js");
+		const warning = checkIndexVersion(projectPath);
+		if (warning) {
+			process.stderr.write(warning + "\n");
+		}
+	} catch {
+		// Version check failure is non-fatal - silently ignore
+	}
 }
 
 // ============================================================================
@@ -587,8 +610,10 @@ async function handleIndex(args: string[]): Promise<void> {
 		console.log("");
 	}
 
-	// Create progress renderer (skip in compact mode)
-	const progress = compactMode ? null : createProgressRenderer();
+	// Create output router for progress rendering
+	const output = createOutput(agentMode);
+	await output.start();
+	const progress = agentMode ? null : output.renderProgress();
 	let waitingMessageShown = false;
 
 	const { createIndexer, IndexLockError } = await import("./core/indexer.js");
@@ -611,27 +636,18 @@ async function handleIndex(args: string[]): Promise<void> {
 		},
 	});
 
-	// Start progress only after we know we have the lock (skip in compact mode)
-	if (progress) progress.start();
-
 	try {
 		const result = await indexer.index(force);
 
 		// Show final state and stop progress renderer
 		if (progress) progress.finish();
 
-		// Compact mode: 3-line summary
-		if (compactMode) {
-			const costStr =
-				result.cost !== undefined ? ` | Cost: $${result.cost.toFixed(4)}` : "";
-			const errStr =
-				result.errors.length > 0 ? ` | ${result.errors.length} errors` : "";
-			compactOutput(
-				`✓ Indexed ${result.filesIndexed} files → ${result.chunksCreated} chunks in ${compactDuration(result.durationMs)}${costStr}${errStr}`,
-				`Model: ${embeddingModel}${result.enrichment ? ` | Enriched: ${result.enrichment.documentsCreated} docs` : ""}`,
-				`Next: claudemem search "query" | claudemem map | claudemem symbol <name>`,
-			);
+		// Agent mode: structured key=value output
+		if (agentMode) {
+			const { agentOutput } = await import("./output/agent.js");
+			agentOutput.indexComplete(result);
 			await indexer.close();
+			await output.stop();
 			return;
 		}
 
@@ -741,11 +757,12 @@ async function handleIndex(args: string[]): Promise<void> {
 	} finally {
 		if (progress) progress.stop();
 		await indexer.close();
+		// Ensure output is cleaned up (no-op if already stopped by progress.finish())
+		await output.stop();
 	}
 }
 
 async function handleSearch(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 
 	// Parse arguments
 	const limitIdx = args.findIndex((a) => a === "-n" || a === "--limit");
@@ -759,6 +776,9 @@ async function handleSearch(args: string[]): Promise<void> {
 
 	const pathIdx = args.findIndex((a) => a === "-p" || a === "--path");
 	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	// Embedding model override (will error if doesn't match stored model)
 	const modelIdx = args.findIndex((a) => a === "-m" || a === "--model");
@@ -857,8 +877,8 @@ async function handleSearch(args: string[]): Promise<void> {
 			);
 		} else if (!noReindex) {
 			// Index exists - auto-reindex changed files with progress display
-			// In compact mode, do silent reindex
-			if (compactMode) {
+			// In agent mode, do silent reindex
+			if (agentMode) {
 				const { createIndexer: createTempIndexer } = await import(
 					"./core/indexer.js"
 				);
@@ -898,7 +918,7 @@ async function handleSearch(args: string[]): Promise<void> {
 			}
 		}
 
-		if (!compactMode) {
+		if (!agentMode) {
 			console.log(
 				`Searching for: "${query}"${keywordOnly ? " (keyword-only)" : ""}`,
 			);
@@ -912,10 +932,8 @@ async function handleSearch(args: string[]): Promise<void> {
 		});
 
 		if (results.length === 0) {
-			if (compactMode) {
-				console.log(`✗ No results for "${query}"`);
-				console.log("Index may be stale: claudemem index");
-				console.log("Try: claudemem map | claudemem symbol <name>");
+			if (agentMode) {
+				agentOutput.searchResults(query, []);
 			} else {
 				console.log("\nNo results found.");
 				console.log("Make sure the codebase is indexed: claudemem index");
@@ -941,8 +959,8 @@ async function handleSearch(args: string[]): Promise<void> {
 						useCase,
 					});
 				} catch (learningError) {
-					// Learning system errors shouldn't break search (silent in compact mode)
-					if (!compactMode) {
+					// Learning system errors shouldn't break search (silent in agent mode)
+					if (!agentMode) {
 						console.error("[claudemem] Learning system error:", learningError);
 					}
 				} finally {
@@ -951,33 +969,9 @@ async function handleSearch(args: string[]): Promise<void> {
 			}
 		}
 
-		// Compact mode: show results in condensed format
-		if (compactMode) {
-			// Plain mode: minimal output for tools/CI (no emojis, no hints)
-			if (agentMode) {
-				const topResults = results
-					.slice(0, 5)
-					.map((r) => `${r.chunk.filePath}:${r.chunk.startLine}`)
-					.join("\n");
-				console.log(topResults);
-				return;
-			}
-			// Line 1: Summary
-			console.log(`✓ Found ${results.length} results for "${query}"`);
-			// Line 2: Top results (file:line score%)
-			const topResults = results
-				.slice(0, 5)
-				.map(
-					(r) =>
-						`${compactPath(r.chunk.filePath, 25)}:${r.chunk.startLine} (${(r.score * 100).toFixed(0)}%)`,
-				)
-				.join(" | ");
-			console.log(topResults);
-			// Line 3: Use Read tool hint
-			const firstFile = results[0]?.chunk.filePath;
-			console.log(
-				`Read: ${firstFile}:${results[0]?.chunk.startLine} | More: claudemem symbol <name>`,
-			);
+		// Agent mode: structured key=value output
+		if (agentMode) {
+			agentOutput.searchResults(query, results);
 			return;
 		}
 
@@ -1035,11 +1029,13 @@ async function handleSearch(args: string[]): Promise<void> {
 }
 
 async function handleStatus(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	printLogo();
 
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	const { createIndexer } = await import("./core/indexer.js");
 	const indexer = createIndexer({ projectPath });
@@ -1048,10 +1044,8 @@ async function handleStatus(args: string[]): Promise<void> {
 		const status = await indexer.getStatus();
 
 		if (!status.exists) {
-			if (compactMode) {
-				console.log(`✗ No index at ${compactPath(projectPath, 40)}`);
-				console.log("Create: claudemem index");
-				console.log("Docs: https://github.com/MadAppGang/claudemem");
+			if (agentMode) {
+				agentOutput.statusOutput(status);
 			} else {
 				console.log("\nNo index found for this project.");
 				console.log("Run 'claudemem index' to create one.");
@@ -1059,20 +1053,9 @@ async function handleStatus(args: string[]): Promise<void> {
 			return;
 		}
 
-		// Compact mode: 3-line status
-		if (compactMode) {
-			const age = status.lastUpdated
-				? `${compactDuration(Date.now() - status.lastUpdated.getTime())} ago`
-				: "unknown";
-			console.log(
-				`✓ Index: ${status.totalFiles} files, ${status.totalChunks} chunks (${age})`,
-			);
-			console.log(
-				`Languages: ${status.languages.join(", ") || "none"} | Model: ${status.embeddingModel || "none"}`,
-			);
-			console.log(
-				"Commands: search map symbol callers callees context dead-code test-gaps impact",
-			);
+		// Agent mode: structured key=value output
+		if (agentMode) {
+			agentOutput.statusOutput(status);
 			return;
 		}
 
@@ -2068,6 +2051,7 @@ interface BenchmarkResult {
 	mrr: number;
 	hitRate: { k1: number; k3: number; k5: number };
 	error?: string;
+	warnings?: string[];
 }
 
 /**
@@ -2137,6 +2121,13 @@ async function discoverAndChunkFilesWithPaths(
 ): Promise<Array<{ content: string; fileName: string }>> {
 	const files: string[] = [];
 
+	// Directories to skip for benchmarking (non-source content)
+	const benchExcludeDirs = new Set([
+		...EXCLUDE_DIRS,
+		"ai-docs",
+		"eval",
+	]);
+
 	// Walk directory to find source files
 	const walk = (dir: string) => {
 		try {
@@ -2145,7 +2136,10 @@ async function discoverAndChunkFilesWithPaths(
 				const fullPath = join(dir, entry.name);
 
 				if (entry.isDirectory()) {
-					if (!EXCLUDE_DIRS.has(entry.name) && !entry.name.startsWith(".")) {
+					if (
+						!benchExcludeDirs.has(entry.name) &&
+						!entry.name.startsWith(".")
+					) {
 						walk(fullPath);
 					}
 				} else if (entry.isFile()) {
@@ -2161,10 +2155,27 @@ async function discoverAndChunkFilesWithPaths(
 
 	walk(projectPath);
 
-	// Sort files for reproducible chunk selection
-	files.sort();
+	// Prioritize core source files for meaningful benchmark coverage.
+	// Score by depth from project root's src/ — shallower files first
+	// (e.g. src/core/store.ts before src/core/analysis/analyzer.ts)
+	const srcPrefix = projectPath + "/src/";
+	files.sort((a, b) => {
+		const aInSrc = a.startsWith(srcPrefix);
+		const bInSrc = b.startsWith(srcPrefix);
+		if (aInSrc && !bInSrc) return -1;
+		if (!aInSrc && bInSrc) return 1;
+		if (aInSrc && bInSrc) {
+			// Fewer path segments = shallower = higher priority
+			const aDepth = a.slice(srcPrefix.length).split("/").length;
+			const bDepth = b.slice(srcPrefix.length).split("/").length;
+			if (aDepth !== bDepth) return aDepth - bDepth;
+		}
+		return a.localeCompare(b);
+	});
 
 	// Parse files into chunks with file paths
+	// Cap at 2 chunks per file to ensure broad coverage across the codebase
+	const maxChunksPerFile = 2;
 	const allChunks: Array<{ content: string; fileName: string }> = [];
 	for (const filePath of files) {
 		if (allChunks.length >= maxChunks) break;
@@ -2175,9 +2186,12 @@ async function discoverAndChunkFilesWithPaths(
 			const chunks = await chunkFileByPath(content, filePath, fileHash);
 			const fileName = filePath.split("/").pop() || "";
 
+			let fileChunkCount = 0;
 			for (const chunk of chunks) {
 				if (allChunks.length >= maxChunks) break;
+				if (fileChunkCount >= maxChunksPerFile) break;
 				allChunks.push({ content: chunk.content, fileName });
+				fileChunkCount++;
 			}
 		} catch {
 			// Skip files that can't be read/parsed
@@ -2251,13 +2265,17 @@ async function handleBenchmark(args: string[]): Promise<void> {
 
 	const projectPath = process.cwd();
 
-	console.log(`\n${c.orange}${c.bold}🏁 EMBEDDING MODEL BENCHMARK${c.reset}\n`);
+	if (!agentMode) {
+		console.log(`\n${c.orange}${c.bold}🏁 EMBEDDING MODEL BENCHMARK${c.reset}\n`);
+	}
 
 	// Get chunks with file paths (always needed for quality testing)
-	console.log(`${c.dim}Parsing source files...${c.reset}`);
+	if (!agentMode) {
+		console.log(`${c.dim}Parsing source files...${c.reset}`);
+	}
 	const chunksWithPaths = await discoverAndChunkFilesWithPaths(
 		projectPath,
-		useRealData ? 100 : 50,
+		useRealData ? 200 : 100,
 	);
 	if (chunksWithPaths.length === 0) {
 		console.error("No source files found in the current directory.");
@@ -2358,13 +2376,36 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		];
 	}
 
-	console.log(
-		`${c.dim}Testing ${models.length} models with ${chunksWithPaths.length} chunks + ${testQueries.length} quality queries${c.reset}\n`,
-	);
+	if (!agentMode) {
+		console.log(
+			`${c.dim}Testing ${models.length} models with ${chunksWithPaths.length} chunks + ${testQueries.length} quality queries${c.reset}\n`,
+		);
+	}
 
-	// Create multi-line progress display
-	const progress = createBenchmarkProgress(models);
-	progress.start();
+	// Create multi-line progress display (no-op in agent mode)
+	const progress = agentMode
+		? {
+				start() {},
+				update(
+					_itemId: string,
+					_completed: number,
+					_total: number,
+					_inProgress?: number,
+					_phase?: string,
+					_failures?: number,
+				) {},
+				finish(_itemId: string) {},
+				setError(_itemId: string, _error: string) {},
+				finishAll() {},
+				stop(_skipFinalRender?: boolean) {},
+				getElapsedMs(_itemId: string) {
+					return 0;
+				},
+			}
+		: createBenchmarkProgress(models);
+	if (!agentMode) {
+		progress.start();
+	}
 
 	// Benchmark directory for temp stores
 	const benchDbBase = join(projectPath, ".claudemem", "benchmark");
@@ -2437,7 +2478,9 @@ async function handleBenchmark(args: string[]): Promise<void> {
 				.filter((chunk) => chunk.vector && chunk.vector.length > 0);
 
 			if (chunksForStore.length === 0) {
-				throw new Error("All chunks failed to embed");
+				// Include the first warning as the reason (e.g. API error details)
+				const reason = embedResult.warnings?.[0];
+				throw new Error(reason ? `All chunks failed: ${reason}` : "All chunks failed to embed");
 			}
 			await store.addChunks(chunksForStore);
 
@@ -2524,6 +2567,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 					k3: (hitCounts.k3 / n) * 100,
 					k5: (hitCounts.k5 / n) * 100,
 				},
+				warnings: embedResult.warnings,
 			};
 		} catch (error) {
 			const errMsg = error instanceof Error ? error.message : String(error);
@@ -2557,10 +2601,33 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	const results = [...cloudResults, ...ollamaResults];
 	progress.stop();
 
+	// Show warnings/errors collected during embedding (after progress display is done)
+	const allWarnings = results.flatMap((r) =>
+		(r.warnings ?? []).map((w) => ({ model: r.model, warning: w })),
+	);
+	if (allWarnings.length > 0 && !agentMode) {
+		console.log();
+		// Deduplicate similar warnings per model
+		const seen = new Set<string>();
+		for (const { model, warning } of allWarnings) {
+			const shortModel = model.split("/").pop() || model;
+			const key = `${shortModel}:${warning.slice(0, 40)}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+			console.log(`${c.dim}  ${c.yellow}!${c.reset}${c.dim} ${shortModel}: ${warning}${c.reset}`);
+		}
+	}
+
 	// Sort by NDCG (quality first)
 	results.sort(
 		(a, b) => (a.error ? 1 : 0) - (b.error ? 1 : 0) || b.ndcg - a.ndcg,
 	);
+
+	if (agentMode) {
+		const { agentOutput } = await import("./output/agent.js");
+		agentOutput.benchmarkResults(results);
+		return;
+	}
 
 	// Display results table
 	console.log(`\n${c.bold}Results (sorted by quality):${c.reset}\n`);
@@ -2598,7 +2665,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		const displayName = truncate(r.model).padEnd(28);
 		if (r.error) {
 			console.log(`  ${c.red}${displayName} ERROR${c.reset}`);
-			console.log(`    ${c.dim}${r.error}${c.reset}`);
+			console.log(`  ${c.dim}  ${r.error}${c.reset}`);
 			continue;
 		}
 
@@ -3004,7 +3071,6 @@ function getFileTracker(projectPath: string): FileTracker | null {
  * Handle 'map' command - generate repo map
  */
 async function handleMap(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 
 	// Parse --tokens flag
 	let maxTokens = 2000;
@@ -3021,6 +3087,9 @@ async function handleMap(args: string[]): Promise<void> {
 	}
 	projectPath = resolve(projectPath);
 
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
+
 	// Get query (first non-flag argument)
 	const nonFlagArgs = args.filter((a) => !a.startsWith("-"));
 	// Skip args that are values for flags
@@ -3032,10 +3101,8 @@ async function handleMap(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3045,17 +3112,11 @@ async function handleMap(args: string[]): Promise<void> {
 	try {
 		const repoMapGen = createRepoMapGenerator(tracker);
 
-		if (compactMode) {
-			// Agent mode: top symbols as file:line list
+		if (agentMode) {
+			// Agent mode: structured key=value output
 			const structured = repoMapGen.generateStructured({ maxTokens: 1000 });
-			const allSymbols = structured.flatMap((e) =>
-				e.symbols.map((s) => ({ ...s, file: e.filePath })),
-			);
-			allSymbols.sort((a, b) => b.pagerankScore - a.pagerankScore);
-			const top10 = allSymbols.slice(0, 10);
-			for (const s of top10) {
-				console.log(`${s.file}:${s.line} ${s.name} (${s.kind})`);
-			}
+			agentOutput.mapOutput(structured);
+			return;
 		} else {
 			let output: string;
 			if (query) {
@@ -3076,15 +3137,16 @@ async function handleMap(args: string[]): Promise<void> {
  * Handle 'symbol' command - find symbol by name
  */
 async function handleSymbol(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	const projectPath = resolve(".");
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	// Get symbol name
 	const symbolName = args.find((a) => !a.startsWith("-"));
 	if (!symbolName) {
-		if (compactMode) {
-			console.log("Missing symbol name");
-			console.log("Usage: claudemem --agent symbol <name>");
+		if (agentMode) {
+			agentOutput.error("Usage: claudemem --agent symbol <name>");
 		} else {
 			console.error("Usage: claudemem symbol <name> [--file <hint>]");
 		}
@@ -3100,10 +3162,8 @@ async function handleSymbol(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3118,23 +3178,17 @@ async function handleSymbol(args: string[]): Promise<void> {
 		});
 
 		if (!symbol) {
-			if (compactMode) {
-				console.log(`✗ Symbol '${symbolName}' not found`);
-				console.log(
-					`Try: claudemem map "${symbolName}" | claudemem search "${symbolName}"`,
-				);
-				console.log("Fuzzy: similar names may exist with different casing");
+			if (agentMode) {
+				agentOutput.error(`Symbol '${symbolName}' not found`);
 			} else {
 				console.error(`Symbol '${symbolName}' not found.`);
 			}
 			process.exit(1);
 		}
 
-		if (compactMode) {
-			// Agent mode: file:line format
-			console.log(
-				`${symbol.filePath}:${symbol.startLine} ${symbol.name} (${symbol.kind})`,
-			);
+		if (agentMode) {
+			agentOutput.symbolOutput(symbol);
+			return;
 		} else {
 			printLogo();
 			console.log("\n🔍 Symbol Found\n");
@@ -3159,15 +3213,15 @@ async function handleSymbol(args: string[]): Promise<void> {
  * Handle 'callers' command - find what calls a symbol
  */
 async function handleCallers(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	const projectPath = resolve(".");
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	const symbolName = args.find((a) => !a.startsWith("-"));
 	if (!symbolName) {
-		if (compactMode) {
-			console.log("✗ Missing symbol name");
-			console.log("Usage: claudemem callers <name>");
-			console.log("Example: claudemem callers handleSearch");
+		if (agentMode) {
+			agentOutput.error("Usage: claudemem callers <name>");
 		} else {
 			console.error("Usage: claudemem callers <name>");
 		}
@@ -3176,10 +3230,8 @@ async function handleCallers(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3193,12 +3245,8 @@ async function handleCallers(args: string[]): Promise<void> {
 		});
 
 		if (!symbol) {
-			if (compactMode) {
-				console.log(`✗ Symbol '${symbolName}' not found`);
-				console.log(
-					`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`,
-				);
-				console.log("Check spelling and casing");
+			if (agentMode) {
+				agentOutput.error(`Symbol '${symbolName}' not found`);
 			} else {
 				console.error(`Symbol '${symbolName}' not found.`);
 			}
@@ -3207,17 +3255,9 @@ async function handleCallers(args: string[]): Promise<void> {
 
 		const callers = graphManager.getCallers(symbol.id);
 
-		if (compactMode) {
-			// Agent mode: file:line list
-			if (callers.length === 0) {
-				console.log("No callers found");
-			} else {
-				for (const caller of callers.slice(0, 10)) {
-					console.log(
-						`${caller.filePath}:${caller.startLine} ${caller.name} (${caller.kind})`,
-					);
-				}
-			}
+		if (agentMode) {
+			agentOutput.callersOutput(symbolName, callers);
+			return;
 		} else {
 			printLogo();
 			console.log(`\n📞 Callers of '${symbolName}'\n`);
@@ -3242,15 +3282,15 @@ async function handleCallers(args: string[]): Promise<void> {
  * Handle 'callees' command - find what a symbol calls
  */
 async function handleCallees(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	const projectPath = resolve(".");
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	const symbolName = args.find((a) => !a.startsWith("-"));
 	if (!symbolName) {
-		if (compactMode) {
-			console.log("✗ Missing symbol name");
-			console.log("Usage: claudemem callees <name>");
-			console.log("Example: claudemem callees handleSearch");
+		if (agentMode) {
+			agentOutput.error("Usage: claudemem callees <name>");
 		} else {
 			console.error("Usage: claudemem callees <name>");
 		}
@@ -3259,10 +3299,8 @@ async function handleCallees(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3276,12 +3314,8 @@ async function handleCallees(args: string[]): Promise<void> {
 		});
 
 		if (!symbol) {
-			if (compactMode) {
-				console.log(`✗ Symbol '${symbolName}' not found`);
-				console.log(
-					`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`,
-				);
-				console.log("Check spelling and casing");
+			if (agentMode) {
+				agentOutput.error(`Symbol '${symbolName}' not found`);
 			} else {
 				console.error(`Symbol '${symbolName}' not found.`);
 			}
@@ -3290,17 +3324,9 @@ async function handleCallees(args: string[]): Promise<void> {
 
 		const callees = graphManager.getCallees(symbol.id);
 
-		if (compactMode) {
-			// Agent mode: file:line list
-			if (callees.length === 0) {
-				console.log("No callees found");
-			} else {
-				for (const callee of callees.slice(0, 10)) {
-					console.log(
-						`${callee.filePath}:${callee.startLine} ${callee.name} (${callee.kind})`,
-					);
-				}
-			}
+		if (agentMode) {
+			agentOutput.calleesOutput(symbolName, callees);
+			return;
 		} else {
 			printLogo();
 			console.log(`\n📤 Callees of '${symbolName}'\n`);
@@ -3325,15 +3351,15 @@ async function handleCallees(args: string[]): Promise<void> {
  * Handle 'context' command - get full symbol context
  */
 async function handleContext(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	const projectPath = resolve(".");
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	const symbolName = args.find((a) => !a.startsWith("-"));
 	if (!symbolName) {
-		if (compactMode) {
-			console.log("✗ Missing symbol name");
-			console.log("Usage: claudemem context <name>");
-			console.log("Example: claudemem context handleSearch");
+		if (agentMode) {
+			agentOutput.error("Usage: claudemem context <name>");
 		} else {
 			console.error(
 				"Usage: claudemem context <name> [--callers N] [--callees N]",
@@ -3356,10 +3382,8 @@ async function handleContext(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3373,12 +3397,8 @@ async function handleContext(args: string[]): Promise<void> {
 		});
 
 		if (!symbol) {
-			if (compactMode) {
-				console.log(`✗ Symbol '${symbolName}' not found`);
-				console.log(
-					`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`,
-				);
-				console.log("Check spelling and casing");
+			if (agentMode) {
+				agentOutput.error(`Symbol '${symbolName}' not found`);
 			} else {
 				console.error(`Symbol '${symbolName}' not found.`);
 			}
@@ -3392,23 +3412,9 @@ async function handleContext(args: string[]): Promise<void> {
 			maxCallees,
 		});
 
-		if (compactMode) {
-			// Agent mode: file:line list for symbol, callers, callees
-			console.log(
-				`${symbol.filePath}:${symbol.startLine} ${symbol.name} (${symbol.kind})`,
-			);
-			if (context.callers.length > 0) {
-				console.log("# callers:");
-				for (const caller of context.callers.slice(0, 5)) {
-					console.log(`${caller.filePath}:${caller.startLine} ${caller.name}`);
-				}
-			}
-			if (context.callees.length > 0) {
-				console.log("# callees:");
-				for (const callee of context.callees.slice(0, 5)) {
-					console.log(`${callee.filePath}:${callee.startLine} ${callee.name}`);
-				}
-			}
+		if (agentMode) {
+			agentOutput.contextOutput(symbol, context.callers, context.callees);
+			return;
 		} else {
 			printLogo();
 			console.log(`\n🔮 Context for '${symbolName}'\n`);
@@ -3459,8 +3465,10 @@ async function handleContext(args: string[]): Promise<void> {
  * Handle 'dead-code' command - find potentially dead code
  */
 async function handleDeadCode(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	const projectPath = resolve(".");
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	// Parse --max-pagerank flag
 	let maxPageRank = 0.001;
@@ -3481,10 +3489,8 @@ async function handleDeadCode(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3502,17 +3508,9 @@ async function handleDeadCode(args: string[]): Promise<void> {
 			limit,
 		});
 
-		if (compactMode) {
-			// Agent mode: file:line list
-			if (results.length === 0) {
-				console.log("No dead code found");
-			} else {
-				for (const r of results.slice(0, 10)) {
-					console.log(
-						`${r.symbol.filePath}:${r.symbol.startLine} ${r.symbol.name} (${r.symbol.kind})`,
-					);
-				}
-			}
+		if (agentMode) {
+			agentOutput.deadCodeOutput(results);
+			return;
 		} else {
 			printLogo();
 			console.log("\n💀 Dead Code Analysis\n");
@@ -3540,8 +3538,10 @@ async function handleDeadCode(args: string[]): Promise<void> {
  * Handle 'test-gaps' command - find untested high-importance code
  */
 async function handleTestGaps(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	const projectPath = resolve(".");
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	// Parse --min-pagerank flag
 	let minPageRank = 0.01;
@@ -3559,10 +3559,8 @@ async function handleTestGaps(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3578,17 +3576,9 @@ async function handleTestGaps(args: string[]): Promise<void> {
 			limit,
 		});
 
-		if (compactMode) {
-			// Agent mode: file:line list
-			if (results.length === 0) {
-				console.log("No test gaps found");
-			} else {
-				for (const r of results.slice(0, 10)) {
-					console.log(
-						`${r.symbol.filePath}:${r.symbol.startLine} ${r.symbol.name} (${r.symbol.kind})`,
-					);
-				}
-			}
+		if (agentMode) {
+			agentOutput.testGapsOutput(results);
+			return;
 		} else {
 			printLogo();
 			console.log("\n🧪 Test Coverage Gaps\n");
@@ -3622,16 +3612,16 @@ async function handleTestGaps(args: string[]): Promise<void> {
  * Handle 'impact' command - analyze change impact
  */
 async function handleImpact(args: string[]): Promise<void> {
-	const compactMode = agentMode;
 	const projectPath = resolve(".");
+
+	// Check index version and warn if outdated (non-blocking)
+	await printVersionWarning(projectPath);
 
 	// Get symbol name
 	const symbolName = args.find((a) => !a.startsWith("-"));
 	if (!symbolName) {
-		if (compactMode) {
-			console.log("✗ Missing symbol name");
-			console.log("Usage: claudemem impact <name>");
-			console.log("Example: claudemem impact handleSearch");
+		if (agentMode) {
+			agentOutput.error("Usage: claudemem impact <symbol> [--max-depth N]");
 		} else {
 			console.error("Usage: claudemem impact <symbol> [--max-depth N]");
 		}
@@ -3654,10 +3644,8 @@ async function handleImpact(args: string[]): Promise<void> {
 
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
-		if (compactMode) {
-			console.log("✗ No index found");
-			console.log("Create: claudemem index");
-			console.log("Docs: https://github.com/MadAppGang/claudemem");
+		if (agentMode) {
+			agentOutput.error("No index found. Run 'claudemem index' first.");
 		} else {
 			console.error("No index found. Run 'claudemem index' first.");
 		}
@@ -3671,12 +3659,8 @@ async function handleImpact(args: string[]): Promise<void> {
 		// Find the target symbol
 		const target = analyzer.findSymbolForImpact(symbolName, fileHint);
 		if (!target) {
-			if (compactMode) {
-				console.log(`✗ Symbol '${symbolName}' not found`);
-				console.log(
-					`Try: claudemem symbol ${symbolName} | claudemem map "${symbolName}"`,
-				);
-				console.log("Check spelling and casing");
+			if (agentMode) {
+				agentOutput.error(`Symbol '${symbolName}' not found`);
 			} else {
 				console.error(`Symbol '${symbolName}' not found.`);
 			}
@@ -3690,33 +3674,19 @@ async function handleImpact(args: string[]): Promise<void> {
 		});
 
 		if (!impact) {
-			if (compactMode) {
-				console.log("✗ Failed to analyze impact");
-				console.log(
-					`Symbol: ${symbolName} at ${target.filePath}:${target.startLine}`,
-				);
-				console.log(`Try: claudemem callers ${symbolName}`);
+			if (agentMode) {
+				agentOutput.error("Failed to analyze impact.");
 			} else {
 				console.error("Failed to analyze impact.");
 			}
 			process.exit(1);
 		}
 
-		if (compactMode) {
-			// Agent mode: affected files list
-			console.log(
-				`${impact.target.filePath}:${impact.target.startLine} ${impact.target.name} (target)`,
-			);
-			console.log(
-				`# ${impact.totalAffected} affected symbols in ${impact.byFile.size} files`,
-			);
-			for (const [filePath, results] of Array.from(
-				impact.byFile.entries(),
-			).slice(0, 5)) {
-				for (const r of results.slice(0, 2)) {
-					console.log(`${filePath}:${r.symbol.startLine} ${r.symbol.name}`);
-				}
-			}
+		if (agentMode) {
+			// Agent mode: use impactOutput with all transitive callers
+			const affected = impact.transitiveCallers.map((r) => r.symbol);
+			agentOutput.impactOutput(symbolName, affected);
+			return;
 		} else {
 			printLogo();
 			console.log(`\n🎯 Impact Analysis for '${symbolName}'\n`);
@@ -5359,13 +5329,35 @@ async function handleBenchmarkList(args: string[]): Promise<void> {
 	const db = new BenchmarkDatabase(dbPath);
 	const runs = db.listRuns(statusFilter).slice(0, limitArg);
 
+	if (agentMode) {
+		const { agentOutput } = await import("./output/agent.js");
+		agentOutput.benchmarkList(
+			runs.map((r) => ({
+				id: r.id,
+				status: r.status,
+				startedAt: r.startedAt,
+				completedAt: r.completedAt,
+				totalModels: r.config.generators.length,
+			})),
+		);
+		return;
+	}
+
 	if (runs.length === 0) {
 		console.log(`${c.yellow}No benchmark runs found${c.reset}`);
 		return;
 	}
 
+	// Interactive TUI when on a TTY
+	if (process.stdout.isTTY) {
+		const { renderBenchmarkListTui } = await import("./benchmark-v2/render-list.js");
+		await renderBenchmarkListTui(runs, db, projectPath);
+		return;
+	}
+
+	// Fallback: flat table for non-TTY
 	console.log(
-		`\n${c.cyan}📊 Benchmark Runs${c.reset} (${runs.length} shown)\n`,
+		`\n${c.cyan}Benchmark Runs${c.reset} (${runs.length} shown)\n`,
 	);
 	console.log(
 		`${"ID".padEnd(38)} ${"Status".padEnd(10)} ${"Date".padEnd(20)} ${"Models".padEnd(8)} ${"Cases".padEnd(6)} Project`,
@@ -5449,6 +5441,21 @@ async function handleBenchmarkShow(args: string[]): Promise<void> {
 		return;
 	}
 
+	if (agentMode) {
+		const { agentOutput } = await import("./output/agent.js");
+		const scores = db.getAggregatedScores(runId);
+		agentOutput.benchmarkShow({
+			id: run.id,
+			status: run.status,
+			config: run.config as unknown as Record<string, unknown>,
+			results: Array.from(scores.entries()).map(([model, s]) => ({
+				model,
+				...(s as unknown as Record<string, unknown>),
+			})),
+		});
+		return;
+	}
+
 	const jsonOutput = args.includes("--json");
 
 	if (jsonOutput) {
@@ -5471,19 +5478,144 @@ async function handleBenchmarkShow(args: string[]): Promise<void> {
 		return;
 	}
 
-	// Display run info header
-	console.log(`\n${c.cyan}📊 Benchmark Run: ${run.id}${c.reset}\n`);
-	console.log(
-		`Status:     ${run.status === "completed" ? c.green : c.red}${run.status}${c.reset}`,
+	const generatorSpecs = run.config.generators.map((g: { id: string }) => g.id);
+	const judgeModels = run.config.judges as string[];
+
+	// Build data for interactive TUI
+	const scores = db.getAggregatedScores(runId);
+	const evalResults = db.getEvaluationResults(runId, "judge");
+	const summaries = db.getSummaries(runId);
+
+	if (scores.size === 0) {
+		console.log(`${c.yellow}No scores available for this run${c.reset}`);
+		return;
+	}
+
+	// Calculate latency and cost per model
+	const latencyByModel = new Map<string, number>();
+	const costByModel = new Map<string, number>();
+	for (const modelId of scores.keys()) {
+		const modelSummaries = summaries.filter((s: { modelId: string }) => s.modelId === modelId);
+		if (modelSummaries.length > 0) {
+			const totalLatency = modelSummaries.reduce(
+				(sum: number, s: { generationMetadata?: { latencyMs?: number } }) =>
+					sum + (s.generationMetadata?.latencyMs || 0),
+				0,
+			);
+			latencyByModel.set(modelId, totalLatency / modelSummaries.length);
+			const totalCost = modelSummaries.reduce(
+				(sum: number, s: { generationMetadata?: { cost?: number } }) =>
+					sum + (s.generationMetadata?.cost || 0),
+				0,
+			);
+			costByModel.set(modelId, totalCost);
+		}
+	}
+
+	const scoreArray = Array.from(scores.values()).sort(
+		(a: { overall: number }, b: { overall: number }) => b.overall - a.overall,
 	);
-	console.log(`Started:    ${new Date(run.startedAt).toLocaleString()}`);
-	console.log(`Project:    ${run.config.projectPath}`);
-	console.log(`Cases:      ${run.config.sampleSize}`);
-	console.log();
 
-	// Use the full display function (same as after benchmark run)
-	const generatorSpecs = run.config.generators.map((g) => g.id);
-	const judgeModels = run.config.judges;
+	// Detect codebase type from run config
+	let codebaseType: { language: string; category: string; stack: string; label: string } | undefined;
+	try {
+		const { detectCodebaseType } = await import("./benchmark-v2/codebase-detector.js");
+		codebaseType = await detectCodebaseType(run.config.projectPath || process.cwd());
+	} catch {
+		// Ignore if detection fails
+	}
 
-	await displayBenchmarkResults(db, runId, generatorSpecs, judgeModels);
+	// Show run info header briefly before TUI
+	console.log(`\n${c.cyan}Benchmark Run: ${run.id}${c.reset}`);
+	console.log(`${c.dim}Status: ${run.status}  Started: ${new Date(run.startedAt).toLocaleString()}${c.reset}\n`);
+
+	// Look for output files
+	const benchmarkDir = join(projectPath, ".claudemem", "benchmark");
+	const outputFiles: { json?: string; markdown?: string; html?: string } = {};
+	try {
+		const { readdirSync } = await import("node:fs");
+		const files = readdirSync(benchmarkDir);
+		const prefix = runId.slice(0, 8);
+		for (const f of files) {
+			if (f.includes(prefix) || f.includes(runId)) {
+				const fullPath = join(benchmarkDir, f);
+				if (f.endsWith(".json")) outputFiles.json = fullPath;
+				if (f.endsWith(".md")) outputFiles.markdown = fullPath;
+				if (f.endsWith(".html")) outputFiles.html = fullPath;
+			}
+		}
+	} catch {
+		// Ignore
+	}
+
+	// Reconstruct errors from phase_progress (phases with incomplete items)
+	let errors: Array<{ phase: string; model: string; count: number; error: string }> | undefined;
+	try {
+		const phaseFailures = db.getPhaseFailureSummary(runId);
+		if (phaseFailures.length > 0) {
+			errors = phaseFailures.map((pf) => ({
+				phase: pf.phase,
+				model: "unknown",
+				count: pf.failed,
+				error: pf.error || `${pf.failed} of ${pf.total} items failed in ${pf.phase}`,
+			}));
+		}
+	} catch (e) {
+		// Fallback: check phase_progress directly for incomplete phases
+		try {
+			const stmt = (db as unknown as { db: { prepare: (sql: string) => { all: (...args: unknown[]) => unknown[] } } }).db.prepare(
+				`SELECT phase, items_total, items_completed FROM phase_progress WHERE run_id = ? AND items_completed < items_total`
+			);
+			const rows = stmt.all(runId) as Array<{ phase: string; items_total: number; items_completed: number }>;
+			if (rows.length > 0) {
+				errors = rows.map((r) => ({
+					phase: r.phase,
+					model: "unknown",
+					count: r.items_total - r.items_completed,
+					error: `${r.items_total - r.items_completed} of ${r.items_total} items failed in ${r.phase}`,
+				}));
+			}
+		} catch {
+			// errors tab won't show — non-fatal
+		}
+	}
+
+	// Launch interactive TUI with back-to-list support
+	const { renderBenchmarkResultsTui } = await import("./benchmark-v2/render-results.js");
+	const action = await renderBenchmarkResultsTui({
+		scores: scoreArray,
+		latencyByModel,
+		costByModel,
+		generatorSpecs,
+		judgeModels,
+		evalResults: evalResults.map((e: { summaryId: string; judgeResults?: { judgeModelId: string; weightedAverage: number } }) => ({
+			summaryId: e.summaryId,
+			judgeResults: e.judgeResults,
+		})),
+		summaries: summaries.map((s: { id: string; modelId: string }) => ({
+			id: s.id,
+			modelId: s.modelId,
+		})),
+		codebaseType,
+		totalBenchmarkCost: 0, // Not tracked for historical runs
+		outputFiles,
+		errors,
+	});
+
+	// If user pressed back, transition to the run list.
+	// Keep the event loop alive during the transition — the results renderer
+	// has already been destroyed (no active handles) so without this timer
+	// the process would exit before the list renderer can start.
+	if (action === "back") {
+		const keepalive = setInterval(() => {}, 60_000);
+		try {
+			const runs = db.listRuns().slice(0, 20);
+			if (runs.length > 0) {
+				const { renderBenchmarkListTui } = await import("./benchmark-v2/render-list.js");
+				await renderBenchmarkListTui(runs, db, projectPath);
+			}
+		} finally {
+			clearInterval(keepalive);
+		}
+	}
 }

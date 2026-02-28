@@ -31,6 +31,8 @@ import { getParserManager } from "../parsers/parser-manager.js";
 import type {
 	ChunkWithEmbedding,
 	CodeChunk,
+	CodeUnit,
+	CodeUnitWithEmbedding,
 	EnrichedIndexResult,
 	EnrichmentResult,
 	IEmbeddingsClient,
@@ -40,6 +42,14 @@ import type {
 	SearchResult,
 	SupportedLanguage,
 } from "../types.js";
+import {
+	createCodeUnitExtractor,
+	type CodeUnitExtractor,
+} from "./ast/code-unit-extractor.js";
+import {
+	setIndexVersion,
+	CURRENT_INDEX_VERSION,
+} from "./index-version.js";
 import { chunkFileByPath } from "./chunker.js";
 import { createEmbeddingsClient } from "./embeddings.js";
 import { createVectorStore, type VectorStore } from "./store.js";
@@ -174,6 +184,7 @@ export class Indexer {
 	private enricher: Enricher | null = null;
 	private indexLock: IndexLock | null = null;
 	private docsFetcher: DocsFetcher | null = null;
+	private codeUnitExtractor: CodeUnitExtractor | null = null;
 
 	// Smart incremental reindexing: cache of old chunk vectors by contentHash
 	// Used to reuse embeddings for unchanged content, saving API costs
@@ -219,6 +230,9 @@ export class Indexer {
 		// Initialize parser manager
 		const parserManager = getParserManager();
 		await parserManager.initialize();
+
+		// Initialize code unit extractor (always available, falls back to file-level unit)
+		this.codeUnitExtractor = createCodeUnitExtractor();
 
 		// Create file tracker first (to read stored metadata)
 		const indexDbPath = getIndexDbPath(this.projectPath);
@@ -412,6 +426,7 @@ export class Indexer {
 		const errors: Array<{ file: string; error: string }> = [];
 		let totalFilesIndexed = 0;
 		let totalChunksCreated = 0;
+		let totalCodeUnitsCreated = 0;
 		let totalCost = 0;
 		let totalTokens = 0;
 
@@ -659,6 +674,127 @@ export class Indexer {
 				this.fileTracker!.clear();
 			}
 
+			// Phase 2b: Extract code units with AST metadata (once per file, not per chunk)
+			// Runs in same batch loop, produces code_unit records in addition to code_chunk records
+			if (this.codeUnitExtractor) {
+				const filesProcessedForUnits = new Set<string>();
+				const batchUnitsToEmbed: Array<{
+					unit: CodeUnit;
+					filePath: string;
+					fileHash: string;
+				}> = [];
+
+				for (const { filePath, fileHash } of validChunks) {
+					if (filesProcessedForUnits.has(filePath)) continue;
+					filesProcessedForUnits.add(filePath);
+
+					const language = getParserManager().getLanguage(
+						filePath,
+					) as SupportedLanguage;
+					if (!language) continue;
+
+					try {
+						const content = readFileSync(filePath, "utf-8");
+						const units = await this.codeUnitExtractor.extractUnits(
+							content,
+							filePath,
+							language,
+							fileHash,
+						);
+						for (const unit of units) {
+							batchUnitsToEmbed.push({ unit, filePath, fileHash });
+						}
+					} catch (error) {
+						// Code unit extraction failure is non-fatal
+						const relativePath = relative(this.projectPath, filePath);
+						console.warn(
+							`Warning: Code unit extraction failed for ${relativePath}: ` +
+								`${error instanceof Error ? error.message : String(error)}`,
+						);
+					}
+				}
+
+				// Embed code units if any were extracted and vector mode is enabled
+				if (
+					batchUnitsToEmbed.length > 0 &&
+					this.vectorEnabled &&
+					this.embeddingsClient
+				) {
+					const unitBatchInfo =
+						totalBatches > 1 ? ` [batch ${batchNum + 1}/${totalBatches}]` : "";
+					if (this.onProgress) {
+						this.onProgress(
+							0,
+							batchUnitsToEmbed.length,
+							`[units]${unitBatchInfo} embedding ${batchUnitsToEmbed.length} code units...`,
+						);
+					}
+
+					const unitTexts = batchUnitsToEmbed.map(({ unit }) => unit.content);
+					let unitEmbedResult: {
+						embeddings: number[][];
+						cost?: number;
+						totalTokens?: number;
+					};
+
+					try {
+						unitEmbedResult = await this.embeddingsClient.embed(
+							unitTexts,
+							(completed, total, inProgress) => {
+								if (this.onProgress) {
+									this.onProgress(
+										completed,
+										total,
+										`[units]${unitBatchInfo} ${completed}/${total} units`,
+										inProgress,
+									);
+								}
+							},
+						);
+					} catch (error) {
+						// Unit embedding failure is non-fatal - code_chunk records already stored
+						console.warn(
+							`Warning: Code unit embedding failed: ` +
+								`${error instanceof Error ? error.message : String(error)}`,
+						);
+						unitEmbedResult = { embeddings: [] };
+					}
+
+					if (unitEmbedResult.embeddings.length === unitTexts.length) {
+						if (unitEmbedResult.cost) totalCost += unitEmbedResult.cost;
+						if (unitEmbedResult.totalTokens)
+							totalTokens += unitEmbedResult.totalTokens;
+
+						const unitsWithEmbeddings: CodeUnitWithEmbedding[] =
+							batchUnitsToEmbed
+								.map(({ unit }, idx) => ({
+									...unit,
+									vector: unitEmbedResult.embeddings[idx],
+								}))
+								.filter((u) => u.vector.length > 0);
+
+						if (unitsWithEmbeddings.length > 0) {
+							await this.vectorStore!.addCodeUnits(unitsWithEmbeddings);
+							totalCodeUnitsCreated += unitsWithEmbeddings.length;
+
+							if (this.onProgress) {
+								this.onProgress(
+									unitsWithEmbeddings.length,
+									unitsWithEmbeddings.length,
+									`[units]${unitBatchInfo} ${unitsWithEmbeddings.length} units stored`,
+								);
+							}
+						}
+					}
+				} else if (batchUnitsToEmbed.length > 0 && !this.vectorEnabled) {
+					// BM25-only mode: store units with placeholder vector
+					const unitsWithPlaceholder: CodeUnitWithEmbedding[] =
+						batchUnitsToEmbed.map(({ unit }) => ({ ...unit, vector: [0] }));
+					await this.vectorStore!.addCodeUnits(unitsWithPlaceholder);
+					totalCodeUnitsCreated += unitsWithPlaceholder.length;
+				}
+			}
+
 			// Phase 4: Update file tracker for this batch (only for successfully stored chunks)
 			const fileChunkMap = new Map<
 				string,
@@ -710,6 +846,10 @@ export class Indexer {
 
 			// Memory is released when batchChunks, embeddings, chunksWithEmbeddings go out of scope
 		}
+
+		// Set index version after successful chunk + code unit indexing
+		// Placed before enrichment so a partial enrichment failure doesn't prevent version write
+		setIndexVersion(this.projectPath, CURRENT_INDEX_VERSION);
 
 		// Phase 4.5 & 5: AST Extraction and Enrichment
 		// Run in parallel when embedding is local and LLM is cloud (no resource contention)
@@ -797,6 +937,7 @@ export class Indexer {
 		return {
 			filesIndexed: totalFilesIndexed,
 			chunksCreated: totalChunksCreated,
+			codeUnitsCreated: totalCodeUnitsCreated,
 			durationMs,
 			skippedFiles,
 			errors,

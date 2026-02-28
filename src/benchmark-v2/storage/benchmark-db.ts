@@ -921,6 +921,36 @@ export class BenchmarkDatabase {
 		};
 	}
 
+	/**
+	 * Get phases where items_completed < items_total (i.e., had failures).
+	 * Returns error info that can be used for the Errors tab in the TUI.
+	 */
+	getPhaseFailureSummary(
+		runId: string,
+	): Array<{ phase: string; total: number; completed: number; failed: number; error: string | null }> {
+		const stmt = this.db.prepare(`
+			SELECT phase, items_total, items_completed, error
+			FROM phase_progress
+			WHERE run_id = ? AND items_completed < items_total
+		`);
+
+		interface DBRow {
+			phase: string;
+			items_total: number;
+			items_completed: number;
+			error: string | null;
+		}
+
+		const rows = stmt.all(runId) as DBRow[];
+		return rows.map((r) => ({
+			phase: r.phase,
+			total: r.items_total,
+			completed: r.items_completed,
+			failed: r.items_total - r.items_completed,
+			error: r.error,
+		}));
+	}
+
 	// ==========================================================================
 	// Utility Methods
 	// ==========================================================================

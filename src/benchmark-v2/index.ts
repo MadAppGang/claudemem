@@ -802,13 +802,27 @@ async function handleUploadSubcommand(args: string[]): Promise<void> {
 		const latencyByModel = new Map<string, number>();
 		const costByModel = new Map<string, number>();
 
+		// Fetch pricing data for cost estimation fallback
+		const { fetchOpenRouterPricing, estimateCost } = await import(
+			"./pricing.js"
+		);
+		const pricingData = await fetchOpenRouterPricing();
+
 		for (const [modelId] of scores) {
 			const modelSummaries = summaries.filter((s) => s.modelId === modelId);
 			let totalLatency = 0;
 			let totalCost = 0;
+			let totalInputTokens = 0;
+			let totalOutputTokens = 0;
 			for (const s of modelSummaries) {
 				totalLatency += s.generationMetadata.latencyMs || 0;
 				totalCost += s.generationMetadata.cost || 0;
+				totalInputTokens += s.generationMetadata.inputTokens || 0;
+				totalOutputTokens += s.generationMetadata.outputTokens || 0;
+			}
+			// If no cost was reported but we have token counts, estimate from pricing
+			if (totalCost === 0 && (totalInputTokens > 0 || totalOutputTokens > 0)) {
+				totalCost = estimateCost(pricingData, modelId, totalInputTokens, totalOutputTokens);
 			}
 			latencyByModel.set(
 				modelId,
@@ -1002,21 +1016,55 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 		}
 	}
 
-	renderInfo(`Generators: ${generatorSpecs.join(", ")}`);
-	renderInfo(`Judges: ${judgeModels.join(", ")}`);
-	renderInfo(`Target code units: ${targetCount}`);
-	// Show local model parallelism if we have any local models
+	// Configuration panel
+	const termCols = process.stdout.columns || 80;
+	const panelWidth = Math.min(termCols - 2, 76);
+	const innerWidth = panelWidth - 4; // borders + padding
+
+	const pad = (s: string) => {
+		const stripped = s.replace(/\x1b\[[0-9;]*m/g, "");
+		const remain = innerWidth - stripped.length;
+		return remain > 0 ? s + " ".repeat(remain) : s;
+	};
+
+	const topBorder = `${c.dim}╭${"─".repeat(panelWidth - 2)}╮${c.reset}`;
+	const midBorder = `${c.dim}├${"─".repeat(panelWidth - 2)}┤${c.reset}`;
+	const botBorder = `${c.dim}╰${"─".repeat(panelWidth - 2)}╯${c.reset}`;
+	const row = (content: string) =>
+		`${c.dim}│${c.reset} ${pad(content)} ${c.dim}│${c.reset}`;
+
+	console.log(topBorder);
+	console.log(row(`${c.orange}${c.bold}Generators${c.reset}${c.dim} (${generatorSpecs.length} models)${c.reset}`));
+	console.log(midBorder);
+	for (const gen of generatorSpecs) {
+		const provider = gen.includes("/") ? gen.split("/")[0] : gen;
+		const model = gen.includes("/") ? gen.split("/").slice(1).join("/") : gen;
+		const providerLabel = `${c.cyan}${provider.padEnd(12)}${c.reset}`;
+		const modelLabel = model !== provider ? `${c.reset}${model}` : "";
+		console.log(row(`  ${providerLabel} ${modelLabel}`));
+	}
+	console.log(midBorder);
+	console.log(row(`${c.yellow}${c.bold}Judges${c.reset}${c.dim} (${judgeModels.length} model${judgeModels.length !== 1 ? "s" : ""})${c.reset}`));
+	console.log(midBorder);
+	for (const judge of judgeModels) {
+		const provider = judge.includes("/") ? judge.split("/")[0] : "anthropic";
+		const model = judge.includes("/") ? judge.split("/").slice(1).join("/") : judge;
+		const providerLabel = `${c.cyan}${provider.padEnd(12)}${c.reset}`;
+		console.log(row(`  ${providerLabel} ${model}`));
+	}
+	console.log(midBorder);
+	console.log(row(`${c.dim}Code units${c.reset}  ${c.bold}${targetCount}${c.reset}`));
+
 	const hasLocalModels = generatorSpecs.some(
 		(s) => s.startsWith("lmstudio/") || s.startsWith("ollama/"),
 	);
 	if (hasLocalModels) {
-		renderInfo(
-			`Local parallelism: ${localModelParallelism === 0 ? "all" : localModelParallelism}`,
-		);
+		console.log(row(`${c.dim}Local ∥${c.reset}     ${c.bold}${localModelParallelism === 0 ? "all" : localModelParallelism}${c.reset}`));
 	}
 	if (resumeRunId) {
-		renderInfo(`Resuming run: ${resumeRunId}`);
+		console.log(row(`${c.dim}Resuming${c.reset}    ${c.green}${resumeRunId}${c.reset}`));
 	}
+	console.log(botBorder);
 	console.log();
 
 	// Progress tracking with animated progress bars
@@ -1107,20 +1155,22 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 				// Print detailed failures if any
 				const failures = phaseFailures.get(currentPhase);
 				if (failures && failures.length > 0) {
+					const termCols = process.stdout.columns || 80;
+					const maxErrWidth = Math.max(20, termCols - 8); // 8 chars for "      " indent
 					console.log(`${c.yellow}  Failures:${c.reset}`);
 					for (const f of failures) {
 						console.log(`${c.red}    ${f.model}: ${f.count} failed${c.reset}`);
-						// Show full error, wrapped if long
-						const errorLines = f.error.split(/[;\n]/).filter((s) => s.trim());
-						for (const line of errorLines.slice(0, 3)) {
-							// Max 3 error lines per model
-							console.log(`${c.dim}      ${line.trim()}${c.reset}`);
+						// Extract readable message from error (may contain raw JSON)
+						let errText = f.error.replace(/[\n\r]/g, " ").trim();
+						// Try to extract message from embedded JSON in error string
+						const jsonMatch = errText.match(/\{.*"message"\s*:\s*"([^"]+)"/);
+						if (jsonMatch?.[1]) {
+							errText = errText.replace(/\{.*$/, jsonMatch[1]);
 						}
-						if (errorLines.length > 3) {
-							console.log(
-								`${c.dim}      ... and ${errorLines.length - 3} more errors${c.reset}`,
-							);
-						}
+						const truncated = errText.length > maxErrWidth
+							? errText.slice(0, maxErrWidth - 1) + "…"
+							: errText;
+						console.log(`${c.dim}      ${truncated}${c.reset}`);
 					}
 				}
 			}
@@ -1269,8 +1319,13 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 				// Mark as done when complete
 				if (completedNum >= totalNum && inProgressNum === 0) {
 					if (failuresNum > 0 && failuresNum === totalNum && errorMsg) {
-						// All failed - show error
-						activeMultiProgress.setError(model, errorMsg);
+						// All failed - extract readable message from JSON errors
+						let cleanErr = errorMsg;
+						const jsonErrMatch = errorMsg.match(/\{.*"message"\s*:\s*"([^"]+)"/);
+						if (jsonErrMatch?.[1]) {
+							cleanErr = errorMsg.replace(/\{.*$/, jsonErrMatch[1]);
+						}
+						activeMultiProgress.setError(model, cleanErr);
 					} else if (failuresNum > 0) {
 						// Partial failures - finish with warning (shown in status)
 						activeMultiProgress.finish(model);
@@ -1393,9 +1448,7 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 		stopActiveProgress();
 
 		if (result.success) {
-			console.log();
-
-			// Get scores and evaluation results from database for console display
+			// Get scores and evaluation results from database for TUI display
 			const dbPath = join(projectPath, ".claudemem", "benchmark.db");
 			const { BenchmarkDatabase } = await import("./storage/benchmark-db.js");
 			const db = new BenchmarkDatabase(dbPath);
@@ -1403,63 +1456,16 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 			const evalResults = db.getEvaluationResults(result.run.id, "judge");
 			const summaries = db.getSummaries(result.run.id);
 
-			// Helper functions
-			const truncateName = (s: string, max = 24) => {
-				const short = s.split("/").pop() || s;
-				return short.length > max ? short.slice(0, max - 1) + "…" : short;
-			};
-			const fmtPct = (v: number) =>
-				isNaN(v) ? "N/A" : `${(v * 100).toFixed(0)}%`;
-			const fmtLatency = (ms: number) => {
-				if (isNaN(ms) || ms === 0) return "N/A";
-				if (ms < 1000) return `${ms.toFixed(0)}ms`;
-				return `${(ms / 1000).toFixed(1)}s`;
-			};
-			const isLocalModel = (modelId: string) =>
-				modelId.startsWith("lmstudio/") ||
-				modelId.startsWith("ollama/") ||
-				modelId.startsWith("local/");
-			const isSubscriptionModel = (modelId: string) =>
-				modelId.startsWith("cc/") || modelId.startsWith("claude-code/");
-			const fmtCost = (cost: number, modelId?: string) => {
-				// Show descriptive labels for non-billed models
-				if (modelId && isLocalModel(modelId)) return "LOCAL";
-				if (modelId && isSubscriptionModel(modelId)) return "SUB";
-				if (isNaN(cost) || cost === 0) return "N/A";
-				if (cost < 0.01) return `$${(cost * 100).toFixed(2)}¢`;
-				if (cost < 1) return `$${cost.toFixed(3)}`;
-				return `$${cost.toFixed(2)}`;
-			};
-			// Round to display precision for comparison (avoids floating-point issues)
-			const round = (v: number) => Math.round(v * 1000) / 1000;
-			const highlight = (
-				val: string,
-				isMax: boolean,
-				isMin: boolean,
-				shouldHL: boolean,
-			) => {
-				if (!shouldHL) return val;
-				if (isMax) return `${c.green}${val}${c.reset}`;
-				if (isMin) return `${c.red}${val}${c.reset}`;
-				return val;
-			};
-			// For latency, lower is better (invert highlighting)
-			const highlightLatency = (
-				val: string,
-				isMin: boolean,
-				isMax: boolean,
-				shouldHL: boolean,
-			) => {
-				if (!shouldHL) return val;
-				if (isMin) return `${c.green}${val}${c.reset}`; // Lower latency = good
-				if (isMax) return `${c.red}${val}${c.reset}`; // Higher latency = bad
-				return val;
-			};
-
 			// Calculate average latency and total cost per model
 			const latencyByModel = new Map<string, number>();
 			const costByModel = new Map<string, number>();
 			let totalBenchmarkCost = 0;
+
+			// Fetch pricing for cost estimation fallback
+			const { fetchOpenRouterPricing, estimateCost: estCost } = await import(
+				"./pricing.js"
+			);
+			const pricing = await fetchOpenRouterPricing();
 
 			for (const modelId of scores.keys()) {
 				const modelSummaries = summaries.filter((s) => s.modelId === modelId);
@@ -1470,835 +1476,86 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 					);
 					latencyByModel.set(modelId, totalLatency / modelSummaries.length);
 
-					const totalCost = modelSummaries.reduce(
+					let totalCost = modelSummaries.reduce(
 						(sum, s) => sum + (s.generationMetadata?.cost || 0),
 						0,
 					);
+					// If no cost reported, estimate from token usage + pricing
+					if (totalCost === 0) {
+						const totalIn = modelSummaries.reduce(
+							(sum, s) => sum + (s.generationMetadata?.inputTokens || 0),
+							0,
+						);
+						const totalOut = modelSummaries.reduce(
+							(sum, s) => sum + (s.generationMetadata?.outputTokens || 0),
+							0,
+						);
+						if (totalIn > 0 || totalOut > 0) {
+							totalCost = estCost(pricing, modelId, totalIn, totalOut);
+						}
+					}
 					costByModel.set(modelId, totalCost);
 					totalBenchmarkCost += totalCost;
 				}
 			}
 
 			if (scores.size > 0) {
-				// Convert to array and sort by overall score
+				// Render results via TUI (OpenTUI React)
 				const scoreArray = Array.from(scores.values()).sort(
 					(a, b) => b.overall - a.overall,
 				);
-				const shouldHighlight = scoreArray.length > 1;
 
-				// ═══════════════════════════════════════════════════════════════════
-				// QUALITY SCORES TABLE
-				// ═══════════════════════════════════════════════════════════════════
-				console.log(
-					`${c.orange}${c.bold}╔═══════════════════════════════════════════════════════════════════════════╗${c.reset}`,
-				);
-				console.log(
-					`${c.orange}${c.bold}║${c.reset}                         ${c.bold}QUALITY SCORES${c.reset}                                 ${c.orange}${c.bold}║${c.reset}`,
-				);
-				console.log(
-					`${c.orange}${c.bold}╚═══════════════════════════════════════════════════════════════════════════╝${c.reset}`,
-				);
-				console.log();
-				console.log(
-					`${c.dim}How well summaries serve LLM agents for code understanding. Higher is better.${c.reset}`,
-				);
-				console.log();
-
-				// Calculate min/max for quality metrics
-				const stats = {
-					retr: {
-						max: round(
-							Math.max(...scoreArray.map((s) => s.retrieval.combined)),
-						),
-						min: round(
-							Math.min(...scoreArray.map((s) => s.retrieval.combined)),
-						),
-					},
-					contr: {
-						max: round(
-							Math.max(...scoreArray.map((s) => s.contrastive.combined)),
-						),
-						min: round(
-							Math.min(...scoreArray.map((s) => s.contrastive.combined)),
-						),
-					},
-					judge: {
-						max: round(Math.max(...scoreArray.map((s) => s.judge.combined))),
-						min: round(Math.min(...scoreArray.map((s) => s.judge.combined))),
-					},
-					overall: {
-						max: round(Math.max(...scoreArray.map((s) => s.overall))),
-						min: round(Math.min(...scoreArray.map((s) => s.overall))),
-					},
-				};
-
-				// Get latency/cost values for stats (filter out 0/NaN)
-				const qualityLatencyValues = scoreArray
-					.map((s) => latencyByModel.get(s.modelId) || 0)
-					.filter((v) => v > 0);
-				const qualityCostValues = scoreArray
-					.map((s) => costByModel.get(s.modelId) || 0)
-					.filter((v) => v > 0);
-				const timeStats = {
-					min:
-						qualityLatencyValues.length > 0
-							? Math.min(...qualityLatencyValues)
-							: 0,
-					max:
-						qualityLatencyValues.length > 0
-							? Math.max(...qualityLatencyValues)
-							: 0,
-				};
-				const costStats = {
-					min:
-						qualityCostValues.length > 0 ? Math.min(...qualityCostValues) : 0,
-					max:
-						qualityCostValues.length > 0 ? Math.max(...qualityCostValues) : 0,
-				};
-
-				// Quality table header (ordered by weight importance)
-				console.log(
-					`  ${"Model".padEnd(26)} ${"Retr.".padEnd(9)} ${"Contr.".padEnd(9)} ${"Judge".padEnd(9)} ${"Overall".padEnd(9)} ${"Time".padEnd(8)} ${"Cost".padEnd(8)}`,
-				);
-				console.log(
-					`  ${"─".repeat(26)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(8)} ${"─".repeat(7)} ${"─".repeat(7)}`,
-				);
-
-				for (const s of scoreArray) {
-					const name = truncateName(s.modelId).padEnd(26);
-					const retr = highlight(
-						fmtPct(s.retrieval.combined).padEnd(9),
-						round(s.retrieval.combined) === stats.retr.max,
-						round(s.retrieval.combined) === stats.retr.min &&
-							stats.retr.min !== stats.retr.max,
-						shouldHighlight,
-					);
-					const contr = highlight(
-						fmtPct(s.contrastive.combined).padEnd(9),
-						round(s.contrastive.combined) === stats.contr.max,
-						round(s.contrastive.combined) === stats.contr.min &&
-							stats.contr.min !== stats.contr.max,
-						shouldHighlight,
-					);
-					const judge = highlight(
-						fmtPct(s.judge.combined).padEnd(9),
-						round(s.judge.combined) === stats.judge.max,
-						round(s.judge.combined) === stats.judge.min &&
-							stats.judge.min !== stats.judge.max,
-						shouldHighlight,
-					);
-					const overall = highlight(
-						fmtPct(s.overall).padEnd(9),
-						round(s.overall) === stats.overall.max,
-						round(s.overall) === stats.overall.min &&
-							stats.overall.min !== stats.overall.max,
-						shouldHighlight,
-					);
-
-					// Time and cost (lower is better)
-					const latency = latencyByModel.get(s.modelId) || 0;
-					const costVal = costByModel.get(s.modelId) || 0;
-					const time = highlightLatency(
-						fmtLatency(latency).padEnd(8),
-						latency > 0 && latency === timeStats.min,
-						latency > 0 &&
-							latency === timeStats.max &&
-							timeStats.min !== timeStats.max,
-						shouldHighlight,
-					);
-					const costStr = highlightLatency(
-						fmtCost(costVal, s.modelId).padEnd(8),
-						costVal > 0 && costVal === costStats.min,
-						costVal > 0 &&
-							costVal === costStats.max &&
-							costStats.min !== costStats.max,
-						shouldHighlight,
-					);
-
-					console.log(
-						`  ${name} ${retr} ${contr} ${judge} ${overall} ${time} ${costStr}`,
-					);
+				// Detect codebase type for display banner
+				let codebaseTypeInfo:
+					| {
+							language: string;
+							category: string;
+							stack: string;
+							label: string;
+					  }
+					| undefined;
+				try {
+					const { detectCodebaseType } = await import("./codebase-detector.js");
+					codebaseTypeInfo = await detectCodebaseType(projectPath);
+				} catch {
+					// codebase type is optional
 				}
 
-				// Quality column explanations
-				console.log();
-				console.log(`${c.dim}Quality metrics (used for ranking):${c.reset}`);
-				console.log(
-					`${c.dim}  • Retr. (45%):  Can agents FIND the right code? (P@K, MRR)${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Contr. (30%): Can agents DISTINGUISH similar code?${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Judge (25%):  Is summary accurate and complete?${c.reset}`,
+				const { renderBenchmarkResultsTui } = await import(
+					"./render-results.js"
 				);
 
-				// ═══════════════════════════════════════════════════════════════════
-				// OPERATIONAL METRICS TABLE
-				// ═══════════════════════════════════════════════════════════════════
-				console.log();
-				console.log(
-					`${c.cyan}${c.bold}┌───────────────────────────────────────────────────────────────────────────┐${c.reset}`,
-				);
-				console.log(
-					`${c.cyan}${c.bold}│${c.reset}                      ${c.bold}OPERATIONAL METRICS${c.reset}                                ${c.cyan}${c.bold}│${c.reset}`,
-				);
-				console.log(
-					`${c.cyan}${c.bold}└───────────────────────────────────────────────────────────────────────────┘${c.reset}`,
-				);
-				console.log();
-				console.log(
-					`${c.dim}Production efficiency metrics. Don't affect quality ranking.${c.reset}`,
-				);
-				console.log();
-
-				// Calculate operational stats
-				const latencyValues = scoreArray
-					.map((s) => latencyByModel.get(s.modelId) || 0)
-					.filter((v) => v > 0);
-				const costValues = scoreArray
-					.map((s) => costByModel.get(s.modelId) || 0)
-					.filter((v) => v > 0);
-				const opStats = {
-					latency:
-						latencyValues.length > 0
-							? {
-									max: round(Math.max(...latencyValues)),
-									min: round(Math.min(...latencyValues)),
-								}
-							: { max: 0, min: 0 },
-					cost:
-						costValues.length > 0
-							? {
-									max: round(Math.max(...costValues)),
-									min: round(Math.min(...costValues)),
-								}
-							: { max: 0, min: 0 },
-					refine: {
-						max: round(
-							Math.max(...scoreArray.map((s) => s.iterative?.avgRounds ?? 0)),
-						),
-						min: round(
-							Math.min(...scoreArray.map((s) => s.iterative?.avgRounds ?? 0)),
-						),
-					},
-					selfEval: {
-						max: round(
-							Math.max(...scoreArray.map((s) => s.self?.overall ?? 0)),
-						),
-						min: round(
-							Math.min(...scoreArray.map((s) => s.self?.overall ?? 0)),
-						),
-					},
-				};
-
-				// Operational table header
-				console.log(
-					`  ${"Model".padEnd(26)} ${"Latency".padEnd(10)} ${"Cost".padEnd(10)} ${"Refine".padEnd(10)} ${"Self-Eval".padEnd(10)}`,
-				);
-				console.log(
-					`  ${"─".repeat(26)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)}`,
-				);
-
-				for (const s of scoreArray) {
-					const name = truncateName(s.modelId).padEnd(26);
-					const modelLatency = latencyByModel.get(s.modelId) || 0;
-					const latency = highlightLatency(
-						fmtLatency(modelLatency).padEnd(10),
-						round(modelLatency) === opStats.latency.min &&
-							opStats.latency.min !== opStats.latency.max,
-						round(modelLatency) === opStats.latency.max &&
-							opStats.latency.min !== opStats.latency.max,
-						shouldHighlight,
-					);
-					const modelCost = costByModel.get(s.modelId) || 0;
-					const cost = highlightLatency(
-						fmtCost(modelCost, s.modelId).padEnd(10),
-						round(modelCost) === opStats.cost.min &&
-							opStats.cost.min !== opStats.cost.max,
-						round(modelCost) === opStats.cost.max &&
-							opStats.cost.min !== opStats.cost.max,
-						shouldHighlight,
-					);
-					// Refinement: lower rounds = better (green), higher = worse (red)
-					const avgRounds = s.iterative?.avgRounds ?? 0;
-					const refineStr = s.iterative ? `${avgRounds.toFixed(1)} rnd` : "N/A";
-					const refine = s.iterative
-						? highlightLatency(
-								refineStr.padEnd(10),
-								round(avgRounds) === opStats.refine.min &&
-									opStats.refine.min !== opStats.refine.max,
-								round(avgRounds) === opStats.refine.max &&
-									opStats.refine.min !== opStats.refine.max,
-								shouldHighlight,
-							)
-						: refineStr.padEnd(10);
-					// Self-eval: higher = better
-					const selfScore = s.self?.overall ?? 0;
-					const selfStr = s.self ? fmtPct(selfScore) : "N/A";
-					const selfEval = s.self
-						? highlight(
-								selfStr.padEnd(10),
-								round(selfScore) === opStats.selfEval.max,
-								round(selfScore) === opStats.selfEval.min &&
-									opStats.selfEval.min !== opStats.selfEval.max,
-								shouldHighlight,
-							)
-						: selfStr.padEnd(10);
-					console.log(`  ${name} ${latency} ${cost} ${refine} ${selfEval}`);
-				}
-
-				// Operational column explanations
-				console.log();
-				console.log(
-					`${c.dim}Operational metrics (for production decisions):${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Latency:   Avg generation time (lower = faster)${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Cost:      Total generation cost (lower = cheaper)${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Refine:    Avg refinement rounds needed (lower = better first-try quality)${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Self-Eval: Can model use its own summaries? (internal consistency check)${c.reset}`,
-				);
-
-				// Total benchmark cost
-				if (totalBenchmarkCost > 0) {
-					console.log();
-					console.log(
-						`${c.bold}Total Benchmark Cost: ${c.cyan}${fmtCost(totalBenchmarkCost)}${c.reset}`,
-					);
-				}
-
-				// ═══════════════════════════════════════════════════════════════════
-				// DETAILED JUDGE SCORES TABLE
-				// ═══════════════════════════════════════════════════════════════════
-				console.log();
-				console.log(
-					`${c.cyan}${c.bold}┌──────────────────────────────────────────────────────────────────────────┐${c.reset}`,
-				);
-				console.log(
-					`${c.cyan}${c.bold}│${c.reset}                      ${c.bold}JUDGE EVALUATION DETAILS${c.reset}                          ${c.cyan}${c.bold}│${c.reset}`,
-				);
-				console.log(
-					`${c.cyan}${c.bold}└──────────────────────────────────────────────────────────────────────────┘${c.reset}`,
-				);
-				console.log();
-				console.log(
-					`${c.dim}LLM judges rate summary quality on 5 criteria (1-5 scale, shown as %).${c.reset}`,
-				);
-				console.log();
-
-				// Calculate per-criteria stats
-				const criteriaStats = {
-					accuracy: {
-						max: Math.max(...scoreArray.map((s) => s.judge.pointwise)),
-						min: Math.min(...scoreArray.map((s) => s.judge.pointwise)),
-					},
-					pairwise: {
-						max: Math.max(...scoreArray.map((s) => s.judge.pairwise)),
-						min: Math.min(...scoreArray.map((s) => s.judge.pairwise)),
-					},
-				};
-
-				console.log(
-					`  ${"Model".padEnd(26)} ${"Pointwise".padEnd(10)} ${"Pairwise".padEnd(10)} ${"Combined".padEnd(10)}`,
-				);
-				console.log(
-					`  ${"─".repeat(26)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)}`,
-				);
-
-				for (const s of scoreArray) {
-					const name = truncateName(s.modelId).padEnd(26);
-					const pointwise = highlight(
-						fmtPct(s.judge.pointwise).padEnd(10),
-						s.judge.pointwise === criteriaStats.accuracy.max,
-						s.judge.pointwise === criteriaStats.accuracy.min &&
-							criteriaStats.accuracy.min !== criteriaStats.accuracy.max,
-						shouldHighlight,
-					);
-					const pairwise = highlight(
-						fmtPct(s.judge.pairwise).padEnd(10),
-						s.judge.pairwise === criteriaStats.pairwise.max,
-						s.judge.pairwise === criteriaStats.pairwise.min &&
-							criteriaStats.pairwise.min !== criteriaStats.pairwise.max,
-						shouldHighlight,
-					);
-					const combined = highlight(
-						fmtPct(s.judge.combined).padEnd(10),
-						s.judge.combined === stats.judge.max,
-						s.judge.combined === stats.judge.min &&
-							stats.judge.min !== stats.judge.max,
-						shouldHighlight,
-					);
-					console.log(`  ${name} ${pointwise} ${pairwise} ${combined}`);
-				}
-
-				console.log();
-				console.log(`${c.dim}Scoring methods:${c.reset}`);
-				console.log(
-					`${c.dim}  • Pointwise: Each summary rated independently (accuracy, completeness, conciseness)${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Pairwise:  Head-to-head comparison (which summary better describes the code?)${c.reset}`,
-				);
-				console.log(
-					`${c.dim}  • Combined:  Weighted mix of pointwise (40%) and pairwise (60%)${c.reset}`,
-				);
-
-				// ═══════════════════════════════════════════════════════════════════
-				// PER-JUDGE BREAKDOWN (if multiple judges)
-				// ═══════════════════════════════════════════════════════════════════
-				if (judgeModels.length > 1 && evalResults.length > 0) {
-					console.log();
-					console.log(
-						`${c.yellow}${c.bold}┌──────────────────────────────────────────────────────────────────────────┐${c.reset}`,
-					);
-					console.log(
-						`${c.yellow}${c.bold}│${c.reset}                        ${c.bold}PER-JUDGE BREAKDOWN${c.reset}                            ${c.yellow}${c.bold}│${c.reset}`,
-					);
-					console.log(
-						`${c.yellow}${c.bold}└──────────────────────────────────────────────────────────────────────────┘${c.reset}`,
-					);
-					console.log();
-					console.log(
-						`${c.dim}How each judge model scored the generators (shows judge agreement/bias).${c.reset}`,
-					);
-					console.log();
-
-					// Detect same-provider bias
-					const biasedPairs = detectSameProviderBias(
-						generatorSpecs,
-						judgeModels,
-					);
-					const biasSet = new Set(
-						biasedPairs.map((p) => `${p.generator}:${p.judge}`),
-					);
-
-					// Group results by judge
-					const byJudge = new Map<string, Map<string, number[]>>();
-					for (const judgeId of judgeModels) {
-						byJudge.set(judgeId, new Map());
-					}
-
-					for (const evalResult of evalResults) {
-						if (!evalResult.judgeResults) continue;
-						const judgeId = evalResult.judgeResults.judgeModelId;
-						const summary = summaries.find(
-							(s) => s.id === evalResult.summaryId,
-						);
-						if (!summary) continue;
-
-						const judgeMap = byJudge.get(judgeId);
-						if (!judgeMap) continue;
-
-						if (!judgeMap.has(summary.modelId)) {
-							judgeMap.set(summary.modelId, []);
-						}
-						judgeMap
-							.get(summary.modelId)!
-							.push(evalResult.judgeResults.weightedAverage);
-					}
-
-					// Display per-judge table
-					const generatorIds = generatorSpecs;
-					const judgeHeader = `  ${"Generator".padEnd(26)} ${judgeModels.map((j) => truncateName(j, 12).padEnd(14)).join("")}`;
-					console.log(judgeHeader);
-					console.log(
-						`  ${"─".repeat(26)} ${judgeModels.map(() => "─".repeat(13)).join(" ")}`,
-					);
-
-					// Calculate per-judge stats for highlighting
-					const judgeStats = new Map<string, { max: number; min: number }>();
-					for (const judgeId of judgeModels) {
-						const judgeMap = byJudge.get(judgeId)!;
-						const avgs = Array.from(judgeMap.values()).map((scores) =>
-							scores.length > 0
-								? scores.reduce((a, b) => a + b, 0) / scores.length / 5
-								: 0,
-						);
-						judgeStats.set(judgeId, {
-							max: Math.max(...avgs),
-							min: Math.min(...avgs),
+				// Collect errors from phaseFailures for the Errors tab
+				const benchmarkErrors: Array<{
+					phase: string;
+					model: string;
+					count: number;
+					error: string;
+				}> = [];
+				for (const [phase, failures] of phaseFailures) {
+					for (const f of failures) {
+						benchmarkErrors.push({
+							phase,
+							model: f.model,
+							count: f.count,
+							error: f.error,
 						});
 					}
-
-					for (const genId of generatorIds) {
-						const genName = truncateName(genId).padEnd(26);
-						const judgeScores = judgeModels
-							.map((judgeId) => {
-								const judgeMap = byJudge.get(judgeId)!;
-								const scores = judgeMap.get(genId) || [];
-								const avg =
-									scores.length > 0
-										? scores.reduce((a, b) => a + b, 0) / scores.length / 5
-										: 0;
-								const stats = judgeStats.get(judgeId)!;
-								const isBiased = biasSet.has(`${genId}:${judgeId}`);
-								// Highlight biased scores with yellow background marker
-								const scoreStr = fmtPct(avg);
-								if (isBiased) {
-									return `${c.yellow}${scoreStr}*${c.reset}`.padEnd(
-										14 + c.yellow.length + c.reset.length,
-									);
-								}
-								return highlight(
-									scoreStr.padEnd(14),
-									avg === stats.max,
-									avg === stats.min && stats.min !== stats.max,
-									shouldHighlight,
-								);
-							})
-							.join("");
-						console.log(`  ${genName} ${judgeScores}`);
-					}
-
-					console.log();
-					console.log(
-						`${c.dim}Note: Similar scores across judges = reliable. Large differences = potential bias.${c.reset}`,
-					);
-
-					// Show bias warning if detected
-					if (biasedPairs.length > 0) {
-						console.log();
-						console.log(`${c.yellow}⚠️  SAME-PROVIDER BIAS WARNING:${c.reset}`);
-						console.log(
-							`${c.yellow}   Scores marked with * are from same-provider judging (e.g., Claude judging Claude).${c.reset}`,
-						);
-						console.log(
-							`${c.yellow}   These scores may be biased - models from the same family may rate each other favorably.${c.reset}`,
-						);
-						console.log(`${c.dim}   Affected pairs:${c.reset}`);
-						for (const pair of biasedPairs) {
-							console.log(
-								`${c.dim}     • ${truncateName(pair.generator, 20)} judged by ${truncateName(pair.judge, 20)} (${pair.provider})${c.reset}`,
-							);
-						}
-					}
 				}
 
-				// ═══════════════════════════════════════════════════════════════════
-				// SELF-EVAL DETAILS (if available)
-				// ═══════════════════════════════════════════════════════════════════
-				const hasSelfEvalResults = scoreArray.some((s) => s.self);
-				if (hasSelfEvalResults) {
-					console.log();
-					console.log(
-						`${c.magenta}${c.bold}┌──────────────────────────────────────────────────────────────────────────┐${c.reset}`,
-					);
-					console.log(
-						`${c.magenta}${c.bold}│${c.reset}                      ${c.bold}SELF-EVAL DETAILS${c.reset}                               ${c.magenta}${c.bold}│${c.reset}`,
-					);
-					console.log(
-						`${c.magenta}${c.bold}└──────────────────────────────────────────────────────────────────────────┘${c.reset}`,
-					);
-					console.log();
-					console.log(
-						`${c.dim}Can each model effectively use its own summaries for retrieval & selection?${c.reset}`,
-					);
-					console.log();
-
-					// Calculate self-eval stats
-					const selfStats = {
-						retrieval: {
-							max: Math.max(
-								...scoreArray
-									.filter((s) => s.self)
-									.map((s) => s.self!.retrieval),
-							),
-							min: Math.min(
-								...scoreArray
-									.filter((s) => s.self)
-									.map((s) => s.self!.retrieval),
-							),
-						},
-						funcSel: {
-							max: Math.max(
-								...scoreArray
-									.filter((s) => s.self)
-									.map((s) => s.self!.functionSelection),
-							),
-							min: Math.min(
-								...scoreArray
-									.filter((s) => s.self)
-									.map((s) => s.self!.functionSelection),
-							),
-						},
-						overall: {
-							max: Math.max(
-								...scoreArray.filter((s) => s.self).map((s) => s.self!.overall),
-							),
-							min: Math.min(
-								...scoreArray.filter((s) => s.self).map((s) => s.self!.overall),
-							),
-						},
-					};
-
-					console.log(
-						`  ${"Model".padEnd(26)} ${"Retrieval".padEnd(10)} ${"Func.Sel.".padEnd(10)} ${"Overall".padEnd(10)}`,
-					);
-					console.log(
-						`  ${"─".repeat(26)} ${"─".repeat(9)} ${"─".repeat(9)} ${"─".repeat(9)}`,
-					);
-
-					for (const s of scoreArray) {
-						if (!s.self) continue;
-						const name = truncateName(s.modelId).padEnd(26);
-						const retr = highlight(
-							fmtPct(s.self.retrieval).padEnd(10),
-							s.self.retrieval === selfStats.retrieval.max,
-							s.self.retrieval === selfStats.retrieval.min &&
-								selfStats.retrieval.min !== selfStats.retrieval.max,
-							shouldHighlight,
-						);
-						const funcSel = highlight(
-							fmtPct(s.self.functionSelection).padEnd(10),
-							s.self.functionSelection === selfStats.funcSel.max,
-							s.self.functionSelection === selfStats.funcSel.min &&
-								selfStats.funcSel.min !== selfStats.funcSel.max,
-							shouldHighlight,
-						);
-						const overall = highlight(
-							fmtPct(s.self.overall).padEnd(10),
-							s.self.overall === selfStats.overall.max,
-							s.self.overall === selfStats.overall.min &&
-								selfStats.overall.min !== selfStats.overall.max,
-							shouldHighlight,
-						);
-						console.log(`  ${name} ${retr} ${funcSel} ${overall}`);
-					}
-
-					console.log();
-					console.log(`${c.dim}Self-eval tasks:${c.reset}`);
-					console.log(
-						`${c.dim}  • Retrieval:  Given a query, can the model pick its own summary from distractors?${c.reset}`,
-					);
-					console.log(
-						`${c.dim}  • Func.Sel.:  Given a task, can the model identify the right function from summaries?${c.reset}`,
-					);
-					console.log(
-						`${c.dim}  • Overall:    Weighted average (60% retrieval, 40% function selection)${c.reset}`,
-					);
-				}
-
-				// ═══════════════════════════════════════════════════════════════════
-				// ITERATIVE REFINEMENT DETAILS (if available)
-				// ═══════════════════════════════════════════════════════════════════
-				const hasIterativeResults = scoreArray.some((s) => s.iterative);
-				if (hasIterativeResults) {
-					console.log();
-					console.log(
-						`${c.cyan}${c.bold}┌──────────────────────────────────────────────────────────────────────────┐${c.reset}`,
-					);
-					console.log(
-						`${c.cyan}${c.bold}│${c.reset}                    ${c.bold}ITERATIVE REFINEMENT DETAILS${c.reset}                        ${c.cyan}${c.bold}│${c.reset}`,
-					);
-					console.log(
-						`${c.cyan}${c.bold}└──────────────────────────────────────────────────────────────────────────┘${c.reset}`,
-					);
-					console.log();
-					console.log(
-						`${c.dim}How many refinement rounds were needed to achieve target retrieval rank?${c.reset}`,
-					);
-					console.log();
-
-					// Calculate iterative stats
-					const iterStats = {
-						rounds: {
-							max: Math.max(
-								...scoreArray
-									.filter((s) => s.iterative)
-									.map((s) => s.iterative!.avgRounds),
-							),
-							min: Math.min(
-								...scoreArray
-									.filter((s) => s.iterative)
-									.map((s) => s.iterative!.avgRounds),
-							),
-						},
-						successRate: {
-							max: Math.max(
-								...scoreArray
-									.filter((s) => s.iterative)
-									.map((s) => s.iterative!.successRate),
-							),
-							min: Math.min(
-								...scoreArray
-									.filter((s) => s.iterative)
-									.map((s) => s.iterative!.successRate),
-							),
-						},
-						score: {
-							max: Math.max(
-								...scoreArray
-									.filter((s) => s.iterative)
-									.map((s) => s.iterative!.avgRefinementScore),
-							),
-							min: Math.min(
-								...scoreArray
-									.filter((s) => s.iterative)
-									.map((s) => s.iterative!.avgRefinementScore),
-							),
-						},
-					};
-
-					console.log(
-						`  ${"Model".padEnd(26)} ${"Avg Rounds".padEnd(11)} ${"Success".padEnd(10)} ${"Score".padEnd(10)}`,
-					);
-					console.log(
-						`  ${"─".repeat(26)} ${"─".repeat(10)} ${"─".repeat(9)} ${"─".repeat(9)}`,
-					);
-
-					for (const s of scoreArray) {
-						if (!s.iterative) continue;
-						const name = truncateName(s.modelId).padEnd(26);
-						// For rounds, lower is better (green for min, red for max)
-						const roundsStr = `${s.iterative.avgRounds.toFixed(1)} rnd`;
-						const rounds = highlightLatency(
-							roundsStr.padEnd(11),
-							round(s.iterative.avgRounds) === iterStats.rounds.min &&
-								iterStats.rounds.min !== iterStats.rounds.max,
-							round(s.iterative.avgRounds) === iterStats.rounds.max &&
-								iterStats.rounds.min !== iterStats.rounds.max,
-							shouldHighlight,
-						);
-						// For success rate and score, higher is better
-						const successRate = highlight(
-							fmtPct(s.iterative.successRate).padEnd(10),
-							s.iterative.successRate === iterStats.successRate.max,
-							s.iterative.successRate === iterStats.successRate.min &&
-								iterStats.successRate.min !== iterStats.successRate.max,
-							shouldHighlight,
-						);
-						const score = highlight(
-							fmtPct(s.iterative.avgRefinementScore).padEnd(10),
-							s.iterative.avgRefinementScore === iterStats.score.max,
-							s.iterative.avgRefinementScore === iterStats.score.min &&
-								iterStats.score.min !== iterStats.score.max,
-							shouldHighlight,
-						);
-						console.log(`  ${name} ${rounds} ${successRate} ${score}`);
-					}
-
-					console.log();
-					console.log(`${c.dim}Iterative metrics:${c.reset}`);
-					console.log(
-						`${c.dim}  • Avg Rounds: Average refinement iterations needed (0 = passed first try, lower = better)${c.reset}`,
-					);
-					console.log(
-						`${c.dim}  • Success:    Rate of achieving target retrieval rank within max rounds${c.reset}`,
-					);
-					console.log(
-						`${c.dim}  • Score:      Brokk-style score: 1/log₂(rounds+2) - rewards fewer iterations${c.reset}`,
-					);
-				}
-
-				// ═══════════════════════════════════════════════════════════════════
-				// SUMMARY
-				// ═══════════════════════════════════════════════════════════════════
-				console.log();
-				console.log(
-					`${c.green}${c.bold}┌──────────────────────────────────────────────────────────────────────────┐${c.reset}`,
-				);
-				console.log(
-					`${c.green}${c.bold}│${c.reset}                            ${c.bold}SUMMARY${c.reset}                                     ${c.green}${c.bold}│${c.reset}`,
-				);
-				console.log(
-					`${c.green}${c.bold}└──────────────────────────────────────────────────────────────────────────┘${c.reset}`,
-				);
-				console.log();
-
-				const best = scoreArray[0];
-				const worst = scoreArray[scoreArray.length - 1];
-				console.log(
-					`  ${c.green}🏆 Best Overall:${c.reset}  ${truncateName(best.modelId, 30)} ${c.bold}(${fmtPct(best.overall)})${c.reset}`,
-				);
-				if (shouldHighlight) {
-					console.log(
-						`  ${c.red}📉 Worst Overall:${c.reset} ${truncateName(worst.modelId, 30)} (${fmtPct(worst.overall)})`,
-					);
-				}
-
-				// Find best in each quality category
-				const bestRetr = scoreArray.reduce((a, b) =>
-					a.retrieval.combined > b.retrieval.combined ? a : b,
-				);
-				const bestContr = scoreArray.reduce((a, b) =>
-					a.contrastive.combined > b.contrastive.combined ? a : b,
-				);
-				const bestJudge = scoreArray.reduce((a, b) =>
-					a.judge.combined > b.judge.combined ? a : b,
-				);
-
-				console.log();
-				console.log(`  ${c.cyan}Quality leaders:${c.reset}`);
-				console.log(
-					`    🔍 Retrieval (45%):   ${truncateName(bestRetr.modelId, 25)} (${fmtPct(bestRetr.retrieval.combined)})`,
-				);
-				console.log(
-					`    🎯 Contrastive (30%): ${truncateName(bestContr.modelId, 25)} (${fmtPct(bestContr.contrastive.combined)})`,
-				);
-				console.log(
-					`    📋 Judge (25%):       ${truncateName(bestJudge.modelId, 25)} (${fmtPct(bestJudge.judge.combined)})`,
-				);
-
-				// Find best operational metrics
-				const fastestModel = scoreArray.reduce((a, b) => {
-					const latA = latencyByModel.get(a.modelId) || Infinity;
-					const latB = latencyByModel.get(b.modelId) || Infinity;
-					return latA < latB ? a : b;
+				await renderBenchmarkResultsTui({
+					scores: scoreArray,
+					latencyByModel,
+					costByModel,
+					generatorSpecs,
+					judgeModels,
+					evalResults,
+					summaries,
+					codebaseType: codebaseTypeInfo,
+					totalBenchmarkCost,
+					outputFiles: result.outputFiles,
+					errors: benchmarkErrors.length > 0 ? benchmarkErrors : undefined,
 				});
-				const cheapestModel = scoreArray.reduce((a, b) => {
-					const costA = costByModel.get(a.modelId) || Infinity;
-					const costB = costByModel.get(b.modelId) || Infinity;
-					// Skip local and subscription models for cost comparison (no per-call billing)
-					if (isLocalModel(a.modelId) || isSubscriptionModel(a.modelId))
-						return b;
-					if (isLocalModel(b.modelId) || isSubscriptionModel(b.modelId))
-						return a;
-					return costA < costB ? a : b;
-				});
-
-				console.log();
-				console.log(`  ${c.cyan}Operational leaders:${c.reset}`);
-				const fastestLatency = latencyByModel.get(fastestModel.modelId) || 0;
-				console.log(
-					`    ⚡ Fastest:  ${truncateName(fastestModel.modelId, 25)} (${fmtLatency(fastestLatency)})`,
-				);
-				const cheapestCost = costByModel.get(cheapestModel.modelId) || 0;
-				// Only show cheapest if there's a model with actual per-call billing
-				if (
-					!isLocalModel(cheapestModel.modelId) &&
-					!isSubscriptionModel(cheapestModel.modelId)
-				) {
-					console.log(
-						`    💰 Cheapest: ${truncateName(cheapestModel.modelId, 25)} (${fmtCost(cheapestCost)})`,
-					);
-				}
-			}
-
-			console.log();
-			renderSuccess("Benchmark complete!");
-			console.log();
-			renderInfo("Reports:");
-			if (result.outputFiles.json) {
-				console.log(
-					`  ${c.cyan}JSON:${c.reset}     ${result.outputFiles.json}`,
-				);
-			}
-			if (result.outputFiles.markdown) {
-				console.log(
-					`  ${c.cyan}Markdown:${c.reset} ${result.outputFiles.markdown}`,
-				);
-			}
-			if (result.outputFiles.html) {
-				console.log(
-					`  ${c.cyan}HTML:${c.reset}     ${result.outputFiles.html}`,
-				);
 			}
 
 			// Upload results to Firebase (unless --no-upload flag is set)

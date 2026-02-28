@@ -479,9 +479,19 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 						throw new Error("OpenRouter payment required - check your credits");
 					}
 
-					throw new Error(
-						`OpenRouter API error (${response.status}): ${errorBody}`,
-					);
+					// Extract message from JSON error body if possible
+				let errorMsg = errorBody;
+				try {
+					const parsed = JSON.parse(errorBody);
+					if (parsed?.error?.message) {
+						errorMsg = parsed.error.message;
+					}
+				} catch {
+					// Keep raw body if not JSON
+				}
+				throw new Error(
+					`OpenRouter API error (${response.status}): ${errorMsg}`,
+				);
 				}
 
 				const data = (await response.json()) as OpenRouterResponse;
