@@ -198,6 +198,11 @@ export async function runCli(args: string[]): Promise<void> {
 	// Parse command
 	const command = args[0];
 
+	// Handle flag-style aliases (e.g. --watch → watch)
+	if (command === "--watch") {
+		args[0] = "watch";
+	}
+
 	// Handle global flags
 	// Note: -v is reserved for --verbose in subcommands, use --version only for version
 	if (args.includes("--version")) {
@@ -305,6 +310,9 @@ export async function runCli(args: string[]): Promise<void> {
 			await handleImpact(args.slice(1));
 			break;
 		// Developer experience commands
+		case "ui":
+			await handleUi(args.slice(1));
+			break;
 		case "watch":
 			await handleWatch(args.slice(1));
 			break;
@@ -3723,6 +3731,17 @@ async function handleImpact(args: string[]): Promise<void> {
 }
 
 /**
+ * Handle 'ui' command - launch interactive TUI
+ */
+async function handleUi(args: string[]): Promise<void> {
+	const pathArg = args.find((a) => !a.startsWith("-"));
+	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	const { startTui } = await import("./tui/index.js");
+	await startTui(projectPath);
+}
+
+/**
  * Handle 'watch' command - file watcher daemon
  */
 async function handleWatch(args: string[]): Promise<void> {
@@ -5116,6 +5135,7 @@ ${c.yellow}${c.bold}CODE ANALYSIS COMMANDS${c.reset}
   ${c.green}impact${c.reset} <symbol>        Analyze change impact ${c.dim}(transitive callers)${c.reset}
 
 ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
+  ${c.green}ui${c.reset}                     Interactive full-screen TUI ${c.dim}(search, map, graph, analysis)${c.reset}
   ${c.green}watch${c.reset}                  Watch for changes and auto-reindex ${c.dim}(daemon mode)${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
   ${c.green}hook${c.reset}                   Claude Code hook handler ${c.dim}(reads JSON from stdin)${c.reset}
