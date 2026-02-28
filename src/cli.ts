@@ -195,13 +195,13 @@ export async function runCli(args: string[]): Promise<void> {
 		agentMode = true;
 	}
 
-	// Parse command
-	const command = args[0];
-
 	// Handle flag-style aliases (e.g. --watch → watch)
-	if (command === "--watch") {
+	if (args[0] === "--watch") {
 		args[0] = "watch";
 	}
+
+	// Parse command
+	const command = args[0];
 
 	// Handle global flags
 	// Note: -v is reserved for --verbose in subcommands, use --version only for version
