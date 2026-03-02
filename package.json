@@ -68,5 +68,11 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/MadAppGang/claudemem"
+	},
+	"optionalDependencies": {
+		"@opentui/core-darwin-arm64": "0.1.82",
+		"@opentui/core-darwin-x64": "0.1.82",
+		"@opentui/core-linux-arm64": "0.1.82",
+		"@opentui/core-linux-x64": "0.1.82"
 	}
 }

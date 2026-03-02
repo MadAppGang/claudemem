@@ -24,6 +24,12 @@
         "@types/bun": "latest",
         "typescript": "^5.7.2",
       },
+      "optionalDependencies": {
+        "@opentui/core-darwin-arm64": "0.1.82",
+        "@opentui/core-darwin-x64": "0.1.82",
+        "@opentui/core-linux-arm64": "0.1.82",
+        "@opentui/core-linux-x64": "0.1.82",
+      },
     },
   },
   "packages": {
