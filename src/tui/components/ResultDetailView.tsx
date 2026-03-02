@@ -15,6 +15,7 @@ import { createReferenceGraphManager } from "../../core/reference-graph.js";
 import { SyntaxLine, detectLang } from "./SyntaxLine.js";
 import { getVectorStorePath } from "../../config.js";
 import lancedb from "@lancedb/lancedb";
+import { join } from "node:path";
 
 // ============================================================================
 // Props
@@ -419,11 +420,20 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 			const table = await db.openTable("code_chunks");
 
 			const escapedName = sym.name.replace(/'/g, "''");
-			const escapedPath = sym.filePath.replace(/'/g, "''");
-			const rows = await table.query()
-				.where(`(name = '${escapedName}' OR name LIKE '${escapedName} (part %') AND \`filePath\` = '${escapedPath}'`)
+			// SymbolDefinition.filePath is relative; LanceDB stores absolute
+			const absPath = join(projectPath, sym.filePath).replace(/'/g, "''");
+
+			// Try exact name match first, then partitioned name
+			let rows = await table.query()
+				.where(`name = '${escapedName}' AND \`filePath\` = '${absPath}'`)
 				.limit(1)
 				.toArray();
+			if (rows.length === 0) {
+				rows = await table.query()
+					.where(`name LIKE '${escapedName} (part %' AND \`filePath\` = '${absPath}'`)
+					.limit(1)
+					.toArray();
+			}
 
 			if (rows.length === 0) return;
 			const row = rows[0] as any;
@@ -446,6 +456,7 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 				score: 0,
 				vectorScore: 0,
 				keywordScore: 0,
+				summary: row.summary || undefined,
 			};
 
 			// Push current result onto nav stack, then navigate
@@ -650,6 +661,43 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 						<box><text fg={hasRight ? theme.info : theme.dimmed}>{` ${hasRight ? "\u25B6" : " "}  `}</text></box>
 						<box><text fg={theme.muted}>{symbolName ?? ""}</text></box>
 						<box><text fg={theme.dimmed}>{"    \u2190/\u2192 navigate parts"}</text></box>
+					</box>
+				);
+			})()}
+
+			{/* ── Breadcrumb bar ───────────────────────────────────────────── */}
+			{navStack.length > 0 && (() => {
+				const crumbs = navStack.map(r => {
+					const n = baseSymbolName(r.chunk.name) ?? "?";
+					const f = r.chunk.filePath.split("/").pop() ?? "";
+					return `${n} (${f})`;
+				});
+				const currentCrumb = baseSymbolName(chunk.name) ?? "?";
+				const sep = " › ";
+				const prefix = "◀ ";
+				const maxW = (width || 80) - 4;
+
+				// Truncate from the left if too long
+				let parts = [...crumbs, currentCrumb];
+				let full = prefix + parts.join(sep);
+				while (full.length > maxW && parts.length > 2) {
+					parts = ["…", ...parts.slice(2)];
+					full = prefix + parts.join(sep);
+				}
+
+				return (
+					<box height={1} width="100%" backgroundColor="#263238" flexDirection="row">
+						<box><text fg={theme.info}>{`  ${prefix}`}</text></box>
+						{parts.map((p, i) => {
+							const isLast = i === parts.length - 1;
+							const isSep = i < parts.length - 1;
+							return (
+								<box key={`bc-${i}`} flexDirection="row">
+									<box><text fg={isLast ? theme.text : theme.muted}>{p}</text></box>
+									{isSep && <box><text fg={theme.dimmed}>{sep}</text></box>}
+								</box>
+							);
+						})}
 					</box>
 				);
 			})()}
