@@ -297,7 +297,7 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 				const escapedName = symbolName.replace(/'/g, "''");
 				const escapedPath = chunk.filePath.replace(/'/g, "''");
 				const rows = await table.query()
-					.where(`name LIKE '${escapedName} (part %' AND "filePath" = '${escapedPath}'`)
+					.where(`name LIKE '${escapedName} (part %' AND \`filePath\` = '${escapedPath}'`)
 					.toArray();
 				if (cancelled) return;
 

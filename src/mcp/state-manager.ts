@@ -69,9 +69,13 @@ export class IndexStateManager {
 	 * Caller is responsible for filling in responseTimeMs.
 	 */
 	getFreshness(): Omit<FreshnessMetadata, "responseTimeMs"> {
-		const freshness = this.filesChangedSince.size === 0 ? "fresh" : "stale";
+		// Stale when: files changed OR never indexed OR reindex running
+		const isStale =
+			this.filesChangedSince.size > 0 ||
+			this.lastIndexed === null ||
+			this.reindexInProgress;
 		return {
-			freshness,
+			freshness: isStale ? "stale" : "fresh",
 			lastIndexed: this.lastIndexed?.toISOString() ?? null,
 			staleSince: this.staleSince?.toISOString() ?? null,
 			filesChanged: Array.from(this.filesChangedSince),

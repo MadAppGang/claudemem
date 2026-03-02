@@ -47,7 +47,7 @@ function formatRelativeTime(isoTimestamp: string): string {
 // ============================================================================
 
 export function StatusBar() {
-	const { projectPath, activeTab, indexVersion, lastActivity } =
+	const { projectPath, activeTab, indexVersion, lastActivity, monitorMode } =
 		useAppContext();
 	const projectName = basename(projectPath);
 	const isOutdated = indexVersion < CURRENT_INDEX_VERSION;
@@ -72,9 +72,9 @@ export function StatusBar() {
 			justifyContent="space-between"
 		>
 			<box paddingLeft={1} flexDirection="row">
-				<text fg={theme.muted}>{projectName}</text>
+				<text fg={theme.muted}>{monitorMode ? "monitor" : projectName}</text>
 				<text fg={theme.dimmed}> v{indexVersion}</text>
-				{isOutdated && (
+				{isOutdated && !monitorMode && (
 					<text fg={theme.warning}>
 						{" [outdated - run: claudemem index --force]"}
 					</text>
@@ -83,7 +83,9 @@ export function StatusBar() {
 			</box>
 
 			<box paddingRight={1}>
-				<text fg={theme.dimmed}>{hints[activeTab]}</text>
+				<text fg={theme.dimmed}>
+					{monitorMode ? "q quit  Esc back" : hints[activeTab]}
+				</text>
 			</box>
 		</box>
 	);

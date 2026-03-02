@@ -64,6 +64,8 @@ export interface AppContextValue {
 	quit: () => void;
 	/** Most recent MCP activity record — used by StatusBar indicator */
 	lastActivity: ActivityRecord | null;
+	/** Whether running in passive monitor mode (affects StatusBar hints) */
+	monitorMode: boolean;
 }
 
 // ============================================================================
@@ -79,10 +81,11 @@ const AppContext = createContext<AppContextValue | null>(null);
 export interface AppProviderProps {
 	projectPath: string;
 	quit: () => void;
+	monitorMode?: boolean;
 	children: ReactNode;
 }
 
-export function AppProvider({ projectPath, quit, children }: AppProviderProps) {
+export function AppProvider({ projectPath, quit, monitorMode = false, children }: AppProviderProps) {
 	const [activeTab, setActiveTab] = useState<TabId>("search");
 	const [navHistory, setNavHistory] = useState<string[]>([]);
 	const [error, setError] = useState<string | null>(null);
@@ -147,6 +150,7 @@ export function AppProvider({ projectPath, quit, children }: AppProviderProps) {
 		indexVersion,
 		quit,
 		lastActivity,
+		monitorMode,
 	};
 
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

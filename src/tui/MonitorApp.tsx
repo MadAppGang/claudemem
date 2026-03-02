@@ -183,7 +183,7 @@ export interface MonitorAppProps {
 
 export function MonitorApp({ projectPath, quit }: MonitorAppProps) {
 	return (
-		<AppProvider projectPath={projectPath} quit={quit}>
+		<AppProvider projectPath={projectPath} quit={quit} monitorMode>
 			<MonitorInner />
 		</AppProvider>
 	);
