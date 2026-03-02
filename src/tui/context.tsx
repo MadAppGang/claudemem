@@ -6,19 +6,24 @@
  * - Active tab
  * - Navigation history (for graph drill-in/back)
  * - Error state
+ * - Last MCP activity (for StatusBar monitor indicator)
  */
 
+import { existsSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
 import {
+	type ReactNode,
 	createContext,
+	useCallback,
 	useContext,
 	useState,
-	useCallback,
-	type ReactNode,
 } from "react";
-import { FileTracker } from "../core/tracker.js";
 import { getIndexVersion } from "../core/index-version.js";
-import { join } from "node:path";
-import { existsSync, mkdirSync } from "node:fs";
+import { FileTracker } from "../core/tracker.js";
+import {
+	type ActivityRecord,
+	useActivityMonitor,
+} from "./hooks/useActivityMonitor.js";
 
 // ============================================================================
 // Types
@@ -57,6 +62,8 @@ export interface AppContextValue {
 	indexVersion: number;
 	/** Cleanly shut down the TUI (unmount + renderer destroy) */
 	quit: () => void;
+	/** Most recent MCP activity record — used by StatusBar indicator */
+	lastActivity: ActivityRecord | null;
 }
 
 // ============================================================================
@@ -75,25 +82,27 @@ export interface AppProviderProps {
 	children: ReactNode;
 }
 
-export function AppProvider({
-	projectPath,
-	quit,
-	children,
-}: AppProviderProps) {
+export function AppProvider({ projectPath, quit, children }: AppProviderProps) {
 	const [activeTab, setActiveTab] = useState<TabId>("search");
 	const [navHistory, setNavHistory] = useState<string[]>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [showHelp, setShowHelp] = useState(false);
 	const [inputFocused, setInputFocused] = useState(false);
 	const [indexVersion] = useState(() => getIndexVersion(projectPath));
+	const [lastActivity, setLastActivity] = useState<ActivityRecord | null>(null);
 
-	// Create FileTracker singleton
-	const dbDir = join(projectPath, ".claudemem");
-	if (!existsSync(dbDir)) {
-		mkdirSync(dbDir, { recursive: true });
-	}
-	const dbPath = join(dbDir, "index.db");
-	const tracker = new FileTracker(dbPath, projectPath);
+	// Create FileTracker singleton — memoized so it survives re-renders.
+	// Without memoization, every state change creates a new tracker instance,
+	// which cascades through useCallback/useEffect dependencies and causes
+	// useActivityMonitor to re-run (truncating JSONL + resetting byte offsets).
+	const [tracker] = useState(() => {
+		const dbDir = join(projectPath, ".claudemem");
+		if (!existsSync(dbDir)) {
+			mkdirSync(dbDir, { recursive: true });
+		}
+		const dbPath = join(dbDir, "index.db");
+		return new FileTracker(dbPath, projectPath);
+	});
 
 	const pushNav = useCallback((symbolName: string) => {
 		setNavHistory((prev: string[]) => [...prev, symbolName]);
@@ -113,6 +122,14 @@ export function AppProvider({
 		setShowHelp((prev: boolean) => !prev);
 	}, []);
 
+	// In UI mode, activity monitor only updates the StatusBar indicator
+	const handleActivity = useCallback((record: ActivityRecord) => {
+		setLastActivity(record);
+	}, []);
+
+	// Mount the activity monitor (feeds StatusBar in UI mode)
+	useActivityMonitor(projectPath, tracker, handleActivity);
+
 	const value: AppContextValue = {
 		tracker,
 		projectPath,
@@ -129,6 +146,7 @@ export function AppProvider({
 		setInputFocused,
 		indexVersion,
 		quit,
+		lastActivity,
 	};
 
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

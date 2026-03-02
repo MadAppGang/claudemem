@@ -8,6 +8,7 @@ import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { resolve } from "node:path";
 import { App } from "./App.js";
+import { MonitorApp } from "./MonitorApp.js";
 
 // ============================================================================
 // Entry Function
@@ -53,4 +54,34 @@ export async function startTUI(projectPath?: string): Promise<void> {
 	// Create React root and render App
 	const root = createRoot(renderer);
 	root.render(<App projectPath={resolvedPath} quit={quit} />);
+}
+
+// ============================================================================
+// Monitor Mode Entry
+// ============================================================================
+
+/** Start monitor mode — passive display of MCP activity */
+export async function startMonitor(projectPath?: string): Promise<void> {
+	if (!process.stdout.isTTY) {
+		console.error("claudemem monitor requires a TTY terminal");
+		process.exit(1);
+	}
+
+	const resolvedPath = resolve(projectPath ?? process.cwd());
+
+	const renderer = await createCliRenderer({
+		exitOnCtrlC: true,
+		useAlternateScreen: true,
+		onDestroy: () => {
+			process.exit(0);
+		},
+	});
+
+	const quit = () => {
+		root.unmount();
+		renderer.destroy();
+	};
+
+	const root = createRoot(renderer);
+	root.render(<MonitorApp projectPath={resolvedPath} quit={quit} />);
 }

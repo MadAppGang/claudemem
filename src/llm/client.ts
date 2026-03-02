@@ -162,8 +162,10 @@ export abstract class BaseLLMClient implements ILLMClient {
 	}
 
 	/**
-	 * Extract JSON from a potentially messy LLM response
-	 * Handles: markdown code fences, nested fences, prefix text, suffix text
+	 * Extract JSON from a potentially messy LLM response.
+	 * Handles: markdown code fences, nested fences, prefix text, suffix text,
+	 * trailing commas, and responses with multiple JSON objects (picks the last
+	 * complete top-level object, which is typically the LLM's actual output).
 	 */
 	private extractJSON(content: string): unknown {
 		// Strategy 1: Try parsing as-is (fastest path for well-formed responses)
@@ -187,7 +189,28 @@ export abstract class BaseLLMClient implements ILLMClient {
 			// Continue to bracket matching
 		}
 
-		// Strategy 3: Find first { or [ and extract matching structure
+		// Strategy 3: Find ALL top-level JSON structures and try each
+		// (last one is usually the LLM's actual output when the prompt contains JSON examples)
+		const candidates = this.findAllTopLevelJSON(cleaned);
+
+		// Try candidates in reverse order (last = most likely the real output)
+		for (let i = candidates.length - 1; i >= 0; i--) {
+			const candidate = candidates[i];
+			try {
+				return JSON.parse(candidate);
+			} catch {
+				// Try fixing trailing commas before giving up on this candidate
+				const fixed = candidate
+					.replace(/,\s*([}\]])/g, "$1");
+				try {
+					return JSON.parse(fixed);
+				} catch {
+					// Try next candidate
+				}
+			}
+		}
+
+		// Strategy 4: Last resort — find first { or [ and extract
 		const jsonStartBrace = cleaned.indexOf("{");
 		const jsonStartBracket = cleaned.indexOf("[");
 		let jsonStart = -1;
@@ -206,61 +229,18 @@ export abstract class BaseLLMClient implements ILLMClient {
 
 		cleaned = cleaned.slice(jsonStart);
 
-		// Find matching closing brace/bracket (string-aware to handle nested quotes)
-		const isArray = cleaned.startsWith("[");
-		const openChar = isArray ? "[" : "{";
-		const closeChar = isArray ? "]" : "}";
-		let depth = 0;
-		let inString = false;
-		let escapeNext = false;
-		let jsonEnd = -1;
-
-		for (let i = 0; i < cleaned.length; i++) {
-			const char = cleaned[i];
-
-			if (escapeNext) {
-				escapeNext = false;
-				continue;
-			}
-
-			if (char === "\\") {
-				escapeNext = true;
-				continue;
-			}
-
-			if (char === '"') {
-				inString = !inString;
-				continue;
-			}
-
-			if (inString) continue;
-
-			if (char === openChar) depth++;
-			else if (char === closeChar) {
-				depth--;
-				if (depth === 0) {
-					jsonEnd = i + 1;
-					break;
-				}
-			}
-		}
-
-		if (jsonEnd > 0) {
-			cleaned = cleaned.slice(0, jsonEnd);
-		}
-
-		// Try parsing the extracted JSON
-		try {
-			return JSON.parse(cleaned);
-		} catch {
-			// Strategy 4: Try removing common trailing garbage
-			// Some models add explanatory text after the JSON
-			const lastBrace = cleaned.lastIndexOf("}");
-			const lastBracket = cleaned.lastIndexOf("]");
-			const lastClose = Math.max(lastBrace, lastBracket);
-			if (lastClose > 0) {
+		// Try removing common trailing garbage
+		const lastBrace = cleaned.lastIndexOf("}");
+		const lastBracket = cleaned.lastIndexOf("]");
+		const lastClose = Math.max(lastBrace, lastBracket);
+		if (lastClose > 0) {
+			const trimmed = cleaned.slice(0, lastClose + 1);
+			try {
+				return JSON.parse(trimmed);
+			} catch {
+				// Try fixing trailing commas
 				try {
-					return JSON.parse(cleaned.slice(0, lastClose + 1));
+					return JSON.parse(trimmed.replace(/,\s*([}\]])/g, "$1"));
 				} catch {
 					// Give up
 				}
@@ -268,6 +248,68 @@ export abstract class BaseLLMClient implements ILLMClient {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Find all top-level JSON objects/arrays in a string.
+	 * Uses bracket/brace matching with string awareness.
+	 */
+	private findAllTopLevelJSON(content: string): string[] {
+		const results: string[] = [];
+		let i = 0;
+
+		while (i < content.length) {
+			const char = content[i];
+			if (char !== "{" && char !== "[") {
+				i++;
+				continue;
+			}
+
+			const closeChar = char === "{" ? "}" : "]";
+			let depth = 0;
+			let inString = false;
+			let escapeNext = false;
+			let end = -1;
+
+			for (let j = i; j < content.length; j++) {
+				const c = content[j];
+
+				if (escapeNext) {
+					escapeNext = false;
+					continue;
+				}
+
+				if (c === "\\") {
+					escapeNext = true;
+					continue;
+				}
+
+				if (c === '"') {
+					inString = !inString;
+					continue;
+				}
+
+				if (inString) continue;
+
+				if (c === char) depth++;
+				else if (c === closeChar) {
+					depth--;
+					if (depth === 0) {
+						end = j + 1;
+						break;
+					}
+				}
+			}
+
+			if (end > i) {
+				results.push(content.slice(i, end));
+				i = end;
+			} else {
+				i++;
+			}
+		}
+
+		return results;
 	}
 
 	async testConnection(): Promise<boolean> {

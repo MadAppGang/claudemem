@@ -43,3 +43,6 @@ landingpage/.backup/
 # Local models
 models/
 models
+
+# Worktrees
+.worktrees/

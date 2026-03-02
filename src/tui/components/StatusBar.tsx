@@ -3,12 +3,14 @@
  *
  * Bottom bar showing project path + index status on the left
  * and context-sensitive keybinding hints on the right.
+ * Also shows a live MCP activity indicator when in monitor mode.
  */
 
-import { useAppContext, type TabId } from "../context.js";
-import { theme } from "../theme.js";
 import { basename } from "node:path";
+import { useEffect, useState } from "react";
 import { CURRENT_INDEX_VERSION } from "../../core/index-version.js";
+import { type TabId, useAppContext } from "../context.js";
+import { theme } from "../theme.js";
 
 // ============================================================================
 // Keybinding Hints per View
@@ -23,13 +25,44 @@ const hints: Record<TabId, string> = {
 };
 
 // ============================================================================
+// Relative Time Formatter
+// ============================================================================
+
+function formatRelativeTime(isoTimestamp: string): string {
+	try {
+		const elapsed = Math.floor(
+			(Date.now() - new Date(isoTimestamp).getTime()) / 1000,
+		);
+		if (elapsed < 5) return "just now";
+		if (elapsed < 60) return `${elapsed}s ago`;
+		if (elapsed < 3600) return `${Math.floor(elapsed / 60)}m ago`;
+		return `${Math.floor(elapsed / 3600)}h ago`;
+	} catch {
+		return "";
+	}
+}
+
+// ============================================================================
 // Component
 // ============================================================================
 
 export function StatusBar() {
-	const { projectPath, activeTab, indexVersion } = useAppContext();
+	const { projectPath, activeTab, indexVersion, lastActivity } =
+		useAppContext();
 	const projectName = basename(projectPath);
 	const isOutdated = indexVersion < CURRENT_INDEX_VERSION;
+
+	// Re-render every 5 seconds to keep relative time accurate
+	const [, setTick] = useState(0);
+	useEffect(() => {
+		if (!lastActivity) return;
+		const interval = setInterval(() => setTick((t) => t + 1), 5000);
+		return () => clearInterval(interval);
+	}, [lastActivity]);
+
+	const mcpIndicator = lastActivity
+		? `MCP: ${lastActivity.type} ${formatRelativeTime(lastActivity.timestamp)}`
+		: null;
 
 	return (
 		<box
@@ -46,6 +79,7 @@ export function StatusBar() {
 						{" [outdated - run: claudemem index --force]"}
 					</text>
 				)}
+				{mcpIndicator && <text fg={theme.info}>{`  ${mcpIndicator}`}</text>}
 			</box>
 
 			<box paddingRight={1}>

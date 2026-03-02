@@ -46,6 +46,10 @@ export interface CodeChunk {
 	signature?: string;
 	/** Hash of the parent file for change tracking */
 	fileHash: string;
+	/** 1-based index within a multi-part group (for oversized nodes split into parts) */
+	partIndex?: number;
+	/** Total parts in the group */
+	totalParts?: number;
 }
 
 // ============================================================================
@@ -237,6 +241,12 @@ export interface SearchResult {
 	vectorScore: number;
 	/** BM25 keyword score */
 	keywordScore: number;
+	/** LLM-generated summary (from enrichment — symbol-level if available, else file-level) */
+	summary?: string;
+	/** File-level summary (from file_summary enrichment document) */
+	fileSummary?: string;
+	/** Unit type from AST hierarchy (function, class, method, etc.) */
+	unitType?: string;
 }
 
 export interface SearchOptions {
@@ -611,6 +621,10 @@ export interface ParsedChunk {
 	parentName?: string;
 	/** Signature if extractable */
 	signature?: string;
+	/** 1-based index within a multi-part group (for oversized nodes split into parts) */
+	partIndex?: number;
+	/** Total parts in the group */
+	totalParts?: number;
 }
 
 // ============================================================================

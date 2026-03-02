@@ -309,7 +309,9 @@ export class Enricher {
 		// Thread-safe document accumulation (JS is single-threaded for sync ops)
 		const fileSummaryDocs: BaseDocument[] = [];
 		const symbolSummaryDocs: BaseDocument[] = [];
-		const concurrency = options.concurrency ?? 10;
+		// Cloud providers handle higher concurrency; local LLMs are single-threaded
+		const defaultConcurrency = provider === "local" ? 3 : 15;
+		const concurrency = options.concurrency ?? defaultConcurrency;
 
 		// File summary extractor
 		const fileSummaryExtractor = this.registry.get("file_summary") as
@@ -386,10 +388,7 @@ export class Enricher {
 
 			reportProgress("file summaries", 0, total, `0/${total} starting...`, 0);
 
-			for (let i = 0; i < files.length; i += concurrency) {
-				const batch = files.slice(i, i + concurrency);
-				await Promise.all(batch.map(processFile));
-			}
+			await runWithPool(files, concurrency, processFile);
 
 			reportProgress(
 				"file summaries",
@@ -459,10 +458,7 @@ export class Enricher {
 
 			reportProgress("symbol summaries", 0, total, `0/${total} starting...`, 0);
 
-			for (let i = 0; i < files.length; i += concurrency) {
-				const batch = files.slice(i, i + concurrency);
-				await Promise.all(batch.map(processFile));
-			}
+			await runWithPool(files, concurrency, processFile);
 
 			reportProgress(
 				"symbol summaries",
@@ -899,6 +895,32 @@ export class Enricher {
 			details: results,
 		};
 	}
+}
+
+// ============================================================================
+// Concurrency Pool
+// ============================================================================
+
+/**
+ * Run async tasks with a concurrency pool (no straggler blocking).
+ *
+ * Unlike batch-and-wait (`for i += N; Promise.all(batch)`), this starts
+ * a new task as soon as any slot frees up. A single slow file no longer
+ * blocks N-1 idle slots.
+ */
+async function runWithPool<T>(
+	items: T[],
+	concurrency: number,
+	fn: (item: T) => Promise<void>,
+): Promise<void> {
+	let idx = 0;
+	const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+		while (idx < items.length) {
+			const i = idx++;
+			await fn(items[i]);
+		}
+	});
+	await Promise.all(workers);
 }
 
 // ============================================================================

@@ -25,6 +25,13 @@ import { createDatabaseSync, type SQLiteDatabase } from "./sqlite.js";
 // Types
 // ============================================================================
 
+export interface ActivityRow {
+	id: number;
+	type: string;
+	metadata: string;
+	timestamp: string;
+}
+
 export interface FileChanges {
 	/** Files that are new (not in index) */
 	newFiles: string[];
@@ -133,6 +140,17 @@ export class FileTracker {
 
 		// Symbol graph tables
 		this.initializeSymbolGraphSchema();
+
+		// Activity log table (for monitor mode)
+		this.db.exec(`
+      CREATE TABLE IF NOT EXISTS activity_log (
+        id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        type      TEXT    NOT NULL,
+        metadata  TEXT    NOT NULL,
+        timestamp TEXT    NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_activity_log_id ON activity_log(id);
+    `);
 
 		// Migration: Add enrichment columns if they don't exist (for existing databases)
 		this.migrateSchema();
@@ -395,6 +413,49 @@ export class FileTracker {
 		this.db.exec("DELETE FROM metadata");
 		this.db.exec("DELETE FROM documents");
 		this.db.exec("DELETE FROM indexed_docs");
+	}
+
+	// ========================================================================
+	// Activity Log Methods (for monitor mode)
+	// ========================================================================
+
+	/**
+	 * Record a tool activity in the activity_log table.
+	 * Returns the inserted row ID.
+	 */
+	recordActivity(type: string, metadata: Record<string, unknown>): number {
+		const stmt = this.db.prepare(
+			"INSERT INTO activity_log (type, metadata, timestamp) VALUES (?, ?, ?)",
+		);
+		const result = stmt.run(
+			type,
+			JSON.stringify(metadata),
+			new Date().toISOString(),
+		);
+		return Number(result.lastInsertRowid);
+	}
+
+	/**
+	 * Get activity rows with id > sinceId, ordered ASC.
+	 * Used by the TUI monitor to poll for new activity.
+	 */
+	getActivity(sinceId = 0, limit = 50): ActivityRow[] {
+		const stmt = this.db.prepare(
+			"SELECT id, type, metadata, timestamp FROM activity_log WHERE id > ? ORDER BY id ASC LIMIT ?",
+		);
+		return stmt.all(sinceId, limit) as ActivityRow[];
+	}
+
+	/**
+	 * Prune old activity rows, keeping only the last keepCount rows.
+	 * Called periodically by the TUI to prevent unbounded growth.
+	 */
+	pruneActivity(keepCount = 200): void {
+		this.db.exec(`
+      DELETE FROM activity_log WHERE id NOT IN (
+        SELECT id FROM activity_log ORDER BY id DESC LIMIT ${keepCount}
+      )
+    `);
 	}
 
 	/**

@@ -52,12 +52,15 @@ export class SymbolSummaryExtractor extends BaseExtractor {
 		llmClient: ILLMClient,
 	): Promise<BaseDocument[]> {
 		// Get extractable symbols (functions, classes, methods)
+		// Skip part chunks beyond part 1 — only the first part has the signature
+		// and needs a summary; parts 2+ are continuation of the same symbol
 		const symbols = context.codeChunks.filter(
 			(chunk) =>
 				chunk.name &&
 				(chunk.chunkType === "function" ||
 					chunk.chunkType === "class" ||
-					chunk.chunkType === "method"),
+					chunk.chunkType === "method") &&
+				(!chunk.partIndex || chunk.partIndex === 1),
 		);
 
 		if (symbols.length === 0) {

@@ -19,7 +19,9 @@ import { useState, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
 import { useAppContext } from "../context.js";
 import { useSearch } from "../hooks/useSearch.js";
+
 import { ResultList } from "../components/ResultList.js";
+import { ResultDetailView } from "../components/ResultDetailView.js";
 import { theme } from "../theme.js";
 
 // ============================================================================
@@ -27,8 +29,14 @@ import { theme } from "../theme.js";
 // ============================================================================
 
 export function SearchView() {
-	const { projectPath, setActiveTab, pushNav, inputFocused, setInputFocused, activeTab } =
-		useAppContext();
+	const {
+		projectPath,
+		setActiveTab,
+		pushNav,
+		inputFocused,
+		setInputFocused,
+		activeTab,
+	} = useAppContext();
 	const {
 		query,
 		setQuery,
@@ -44,6 +52,8 @@ export function SearchView() {
 		language,
 		setLanguage,
 	} = useSearch(projectPath);
+
+	const [detailIndex, setDetailIndex] = useState<number | null>(null);
 
 	// Auto-focus input when entering search tab
 	useEffect(() => {
@@ -72,7 +82,18 @@ export function SearchView() {
 			return;
 		}
 
-		// When input is focused, let the <input> handle everything
+		// Arrow keys: auto-unfocus input and navigate results
+		if (inputFocused && results.length > 0 && (key.name === "down" || key.name === "up")) {
+			setInputFocused(false);
+			if (key.name === "down") {
+				setSelectedIndex(Math.min(selectedIndex + 1, results.length - 1));
+			} else {
+				setSelectedIndex(Math.max(selectedIndex - 1, 0));
+			}
+			return;
+		}
+
+		// When input is focused, let the <input> handle everything else
 		if (inputFocused) {
 			return;
 		}
@@ -89,7 +110,7 @@ export function SearchView() {
 		}
 		if (key.name === "return" || key.name === "space") {
 			if (results.length > 0) {
-				toggleExpanded(selectedIndex);
+				setDetailIndex(selectedIndex);
 			}
 			return;
 		}
@@ -115,6 +136,18 @@ export function SearchView() {
 			return;
 		}
 	});
+
+	// When a result is selected for detail view, render the detail component
+	if (detailIndex !== null && results[detailIndex]) {
+		return (
+			<ResultDetailView
+				result={results[detailIndex]}
+				allResults={results}
+				onClose={() => setDetailIndex(null)}
+				onNavigate={(newIndex) => setDetailIndex(newIndex)}
+			/>
+		);
+	}
 
 	return (
 		<box flexDirection="column" width="100%" height="100%">
@@ -206,6 +239,7 @@ export function SearchView() {
 				<box flexDirection="column" flexGrow={1} overflow="hidden">
 					<ResultList
 						results={results}
+						query={query}
 						selectedIndex={selectedIndex}
 						expandedIndex={expandedIndex}
 						onSelect={setSelectedIndex}

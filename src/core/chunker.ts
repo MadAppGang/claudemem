@@ -23,8 +23,14 @@ import type {
 // Constants
 // ============================================================================
 
-/** Maximum chunk size in tokens (approximate) */
-const MAX_CHUNK_TOKENS = 1500;
+/**
+ * Maximum chunk size in tokens (approximate).
+ * Research (2025-2026) shows 256-512 tokens optimal for RAG retrieval.
+ * We use 600 as a safety cap since AST-aware chunking provides natural
+ * boundaries — this only triggers on oversized constructs.
+ * See: docs/adr/001-chunk-size-limits.md
+ */
+const MAX_CHUNK_TOKENS = 600;
 
 /** Minimum chunk size in tokens */
 const MIN_CHUNK_TOKENS = 50;
@@ -59,24 +65,14 @@ export async function chunkFile(
 		return fallbackChunk(source, filePath, language, fileHash);
 	}
 
-	const config = parserManager.getLanguageConfig(language);
+	// AST-pure chunking: every line belongs to exactly one chunk
+	const parsedChunks = extractChunksAST(tree, source, language);
 
-	// Extract semantic chunks using AST traversal
-	const parsedChunks = extractChunks(tree, source, language);
-
-	// Convert to CodeChunk format
+	// Convert to CodeChunk format — no MIN_CHUNK_TOKENS filter for AST chunks
+	// (every AST-extracted chunk is semantically meaningful regardless of size)
 	const chunks: CodeChunk[] = [];
-
 	for (const parsed of parsedChunks) {
-		// Split large chunks if necessary
-		if (estimateTokens(parsed.content) > MAX_CHUNK_TOKENS) {
-			const splitChunks = splitLargeChunk(parsed, source);
-			for (const split of splitChunks) {
-				chunks.push(createCodeChunk(split, filePath, language, fileHash));
-			}
-		} else if (estimateTokens(parsed.content) >= MIN_CHUNK_TOKENS) {
-			chunks.push(createCodeChunk(parsed, filePath, language, fileHash));
-		}
+		chunks.push(createCodeChunk(parsed, filePath, language, fileHash));
 	}
 
 	// If no chunks were extracted, fall back to line-based chunking
@@ -88,68 +84,274 @@ export async function chunkFile(
 }
 
 /**
- * Extract semantic chunks from AST
+ * AST-pure chunk extraction.
+ *
+ * Design principle: every line of source code belongs to exactly one chunk.
+ * Every chunk maps to an AST node (or connected group of sibling nodes).
+ * No orphans. No blind splits.
+ *
+ * See: docs/adr/002-ast-pure-chunking.md
  */
-function extractChunks(
+function extractChunksAST(
 	tree: Tree,
 	source: string,
 	language: SupportedLanguage,
 ): ParsedChunk[] {
 	const chunks: ParsedChunk[] = [];
-	const sourceLines = source.split("\n");
-
-	// Walk the tree and extract semantic nodes
-	walkTree(tree.rootNode, (node) => {
-		const chunkType = getChunkType(node.type, language);
-		if (!chunkType) {
-			return true; // Continue traversing
-		}
-
-		// Get the name if available
-		const name = extractName(node, language);
-
-		// Get parent name for methods
-		const parentName = extractParentName(node, language);
-
-		// Get signature for functions/methods
-		const signature = extractSignature(node, source, language);
-
-		// Get content
-		const content = source.slice(node.startIndex, node.endIndex);
-
-		// Check if this is a meaningful chunk
-		if (content.trim().length < 10) {
-			return true; // Skip tiny chunks
-		}
-
-		chunks.push({
-			content,
-			startLine: node.startPosition.row,
-			endLine: node.endPosition.row,
-			chunkType,
-			name,
-			parentName,
-			signature,
-		});
-
-		// Don't traverse into this node's children for nested chunks
-		// (we want the whole function, not individual statements)
-		return false;
-	});
-
+	processChildren(tree.rootNode, source, language, chunks, null);
 	return chunks;
 }
 
 /**
- * Walk tree recursively
+ * Process children of a node, extracting chunks and absorbing gaps.
+ *
+ * For each child:
+ * - If it's a recognized AST node that fits in MAX_CHUNK_TOKENS → emit as chunk
+ * - If it's a recognized container (class/module) that's too large → descend into its body
+ * - If it's a recognized non-container that's too large → split into connected parts
+ * - Otherwise (imports, fields, comments, etc.) → accumulate as gap text
+ *
+ * Gap text (JSDoc, fields, imports) is attached to the next chunk or flushed standalone.
  */
-function walkTree(node: Node, callback: (node: Node) => boolean): void {
-	const shouldContinue = callback(node);
-	if (shouldContinue) {
-		for (let i = 0; i < node.childCount; i++) {
-			walkTree(node.child(i)!, callback);
+function processChildren(
+	parent: Node,
+	source: string,
+	language: SupportedLanguage,
+	chunks: ParsedChunk[],
+	containerName: string | null,
+	initialPreamble?: string,
+	initialPreambleStartLine?: number,
+): void {
+	const children: Node[] = [];
+	for (let i = 0; i < parent.childCount; i++) {
+		children.push(parent.child(i)!);
+	}
+
+	// Accumulator for gap lines (fields, comments, imports between chunks)
+	let gapLines: string[] = initialPreamble ? [initialPreamble] : [];
+	let gapStartLine = initialPreambleStartLine ?? -1;
+
+	for (const child of children) {
+		const content = source.slice(child.startIndex, child.endIndex);
+		const tokens = estimateTokens(content);
+		const chunkType = getChunkType(child.type, language);
+
+		// Skip semicolons (typically on lines already covered by their statement)
+		if (child.type === ";") continue;
+
+		// JSDoc/comments → buffer, will attach to next chunk
+		if (child.type === "comment") {
+			if (gapStartLine < 0) gapStartLine = child.startPosition.row;
+			gapLines.push(content);
+			continue;
+		}
+
+		if (chunkType && tokens <= MAX_CHUNK_TOKENS && tokens >= MIN_CHUNK_TOKENS) {
+			// Fits in one chunk AND big enough — emit with any buffered JSDoc/comments
+			const fullContent = gapLines.length > 0
+				? gapLines.join("\n") + "\n" + content
+				: content;
+			const startLine = gapStartLine >= 0 ? gapStartLine : child.startPosition.row;
+
+			chunks.push({
+				content: fullContent,
+				startLine,
+				endLine: child.endPosition.row,
+				chunkType,
+				name: extractName(child, language),
+				parentName: containerName ?? extractParentName(child, language),
+				signature: extractSignature(child, source, language),
+			});
+			gapLines = [];
+			gapStartLine = -1;
+
+		} else if (chunkType && tokens <= MAX_CHUNK_TOKENS && tokens < MIN_CHUNK_TOKENS) {
+			// Recognized but too small to stand alone — check if gap + content is big enough
+			const combinedContent = gapLines.length > 0
+				? gapLines.join("\n") + "\n" + content
+				: content;
+			if (estimateTokens(combinedContent) >= MIN_CHUNK_TOKENS) {
+				// Combined with gap, it's big enough — emit
+				const startLine = gapStartLine >= 0 ? gapStartLine : child.startPosition.row;
+				chunks.push({
+					content: combinedContent,
+					startLine,
+					endLine: child.endPosition.row,
+					chunkType,
+					name: extractName(child, language),
+					parentName: containerName ?? extractParentName(child, language),
+					signature: extractSignature(child, source, language),
+				});
+				gapLines = [];
+				gapStartLine = -1;
+			} else {
+				// Still too small even with gap — accumulate everything as gap
+				if (gapStartLine < 0) gapStartLine = child.startPosition.row;
+				gapLines.push(content);
+			}
+
+		} else if (chunkType && tokens > MAX_CHUNK_TOKENS) {
+			// Too large — need to descend or split
+			const name = extractName(child, language);
+			const isContainer = chunkType === "class" || chunkType === "module";
+
+			if (isContainer) {
+				// For classes/modules: capture header + descend into body
+				const body = child.childForFieldName("body") ?? child;
+
+				// Include class header (everything before body) in the preamble
+				// so "class Indexer {" isn't orphaned
+				if (body !== child) {
+					const headerContent = source.slice(child.startIndex, body.startIndex).trimEnd();
+					if (headerContent.trim().length > 0) {
+						if (gapStartLine < 0) gapStartLine = child.startPosition.row;
+						gapLines.push(headerContent);
+					}
+				}
+
+				// Pass accumulated gap as preamble to class body processing
+				// so it gets prepended to the first child chunk
+				const preamble = gapLines.length > 0 ? gapLines.join("\n") : undefined;
+				const preambleStart = gapStartLine;
+				gapLines = [];
+				gapStartLine = -1;
+
+				processChildren(body, source, language, chunks, name ?? containerName, preamble, preambleStart);
+			} else {
+				// For oversized functions/methods: include buffered JSDoc in the first part
+				const preamble = gapLines.length > 0 ? gapLines.join("\n") : undefined;
+				const preambleStartLine = gapStartLine >= 0 ? gapStartLine : -1;
+				gapLines = [];
+				gapStartLine = -1;
+
+				splitIntoConnectedParts(child, source, language, containerName, chunks, preamble, preambleStartLine);
+			}
+
+		} else {
+			// Non-chunk node (import, field, export_statement, etc.)
+			// Check if it wraps recognized children (e.g., export_statement wrapping class_declaration)
+			if (hasRecognizedChild(child, language)) {
+				flushGap(gapLines, gapStartLine, child.startPosition.row - 1, containerName, chunks);
+				gapLines = [];
+				gapStartLine = -1;
+				processChildren(child, source, language, chunks, containerName);
+			} else {
+				// Terminal gap node → accumulate
+				if (gapStartLine < 0) gapStartLine = child.startPosition.row;
+				gapLines.push(content);
+			}
 		}
 	}
+
+	// Flush remaining gap (trailing fields, etc.)
+	if (gapLines.length > 0) {
+		flushGap(gapLines, gapStartLine, parent.endPosition.row, containerName, chunks);
+	}
+}
+
+/**
+ * Split an oversized leaf AST node into connected parts.
+ * Each part is labeled (part K/N) and linked via partIndex/totalParts.
+ * Optional preamble (JSDoc/comments) is prepended to the first part.
+ */
+function splitIntoConnectedParts(
+	node: Node,
+	source: string,
+	language: SupportedLanguage,
+	containerName: string | null,
+	chunks: ParsedChunk[],
+	preamble?: string,
+	preambleStartLine?: number,
+): void {
+	const content = source.slice(node.startIndex, node.endIndex);
+	const lines = content.split("\n");
+	const maxLines = Math.floor((MAX_CHUNK_TOKENS * CHARS_PER_TOKEN) / 80);
+	const name = extractName(node, language);
+	const chunkType = getChunkType(node.type, language)!;
+
+	// Build split boundaries, merging a tiny last part into the previous one.
+	// Without this, the last part can be just 2-3 closing braces — not a
+	// meaningful chunk (no callers, no summary, useless search result).
+	const MIN_LAST_PART_LINES = 10;
+	const boundaries: Array<{ start: number; end: number }> = [];
+	for (let start = 0; start < lines.length; start += maxLines) {
+		boundaries.push({ start, end: Math.min(start + maxLines, lines.length) });
+	}
+	// Merge tiny last part into previous
+	if (boundaries.length >= 2) {
+		const last = boundaries[boundaries.length - 1];
+		if (last.end - last.start < MIN_LAST_PART_LINES) {
+			boundaries[boundaries.length - 2].end = last.end;
+			boundaries.pop();
+		}
+	}
+
+	const totalParts = boundaries.length;
+
+	for (let p = 0; p < totalParts; p++) {
+		const { start, end } = boundaries[p];
+		let partContent = lines.slice(start, end).join("\n");
+		let startLine = node.startPosition.row + start;
+
+		// Prepend JSDoc/comment preamble to first part
+		if (p === 0 && preamble) {
+			partContent = preamble + "\n" + partContent;
+			if (preambleStartLine != null && preambleStartLine >= 0) {
+				startLine = preambleStartLine;
+			}
+		}
+
+		chunks.push({
+			content: partContent,
+			startLine,
+			endLine: node.startPosition.row + end - 1,
+			chunkType,
+			name: name ? `${name} (part ${p + 1}/${totalParts})` : undefined,
+			parentName: containerName ?? extractParentName(node, language),
+			signature: p === 0 ? extractSignature(node, source, language) : undefined,
+			partIndex: p + 1,
+			totalParts,
+		});
+	}
+}
+
+/**
+ * Flush accumulated gap lines as a standalone chunk.
+ * Gaps are imports, field declarations, static properties, etc. that
+ * sit between recognized AST chunks.
+ */
+function flushGap(
+	lines: string[],
+	startLine: number,
+	endLine: number,
+	containerName: string | null,
+	chunks: ParsedChunk[],
+): void {
+	if (lines.length === 0) return;
+	const content = lines.join("\n");
+	if (content.trim().length < 10) return; // Skip trivial gaps
+
+	chunks.push({
+		content,
+		startLine,
+		endLine,
+		chunkType: "module", // imports, fields, declarations → module-level
+		name: containerName ? `${containerName} (fields)` : undefined,
+		parentName: containerName ?? undefined,
+	});
+}
+
+/**
+ * Check if a node has any direct children with recognized chunk types.
+ * Used to detect wrapper nodes like export_statement that contain
+ * class_declaration, function_declaration, etc.
+ */
+function hasRecognizedChild(node: Node, language: SupportedLanguage): boolean {
+	for (let i = 0; i < node.childCount; i++) {
+		const child = node.child(i)!;
+		if (getChunkType(child.type, language) !== null) return true;
+	}
+	return false;
 }
 
 /**
@@ -406,6 +608,8 @@ function createCodeChunk(
 		parentName: parsed.parentName,
 		signature: parsed.signature,
 		fileHash,
+		partIndex: parsed.partIndex,
+		totalParts: parsed.totalParts,
 	};
 }
 
@@ -416,55 +620,6 @@ function estimateTokens(text: string): number {
 	return Math.ceil(text.length / CHARS_PER_TOKEN);
 }
 
-/**
- * Split a large chunk into smaller pieces
- */
-function splitLargeChunk(chunk: ParsedChunk, source: string): ParsedChunk[] {
-	const lines = chunk.content.split("\n");
-	const maxLinesPerChunk = Math.floor(
-		(MAX_CHUNK_TOKENS * CHARS_PER_TOKEN) / 80,
-	); // Assume 80 chars per line
-
-	const chunks: ParsedChunk[] = [];
-	let currentLines: string[] = [];
-	let currentStartLine = chunk.startLine;
-
-	for (let i = 0; i < lines.length; i++) {
-		currentLines.push(lines[i]);
-
-		if (currentLines.length >= maxLinesPerChunk) {
-			chunks.push({
-				content: currentLines.join("\n"),
-				startLine: currentStartLine,
-				endLine: currentStartLine + currentLines.length - 1,
-				chunkType: "block",
-				name: chunk.name
-					? `${chunk.name} (part ${chunks.length + 1})`
-					: undefined,
-				parentName: chunk.parentName,
-			});
-
-			currentLines = [];
-			currentStartLine = chunk.startLine + i + 1;
-		}
-	}
-
-	// Add remaining lines
-	if (currentLines.length > 0) {
-		chunks.push({
-			content: currentLines.join("\n"),
-			startLine: currentStartLine,
-			endLine: currentStartLine + currentLines.length - 1,
-			chunkType: "block",
-			name: chunk.name
-				? `${chunk.name} (part ${chunks.length + 1})`
-				: undefined,
-			parentName: chunk.parentName,
-		});
-	}
-
-	return chunks;
-}
 
 /**
  * Fallback line-based chunking for unsupported languages

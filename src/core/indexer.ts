@@ -274,12 +274,14 @@ export class Indexer {
 					this.fileTracker,
 				);
 			} catch (error) {
-				// Enrichment is optional - log and continue without it
-				console.warn(
-					"⚠️  Enrichment disabled:",
-					error instanceof Error ? error.message : error,
+				const msg = error instanceof Error ? error.message : String(error);
+				throw new Error(
+					`Enrichment failed to initialize: ${msg}\n` +
+						`LLM enrichment is enabled by default and requires a running LLM provider.\n` +
+						`Either:\n` +
+						`  • Start your LLM provider (e.g. LM Studio, Ollama)\n` +
+						`  • Or run with --no-llm to skip enrichment`,
 				);
-				this.enableEnrichment = false;
 			}
 		}
 
@@ -851,6 +853,37 @@ export class Indexer {
 		// Placed before enrichment so a partial enrichment failure doesn't prevent version write
 		setIndexVersion(this.projectPath, CURRENT_INDEX_VERSION);
 
+		// Collect previously-indexed files that still need enrichment
+		if (this.enableEnrichment && this.enricher && this.fileTracker) {
+			const alreadyQueued = new Set(
+				fileChunksForEnrichment.map((f) => f.filePath),
+			);
+			const unenrichedPaths =
+				this.fileTracker.getFilesNeedingEnrichment("file_summary");
+
+			for (const relPath of unenrichedPaths) {
+				if (alreadyQueued.has(relPath)) continue;
+				const absPath = join(this.projectPath, relPath);
+				if (!existsSync(absPath)) continue;
+
+				try {
+					const content = readFileSync(absPath, "utf-8");
+					const fileHash = computeFileHash(absPath);
+					const chunks = await chunkFileByPath(content, absPath, fileHash);
+					if (chunks.length === 0) continue;
+
+					fileChunksForEnrichment.push({
+						filePath: relPath,
+						fileContent: content,
+						codeChunks: chunks,
+						language: chunks[0].language,
+					});
+				} catch {
+					// Skip files that can't be read/chunked
+				}
+			}
+		}
+
 		// Phase 4.5 & 5: AST Extraction and Enrichment
 		// Run in parallel when embedding is local and LLM is cloud (no resource contention)
 		let enrichmentResult: EnrichmentResult | undefined;
@@ -968,10 +1001,29 @@ export class Indexer {
 		}
 
 		// Search
-		return this.vectorStore!.search(query, queryVector, {
+		const results = await this.vectorStore!.search(query, queryVector, {
 			...options,
 			keywordOnly: useKeywordOnly,
 		});
+
+		// Dead code deprioritization: penalize symbols with 0 callers
+		// This prevents agents from being directed to unused/dead code
+		if (this.fileTracker && results.length > 1) {
+			const DEAD_CODE_PENALTY = 0.6; // 40% score reduction
+			for (const r of results) {
+				if (!r.chunk.name) continue;
+				const syms = this.fileTracker.getSymbolByName(r.chunk.name);
+				// Find the symbol in the same file
+				const sym = syms.find(s => s.filePath === r.chunk.filePath) ?? syms[0];
+				if (sym && sym.inDegree === 0 && sym.pagerankScore < 0.001) {
+					r.score *= DEAD_CODE_PENALTY;
+				}
+			}
+			// Re-sort after penalty
+			results.sort((a, b) => b.score - a.score);
+		}
+
+		return results;
 	}
 
 	/**

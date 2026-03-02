@@ -29,7 +29,7 @@ if (isAutocompleteServerMode) {
 	});
 } else if (isMcpMode) {
 	// MCP server mode - lazy load to keep CLI startup fast
-	import("./mcp-server.js").then((module) => {
+	import("./mcp/server.js").then((module) => {
 		module.startMcpServer();
 	});
 } else {

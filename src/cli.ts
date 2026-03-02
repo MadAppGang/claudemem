@@ -124,7 +124,7 @@ function isAgentMode(): boolean {
 function printCompactHelp(): void {
 	console.log(`claudemem v${VERSION} - Semantic code search with AST analysis`);
 	console.log(
-		"Commands: index search map symbol callers callees context dead-code test-gaps impact hook update",
+		"Commands: index search status clear map symbol callers callees context dead-code test-gaps impact watch hooks hook install docs feedback learn update",
 	);
 	console.log(
 		"Use: claudemem --agent <cmd> | Docs: https://github.com/MadAppGang/claudemem",
@@ -313,6 +313,9 @@ export async function runCli(args: string[]): Promise<void> {
 		case "ui":
 			await handleUi(args.slice(1));
 			break;
+		case "monitor":
+			await handleMonitor(args.slice(1));
+			break;
 		case "watch":
 			await handleWatch(args.slice(1));
 			break;
@@ -379,12 +382,54 @@ function createProgressRenderer() {
 	const globalStartTime = Date.now();
 	let animFrame = 0;
 	let interval: ReturnType<typeof setInterval> | null = null;
-	let maxLinesWritten = 0; // Track MAXIMUM lines ever written (for cursor movement)
+	let maxLinesWritten = 0;
 
 	// Track multiple phases simultaneously (for parallel execution)
 	const phases = new Map<string, PhaseState>();
-	// Order phases appeared (for consistent rendering order)
 	const phaseOrder: string[] = [];
+
+	// Buffer console output to prevent interleaved writes from breaking cursor math
+	const bufferedOutput: Array<{ stream: "out" | "err"; data: string }> = [];
+	const origStdoutWrite = process.stdout.write.bind(process.stdout);
+	const origStderrWrite = process.stderr.write.bind(process.stderr);
+	let intercepting = false;
+
+	function startIntercepting() {
+		if (intercepting) return;
+		intercepting = true;
+		// Intercept console.log/warn/error by replacing stream write methods
+		process.stderr.write = (data: any, ...args: any[]) => {
+			bufferedOutput.push({ stream: "err", data: String(data) });
+			return true;
+		};
+		// Only intercept stdout writes that are NOT from our renderer
+		// We'll use origStdoutWrite for our own rendering
+		const rendererWrite = origStdoutWrite;
+		process.stdout.write = (data: any, ...args: any[]) => {
+			bufferedOutput.push({ stream: "out", data: String(data) });
+			return true;
+		};
+	}
+
+	function stopIntercepting() {
+		if (!intercepting) return;
+		intercepting = false;
+		process.stdout.write = origStdoutWrite;
+		process.stderr.write = origStderrWrite;
+	}
+
+	function flushBuffered() {
+		for (const { stream, data } of bufferedOutput) {
+			if (stream === "err") origStderrWrite(data);
+			else origStdoutWrite(data);
+		}
+		bufferedOutput.length = 0;
+	}
+
+	// Use origStdoutWrite for all renderer output to bypass interception
+	function writeOut(data: string) {
+		origStdoutWrite(data);
+	}
 
 	function renderLine(
 		elapsed: string,
@@ -393,7 +438,10 @@ function createProgressRenderer() {
 		phase: string,
 		detail: string,
 	) {
-		return `⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(16)} │ ${detail}`;
+		const cols = process.stdout.columns || 80;
+		const line = `⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phase.padEnd(16)} │ ${detail}`;
+		// Truncate to terminal width to prevent wrapping (which breaks cursor-up math)
+		return line.length > cols ? line.slice(0, cols - 1) : line;
 	}
 
 	function buildBar(completed: number, total: number, inProgress: number) {
@@ -421,16 +469,15 @@ function createProgressRenderer() {
 	function render() {
 		animFrame = (animFrame + 1) % INDEX_ANIM_FRAMES.length;
 
-		// Calculate how many lines we'll write THIS render (phases + total)
-		const linesToWrite = phaseOrder.length + 1;
-
-		// Move cursor up by the MAXIMUM lines ever written (not current count)
-		// This ensures we always start from the same position
 		if (maxLinesWritten > 0) {
-			process.stdout.write(`\x1b[${maxLinesWritten}A`);
+			writeOut(`\r\x1b[${maxLinesWritten}A`);
 		}
 
-		// Render each phase in order
+		// Clear from cursor to end of screen — prevents stale lines when
+		// new phases are added between renders (cursor-up uses the old
+		// phase count, so newly added phases would leave ghost lines below)
+		writeOut("\x1b[J");
+
 		for (const phaseName of phaseOrder) {
 			const phase = phases.get(phaseName)!;
 			const percent =
@@ -438,28 +485,26 @@ function createProgressRenderer() {
 			const bar = phase.isComplete
 				? "█".repeat(20)
 				: buildBar(phase.completed, phase.total, phase.inProgress);
-			// Use frozen duration for completed phases, live duration for active
 			const elapsed =
 				phase.isComplete && phase.finalDuration !== undefined
 					? formatElapsed(phase.finalDuration)
 					: formatElapsed(Date.now() - phase.startTime);
 			const detail = phase.isComplete ? "done" : phase.detail;
 
-			process.stdout.write(
+			writeOut(
 				`\r${renderLine(elapsed, bar, percent, phaseName, detail)}\x1b[K\n`,
 			);
 		}
 
-		// Render total line
 		const totalElapsed = formatElapsed(Date.now() - globalStartTime);
-		process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
+		writeOut(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K`);
 
-		// Update max lines (phases can only increase, so this tracks growth)
-		maxLinesWritten = Math.max(maxLinesWritten, linesToWrite);
+		maxLinesWritten = phaseOrder.length;
 	}
 
 	return {
 		start() {
+			startIntercepting();
 			interval = setInterval(render, 100);
 			if (interval.unref) interval.unref();
 		},
@@ -504,9 +549,13 @@ function createProgressRenderer() {
 				clearInterval(interval);
 				interval = null;
 			}
+			stopIntercepting();
 		},
 		finish() {
-			this.stop();
+			if (interval) {
+				clearInterval(interval);
+				interval = null;
+			}
 
 			// Mark all phases as complete with frozen durations
 			for (const phase of phases.values()) {
@@ -518,10 +567,10 @@ function createProgressRenderer() {
 				phase.inProgress = 0;
 			}
 
-			// Final render - use maxLinesWritten to properly overwrite all previous lines
+			// Final render — overwrite all previous lines
 			animFrame = 0;
 			if (maxLinesWritten > 0) {
-				process.stdout.write(`\x1b[${maxLinesWritten}A`);
+				writeOut(`\r\x1b[${maxLinesWritten}A`);
 			}
 
 			for (const phaseName of phaseOrder) {
@@ -530,16 +579,19 @@ function createProgressRenderer() {
 					phase.finalDuration ?? Date.now() - phase.startTime,
 				);
 				const bar = "█".repeat(20);
-				process.stdout.write(
+				writeOut(
 					`\r${renderLine(elapsed, bar, 100, phaseName, "done")}\x1b[K\n`,
 				);
 			}
 
+			// Total line — finish() DOES write \n since we're done and need
+			// the cursor on a fresh line for subsequent output
 			const totalElapsed = formatElapsed(Date.now() - globalStartTime);
-			process.stdout.write(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
+			writeOut(`\r\x1b[2m⏱ ${totalElapsed} total\x1b[0m\x1b[K\n`);
 
-			// Update maxLinesWritten for consistency
-			maxLinesWritten = Math.max(maxLinesWritten, phaseOrder.length + 1);
+			// Stop intercepting and flush any buffered console output
+			stopIntercepting();
+			flushBuffered();
 		},
 	};
 }
@@ -732,8 +784,13 @@ async function handleIndex(args: string[]): Promise<void> {
 				// Show unique errors with counts
 				console.log("\n  Enrichment errors:");
 				for (const [error, { count, files }] of errorGroups) {
+					// Extract just the error type/reason, strip verbose response bodies
+					const cleaned = error
+						.replace(/Response: \{[\s\S]*$/, "")
+						.replace(/Response: [\s\S]*$/, "")
+						.trim();
 					const truncatedError =
-						error.length > 100 ? `${error.slice(0, 100)}...` : error;
+						cleaned.length > 120 ? `${cleaned.slice(0, 120)}...` : cleaned;
 					console.log(`    ✖ ${truncatedError}`);
 					console.log(
 						`      (${count}x) files: ${files.join(", ")}${count > files.length ? ` +${count - files.length} more` : ""}`,
@@ -984,36 +1041,14 @@ async function handleSearch(args: string[]): Promise<void> {
 		// Collect result IDs for feedback hint
 		const resultIds = results.map((r) => r.chunk.id);
 
+		const queryTerms = query
+			.split(/\s+/)
+			.filter((t) => t.length > 0);
+
 		for (let i = 0; i < results.length; i++) {
 			const r = results[i];
 			const chunk = r.chunk;
-
-			console.log(
-				`━━━ ${i + 1}. ${chunk.filePath}:${chunk.startLine}-${chunk.endLine} ━━━`,
-			);
-			console.log(`ID: ${chunk.id}`);
-			console.log(
-				`Type: ${chunk.chunkType}${chunk.name ? ` | Name: ${chunk.name}` : ""}${chunk.parentName ? ` | Parent: ${chunk.parentName}` : ""}`,
-			);
-			console.log(
-				`Score: ${(r.score * 100).toFixed(1)}% (vector: ${(r.vectorScore * 100).toFixed(0)}%, keyword: ${(r.keywordScore * 100).toFixed(0)}%)`,
-			);
-			console.log("");
-
-			// Print code with truncation
-			const lines = chunk.content.split("\n");
-			const maxLines = 20;
-			const displayLines = lines.slice(0, maxLines);
-
-			for (const line of displayLines) {
-				console.log(`  ${line}`);
-			}
-
-			if (lines.length > maxLines) {
-				console.log(`  ... (${lines.length - maxLines} more lines)`);
-			}
-
-			console.log("");
+			printSearchResult(chunk, r.score, queryTerms);
 		}
 
 		// Show feedback hint for agents
@@ -1030,6 +1065,172 @@ async function handleSearch(args: string[]): Promise<void> {
 	} finally {
 		await indexer.close();
 	}
+}
+
+// ── GitHub-style search output helpers ──────────────────────────────────
+
+const ANSI_BOLD_YELLOW = "\x1b[1;33m";
+const ANSI_RESET = "\x1b[0m";
+const ANSI_DIM = "\x1b[2m";
+const ANSI_GREEN = "\x1b[32m";
+const ANSI_YELLOW = "\x1b[33m";
+const ANSI_RED = "\x1b[31m";
+
+const CHUNK_TYPE_ABBREV: Record<string, string> = {
+	function: "fn",
+	class: "cls",
+	method: "method",
+	module: "mod",
+	block: "block",
+};
+
+function highlightTerms(line: string, terms: string[]): string {
+	if (terms.length === 0) return line;
+	// Sort longest-first to avoid partial matches inside longer terms
+	const sorted = [...terms].sort((a, b) => b.length - a.length);
+	const escaped = sorted.map((t) =>
+		t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+	);
+	const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
+	return line.replace(pattern, `${ANSI_BOLD_YELLOW}$1${ANSI_RESET}`);
+}
+
+interface DisplayLine {
+	lineNo: number;
+	text: string;
+	isGap: boolean;
+}
+
+function getMatchLines(
+	content: string,
+	startLine: number,
+	terms: string[],
+	contextRadius = 2,
+	maxLines = 15,
+): DisplayLine[] {
+	const lines = content.split("\n");
+
+	// Find lines that contain any query term (case-insensitive)
+	const matchIndices = new Set<number>();
+	for (let i = 0; i < lines.length; i++) {
+		const lower = lines[i].toLowerCase();
+		for (const term of terms) {
+			if (lower.includes(term.toLowerCase())) {
+				matchIndices.add(i);
+				break;
+			}
+		}
+	}
+
+	// If no term matches (pure vector match), show first N lines
+	if (matchIndices.size === 0) {
+		const count = Math.min(lines.length, 10);
+		const result: DisplayLine[] = [];
+		for (let i = 0; i < count; i++) {
+			result.push({ lineNo: startLine + i, text: lines[i], isGap: false });
+		}
+		if (lines.length > count) {
+			result.push({ lineNo: 0, text: "", isGap: true });
+		}
+		return result;
+	}
+
+	// Build included-index set with context around each match
+	const included = new Set<number>();
+	for (const idx of matchIndices) {
+		for (
+			let c = Math.max(0, idx - contextRadius);
+			c <= Math.min(lines.length - 1, idx + contextRadius);
+			c++
+		) {
+			included.add(c);
+		}
+	}
+
+	// Sort and build display lines, inserting gap markers
+	const sorted = [...included].sort((a, b) => a - b);
+	const result: DisplayLine[] = [];
+	let prev = -2;
+	for (const idx of sorted) {
+		if (result.length >= maxLines) break;
+		if (prev >= 0 && idx > prev + 1) {
+			result.push({ lineNo: 0, text: "", isGap: true });
+		}
+		result.push({
+			lineNo: startLine + idx,
+			text: lines[idx],
+			isGap: false,
+		});
+		prev = idx;
+	}
+	return result;
+}
+
+function printSearchResult(
+	chunk: {
+		filePath: string;
+		startLine: number;
+		endLine: number;
+		chunkType: string;
+		name?: string;
+		parentName?: string;
+		content: string;
+	},
+	score: number,
+	terms: string[],
+): void {
+	const termWidth = process.stdout.columns || 80;
+	const divider = "─".repeat(termWidth);
+
+	// Type abbreviation + name label
+	const abbrev = CHUNK_TYPE_ABBREV[chunk.chunkType] ?? chunk.chunkType;
+	const nameLabel = chunk.name
+		? `${abbrev} ${chunk.parentName ? `${chunk.parentName}.` : ""}${chunk.name}`
+		: abbrev;
+
+	// Score with color
+	const pct = Math.round(score * 100);
+	const scoreColor = pct >= 70 ? ANSI_GREEN : pct >= 40 ? ANSI_YELLOW : ANSI_RED;
+	const scoreStr = `${scoreColor}${pct}%${ANSI_RESET}`;
+
+	// Header: path:range on left, name + score on right
+	const leftPart = ` ${chunk.filePath}:${chunk.startLine}-${chunk.endLine}`;
+	const nameScorePart = `${nameLabel}  ${pct}%`; // uncolored for length calc
+	const padding = Math.max(
+		1,
+		termWidth - leftPart.length - nameScorePart.length - 1,
+	);
+	console.log(
+		`${leftPart}${" ".repeat(padding)}${ANSI_DIM}${nameLabel}${ANSI_RESET}  ${scoreStr}`,
+	);
+	console.log(divider);
+
+	// Build context-windowed lines
+	const displayLines = getMatchLines(
+		chunk.content,
+		chunk.startLine,
+		terms,
+	);
+
+	// Determine gutter width from largest line number
+	const maxLineNo = displayLines.reduce(
+		(m, l) => (l.isGap ? m : Math.max(m, l.lineNo)),
+		0,
+	);
+	const gutterWidth = String(maxLineNo).length;
+
+	for (const dl of displayLines) {
+		if (dl.isGap) {
+			console.log(`${" ".repeat(gutterWidth + 2)}│   ...`);
+		} else {
+			const num = String(dl.lineNo).padStart(gutterWidth);
+			const highlighted = highlightTerms(dl.text, terms);
+			console.log(` ${ANSI_DIM}${num}${ANSI_RESET} │ ${highlighted}`);
+		}
+	}
+
+	console.log(divider);
+	console.log("");
 }
 
 async function handleStatus(args: string[]): Promise<void> {
@@ -3742,6 +3943,17 @@ async function handleUi(args: string[]): Promise<void> {
 }
 
 /**
+ * Handle 'monitor' command - passive activity display
+ */
+async function handleMonitor(args: string[]): Promise<void> {
+	const pathArg = args.find((a) => !a.startsWith("-"));
+	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	const { startMonitor } = await import("./tui/index.js");
+	await startMonitor(projectPath);
+}
+
+/**
  * Handle 'watch' command - file watcher daemon
  */
 async function handleWatch(args: string[]): Promise<void> {
@@ -5140,6 +5352,7 @@ ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
   ${c.green}hook${c.reset}                   Claude Code hook handler ${c.dim}(reads JSON from stdin)${c.reset}
   ${c.green}install${c.reset} <tool>         Install integration ${c.dim}(opencode|claude-code)${c.reset}
+  ${c.green}docs${c.reset} <subcommand>     Manage library documentation ${c.dim}(status|fetch|refresh|providers|clear)${c.reset}
 
 ${c.yellow}${c.bold}SELF-LEARNING SYSTEM${c.reset} ${c.dim}(enabled by default, learns from interactions)${c.reset}
   ${c.green}feedback${c.reset}               Report search feedback ${c.dim}(--query, --helpful, --unhelpful)${c.reset}

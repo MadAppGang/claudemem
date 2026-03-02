@@ -99,7 +99,9 @@ interface SearchOptions {
 	limit?: number;
 	language?: string;
 	filePath?: string;
+	pathPattern?: string;
 	keywordOnly?: boolean;
+	useCase?: SearchUseCase;
 }
 
 // ============================================================================
@@ -180,6 +182,21 @@ export class VectorStore {
 		}
 
 		return null;
+	}
+
+	private ftsIndexReady = false;
+
+	private async ensureFtsIndex(): Promise<void> {
+		if (!this.table || this.ftsIndexReady) return;
+		try {
+			await this.table.createIndex("content", {
+				config: lancedb.Index.fts(),
+				replace: true,
+			});
+			this.ftsIndexReady = true;
+		} catch {
+			// FTS index creation failed — BM25 search will be unavailable
+		}
 	}
 
 	/**
@@ -265,21 +282,24 @@ export class VectorStore {
 	}
 
 	/**
-	 * Search for similar chunks using hybrid search
-	 * @param queryText - The search query text
-	 * @param queryVector - Query embedding vector (undefined for keyword-only search)
-	 * @param options - Search options
+	 * Unified search: type-aware hybrid search across all document layers.
+	 *
+	 * Uses typeAwareRRFFusion to weight code_chunks, symbol_summaries, and
+	 * file_summaries by use-case. Summary documents are joined back to their
+	 * source code chunks via sourceIds, so callers get code results with
+	 * attached LLM summaries.
+	 *
+	 * This is the single search path used by CLI, TUI, and MCP.
 	 */
 	async search(
 		queryText: string,
 		queryVector: number[] | undefined,
 		options: SearchOptions = {},
 	): Promise<SearchResult[]> {
-		const { limit = DEFAULT_LIMIT, language, filePath, keywordOnly } = options;
+		const { limit = DEFAULT_LIMIT, language, filePath, pathPattern, keywordOnly, useCase } = options;
 
 		const table = await this.ensureTableOpen();
 		if (!table) {
-			// No index yet, return empty results
 			return [];
 		}
 
@@ -291,12 +311,18 @@ export class VectorStore {
 		if (filePath) {
 			filters.push(`filePath LIKE '%${escapeFilterValue(filePath)}%'`);
 		}
+		if (pathPattern) {
+			filters.push(`filePath LIKE '%${escapeFilterValue(pathPattern)}%'`);
+		}
 		const filterStr = filters.length > 0 ? filters.join(" AND ") : undefined;
+
+		// Fetch more results to account for multi-type documents
+		const fetchLimit = limit * 3;
 
 		// Vector search (skip if keyword-only mode or no vector)
 		let vectorResults: any[] = [];
 		if (!keywordOnly && queryVector) {
-			let vectorQuery = table.vectorSearch(queryVector).limit(limit * 2);
+			let vectorQuery = table.vectorSearch(queryVector).limit(fetchLimit);
 			if (filterStr) {
 				vectorQuery = vectorQuery.where(filterStr);
 			}
@@ -304,31 +330,66 @@ export class VectorStore {
 		}
 
 		// BM25 full-text search (if available)
+		await this.ensureFtsIndex();
 		let bm25Results: any[] = [];
 		try {
-			let ftsQuery = table.search(queryText, "content").limit(limit * 2);
+			let ftsQuery = table.query()
+				.fullTextSearch(queryText, { columns: ["content"] })
+				.limit(fetchLimit);
 			if (filterStr) {
 				ftsQuery = ftsQuery.where(filterStr);
 			}
 			bm25Results = await ftsQuery.toArray();
 		} catch {
-			// FTS might not be available, fall back to vector-only
 			bm25Results = [];
 		}
 
-		// Reciprocal Rank Fusion with test file handling
+		// Type-aware Reciprocal Rank Fusion
+		const weights = getUseCaseWeights(useCase || "search");
 		const testFileMode = getTestFileMode(this.projectPath);
-		const results = reciprocalRankFusion(
+		const fused = typeAwareRRFFusion(
 			vectorResults,
 			bm25Results,
 			VECTOR_WEIGHT,
 			BM25_WEIGHT,
+			weights,
 			this.testFileDetector,
 			testFileMode,
 		);
 
-		// Convert to SearchResult format
-		return results.slice(0, limit).map((r) => ({
+		// Separate code results from summary results
+		const codeResults: FusedResult[] = [];
+		const symbolSummaryById = new Map<string, string>(); // sourceChunkId -> symbol summary
+		const fileSummaryById = new Map<string, string>();    // sourceChunkId -> file summary
+
+		for (const r of fused) {
+			// Skip corrupt/empty rows (LanceDB binary data corruption)
+			if (!r.filePath) continue;
+
+			const docType = (r.documentType || "code_chunk") as string;
+			if (docType === "symbol_summary" || docType === "file_summary") {
+				// Extract summary text and map to source code chunks
+				const sourceIds: string[] = r.sourceIds
+					? (typeof r.sourceIds === "string" ? JSON.parse(r.sourceIds) : r.sourceIds)
+					: [];
+				const summaryText = r.content || "";
+				const targetMap = docType === "symbol_summary" ? symbolSummaryById : fileSummaryById;
+				for (const srcId of sourceIds) {
+					if (!targetMap.has(srcId)) {
+						targetMap.set(srcId, summaryText);
+					}
+				}
+			} else {
+				// code_chunk, code_unit, etc.
+				codeResults.push(r);
+			}
+		}
+
+		// Attach summaries to their source code chunks
+		// Prefer symbol-level summary (more specific), fall back to file-level
+		const topResults = codeResults.slice(0, limit);
+		const maxFused = topResults.length > 0 ? topResults[0].fusedScore : 1;
+		return topResults.map((r) => ({
 			chunk: {
 				id: r.id,
 				contentHash: r.contentHash || "",
@@ -343,9 +404,12 @@ export class VectorStore {
 				signature: r.signature || undefined,
 				fileHash: r.fileHash,
 			},
-			score: r.fusedScore,
+			score: maxFused > 0 ? r.fusedScore / maxFused : 0,
 			vectorScore: r.vectorScore || 0,
 			keywordScore: r.keywordScore || 0,
+			summary: r.summary || symbolSummaryById.get(r.id) || fileSummaryById.get(r.id) || undefined,
+			fileSummary: fileSummaryById.get(r.id) || undefined,
+			unitType: r.unitType || undefined,
 		}));
 	}
 
@@ -702,9 +766,12 @@ export class VectorStore {
 		const vectorResults = await vectorQuery.toArray();
 
 		// BM25 full-text search
+		await this.ensureFtsIndex();
 		let bm25Results: any[] = [];
 		try {
-			let ftsQuery = table.search(queryText, "content").limit(limit * 3);
+			let ftsQuery = table.query()
+				.fullTextSearch(queryText, { columns: ["content"] })
+				.limit(limit * 3);
 			if (filterStr) {
 				ftsQuery = ftsQuery.where(filterStr);
 			}
@@ -729,7 +796,9 @@ export class VectorStore {
 		);
 
 		// Convert to EnrichedSearchResult format
-		return results.slice(0, limit).map((r) => ({
+		const topResults = results.slice(0, limit);
+		const maxFused = topResults.length > 0 ? topResults[0].fusedScore : 1;
+		return topResults.map((r) => ({
 			document: {
 				id: r.id,
 				content: r.content,
@@ -741,7 +810,7 @@ export class VectorStore {
 				sourceIds: r.sourceIds ? JSON.parse(r.sourceIds) : undefined,
 				metadata: r.metadata ? JSON.parse(r.metadata) : undefined,
 			},
-			score: r.fusedScore,
+			score: maxFused > 0 ? r.fusedScore / maxFused : 0,
 			vectorScore: r.vectorScore || 0,
 			keywordScore: r.keywordScore || 0,
 			documentType: r.documentType as DocumentType,
@@ -1096,9 +1165,12 @@ export class VectorStore {
 		const vectorResults = await vectorQuery.toArray();
 
 		// BM25 search (search both content and summary if summaries exist)
+		await this.ensureFtsIndex();
 		let bm25Results: any[] = [];
 		try {
-			let ftsQuery = table.search(queryText, "content").limit(limit * 2);
+			let ftsQuery = table.query()
+				.fullTextSearch(queryText, { columns: ["content"] })
+				.limit(limit * 2);
 			ftsQuery = ftsQuery.where(filterStr);
 			bm25Results = await ftsQuery.toArray();
 		} catch {

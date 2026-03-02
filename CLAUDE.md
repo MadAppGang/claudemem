@@ -110,3 +110,6 @@ Multiple skill document variants for different contexts:
 3. **Test file detection** is language-specific (see test-detector.ts)
 4. **Impact analysis** uses BFS with depth limiting to avoid infinite loops
 5. **Watch mode** uses native `fs.watch` (no external deps like chokidar)
+6. **OpenTUI `<text>` overlap**: Multiple `<text>` siblings in a `<box>` render at (0,0). Use single `<text>` per `<box>`, or `<box flexDirection="row">` with each `<text>` in its own `<box>`
+7. **OpenTUI `useAlternateScreen: false`** appends lines on re-render instead of overwriting — not suitable for progress bars. Use ANSI cursor-based rendering (`\x1b[${lines}A`) for progress displays
+8. **CLI alias ordering**: Flag-style command aliases (e.g. `--watch` → `watch`) must mutate `args` BEFORE `const command = args[0]` to take effect

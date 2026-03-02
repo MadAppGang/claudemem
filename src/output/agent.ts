@@ -57,9 +57,15 @@ function searchResults(query: string, results: SearchResult[]): void {
 	console.log(`query=${query}`);
 	console.log(`result_count=${results.length}`);
 	for (const r of results) {
-		console.log(
-			`result file=${r.chunk.filePath} line=${r.chunk.startLine} score=${r.score.toFixed(3)} type=${r.chunk.chunkType} name=${r.chunk.name ?? ""}`,
-		);
+		let line = `result file=${r.chunk.filePath} line=${r.chunk.startLine} score=${r.score.toFixed(3)} type=${r.chunk.chunkType} name=${r.chunk.name ?? ""}`;
+		if (r.summary) {
+			// Extract first sentence of summary for agent context
+			const summaryMatch = r.summary.match(/Summary:\s*(.+?)(?:\n|$)/);
+			if (summaryMatch) {
+				line += ` summary=${summaryMatch[1].trim()}`;
+			}
+		}
+		console.log(line);
 	}
 }
 
