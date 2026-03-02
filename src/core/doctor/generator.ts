@@ -135,9 +135,31 @@ async function askQuestions(
 }
 
 /**
+ * Run the generator in non-interactive agent mode.
+ * Skips Q&A, uses empty answers — auto-detected context (PageRank symbols,
+ * framework detection) still produces useful output.
+ */
+export async function runGeneratorAgent(
+	projectPath: string,
+	result: DoctorResult,
+	tracker?: FileTracker | null,
+): Promise<GeneratedContext> {
+	const ctx = gatherProjectContext(projectPath, tracker ?? null, result);
+	const answers: GeneratorAnswers = {
+		nonDiscoverable: [],
+		gotchas: [],
+		buildCommands: [],
+		neverDo: [],
+	};
+	const generated = generateOptimizedContext(answers, result, ctx);
+	saveGeneratedFiles(projectPath, generated);
+	return generated;
+}
+
+/**
  * Phase 2: Generate optimized CLAUDE.md from answers + diagnosis + context
  */
-function generateOptimizedContext(
+export function generateOptimizedContext(
 	answers: GeneratorAnswers,
 	result: DoctorResult,
 	ctx: ReturnType<typeof gatherProjectContext>,
@@ -237,7 +259,7 @@ function generateOptimizedContext(
 /**
  * Phase 3: Save generated files
  */
-function saveGeneratedFiles(
+export function saveGeneratedFiles(
 	projectPath: string,
 	generated: GeneratedContext,
 ): void {

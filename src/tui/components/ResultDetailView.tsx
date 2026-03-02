@@ -191,11 +191,12 @@ function parsePartInfo(name?: string): { partIndex: number; totalParts: number }
 // Section Header
 // ============================================================================
 
-function SectionHeader({ title, count, bg }: { title: string; count?: number; bg: string }) {
+function SectionHeader({ title, count, bg, hint }: { title: string; count?: number; bg: string; hint?: string }) {
 	const countStr = count !== undefined ? `  ${count}` : "";
 	return (
 		<box height={1} width="100%" backgroundColor={bg} flexDirection="row">
 			<box><text fg="#FFFFFF">{`  ${title}${countStr}  `}</text></box>
+			{hint && <box><text fg={theme.dimmed}>{hint}</text></box>}
 		</box>
 	);
 }
@@ -204,7 +205,7 @@ function SectionHeader({ title, count, bg }: { title: string; count?: number; bg
 // Symbol Row
 // ============================================================================
 
-function SymbolRow({ sym, index, symbolCount }: { sym: SymbolDefinition; index: number; symbolCount: number }) {
+function SymbolRow({ sym, index, symbolCount, selected }: { sym: SymbolDefinition; index: number; symbolCount: number; selected?: boolean }) {
 	const kindColor = KIND_COLORS[sym.kind] ?? theme.muted;
 	const kindBadge = CHUNK_TYPE_ABBREV[sym.kind] ?? sym.kind.slice(0, 4);
 	const pr = sym.pagerankScore;
@@ -213,10 +214,11 @@ function SymbolRow({ sym, index, symbolCount }: { sym: SymbolDefinition; index: 
 	const prLabel = ratio >= 5 ? `${ratio.toFixed(0)}x` : `${ratio.toFixed(1)}x`;
 	const fileName = sym.filePath.split("/").pop() ?? sym.filePath;
 	const loc = `${fileName}:${sym.startLine}`;
+	const prefix = selected ? "  \u25B6   " : `  ${String(index + 1).padStart(2)}.  `;
 
 	return (
-		<box height={1} flexDirection="row">
-			<box><text fg={theme.dimmed}>{`  ${String(index + 1).padStart(2)}.  `}</text></box>
+		<box height={1} flexDirection="row" backgroundColor={selected ? "#37474F" : undefined}>
+			<box><text fg={selected ? theme.info : theme.dimmed}>{prefix}</text></box>
 			<box backgroundColor={kindColor}>
 				<text fg="#000000">{` ${kindBadge.padEnd(4)} `}</text>
 			</box>
@@ -271,6 +273,11 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 	const [focusedSymbol, setFocusedSymbol] = useState<SymbolDefinition | null>(null);
 	const [graphLoaded, setGraphLoaded] = useState(false);
 	const [symbolCount, setSymbolCount] = useState(1500); // updated from graph
+
+	// Drill-down navigation state
+	const [focusSection, setFocusSection] = useState<'callers' | 'callees' | null>(null);
+	const [sectionIdx, setSectionIdx] = useState(0);
+	const [navStack, setNavStack] = useState<SearchResult[]>([]);
 
 	// Strip "(part N/M)" for graph lookup
 	const symbolName = baseSymbolName(chunk.name);
@@ -402,19 +409,128 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 		return () => { cancelled = true; };
 	}, [tracker, symbolName, chunk.filePath]);
 
+	// Navigate into a caller/callee symbol by loading its chunk from LanceDB
+	async function navigateToSymbol(sym: SymbolDefinition) {
+		try {
+			const storePath = getVectorStorePath(projectPath);
+			const db = await lancedb.connect(storePath);
+			const tables = await db.tableNames();
+			if (!tables.includes("code_chunks")) return;
+			const table = await db.openTable("code_chunks");
+
+			const escapedName = sym.name.replace(/'/g, "''");
+			const escapedPath = sym.filePath.replace(/'/g, "''");
+			const rows = await table.query()
+				.where(`(name = '${escapedName}' OR name LIKE '${escapedName} (part %') AND \`filePath\` = '${escapedPath}'`)
+				.limit(1)
+				.toArray();
+
+			if (rows.length === 0) return;
+			const row = rows[0] as any;
+
+			const newResult: SearchResult = {
+				chunk: {
+					id: row.id,
+					contentHash: row.contentHash || "",
+					content: row.content,
+					filePath: row.filePath,
+					startLine: row.startLine,
+					endLine: row.endLine,
+					language: row.language,
+					chunkType: row.chunkType,
+					name: row.name || undefined,
+					parentName: row.parentName || undefined,
+					signature: row.signature || undefined,
+					fileHash: row.fileHash,
+				},
+				score: 0,
+				vectorScore: 0,
+				keywordScore: 0,
+			};
+
+			// Push current result onto nav stack, then navigate
+			setNavStack(prev => [...prev, activeResult]);
+			setOverrideResult(newResult);
+			setFocusSection(null);
+			setSectionIdx(0);
+			// Reset graph state so it reloads for the new symbol
+			setGraphLoaded(false);
+			setCallers([]);
+			setCallees([]);
+			setFocusedSymbol(null);
+		} catch {
+			// LanceDB lookup failed — stay on current view
+		}
+	}
+
 	// Keyboard
 	useKeyboard((key) => {
-		if (key.name === "escape" || key.name === "q") {
+		// q always closes entirely
+		if (key.name === "q") {
 			onClose();
 			return;
 		}
-		if (key.name === "left" && currentSiblingIdx > 0) {
-			setOverrideResult(allSiblingResults[currentSiblingIdx - 1]);
+
+		// Escape: exit section focus → pop nav stack → close
+		if (key.name === "escape") {
+			if (focusSection) {
+				setFocusSection(null);
+				setSectionIdx(0);
+				return;
+			}
+			if (navStack.length > 0) {
+				const prev = navStack[navStack.length - 1];
+				setNavStack(s => s.slice(0, -1));
+				setOverrideResult(prev);
+				setGraphLoaded(false);
+				setCallers([]);
+				setCallees([]);
+				setFocusedSymbol(null);
+				return;
+			}
+			onClose();
 			return;
 		}
-		if (key.name === "right" && currentSiblingIdx >= 0 && currentSiblingIdx < allSiblingResults.length - 1) {
-			setOverrideResult(allSiblingResults[currentSiblingIdx + 1]);
+
+		// c/e: focus callers/callees section
+		if (key.raw === "c" && callers.length > 0) {
+			setFocusSection("callers");
+			setSectionIdx(0);
 			return;
+		}
+		if (key.raw === "e" && callees.length > 0) {
+			setFocusSection("callees");
+			setSectionIdx(0);
+			return;
+		}
+
+		// j/k or up/down: move selection within focused section
+		if (focusSection) {
+			const list = focusSection === "callers" ? callers : callees;
+			if ((key.name === "down" || key.raw === "j") && sectionIdx < list.length - 1) {
+				setSectionIdx(i => i + 1);
+				return;
+			}
+			if ((key.name === "up" || key.raw === "k") && sectionIdx > 0) {
+				setSectionIdx(i => i - 1);
+				return;
+			}
+			if (key.name === "return" && list[sectionIdx]) {
+				void navigateToSymbol(list[sectionIdx]);
+				return;
+			}
+		}
+
+		// Part navigation (only when no section focused)
+		if (!focusSection) {
+			if (key.name === "left" && currentSiblingIdx > 0) {
+				setOverrideResult(allSiblingResults[currentSiblingIdx - 1]);
+				return;
+			}
+			if (key.name === "right" && currentSiblingIdx >= 0 && currentSiblingIdx < allSiblingResults.length - 1) {
+				setOverrideResult(allSiblingResults[currentSiblingIdx + 1]);
+				return;
+			}
 		}
 	});
 
@@ -520,7 +636,7 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 				<box backgroundColor="#4A148C">
 					<text fg="#CE93D8">{` k:${kwPct}% `}</text>
 				</box>
-				<box><text fg={theme.dimmed}>{"    Esc back"}</text></box>
+				<box><text fg={theme.dimmed}>{navStack.length > 0 ? `    Esc back (${navStack.length} deep)` : "    Esc back"}</text></box>
 			</box>
 
 			{/* ── Part navigation bar ─────────────────────────────────────── */}
@@ -611,6 +727,11 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 					title={graphLoaded ? "CALLERS (who depends on this)" : "CALLERS"}
 					count={graphLoaded ? callers.length : undefined}
 					bg="#1A237E"
+					hint={callers.length > 0
+						? focusSection === "callers"
+							? "j/k ↑↓  Enter open  Esc back"
+							: "c to select"
+						: undefined}
 				/>
 				{!graphLoaded && (
 					<box height={1} flexDirection="row">
@@ -623,7 +744,7 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 					</box>
 				)}
 				{callers.map((sym, i) => (
-					<SymbolRow key={`caller-${i}`} sym={sym} index={i} symbolCount={symbolCount} />
+					<SymbolRow key={`caller-${i}`} sym={sym} index={i} symbolCount={symbolCount} selected={focusSection === "callers" && sectionIdx === i} />
 				))}
 
 				{/* ── Callees ───────────────────────────────────────────── */}
@@ -632,6 +753,11 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 					title={graphLoaded ? "CALLEES (what this depends on)" : "CALLEES"}
 					count={graphLoaded ? callees.length : undefined}
 					bg="#4A148C"
+					hint={callees.length > 0
+						? focusSection === "callees"
+							? "j/k ↑↓  Enter open  Esc back"
+							: "e to select"
+						: undefined}
 				/>
 				{!graphLoaded && (
 					<box height={1} flexDirection="row">
@@ -644,7 +770,7 @@ export function ResultDetailView({ result, allResults, onClose }: ResultDetailVi
 					</box>
 				)}
 				{callees.map((sym, i) => (
-					<SymbolRow key={`callee-${i}`} sym={sym} index={i} symbolCount={symbolCount} />
+					<SymbolRow key={`callee-${i}`} sym={sym} index={i} symbolCount={symbolCount} selected={focusSection === "callees" && sectionIdx === i} />
 				))}
 
 				{/* ── Code (syntax highlighted) ────────────────────────── */}

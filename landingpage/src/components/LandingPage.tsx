@@ -27,7 +27,7 @@ const HeroSection: React.FC = () => {
 	const [copied, setCopied] = useState(false);
 
 	const handleCopy = () => {
-		navigator.clipboard.writeText("bun install -g claude-codemem");
+		navigator.clipboard.writeText("npm install -g claudemem");
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
 	};
@@ -63,7 +63,8 @@ const HeroSection: React.FC = () => {
 
 				{/* Value Proposition */}
 				<p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-					Give <span className="text-white font-medium">Claude Code</span>,{" "}
+					Give{" "}
+					<span className="text-white font-medium">Claude Code</span>,{" "}
 					<span className="text-white font-medium">Cursor</span>, and AI
 					assistants persistent understanding of your codebase.{" "}
 					<span className="text-[#00d4aa]">
@@ -115,7 +116,7 @@ const HeroSection: React.FC = () => {
 					>
 						<span className="text-[#00d4aa] font-mono font-bold">$</span>
 						<code className="text-gray-300 font-mono">
-							bun install -g claude-codemem
+							npm install -g claudemem
 						</code>
 						<span className="text-gray-500 group-hover:text-[#00d4aa] transition-colors">
 							{copied ? "✓" : "⎘"}
@@ -133,6 +134,23 @@ const HeroSection: React.FC = () => {
 						</svg>
 						View on GitHub
 					</a>
+				</div>
+
+				{/* Scroll indicator */}
+				<div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-600 animate-bounce">
+					<svg
+						className="w-6 h-6"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M19 14l-7 7m0 0l-7-7m7 7V3"
+						/>
+					</svg>
 				</div>
 			</div>
 		</section>
@@ -177,7 +195,8 @@ const ProblemSection: React.FC = () => {
 				{/* Section Header */}
 				<div className="text-center mb-16">
 					<h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-						Why Your AI <span className="text-red-500">Keeps Failing</span>
+						Why Your AI{" "}
+						<span className="text-red-500">Keeps Failing</span>
 					</h2>
 					<p className="text-gray-500 text-lg max-w-2xl mx-auto">
 						The hidden costs of stateless coding assistants
@@ -232,8 +251,8 @@ const SolutionSection: React.FC = () => {
 						<span className="text-[#00d4aa]">Understand Forever.</span>
 					</h2>
 					<p className="text-gray-500 text-lg max-w-2xl mx-auto">
-						claudemem pre-indexes your codebase locally, giving AI agents
-						instant context every session.
+						claudemem pre-indexes your codebase locally, giving AI agents instant
+						context every session.
 					</p>
 				</div>
 
@@ -451,8 +470,7 @@ const HowItWorksSection: React.FC = () => {
 									<div
 										className="h-full w-full"
 										style={{
-											background:
-												"repeating-linear-gradient(90deg, #374151 0px, #374151 8px, transparent 8px, transparent 16px)",
+											background: 'repeating-linear-gradient(90deg, #374151 0px, #374151 8px, transparent 8px, transparent 16px)'
 										}}
 									/>
 								</div>
@@ -462,8 +480,7 @@ const HowItWorksSection: React.FC = () => {
 										className="h-full bg-gradient-to-r from-[#00d4aa] via-[#00d4aa] to-cyan-400 transition-all duration-1000 ease-out"
 										style={{
 											width: `${currentStep * 25}%`,
-											boxShadow:
-												"0 0 12px rgba(0,212,170,0.6), 0 0 24px rgba(0,212,170,0.3)",
+											boxShadow: '0 0 12px rgba(0,212,170,0.6), 0 0 24px rgba(0,212,170,0.3)'
 										}}
 									/>
 								</div>
@@ -472,9 +489,8 @@ const HowItWorksSection: React.FC = () => {
 									className="absolute top-1/2 w-3 h-3 bg-white rounded-full transition-all duration-1000 ease-out"
 									style={{
 										left: `${currentStep * 25}%`,
-										transform: "translate(-50%, -50%)",
-										boxShadow:
-											"0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(0,212,170,0.6)",
+										transform: 'translate(-50%, -50%)',
+										boxShadow: '0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(0,212,170,0.6)'
 									}}
 								/>
 							</div>
@@ -511,9 +527,7 @@ const HowItWorksSection: React.FC = () => {
 											<h3 className="text-lg font-bold text-white mb-1">
 												{step.title}
 											</h3>
-											<p className="text-xs text-gray-500 mb-3">
-												{step.subtitle}
-											</p>
+											<p className="text-xs text-gray-500 mb-3">{step.subtitle}</p>
 
 											{/* Expanded info on current step */}
 											<div
@@ -618,9 +632,7 @@ const HowItWorksSection: React.FC = () => {
 										<div className="text-sm text-gray-400 mb-1">
 											vs 10-30 seconds
 										</div>
-										<div className="text-xs text-gray-600">
-											Context retrieval
-										</div>
+										<div className="text-xs text-gray-600">Context retrieval</div>
 									</div>
 
 									<div className="bg-[#080808] border border-gray-800 rounded-xl p-6 text-center">
@@ -640,9 +652,7 @@ const HowItWorksSection: React.FC = () => {
 											28+
 										</div>
 										<div className="text-sm text-gray-400 mb-1">Languages</div>
-										<div className="text-xs text-gray-600">
-											Full AST parsing
-										</div>
+										<div className="text-xs text-gray-600">Full AST parsing</div>
 									</div>
 								</div>
 
@@ -767,7 +777,7 @@ const QuickStartSection: React.FC = () => {
 		{
 			step: 1,
 			label: "Install",
-			command: "bun install -g claude-codemem",
+			command: "npm install -g claudemem",
 			description: "Install the CLI globally",
 		},
 		{
@@ -790,7 +800,8 @@ const QuickStartSection: React.FC = () => {
 				{/* Section Header */}
 				<div className="text-center mb-12">
 					<h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-						Get Started in <span className="text-[#00d4aa]">60 Seconds</span>
+						Get Started in{" "}
+						<span className="text-[#00d4aa]">60 Seconds</span>
 					</h2>
 					<p className="text-gray-500 text-lg">
 						Three commands. That's all it takes.

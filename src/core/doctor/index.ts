@@ -12,7 +12,7 @@ export {
 	formatDoctorJSON,
 	formatDoctorCompact,
 } from "./formatter.js";
-export { runGenerator } from "./generator.js";
+export { runGenerator, runGeneratorAgent } from "./generator.js";
 export {
 	gatherProjectContext,
 	generateSmartQuestions,
