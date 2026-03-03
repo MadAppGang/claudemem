@@ -4,6 +4,7 @@
 export interface SearchResult {
   file: string;
   line: number;
+  endLine: number;
   score: number;
   type: string;
   name: string;
@@ -97,7 +98,7 @@ export type WebviewToHostMessage =
   | { type: 'getImpact'; name: string; requestId: string }
 
   // Navigation
-  | { type: 'openFile'; filePath: string; line: number }
+  | { type: 'openFile'; filePath: string; line: number; endLine?: number }
 
   // Index management
   | { type: 'getStatus'; requestId: string }

@@ -106,6 +106,12 @@ body {
 }
 
 /* --- Result list --- */
+.result-count {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  margin: 4px 0 2px;
+}
+
 .result-list {
   margin-top: 4px;
 }
@@ -114,53 +120,94 @@ body {
   padding: 5px 6px;
   cursor: pointer;
   border-bottom: 1px solid var(--vscode-panel-border);
+  border-left: 2px solid transparent;
 }
 
 .result-item:hover {
   background: var(--vscode-list-hoverBackground);
 }
 
-.result-header {
+/* Score-based left accent */
+.result-accent-high {
+  border-left-color: var(--vscode-charts-green, #4caf50);
+}
+
+.result-accent-medium {
+  border-left-color: var(--vscode-charts-orange, #ff9800);
+}
+
+.result-accent-low {
+  border-left-color: var(--vscode-charts-red, #f44336);
+}
+
+/* Row 1: file path + line range */
+.result-file-row {
+  font-family: var(--vscode-editor-font-family);
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Row 2: symbol name + type badge + score */
+.result-symbol-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  margin-top: 2px;
 }
 
 .result-name {
   font-weight: 600;
   font-size: 12px;
+  font-family: var(--vscode-editor-font-family);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.result-type {
+.result-type-abbrev {
   color: var(--vscode-descriptionForeground);
   font-size: 10px;
   border: 1px solid var(--vscode-panel-border);
   padding: 0 3px;
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .result-score {
-  color: var(--vscode-badge-foreground);
-  background: var(--vscode-badge-background);
   padding: 1px 4px;
   border-radius: 2px;
   font-size: 10px;
+  font-weight: 500;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
-.result-path {
-  margin-top: 2px;
+.result-score.high {
+  color: #fff;
+  background: var(--vscode-charts-green, #4caf50);
 }
 
-.result-snippet {
+.result-score.medium {
+  color: #fff;
+  background: var(--vscode-charts-orange, #ff9800);
+}
+
+.result-score.low {
+  color: #fff;
+  background: var(--vscode-charts-red, #f44336);
+}
+
+/* Row 3: summary */
+.result-summary {
   margin-top: 3px;
-  font-family: var(--vscode-editor-font-family);
-  font-size: var(--vscode-editor-font-size, 12px);
-  color: var(--vscode-editor-foreground);
-  opacity: 0.8;
-  white-space: pre-wrap;
-  word-break: break-word;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* --- Buttons --- */

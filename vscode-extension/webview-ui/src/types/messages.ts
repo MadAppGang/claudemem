@@ -4,6 +4,7 @@
 export interface SearchResult {
   file: string;
   line: number;
+  endLine: number;
   score: number;
   type: string;
   name: string;
@@ -87,7 +88,7 @@ export type WebviewToHostMessage =
   | { type: 'getDeadCode'; requestId: string }
   | { type: 'getTestGaps'; requestId: string }
   | { type: 'getImpact'; name: string; requestId: string }
-  | { type: 'openFile'; filePath: string; line: number }
+  | { type: 'openFile'; filePath: string; line: number; endLine?: number }
   | { type: 'getStatus'; requestId: string }
   | { type: 'reindex'; requestId: string }
   | { type: 'cancel'; requestId: string }

@@ -21,6 +21,7 @@ export function parseSearchOutput(raw: string): SearchResult[] {
     results.push({
       file: kv['file'] ?? '',
       line: parseInt(kv['line'] ?? '0', 10),
+      endLine: parseInt(kv['end_line'] ?? kv['line'] ?? '0', 10),
       score: parseFloat(kv['score'] ?? '0'),
       type: kv['type'] ?? '',
       name: kv['name'] ?? '',

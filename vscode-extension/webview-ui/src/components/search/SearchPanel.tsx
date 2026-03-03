@@ -37,11 +37,14 @@ export function SearchPanel({
       )}
 
       {!loading && results.length > 0 && (
-        <div className="result-list" role="list">
-          {results.map((result, index) => (
-            <ResultItem key={`${result.file}:${result.line}:${index}`} result={result} />
-          ))}
-        </div>
+        <>
+          <div className="result-count">{results.length} result{results.length !== 1 ? 's' : ''}</div>
+          <div className="result-list" role="list">
+            {results.map((result, index) => (
+              <ResultItem key={`${result.file}:${result.line}:${index}`} result={result} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

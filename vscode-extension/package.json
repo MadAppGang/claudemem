@@ -1,9 +1,19 @@
 {
-  "name": "claudemem",
+  "name": "claude-codemem",
   "displayName": "claudemem",
-  "description": "Semantic code search and symbol navigation powered by claudemem",
+  "description": "Semantic code search and symbol navigation for your codebase. AST-aware chunking, vector embeddings, and PageRank symbol graph.",
   "version": "0.1.0",
-  "publisher": "claudemem",
+  "publisher": "MadAppGang",
+  "license": "MIT",
+  "icon": "icon.png",
+  "homepage": "https://github.com/MadAppGang/claudemem",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MadAppGang/claudemem"
+  },
+  "bugs": {
+    "url": "https://github.com/MadAppGang/claudemem/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },

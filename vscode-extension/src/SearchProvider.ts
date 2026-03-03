@@ -123,7 +123,7 @@ export class SearchProvider implements vscode.WebviewViewProvider {
     }
 
     if (message.type === 'openFile') {
-      await this._openFile(message.filePath, message.line);
+      await this._openFile(message.filePath, message.line, message.endLine);
       return;
     }
 
@@ -229,15 +229,18 @@ export class SearchProvider implements vscode.WebviewViewProvider {
     this._view?.webview.postMessage(message);
   }
 
-  private async _openFile(filePath: string, line: number): Promise<void> {
-    log(`openFile: ${filePath}:${line}`);
+  private async _openFile(filePath: string, line: number, endLine?: number): Promise<void> {
+    log(`openFile: ${filePath}:${line}${endLine ? `-${endLine}` : ''}`);
     try {
       const uri = vscode.Uri.file(filePath);
       const doc = await vscode.workspace.openTextDocument(uri);
-      // Convert 1-based line number to 0-based VS Code position
-      const position = new vscode.Position(Math.max(0, line - 1), 0);
+      // Convert 1-based line numbers to 0-based VS Code positions
+      const startPos = new vscode.Position(Math.max(0, line - 1), 0);
+      const endPos = endLine && endLine > line
+        ? new vscode.Position(Math.min(endLine - 1, doc.lineCount - 1), doc.lineAt(Math.min(endLine - 1, doc.lineCount - 1)).text.length)
+        : startPos;
       await vscode.window.showTextDocument(doc, {
-        selection: new vscode.Range(position, position),
+        selection: new vscode.Range(startPos, endPos),
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
