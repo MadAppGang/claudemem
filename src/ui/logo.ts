@@ -20,9 +20,12 @@ function getVersion(): string {
 
 	try {
 		// Try multiple paths to find package.json
+		// ../package.json works from dist/index.js, ../../ works from src/ui/logo.ts
+		const base = dirname(fileURLToPath(import.meta.url));
 		const paths = [
+			join(base, "../package.json"),
+			join(base, "../../package.json"),
 			join(process.cwd(), "package.json"),
-			join(dirname(fileURLToPath(import.meta.url)), "../../package.json"),
 		];
 
 		for (const path of paths) {

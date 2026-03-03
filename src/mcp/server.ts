@@ -49,9 +49,20 @@ import {
 } from "./tools/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SERVER_VERSION: string = JSON.parse(
-	readFileSync(join(__dirname, "../../package.json"), "utf-8"),
-).version;
+
+function readVersion(): string {
+	for (const rel of ["../package.json", "../../package.json"]) {
+		const p = join(__dirname, rel);
+		if (existsSync(p)) {
+			try {
+				return JSON.parse(readFileSync(p, "utf-8")).version;
+			} catch {}
+		}
+	}
+	return "0.0.0";
+}
+
+const SERVER_VERSION: string = readVersion();
 
 /**
  * Run a blocking initial index when no index.db exists yet.

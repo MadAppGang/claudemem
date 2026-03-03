@@ -48,11 +48,12 @@ function getVersion(): string {
 	if (_version) return _version;
 	try {
 		// Walk up from this file's location to find package.json
-		// This file is at src/pack/index.ts → package.json is at ../../package.json
-		const pkgPath = resolve(
-			dirname(new URL(import.meta.url).pathname),
-			"../../package.json",
-		);
+		// In source: src/pack/index.ts → ../../package.json
+		// In bundle: dist/index.js → ../package.json
+		const base = dirname(new URL(import.meta.url).pathname);
+		const pkgPath = existsSync(resolve(base, "../package.json"))
+			? resolve(base, "../package.json")
+			: resolve(base, "../../package.json");
 		const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as {
 			version: string;
 		};
