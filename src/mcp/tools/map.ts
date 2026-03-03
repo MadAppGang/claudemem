@@ -3,6 +3,8 @@
  *
  * Generates an architectural overview (repo map) of the codebase,
  * using PageRank to prioritize the most important files and symbols.
+ * When cloud deps are available (deps.cloudClient), delegates to the
+ * cloud getMap() API which returns a server-side pre-generated map.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -11,7 +13,7 @@ import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
 export function registerMapTools(server: McpServer, deps: ToolDeps): void {
-	const { cache, stateManager } = deps;
+	const { cache, stateManager, config } = deps;
 
 	server.tool(
 		"map",
@@ -34,21 +36,56 @@ export function registerMapTools(server: McpServer, deps: ToolDeps): void {
 				.default(true)
 				.describe("Include symbol signatures in the map (default: true)"),
 		},
-		async ({ root, depth, includeSymbols }) => {
+		async ({ root, depth }) => {
 			const startTime = Date.now();
 
 			try {
-				const { repoMapGen } = await cache.get();
-
 				// depth is repurposed as token budget in thousands
 				const maxTokens = (depth ?? 3) * 1000;
+
+				// ── Cloud map (when cloud deps are wired in) ─────────────────────
+				if (deps.cloudClient && deps.currentCommitSha && deps.teamConfig) {
+					try {
+						const orgSlug = deps.teamConfig.orgSlug;
+						const repoSlug =
+							deps.teamConfig.repoSlug ??
+							`${orgSlug}/${config.workspaceRoot
+								.split("/")
+								.filter(Boolean)
+								.pop() ?? "repo"}`;
+
+						const mapText = await deps.cloudClient.getMap(
+							repoSlug,
+							deps.currentCommitSha,
+							root && root !== "." ? root : undefined,
+							maxTokens,
+						);
+
+						return {
+							content: [
+								{
+									type: "text" as const,
+									text: JSON.stringify({
+										mapText,
+										...buildFreshness(stateManager, startTime),
+									}),
+								},
+							],
+						};
+					} catch (cloudErr) {
+						return errorResponse(cloudErr);
+					}
+				}
+
+				// ── Local map (default path) ─────────────────────────────────────
+				const { repoMapGen } = await cache.get();
 
 				const pathPattern =
 					root && root !== "." ? root : undefined;
 
 				const mapText = repoMapGen.generate({
 					maxTokens,
-					includeSignatures: includeSymbols ?? true,
+					includeSignatures: true,
 					pathPattern,
 				});
 
@@ -69,3 +106,4 @@ export function registerMapTools(server: McpServer, deps: ToolDeps): void {
 		},
 	);
 }
+

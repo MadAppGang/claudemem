@@ -6,8 +6,8 @@ import {
 	getVectorStorePath,
 } from "../config.js";
 import { createEmbeddingsClient } from "../core/embeddings.js";
-import { createVectorStore, type VectorStore } from "../core/store.js";
-import { createFileTracker, type FileTracker } from "../core/tracker.js";
+import { createVectorStore, type IVectorStore } from "../core/store.js";
+import { createFileTracker, type IFileTracker } from "../core/tracker.js";
 import {
 	createEnrichedRetriever,
 	type EnrichedRetriever,
@@ -126,8 +126,8 @@ function extractAstContext(args: {
 export class AutocompleteEngine {
 	private projectPath: string;
 	private llm: ILLMClient | null = null;
-	private store: VectorStore | null = null;
-	private tracker: FileTracker | null = null;
+	private store: IVectorStore | null = null;
+	private tracker: IFileTracker | null = null;
 	private retriever: EnrichedRetriever | null = null;
 	private projectFacts: { text: string; mtimeMs?: number } = { text: "" };
 

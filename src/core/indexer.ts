@@ -55,16 +55,16 @@ import {
 } from "./index-version.js";
 import { chunkFileByPath } from "./chunker.js";
 import { createEmbeddingsClient } from "./embeddings.js";
-import { createVectorStore, type VectorStore } from "./store.js";
+import { createVectorStore, type IVectorStore } from "./store.js";
 import {
 	computeFileHash,
 	createFileTracker,
-	type FileTracker,
+	type IFileTracker,
 } from "./tracker.js";
 import { createSymbolExtractor } from "./symbol-extractor.js";
 import { createReferenceGraphManager } from "./reference-graph.js";
 import { createRepoMapGenerator } from "./repo-map.js";
-import { createIndexLock, type IndexLock, type LockOptions } from "./lock.js";
+import { createIndexLock, type IIndexLock, type LockOptions } from "./lock.js";
 import { createDocsFetcher, type DocsFetcher } from "../docs/index.js";
 import { computeHash } from "./tracker.js";
 
@@ -181,11 +181,11 @@ export class Indexer {
 	private onWaitingForLock?: (holderPid: number, waitedMs: number) => void;
 
 	private embeddingsClient: IEmbeddingsClient | null = null;
-	private vectorStore: VectorStore | null = null;
-	private fileTracker: FileTracker | null = null;
+	private vectorStore: IVectorStore | null = null;
+	private fileTracker: IFileTracker | null = null;
 	private llmClient: ILLMClient | null = null;
 	private enricher: Enricher | null = null;
-	private indexLock: IndexLock | null = null;
+	private indexLock: IIndexLock | null = null;
 	private docsFetcher: DocsFetcher | null = null;
 	private codeUnitExtractor: CodeUnitExtractor | null = null;
 

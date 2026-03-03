@@ -15,8 +15,8 @@ import type {
 	IEmbeddingsClient,
 	ILLMClient,
 } from "../../types.js";
-import type { VectorStore } from "../store.js";
-import type { FileTracker } from "../tracker.js";
+import type { IVectorStore } from "../store.js";
+import type { IFileTracker } from "../tracker.js";
 import {
 	createDefaultExtractors,
 	createExtractorRegistry,
@@ -103,16 +103,16 @@ export interface RefinementResult {
 export class Enricher {
 	private llmClient: ILLMClient;
 	private embeddingsClient: IEmbeddingsClient;
-	private vectorStore: VectorStore;
-	private tracker: FileTracker;
+	private vectorStore: IVectorStore;
+	private tracker: IFileTracker;
 	private pipeline: EnrichmentPipeline;
 	private registry: ExtractorRegistry;
 
 	constructor(
 		llmClient: ILLMClient,
 		embeddingsClient: IEmbeddingsClient,
-		vectorStore: VectorStore,
-		tracker: FileTracker,
+		vectorStore: IVectorStore,
+		tracker: IFileTracker,
 	) {
 		this.llmClient = llmClient;
 		this.embeddingsClient = embeddingsClient;
@@ -933,8 +933,8 @@ async function runWithPool<T>(
 export function createEnricher(
 	llmClient: ILLMClient,
 	embeddingsClient: IEmbeddingsClient,
-	vectorStore: VectorStore,
-	tracker: FileTracker,
+	vectorStore: IVectorStore,
+	tracker: IFileTracker,
 ): Enricher {
 	return new Enricher(llmClient, embeddingsClient, vectorStore, tracker);
 }

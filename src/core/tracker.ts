@@ -73,10 +73,96 @@ export interface IndexedDocState {
 }
 
 // ============================================================================
+// IFileTracker Interface
+// ============================================================================
+
+/**
+ * Interface for file tracker implementations.
+ * Allows swapping in alternative storage backends.
+ */
+export interface IFileTracker {
+	getChanges(currentFiles: string[]): FileChanges;
+	markIndexed(filePath: string, contentHash: string, chunkIds: string[]): void;
+	getChunkIds(filePath: string): string[];
+	removeFile(filePath: string): void;
+	getFileState(filePath: string): FileState | null;
+	getAllFiles(): FileState[];
+	getMetadata(key: string): string | null;
+	setMetadata(key: string, value: string): void;
+	getStats(): { totalFiles: number; lastIndexed: string | null };
+	clear(): void;
+	recordActivity(type: string, metadata: Record<string, unknown>): number;
+	getActivity(sinceId?: number, limit?: number): ActivityRow[];
+	pruneActivity(keepCount?: number): void;
+	close(): void;
+	getDatabase(): SQLiteDatabase;
+	getEnrichmentState(filePath: string): EnrichmentStateMap;
+	setEnrichmentState(
+		filePath: string,
+		documentType: DocumentType,
+		state: EnrichmentState,
+	): void;
+	setAllEnrichmentStates(filePath: string, states: EnrichmentStateMap): void;
+	resetEnrichmentState(filePath: string): void;
+	needsEnrichment(filePath: string, documentType: DocumentType): boolean;
+	getFilesNeedingEnrichment(documentType: DocumentType): string[];
+	trackDocument(doc: TrackedDocument): void;
+	trackDocuments(docs: TrackedDocument[]): void;
+	getDocumentsForFile(filePath: string): TrackedDocument[];
+	getDocumentsByType(documentType: DocumentType): TrackedDocument[];
+	deleteDocumentsForFile(filePath: string): void;
+	deleteDocumentsByType(documentType: DocumentType): void;
+	getDocumentCounts(): Record<DocumentType, number>;
+	markDocsIndexed(
+		library: string,
+		version: string | null,
+		provider: DocProviderType,
+		contentHash: string,
+		chunkIds: string[],
+	): void;
+	needsDocsRefresh(library: string, version?: string, maxAgeMs?: number): boolean;
+	getDocsState(library: string, version?: string): IndexedDocState | null;
+	getAllIndexedDocs(): IndexedDocState[];
+	getDocsChunkIds(library: string, version?: string): string[];
+	deleteIndexedDocs(library: string, version?: string): void;
+	clearAllIndexedDocs(): void;
+	getIndexedDocsStats(): {
+		totalLibraries: number;
+		totalChunks: number;
+		byProvider: Record<DocProviderType, number>;
+		oldestFetch: string | null;
+		newestFetch: string | null;
+	};
+	insertSymbol(symbol: SymbolDefinition): void;
+	insertSymbols(symbols: SymbolDefinition[]): void;
+	getSymbol(id: string): SymbolDefinition | null;
+	getSymbolsByFile(filePath: string): SymbolDefinition[];
+	getSymbolByName(name: string, kind?: SymbolKind): SymbolDefinition[];
+	getAllSymbols(): SymbolDefinition[];
+	getTopSymbols(limit: number): SymbolDefinition[];
+	deleteSymbolsByFile(filePath: string): void;
+	insertReference(ref: SymbolReference): void;
+	insertReferences(refs: SymbolReference[]): void;
+	getReferencesFrom(symbolId: string): SymbolReference[];
+	getReferencesTo(symbolId: string): SymbolReference[];
+	getUnresolvedReferences(): SymbolReference[];
+	getAllReferences(): SymbolReference[];
+	resolveReference(refId: number, toSymbolId: string): void;
+	resolveReferencesByName(): number;
+	deleteReferencesByFile(filePath: string): void;
+	updatePageRankScores(scores: Map<string, number>): void;
+	updateDegreeCounts(): void;
+	getGraphMetadata(key: string): string | null;
+	setGraphMetadata(key: string, value: string): void;
+	getSymbolGraphStats(): SymbolGraphStats;
+	clearSymbolGraph(): void;
+}
+
+// ============================================================================
 // File Tracker Class
 // ============================================================================
 
-export class FileTracker {
+export class FileTracker implements IFileTracker {
 	private db: SQLiteDatabase;
 	private projectRoot: string;
 
@@ -1517,6 +1603,6 @@ export function computeFileHash(filePath: string): string {
 export function createFileTracker(
 	dbPath: string,
 	projectRoot: string,
-): FileTracker {
+): IFileTracker {
 	return new FileTracker(dbPath, projectRoot);
 }

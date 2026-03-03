@@ -95,7 +95,7 @@ interface StoredChunk {
 	summary: string; // LLM-generated summary of this unit
 }
 
-interface SearchOptions {
+export interface SearchOptions {
 	limit?: number;
 	language?: string;
 	filePath?: string;
@@ -105,10 +105,78 @@ interface SearchOptions {
 }
 
 // ============================================================================
+// IVectorStore Interface
+// ============================================================================
+
+/**
+ * Interface for vector store implementations.
+ * Allows swapping in cloud or alternative storage backends.
+ */
+export interface IVectorStore {
+	readonly dimensionMismatchCleared: boolean;
+	initialize(): Promise<void>;
+	addChunks(chunks: ChunkWithEmbedding[]): Promise<void>;
+	search(
+		queryText: string,
+		queryVector: number[] | undefined,
+		options?: SearchOptions,
+	): Promise<SearchResult[]>;
+	deleteByFile(filePath: string): Promise<number>;
+	deleteByFileHash(fileHash: string): Promise<number>;
+	getChunksWithVectors(filePath: string): Promise<ChunkWithEmbedding[]>;
+	clear(): Promise<void>;
+	getChunkContents(limit?: number): Promise<string[]>;
+	getStats(): Promise<{
+		totalChunks: number;
+		uniqueFiles: number;
+		languages: string[];
+	}>;
+	addDocuments(documents: DocumentWithEmbedding[]): Promise<void>;
+	deleteByDocumentType(documentType: DocumentType): Promise<number>;
+	deleteAllByFile(filePath: string): Promise<number>;
+	getDocumentsByFile(
+		filePath: string,
+		documentTypes?: DocumentType[],
+	): Promise<BaseDocument[]>;
+	searchDocuments(
+		queryText: string,
+		queryVector: number[],
+		options?: EnrichedSearchOptions,
+	): Promise<EnrichedSearchResult[]>;
+	getDocumentTypeStats(): Promise<Record<DocumentType, number>>;
+	close(): Promise<void>;
+	addCodeUnits(units: CodeUnitWithEmbedding[]): Promise<void>;
+	updateUnitSummary(unitId: string, summary: string): Promise<void>;
+	updateDocumentContent(
+		documentId: string,
+		newContent: string,
+		newVector: number[],
+	): Promise<boolean>;
+	getAllSummaries(): Promise<Array<BaseDocument & { vector: number[] }>>;
+	getCodeUnitsByFile(filePath: string, unitTypes?: UnitType[]): Promise<CodeUnit[]>;
+	getCodeUnitsByDepth(depth: number, filePath?: string): Promise<CodeUnit[]>;
+	getChildUnits(parentId: string): Promise<CodeUnit[]>;
+	getCodeUnit(unitId: string): Promise<CodeUnit | null>;
+	searchCodeUnits(
+		queryText: string,
+		queryVector: number[],
+		options?: {
+			limit?: number;
+			unitTypes?: UnitType[];
+			minDepth?: number;
+			maxDepth?: number;
+			filePath?: string;
+			includeSummaries?: boolean;
+		},
+	): Promise<Array<CodeUnit & { score: number }>>;
+	getMaxDepth(filePath?: string): Promise<number>;
+}
+
+// ============================================================================
 // Vector Store Class
 // ============================================================================
 
-export class VectorStore {
+export class VectorStore implements IVectorStore {
 	private dbPath: string;
 	private projectPath: string;
 	private db: lancedb.Connection | null = null;
@@ -1514,6 +1582,6 @@ function typeAwareRRFFusion(
 export function createVectorStore(
 	dbPath: string,
 	projectPath?: string,
-): VectorStore {
+): IVectorStore {
 	return new VectorStore(dbPath, projectPath);
 }

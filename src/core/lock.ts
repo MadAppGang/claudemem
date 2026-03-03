@@ -111,6 +111,25 @@ function isLockStale(lock: LockData, staleTimeout: number): boolean {
 	return false;
 }
 
+// ============================================================================
+// IIndexLock Interface
+// ============================================================================
+
+/**
+ * Interface for index lock implementations.
+ * Allows swapping in alternative lock backends.
+ */
+export interface IIndexLock {
+	acquire(options?: LockOptions): Promise<LockResult>;
+	release(): void;
+	isLocked(staleTimeout?: number): {
+		locked: boolean;
+		holderPid?: number;
+		runningFor?: number;
+	};
+	forceRelease(): boolean;
+}
+
 /**
  * Index Lock Manager
  *
@@ -131,7 +150,7 @@ function isLockStale(lock: LockData, staleTimeout: number): boolean {
  * }
  * ```
  */
-export class IndexLock {
+export class IndexLock implements IIndexLock {
 	private lockPath: string;
 	private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 	private acquired = false;
@@ -325,6 +344,6 @@ export class IndexLock {
 export function createIndexLock(
 	projectPath: string,
 	indexDir?: string,
-): IndexLock {
+): IIndexLock {
 	return new IndexLock(projectPath, indexDir);
 }

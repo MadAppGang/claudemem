@@ -18,7 +18,7 @@
  *     async search(query, vector): Promise<SearchResult[]>
  */
 
-import type { FileTracker } from "./tracker.js";
+import type { IFileTracker } from "./tracker.js";
 import type {
 	SymbolDefinition,
 	SymbolKind,
@@ -44,9 +44,9 @@ const MAX_SYMBOLS_PER_FILE = 20;
 // ============================================================================
 
 export class RepoMapGenerator {
-	private tracker: FileTracker;
+	private tracker: IFileTracker;
 
-	constructor(tracker: FileTracker) {
+	constructor(tracker: IFileTracker) {
 		this.tracker = tracker;
 	}
 
@@ -357,6 +357,6 @@ export class RepoMapGenerator {
 /**
  * Create a repo map generator
  */
-export function createRepoMapGenerator(tracker: FileTracker): RepoMapGenerator {
+export function createRepoMapGenerator(tracker: IFileTracker): RepoMapGenerator {
 	return new RepoMapGenerator(tracker);
 }

@@ -1,0 +1,2 @@
+[claudish] Error [Opencode-zen]: HTTP 400. Request format may be incompatible with provider.
+API Error: 400 {"error":"{\"error\":{\"message\":\"Provider returned error\",\"code\":400,\"metadata\":{\"raw\":\"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"bad_request_error\\\",\\\"message\\\":\\\"invalid params, invalid tool type:  (2013)\\\",\\\"http_code\\\":\\\"400\\\"},\\\"request_id\\\":\\\"05f567d940c7f6ac889c4a0e1450da4f\\\"}\",\"provider_name\":\"Minimax\",\"is_byok\":true}},\"user_id\":\"user_2z4xm5LomaIHfsnVqMhFsWrVrGY\"}"}

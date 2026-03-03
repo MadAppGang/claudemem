@@ -3,6 +3,8 @@
  *
  * Traverse the call graph upward from a symbol, showing what depends on it,
  * ranked by PageRank importance.
+ * When cloud deps are available (deps.cloudClient), uses cloudClient.getCallers()
+ * which returns server-side call graph data. Cloud errors are returned directly.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -11,7 +13,7 @@ import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
 export function registerCallersTools(server: McpServer, deps: ToolDeps): void {
-	const { cache, stateManager } = deps;
+	const { cache, stateManager, logger } = deps;
 
 	server.tool(
 		"callers",
@@ -35,6 +37,52 @@ export function registerCallersTools(server: McpServer, deps: ToolDeps): void {
 			const startTime = Date.now();
 
 			try {
+				// ── Cloud callers (when cloud deps are wired in) ─────────────────
+				if (deps.cloudClient && deps.currentCommitSha && deps.teamConfig) {
+					try {
+						const orgSlug = deps.teamConfig.orgSlug;
+						const repoSlug =
+							deps.teamConfig.repoSlug ??
+							`${orgSlug}/${deps.config.workspaceRoot
+								.split("/")
+								.filter(Boolean)
+								.pop() ?? "repo"}`;
+
+						const callersResult = await deps.cloudClient.getCallers(
+							repoSlug,
+							deps.currentCommitSha,
+							symbolName,
+						);
+
+						const callerItems = callersResult.callers
+							.slice(0, limit ?? 20)
+							.map((c) => ({
+								symbol: c.name,
+								file: c.filePath,
+								line: c.line,
+								kind: c.kind,
+								depth: 1,
+								pageRank: 0,
+							}));
+
+						return {
+							content: [
+								{
+									type: "text" as const,
+									text: JSON.stringify({
+										totalDirectCallers: callersResult.callers.length,
+										callers: callerItems,
+										...buildFreshness(stateManager, startTime),
+									}),
+								},
+							],
+						};
+					} catch (cloudErr) {
+						return errorResponse(cloudErr);
+					}
+				}
+
+				// ── Local callers (default path) ─────────────────────────────────
 				const { graphManager } = await cache.get();
 
 				const target = graphManager.findSymbol(symbolName, {

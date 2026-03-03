@@ -14,8 +14,8 @@ import type {
 	RetrieverSearchResponse,
 	SearchUseCase,
 } from "../types.js";
-import type { VectorStore } from "../core/store.js";
-import type { FileTracker } from "../core/tracker.js";
+import type { IVectorStore } from "../core/store.js";
+import type { IFileTracker } from "../core/tracker.js";
 import {
 	createRepoMapGenerator,
 	type RepoMapGenerator,
@@ -89,17 +89,17 @@ export interface RetrieverOptions {
 // ============================================================================
 
 export class EnrichedRetriever {
-	private store: VectorStore;
+	private store: IVectorStore;
 	private embeddings: IEmbeddingsClient;
 	private defaultUseCase: SearchUseCase;
-	private fileTracker: FileTracker | null = null;
+	private fileTracker: IFileTracker | null = null;
 	private repoMapGenerator: RepoMapGenerator | null = null;
 
 	constructor(
-		store: VectorStore,
+		store: IVectorStore,
 		embeddings: IEmbeddingsClient,
 		defaultUseCase: SearchUseCase = "search",
-		fileTracker?: FileTracker,
+		fileTracker?: IFileTracker,
 	) {
 		this.store = store;
 		this.embeddings = embeddings;
@@ -113,7 +113,7 @@ export class EnrichedRetriever {
 	 * Set the file tracker for repo map generation
 	 * This enables structural context in search results
 	 */
-	setFileTracker(tracker: FileTracker): void {
+	setFileTracker(tracker: IFileTracker): void {
 		this.fileTracker = tracker;
 		this.repoMapGenerator = createRepoMapGenerator(tracker);
 	}
@@ -279,10 +279,10 @@ export class EnrichedRetriever {
  * Create an enriched retriever
  */
 export function createEnrichedRetriever(
-	store: VectorStore,
+	store: IVectorStore,
 	embeddings: IEmbeddingsClient,
 	defaultUseCase?: SearchUseCase,
-	fileTracker?: FileTracker,
+	fileTracker?: IFileTracker,
 ): EnrichedRetriever {
 	return new EnrichedRetriever(store, embeddings, defaultUseCase, fileTracker);
 }

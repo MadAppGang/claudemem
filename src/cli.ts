@@ -124,7 +124,7 @@ function isAgentMode(): boolean {
 function printCompactHelp(): void {
 	console.log(`claudemem v${VERSION} - Semantic code search with AST analysis`);
 	console.log(
-		"Commands: index search status clear map symbol callers callees context dead-code test-gaps impact pack watch hooks hook install docs feedback learn update",
+		"Commands: index index --cloud search status clear map symbol callers callees context dead-code test-gaps impact pack watch hooks hook install docs feedback learn update team",
 	);
 	console.log(
 		"Use: claudemem --agent <cmd> | Docs: https://github.com/MadAppGang/claudemem",
@@ -200,6 +200,14 @@ export async function runCli(args: string[]): Promise<void> {
 		args[0] = "watch";
 	}
 
+	// Parse --cloud flag: route index command to cloud indexing flow
+	// Must mutate args BEFORE const command = args[0]
+	let cloudMode = false;
+	if (args.includes("--cloud")) {
+		cloudMode = true;
+		args = args.filter((a) => a !== "--cloud");
+	}
+
 	// Parse command
 	const command = args[0];
 
@@ -251,7 +259,11 @@ export async function runCli(args: string[]): Promise<void> {
 	// Route to command handler
 	switch (command) {
 		case "index":
-			await handleIndex(args.slice(1));
+			if (cloudMode) {
+				await handleCloudIndex(args.slice(1));
+			} else {
+				await handleIndex(args.slice(1));
+			}
 			break;
 		case "search":
 			await handleSearch(args.slice(1));
@@ -351,6 +363,14 @@ export async function runCli(args: string[]): Promise<void> {
 		// Doctor command
 		case "doctor":
 			await handleDoctor(args.slice(1));
+			break;
+		// Team/cloud commands
+		case "team":
+			await handleTeam(args.slice(1));
+			break;
+		// Sync command — download cloud graph for offline use
+		case "sync":
+			await handleSync(args.slice(1));
 			break;
 		default:
 			// Check if it looks like a search query
@@ -831,6 +851,418 @@ async function handleIndex(args: string[]): Promise<void> {
 	}
 }
 
+// ============================================================================
+// Cloud Index Command
+// ============================================================================
+
+/**
+ * Handle `claudemem index --cloud`
+ *
+ * Runs the 10-step cloud indexing flow using CloudAwareIndexer:
+ *  1. Check cloud is enabled in project config
+ *  2. Check authenticated
+ *  3. Build dependencies (change detector, HTTP client, embeddings)
+ *  4. Run indexToCloud()
+ *  5. Print results
+ */
+async function handleCloudIndex(args: string[]): Promise<void> {
+	const pathArg = args.find((a) => !a.startsWith("-"));
+	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	// Lazy-import cloud modules to avoid startup overhead
+	const {
+		isCloudEnabled,
+		getTeamConfig,
+		getCloudEndpoint,
+		createGitDiffChangeDetector,
+		createThinCloudClient,
+		createCloudIndexer,
+		getDefaultAuthManager,
+	} = await import("./cloud/index.js");
+
+	// 1. Check cloud is enabled
+	if (!isCloudEnabled(projectPath)) {
+		console.error("Error: Cloud mode is not enabled for this project.");
+		console.error(
+			"Add a 'team' block with 'orgSlug' to your claudemem.json to enable cloud indexing.",
+		);
+		process.exit(1);
+	}
+
+	const teamConfig = getTeamConfig(projectPath)!;
+	const orgSlug = teamConfig.orgSlug;
+
+	// 2. Check authentication
+	const authManager = getDefaultAuthManager();
+	if (!authManager.isAuthenticated(orgSlug)) {
+		console.error(
+			`Error: Not authenticated for org '${orgSlug}'.`,
+		);
+		console.error(`Run 'claudemem team login --org ${orgSlug}' to authenticate.`);
+		process.exit(1);
+	}
+
+	const token = authManager.getToken(orgSlug)!;
+	const endpoint = getCloudEndpoint(projectPath);
+
+	if (!agentMode) {
+		console.log(`\nCloud indexing ${projectPath}...`);
+		console.log(`  Org:      ${orgSlug}`);
+		console.log(`  Endpoint: ${endpoint}`);
+		console.log(`  Mode:     ${teamConfig.cloudMode ?? "thin"}`);
+		console.log("");
+	} else {
+		console.log(`Cloud indexing ${compactPath(projectPath, 50)}...`);
+	}
+
+	// 3. Build dependencies
+	const changeDetector = createGitDiffChangeDetector(projectPath);
+	const cloudClient = createThinCloudClient({ endpoint, token });
+
+	// Build embeddings client for thin mode (vectors generated locally)
+	let embeddingsClient: import("./types.js").IEmbeddingsClient | undefined;
+	const cloudMode = teamConfig.cloudMode ?? "thin";
+	if (cloudMode === "thin" && hasApiKey()) {
+		const { createEmbeddingsClient } = await import("./core/embeddings.js");
+		embeddingsClient = createEmbeddingsClient();
+	}
+
+	const cloudIndexer = createCloudIndexer({
+		projectPath,
+		cloudClient,
+		changeDetector,
+		teamConfig,
+		embeddingsClient,
+		onProgress: agentMode
+			? undefined
+			: (message: string) => {
+					process.stderr.write(`  ${message}\n`);
+				},
+	});
+
+	// 4. Run cloud indexing
+	try {
+		const result = await cloudIndexer.indexToCloud();
+
+		const durationSec = (result.durationMs / 1000).toFixed(2);
+
+		if (agentMode) {
+			console.log(`status=${result.status}`);
+			console.log(`commit=${result.commitSha.slice(0, 8)}`);
+			console.log(`files_changed=${result.filesChanged}`);
+			console.log(`chunks_uploaded=${result.chunksUploaded}`);
+			console.log(`chunks_deduped=${result.chunksDeduped}`);
+			console.log(`duration_ms=${result.durationMs}`);
+			if (result.embeddingCost !== undefined) {
+				console.log(`embedding_cost_usd=${result.embeddingCost.toFixed(6)}`);
+			}
+		} else if (result.status === "skipped") {
+			console.log(
+				`\nCommit ${result.commitSha.slice(0, 8)} already indexed — nothing to upload.`,
+			);
+			console.log(`  Duration: ${durationSec}s`);
+		} else {
+			console.log(`\nCloud indexing complete in ${durationSec}s!\n`);
+			console.log(`  Commit:         ${result.commitSha.slice(0, 8)}`);
+			console.log(`  Status:         ${result.status}`);
+			console.log(`  Files changed:  ${result.filesChanged}`);
+			console.log(`  Chunks uploaded: ${result.chunksUploaded}`);
+			console.log(`  Chunks deduped: ${result.chunksDeduped}`);
+			if (result.embeddingCost !== undefined) {
+				console.log(`  Embedding cost: $${result.embeddingCost.toFixed(6)}`);
+			}
+		}
+	} catch (error) {
+		const { CloudApiError } = await import("./cloud/index.js");
+		if (error instanceof CloudApiError) {
+			if (error.statusCode === 401) {
+				console.error(
+					`\nAuthentication failed. Run 'claudemem team login --org ${orgSlug}' to re-authenticate.`,
+				);
+			} else if (error.statusCode === 429 && error.retryAfter) {
+				console.error(
+					`\nRate limited. Retry after ${error.retryAfter} seconds.`,
+				);
+			} else {
+				console.error(`\nCloud API error: ${error.message}`);
+			}
+			process.exit(1);
+		}
+		throw error;
+	}
+}
+
+// ============================================================================
+// Sync Command
+// ============================================================================
+
+/**
+ * `claudemem sync [path]`
+ *
+ * Downloads the symbol graph from the cloud index and caches it locally.
+ * After syncing, `map`, `callers`, and `callees` commands work offline
+ * by reading from the locally cached graph data.
+ *
+ * Flow:
+ *  1. Check cloud is enabled + authenticated
+ *  2. Get current HEAD commit SHA
+ *  3. Download graph (symbols + references + repo map) from cloud
+ *  4. Cache repo map in local FileTracker metadata
+ *  5. Print summary
+ */
+async function handleSync(args: string[]): Promise<void> {
+	const pathArg = args.find((a) => !a.startsWith("-"));
+	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
+
+	// Lazy-import cloud modules
+	const {
+		isCloudEnabled,
+		getTeamConfig,
+		getCloudEndpoint,
+		getRepoSlug,
+		createGitDiffChangeDetector,
+		createThinCloudClient,
+		createGraphSyncer,
+		getDefaultAuthManager,
+	} = await import("./cloud/index.js");
+
+	// 1. Check cloud is enabled
+	if (!isCloudEnabled(projectPath)) {
+		console.error("Error: Cloud mode is not enabled for this project.");
+		console.error(
+			"Add a 'team' block with 'orgSlug' to your claudemem.json to enable cloud sync.",
+		);
+		process.exit(1);
+	}
+
+	const teamConfig = getTeamConfig(projectPath)!;
+	const orgSlug = teamConfig.orgSlug;
+
+	// 2. Check authentication
+	const authManager = getDefaultAuthManager();
+	if (!authManager.isAuthenticated(orgSlug)) {
+		console.error(`Error: Not authenticated for org '${orgSlug}'.`);
+		console.error(`Run 'claudemem team login --org ${orgSlug}' to authenticate.`);
+		process.exit(1);
+	}
+
+	const token = authManager.getToken(orgSlug)!;
+	const endpoint = getCloudEndpoint(projectPath);
+
+	let repoSlug: string;
+	try {
+		repoSlug = await getRepoSlug(projectPath);
+	} catch {
+		// Fallback: derive from teamConfig and projectPath basename
+		const baseName = projectPath.split("/").filter(Boolean).pop() ?? "repo";
+		repoSlug = teamConfig.repoSlug ?? `${orgSlug}/${baseName}`;
+	}
+
+	if (!agentMode) {
+		console.log(`\nSyncing graph for ${projectPath}...`);
+		console.log(`  Org:      ${orgSlug}`);
+		console.log(`  Repo:     ${repoSlug}`);
+		console.log(`  Endpoint: ${endpoint}`);
+		console.log("");
+	}
+
+	// 3. Get current HEAD commit SHA
+	const changeDetector = createGitDiffChangeDetector(projectPath);
+	let commitSha: string;
+	try {
+		commitSha = await changeDetector.getHeadSha();
+	} catch (error) {
+		console.error(
+			`Error: Could not get HEAD commit SHA. Is this a git repository?\n${error}`,
+		);
+		process.exit(1);
+	}
+
+	// 4. Build cloud client and file tracker
+	const cloudClient = createThinCloudClient({ endpoint, token });
+	const { FileTracker } = await import("./core/tracker.js");
+	const dbPath = join(projectPath, ".claudemem", "index.db");
+	const fileTracker = new FileTracker(dbPath, projectPath);
+
+	// 5. Sync graph
+	const syncer = createGraphSyncer({
+		projectPath,
+		cloudClient,
+		repoSlug,
+		commitSha,
+		fileTracker,
+		onProgress: agentMode
+			? undefined
+			: (message: string) => {
+					process.stderr.write(`  ${message}\n`);
+				},
+	});
+
+	try {
+		const result = await syncer.syncGraph();
+		const durationSec = (result.durationMs / 1000).toFixed(2);
+
+		if (agentMode) {
+			console.log(`commit=${commitSha.slice(0, 8)}`);
+			console.log(`symbol_count=${result.symbolCount}`);
+			console.log(`reference_count=${result.referenceCount}`);
+			console.log(`duration_ms=${result.durationMs}`);
+		} else {
+			console.log(`\nGraph sync complete in ${durationSec}s!\n`);
+			console.log(`  Commit:     ${commitSha.slice(0, 8)}`);
+			console.log(`  Symbols:    ${result.symbolCount}`);
+			console.log(`  References: ${result.referenceCount}`);
+		}
+	} catch (error) {
+		const { CloudApiError } = await import("./cloud/index.js");
+		if (error instanceof CloudApiError) {
+			if (error.statusCode === 401) {
+				console.error(
+					`\nAuthentication failed. Run 'claudemem team login --org ${orgSlug}' to re-authenticate.`,
+				);
+			} else {
+				console.error(`\nCloud API error: ${error.message}`);
+			}
+			process.exit(1);
+		}
+		throw error;
+	}
+}
+
+// ============================================================================
+// Team Command
+// ============================================================================
+
+/**
+ * Handle `claudemem team <subcommand>`
+ *
+ * Subcommands:
+ *   login  [--org <orgSlug>] [--key <apiKey>]  — store credentials
+ *   logout [--org <orgSlug>]                    — remove credentials
+ *   status                                       — show cloud config + auth
+ */
+async function handleTeam(args: string[]): Promise<void> {
+	const subcommand = args[0];
+
+	const {
+		isCloudEnabled,
+		getTeamConfig,
+		getCloudEndpoint,
+		getRepoSlug,
+		getDefaultAuthManager,
+	} = await import("./cloud/index.js");
+
+	const authManager = getDefaultAuthManager();
+
+	// Helper: resolve org slug from --org flag or project config
+	function resolveOrgSlug(cmdArgs: string[]): string | undefined {
+		const orgIdx = cmdArgs.findIndex((a) => a === "--org");
+		if (orgIdx >= 0 && cmdArgs[orgIdx + 1]) {
+			return cmdArgs[orgIdx + 1];
+		}
+		// Fall back to project config
+		const projectPath = process.cwd();
+		if (isCloudEnabled(projectPath)) {
+			return getTeamConfig(projectPath)?.orgSlug;
+		}
+		return undefined;
+	}
+
+	switch (subcommand) {
+		case "login": {
+			// Resolve org slug
+			const orgSlug = resolveOrgSlug(args.slice(1));
+			if (!orgSlug) {
+				console.error(
+					"Error: org slug is required. Use --org <orgSlug> or configure 'team.orgSlug' in claudemem.json.",
+				);
+				process.exit(1);
+			}
+
+			// Resolve API key: --key flag, then env var
+			const keyIdx = args.findIndex((a) => a === "--key");
+			const keyArg = keyIdx >= 0 ? args[keyIdx + 1] : undefined;
+			const apiKey = keyArg ?? process.env["CLAUDEMEM_ORG_API_KEY"];
+
+			if (!apiKey) {
+				console.error(
+					"Error: API key is required. Use --key <apiKey> or set CLAUDEMEM_ORG_API_KEY.",
+				);
+				process.exit(1);
+			}
+
+			authManager.setToken(orgSlug, apiKey);
+			console.log(`Authenticated as org '${orgSlug}'. Token stored in ~/.claudemem/credentials.json.`);
+			break;
+		}
+
+		case "logout": {
+			const orgSlug = resolveOrgSlug(args.slice(1));
+			if (!orgSlug) {
+				console.error(
+					"Error: org slug is required. Use --org <orgSlug> or configure 'team.orgSlug' in claudemem.json.",
+				);
+				process.exit(1);
+			}
+
+			authManager.removeToken(orgSlug);
+			console.log(`Logged out org '${orgSlug}'. Token removed from credentials store.`);
+			break;
+		}
+
+		case "status": {
+			const projectPath = process.cwd();
+			const cloudEnabled = isCloudEnabled(projectPath);
+
+			console.log("Cloud Status");
+			console.log("============");
+			console.log(`Cloud enabled:  ${cloudEnabled ? "yes" : "no"}`);
+
+			if (!cloudEnabled) {
+				console.log(
+					"\nTo enable cloud indexing, add a 'team' block with 'orgSlug' to your claudemem.json.",
+				);
+				break;
+			}
+
+			const teamConfig = getTeamConfig(projectPath)!;
+			const orgSlug = teamConfig.orgSlug;
+			const endpoint = getCloudEndpoint(projectPath);
+			const mode = teamConfig.cloudMode ?? "thin";
+
+			console.log(`Org:            ${orgSlug}`);
+			console.log(`Endpoint:       ${endpoint}`);
+			console.log(`Mode:           ${mode}`);
+
+			// Repo slug (async — derived from git remote)
+			try {
+				const repoSlug = await getRepoSlug(projectPath);
+				console.log(`Repo slug:      ${repoSlug}`);
+			} catch {
+				console.log(`Repo slug:      (could not determine — set team.repoSlug explicitly)`);
+			}
+
+			// Auth status
+			const authenticated = authManager.isAuthenticated(orgSlug);
+			console.log(`\nAuthenticated:  ${authenticated ? "yes" : "no"}`);
+			if (!authenticated) {
+				console.log(
+					`\nRun 'claudemem team login --org ${orgSlug} --key <apiKey>' to authenticate.`,
+				);
+			}
+			break;
+		}
+
+		default: {
+			console.error(
+				`Unknown team subcommand: '${subcommand ?? "(none)"}'.`,
+			);
+			console.error("Available subcommands: login, logout, status");
+			process.exit(1);
+		}
+	}
+}
+
 async function handleSearch(args: string[]): Promise<void> {
 
 	// Parse arguments
@@ -901,6 +1333,114 @@ async function handleSearch(args: string[]): Promise<void> {
 		process.exit(1);
 	}
 
+	// ── Cloud-aware search branch ────────────────────────────────────────────
+	// When cloud is enabled, delegate to CloudAwareSearch which merges cloud
+	// index results with local overlay (dirty files). Errors are surfaced
+	// directly — no silent fallback to local search.
+	{
+		const { isCloudEnabled: cloudEnabled, getTeamConfig: getTeam } =
+			await import("./cloud/index.js");
+		if (cloudEnabled(projectPath)) {
+			const teamConfig = getTeam(projectPath);
+			const orgSlug = teamConfig?.orgSlug;
+			if (orgSlug) {
+				const { getDefaultAuthManager } = await import("./cloud/index.js");
+				const authManager = getDefaultAuthManager();
+				if (authManager.isAuthenticated(orgSlug)) {
+					try {
+						const {
+							createGitDiffChangeDetector,
+							createCloudClientFromConfig,
+							createOverlayIndex,
+							getRepoSlug,
+							createCloudAwareSearch,
+						} = await import("./cloud/index.js");
+
+						const token = authManager.getToken(orgSlug)!;
+						const changeDetector = createGitDiffChangeDetector(projectPath);
+						const cloudClient = createCloudClientFromConfig(projectPath, token);
+						const overlayDir = join(projectPath, ".claudemem", "overlay");
+
+						// Build embeddings client for query embedding
+						const { createEmbeddingsClient: createEmbed } = await import(
+							"./core/embeddings.js"
+						);
+						const embeddingsClient = createEmbed();
+
+						const overlayIndex = await createOverlayIndex({
+							projectPath,
+							overlayDir,
+							embeddingsClient,
+						});
+
+						const repoSlug = await getRepoSlug(projectPath);
+						const commitSha = await changeDetector.getHeadSha();
+
+						const cloudSearch = createCloudAwareSearch({
+							projectPath,
+							cloudClient,
+							overlayIndex,
+							changeDetector,
+							embeddingsClient,
+							repoSlug,
+							commitSha,
+						});
+
+						if (!agentMode) {
+							console.log(
+								`Searching for: "${query}" (cloud + overlay)`,
+							);
+						}
+
+						const results = await cloudSearch.search(query, {
+							limit,
+							language,
+						});
+
+						if (results.length === 0) {
+							if (agentMode) {
+								agentOutput.searchResults(query, []);
+							} else {
+								console.log("\nNo results found.");
+							}
+						} else if (agentMode) {
+							agentOutput.searchResults(query, results);
+						} else {
+							console.log(`Found ${results.length} result(s):\n`);
+							const queryTerms = query
+								.split(/\s+/)
+								.filter((t) => t.length > 0);
+							for (const r of results) {
+								printSearchResult(r.chunk, r.score, queryTerms);
+							}
+						}
+
+						await overlayIndex.close();
+						return;
+					} catch (cloudErr) {
+						if (agentMode) {
+							agentOutput.error(`Cloud search failed: ${String(cloudErr)}`);
+						} else {
+							console.error(
+								`\nCloud search failed: ${String(cloudErr)}`,
+							);
+						}
+						process.exit(1);
+					}
+				} else {
+					if (agentMode) {
+						agentOutput.error(`Not authenticated for org '${orgSlug}'. Run 'claudemem team login --org ${orgSlug}' to authenticate.`);
+					} else {
+						console.error(
+							`Error: Not authenticated for org '${orgSlug}'. Run 'claudemem team login --org ${orgSlug}' to authenticate.`,
+						);
+					}
+					process.exit(1);
+				}
+			}
+		}
+	}
+
 	// Check if vector mode is enabled in config
 	const vectorEnabled = isVectorEnabled(projectPath);
 
@@ -921,6 +1461,11 @@ async function handleSearch(args: string[]): Promise<void> {
 		const status = await indexer.getStatus();
 
 		if (!status.exists) {
+			// No index - in agent mode, just error out
+			if (agentMode) {
+				agentOutput.error("No index found. Run 'claudemem index' first.");
+				process.exit(1);
+			}
 			// No index - prompt to create or auto-create with -y
 			if (autoYes) {
 				console.log("\nNo index found. Creating initial index...\n");
@@ -946,13 +1491,9 @@ async function handleSearch(args: string[]): Promise<void> {
 			);
 		} else if (!noReindex) {
 			// Index exists - auto-reindex changed files with progress display
-			// In agent mode, do silent reindex
+			// In agent mode, skip auto-reindex (callers use explicit reindex command)
 			if (agentMode) {
-				const { createIndexer: createTempIndexer } = await import(
-					"./core/indexer.js"
-				);
-				const tempIndexer = createTempIndexer({ projectPath });
-				await tempIndexer.index(false);
+				// no-op: agent callers manage reindex separately
 			} else {
 				// First, check if there are changes (quick check before showing progress)
 				const progress = createProgressRenderer();
@@ -3312,6 +3853,67 @@ async function handleMap(args: string[]): Promise<void> {
 	if (pathIdx !== -1 && args[pathIdx + 1]) flagValues.add(args[pathIdx + 1]);
 	const query = nonFlagArgs.find((a) => !flagValues.has(a));
 
+	// ── Cloud map branch ────────────────────────────────────────────────────
+	// When cloud is enabled and authenticated, use cloudClient.getMap() which
+	// returns the server-side pre-generated repo map.
+	{
+		const { isCloudEnabled: cloudEnabledMap, getTeamConfig: getTeamMap } =
+			await import("./cloud/index.js");
+		if (cloudEnabledMap(projectPath)) {
+			const teamConfigMap = getTeamMap(projectPath);
+			const orgSlugMap = teamConfigMap?.orgSlug;
+			if (orgSlugMap) {
+				const { getDefaultAuthManager } = await import("./cloud/index.js");
+				const authManagerMap = getDefaultAuthManager();
+				if (authManagerMap.isAuthenticated(orgSlugMap)) {
+					try {
+						const {
+							createGitDiffChangeDetector,
+							createCloudClientFromConfig,
+							getRepoSlug,
+						} = await import("./cloud/index.js");
+
+						const tokenMap = authManagerMap.getToken(orgSlugMap)!;
+						const cloudClientMap = createCloudClientFromConfig(
+							projectPath,
+							tokenMap,
+						);
+						const changeDetectorMap = createGitDiffChangeDetector(projectPath);
+						const repoSlugMap = await getRepoSlug(projectPath);
+						const commitShaMap = await changeDetectorMap.getHeadSha();
+
+						const mapText = await cloudClientMap.getMap(
+							repoSlugMap,
+							commitShaMap,
+							query,
+							maxTokens,
+						);
+
+						if (agentMode) {
+							// Parse the text map into structured entries is impractical here;
+							// print raw text output instead so agents can read it.
+							console.log(mapText);
+						} else {
+							printLogo();
+							console.log("\nRepository Map (cloud)\n");
+							console.log(mapText);
+						}
+						return;
+					} catch (cloudMapErr) {
+						if (agentMode) {
+							agentOutput.error(`Cloud map failed: ${String(cloudMapErr)}`);
+						} else {
+							console.error(
+								`\nCloud map failed: ${String(cloudMapErr)}`,
+							);
+						}
+						process.exit(1);
+					}
+				}
+			}
+		}
+	}
+
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
 		if (agentMode) {
@@ -3441,6 +4043,79 @@ async function handleCallers(args: string[]): Promise<void> {
 		process.exit(1);
 	}
 
+	// ── Cloud callers branch ─────────────────────────────────────────────────
+	{
+		const { isCloudEnabled: cloudEnabledCallers, getTeamConfig: getTeamCallers } =
+			await import("./cloud/index.js");
+		if (cloudEnabledCallers(projectPath)) {
+			const teamConfigCallers = getTeamCallers(projectPath);
+			const orgSlugCallers = teamConfigCallers?.orgSlug;
+			if (orgSlugCallers) {
+				const { getDefaultAuthManager } = await import("./cloud/index.js");
+				const authManagerCallers = getDefaultAuthManager();
+				if (authManagerCallers.isAuthenticated(orgSlugCallers)) {
+					try {
+						const {
+							createGitDiffChangeDetector,
+							createCloudClientFromConfig,
+							getRepoSlug,
+						} = await import("./cloud/index.js");
+
+						const tokenCallers = authManagerCallers.getToken(orgSlugCallers)!;
+						const cloudClientCallers = createCloudClientFromConfig(
+							projectPath,
+							tokenCallers,
+						);
+						const changeDetectorCallers =
+							createGitDiffChangeDetector(projectPath);
+						const repoSlugCallers = await getRepoSlug(projectPath);
+						const commitShaCallers = await changeDetectorCallers.getHeadSha();
+
+						const callersResult = await cloudClientCallers.getCallers(
+							repoSlugCallers,
+							commitShaCallers,
+							symbolName,
+						);
+
+						if (agentMode) {
+							console.log(`symbol=${symbolName}`);
+							console.log(`caller_count=${callersResult.callers.length}`);
+							for (const caller of callersResult.callers) {
+								console.log(
+									`caller name=${caller.name} file=${caller.filePath} line=${caller.line} kind=${caller.kind}`,
+								);
+							}
+						} else {
+							printLogo();
+							console.log(`\nCallers of '${symbolName}' (cloud)\n`);
+							if (callersResult.callers.length === 0) {
+								console.log("  No callers found.");
+							} else {
+								for (const caller of callersResult.callers) {
+									console.log(`  ${caller.name}`);
+									console.log(
+										`     ${caller.filePath}:${caller.line} (${caller.kind})`,
+									);
+								}
+							}
+							console.log("");
+						}
+						return;
+					} catch (cloudCallersErr) {
+						if (agentMode) {
+							agentOutput.error(`Cloud callers failed: ${String(cloudCallersErr)}`);
+						} else {
+							console.error(
+								`\nCloud callers failed: ${String(cloudCallersErr)}`,
+							);
+						}
+						process.exit(1);
+					}
+				}
+			}
+		}
+	}
+
 	const tracker = getFileTracker(projectPath);
 	if (!tracker) {
 		if (agentMode) {
@@ -3508,6 +4183,79 @@ async function handleCallees(args: string[]): Promise<void> {
 			console.error("Usage: claudemem callees <name>");
 		}
 		process.exit(1);
+	}
+
+	// ── Cloud callees branch ─────────────────────────────────────────────────
+	{
+		const { isCloudEnabled: cloudEnabledCallees, getTeamConfig: getTeamCallees } =
+			await import("./cloud/index.js");
+		if (cloudEnabledCallees(projectPath)) {
+			const teamConfigCallees = getTeamCallees(projectPath);
+			const orgSlugCallees = teamConfigCallees?.orgSlug;
+			if (orgSlugCallees) {
+				const { getDefaultAuthManager } = await import("./cloud/index.js");
+				const authManagerCallees = getDefaultAuthManager();
+				if (authManagerCallees.isAuthenticated(orgSlugCallees)) {
+					try {
+						const {
+							createGitDiffChangeDetector,
+							createCloudClientFromConfig,
+							getRepoSlug,
+						} = await import("./cloud/index.js");
+
+						const tokenCallees = authManagerCallees.getToken(orgSlugCallees)!;
+						const cloudClientCallees = createCloudClientFromConfig(
+							projectPath,
+							tokenCallees,
+						);
+						const changeDetectorCallees =
+							createGitDiffChangeDetector(projectPath);
+						const repoSlugCallees = await getRepoSlug(projectPath);
+						const commitShaCallees = await changeDetectorCallees.getHeadSha();
+
+						const calleesResult = await cloudClientCallees.getCallees(
+							repoSlugCallees,
+							commitShaCallees,
+							symbolName,
+						);
+
+						if (agentMode) {
+							console.log(`symbol=${symbolName}`);
+							console.log(`callee_count=${calleesResult.callees.length}`);
+							for (const callee of calleesResult.callees) {
+								console.log(
+									`callee name=${callee.name} file=${callee.filePath} line=${callee.line} kind=${callee.kind}`,
+								);
+							}
+						} else {
+							printLogo();
+							console.log(`\nCallees of '${symbolName}' (cloud)\n`);
+							if (calleesResult.callees.length === 0) {
+								console.log("  No callees found.");
+							} else {
+								for (const callee of calleesResult.callees) {
+									console.log(`  ${callee.name}`);
+									console.log(
+										`     ${callee.filePath}:${callee.line} (${callee.kind})`,
+									);
+								}
+							}
+							console.log("");
+						}
+						return;
+					} catch (cloudCalleesErr) {
+						if (agentMode) {
+							agentOutput.error(`Cloud callees failed: ${String(cloudCalleesErr)}`);
+						} else {
+							console.error(
+								`\nCloud callees failed: ${String(cloudCalleesErr)}`,
+							);
+						}
+						process.exit(1);
+					}
+				}
+			}
+		}
 	}
 
 	const tracker = getFileTracker(projectPath);
@@ -5449,6 +6197,13 @@ ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
   ${c.green}pack${c.reset} [path]            Pack codebase into a single file ${c.dim}(for AI analysis)${c.reset}
   ${c.green}docs${c.reset} <subcommand>     Manage library documentation ${c.dim}(status|fetch|refresh|providers|clear)${c.reset}
 
+${c.yellow}${c.bold}CLOUD / TEAM${c.reset} ${c.dim}(requires team.orgSlug in claudemem.json)${c.reset}
+  ${c.green}index --cloud${c.reset} [path]   Upload changed files to cloud API ${c.dim}(git-diff based)${c.reset}
+  ${c.green}sync${c.reset} [path]            Download cloud graph for offline use ${c.dim}(map, callers, callees)${c.reset}
+  ${c.green}team login${c.reset}             Store org API key ${c.dim}(--org <orgSlug> --key <apiKey>)${c.reset}
+  ${c.green}team logout${c.reset}            Remove stored credentials ${c.dim}(--org <orgSlug>)${c.reset}
+  ${c.green}team status${c.reset}            Show cloud config and auth status
+
 ${c.yellow}${c.bold}SELF-LEARNING SYSTEM${c.reset} ${c.dim}(enabled by default, learns from interactions)${c.reset}
   ${c.green}feedback${c.reset}               Report search feedback ${c.dim}(--query, --helpful, --unhelpful)${c.reset}
   ${c.green}learn${c.reset}                  Show learning statistics
@@ -5461,6 +6216,7 @@ ${c.yellow}${c.bold}SELF-LEARNING SYSTEM${c.reset} ${c.dim}(enabled by default, 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
   ${c.cyan}--no-llm${c.reset}               Disable LLM enrichment (summaries, idioms, etc.)
+  ${c.cyan}--cloud${c.reset}                Upload to cloud API ${c.dim}(requires team config + authentication)${c.reset}
 
 ${c.yellow}${c.bold}SEARCH OPTIONS${c.reset}
   ${c.cyan}-n, --limit${c.reset} <n>        Maximum results (default: 10)
@@ -5603,6 +6359,12 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
 
   ${c.dim}# Developer experience${c.reset}
   ${c.cyan}claudemem watch${c.reset}                           ${c.dim}# auto-reindex on changes${c.reset}
+
+  ${c.dim}# Cloud / team indexing${c.reset}
+  ${c.cyan}claudemem team login --org myorg --key \$API_KEY${c.reset}  ${c.dim}# store credentials${c.reset}
+  ${c.cyan}claudemem index --cloud${c.reset}                   ${c.dim}# upload diff to cloud API${c.reset}
+  ${c.cyan}claudemem team status${c.reset}                     ${c.dim}# show cloud config${c.reset}
+  ${c.cyan}claudemem team logout --org myorg${c.reset}         ${c.dim}# remove credentials${c.reset}
 
   ${c.dim}# Adaptive learning${c.reset}
   ${c.cyan}claudemem feedback --query "auth" --helpful id1,id2 --unhelpful id3${c.reset}

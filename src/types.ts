@@ -2,6 +2,8 @@
  * Core types for claudemem
  */
 
+import type { TeamConfig } from "./cloud/types.js";
+
 // ============================================================================
 // Code Chunk Types
 // ============================================================================
@@ -504,6 +506,13 @@ export interface ProjectConfig {
 	 * Absence of this field is treated as v1.
 	 */
 	indexVersion?: number;
+
+	// ─── Cloud / Team Settings ───
+	/**
+	 * Team/org configuration for the cloud shared index.
+	 * When present, claudemem uploads to and queries the cloud index.
+	 */
+	team?: TeamConfig;
 }
 
 /** Configuration for external documentation fetching */

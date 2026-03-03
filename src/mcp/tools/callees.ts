@@ -2,6 +2,8 @@
  * Callees Tool
  *
  * Traverse the call graph downward from a symbol, showing what it depends on.
+ * When cloud deps are available (deps.cloudClient), uses cloudClient.getCallees()
+ * which returns server-side call graph data. Cloud errors are returned directly.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -10,7 +12,7 @@ import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
 export function registerCalleesTools(server: McpServer, deps: ToolDeps): void {
-	const { cache, stateManager } = deps;
+	const { cache, stateManager, logger } = deps;
 
 	server.tool(
 		"callees",
@@ -32,6 +34,53 @@ export function registerCalleesTools(server: McpServer, deps: ToolDeps): void {
 			const startTime = Date.now();
 
 			try {
+				// ── Cloud callees (when cloud deps are wired in) ─────────────────
+				if (deps.cloudClient && deps.currentCommitSha && deps.teamConfig) {
+					try {
+						const orgSlug = deps.teamConfig.orgSlug;
+						const repoSlug =
+							deps.teamConfig.repoSlug ??
+							`${orgSlug}/${deps.config.workspaceRoot
+								.split("/")
+								.filter(Boolean)
+								.pop() ?? "repo"}`;
+
+						const calleesResult = await deps.cloudClient.getCallees(
+							repoSlug,
+							deps.currentCommitSha,
+							symbolName,
+						);
+
+						const calleeItems = calleesResult.callees.map((c) => ({
+							symbol: c.name,
+							file: c.filePath,
+							line: c.line,
+							kind: c.kind,
+							isExternal: false,
+							depth: 1,
+						}));
+
+						const filtered = excludeExternal
+							? calleeItems.filter((c) => !c.isExternal)
+							: calleeItems;
+
+						return {
+							content: [
+								{
+									type: "text" as const,
+									text: JSON.stringify({
+										callees: filtered,
+										...buildFreshness(stateManager, startTime),
+									}),
+								},
+							],
+						};
+					} catch (cloudErr) {
+						return errorResponse(cloudErr);
+					}
+				}
+
+				// ── Local callees (default path) ─────────────────────────────────
 				const { graphManager } = await cache.get();
 
 				const target = graphManager.findSymbol(symbolName, {

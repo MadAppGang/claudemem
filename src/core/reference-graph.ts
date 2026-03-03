@@ -5,7 +5,7 @@
  * Computes PageRank scores for symbol importance ranking.
  */
 
-import type { FileTracker } from "./tracker.js";
+import type { IFileTracker } from "./tracker.js";
 import type { SymbolDefinition, SymbolReference } from "../types.js";
 
 // ============================================================================
@@ -23,10 +23,10 @@ interface GraphNode {
 // ============================================================================
 
 export class ReferenceGraphManager {
-	private tracker: FileTracker;
+	private tracker: IFileTracker;
 	private graph: Map<string, GraphNode> | null = null;
 
-	constructor(tracker: FileTracker) {
+	constructor(tracker: IFileTracker) {
 		this.tracker = tracker;
 	}
 
@@ -331,7 +331,7 @@ export class ReferenceGraphManager {
  * Create a reference graph manager
  */
 export function createReferenceGraphManager(
-	tracker: FileTracker,
+	tracker: IFileTracker,
 ): ReferenceGraphManager {
 	return new ReferenceGraphManager(tracker);
 }

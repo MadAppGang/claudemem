@@ -7,7 +7,7 @@
  * - Change impact analysis
  */
 
-import type { FileTracker } from "../tracker.js";
+import type { IFileTracker } from "../tracker.js";
 import type { SymbolDefinition } from "../../types.js";
 import {
 	createReferenceGraphManager,
@@ -80,11 +80,11 @@ export interface ImpactOptions {
 // ============================================================================
 
 export class CodeAnalyzer {
-	private tracker: FileTracker;
+	private tracker: IFileTracker;
 	private graphManager: ReferenceGraphManager;
 	private testDetector: TestFileDetector;
 
-	constructor(tracker: FileTracker) {
+	constructor(tracker: IFileTracker) {
 		this.tracker = tracker;
 		this.graphManager = createReferenceGraphManager(tracker);
 		this.testDetector = createTestFileDetector();
@@ -366,6 +366,6 @@ export class CodeAnalyzer {
 /**
  * Create a code analyzer instance
  */
-export function createCodeAnalyzer(tracker: FileTracker): CodeAnalyzer {
+export function createCodeAnalyzer(tracker: IFileTracker): CodeAnalyzer {
 	return new CodeAnalyzer(tracker);
 }

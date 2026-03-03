@@ -8,7 +8,7 @@
 
 import { join } from "node:path";
 import { existsSync } from "node:fs";
-import { FileTracker, createFileTracker } from "../core/tracker.js";
+import { type IFileTracker, createFileTracker } from "../core/tracker.js";
 import {
 	ReferenceGraphManager,
 	createReferenceGraphManager,
@@ -21,7 +21,7 @@ import { getIndexDbPath } from "../config.js";
 import type { Logger } from "./logger.js";
 
 export interface CachedIndex {
-	tracker: FileTracker;
+	tracker: IFileTracker;
 	graphManager: ReferenceGraphManager;
 	repoMapGen: RepoMapGenerator;
 	loadedAt: number;

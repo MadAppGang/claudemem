@@ -1,0 +1,43 @@
+{
+  "stack": {
+    "language": "TypeScript",
+    "runtime": ["Bun", "Node.js (fallback)"],
+    "build": "tsup (esbuild)",
+    "test": "bun test (vitest-compatible)",
+    "package_manager": "bun",
+    "key_dependencies": {
+      "ast_parsing": "tree-sitter (WASM grammars)",
+      "vector_storage": "LanceDB (embedded, Apache Arrow format)",
+      "metadata_storage": "SQLite (bun:sqlite / better-sqlite3)",
+      "embeddings": ["OpenRouter", "Voyage AI", "Ollama", "LMStudio"],
+      "llm": ["Anthropic", "OpenRouter", "Claude Code subprocess", "Ollama"],
+      "mcp": "@modelcontextprotocol/sdk (stdio transport)"
+    },
+    "project_type": "CLI tool + MCP server",
+    "version": "0.21.1"
+  },
+  "existing_architecture": {
+    "storage_paths": {
+      "sqlite": "{project}/.claudemem/index.db",
+      "lancedb": "{project}/.claudemem/vectors/",
+      "config_global": "~/.claudemem/config.json",
+      "config_project": "{project}/.claudemem/config.json"
+    },
+    "key_abstractions_exist": [
+      "IEmbeddingsClient (4 implementations)",
+      "ILLMClient (5 implementations)",
+      "IDocumentExtractor (pluggable registry)",
+      "Factory functions (createIndexer, createVectorStore, etc.)",
+      "ToolDeps (MCP tool dependency injection)"
+    ],
+    "key_abstractions_missing": [
+      "IVectorStore (VectorStore is concrete class, ~15 methods)",
+      "IFileTracker (FileTracker is concrete class, ~25 methods)",
+      "IIndexLock (IndexLock is concrete class, 4 methods)",
+      "IChangeDetector (new concept needed)"
+    ],
+    "change_detection": "filesystem mtime + SHA256 content hash",
+    "indexing_model": "per-file incremental (content hash diffing)",
+    "locking": "PID-based filesystem lockfile with heartbeat"
+  }
+}

@@ -12,6 +12,7 @@ import type { Logger } from "../logger.js";
 import type { DebounceReindexer } from "../reindexer.js";
 import type { CompletionDetector } from "../completion-detector.js";
 import type { FreshnessMetadata } from "../types.js";
+import type { ICloudIndexClient, IOverlayIndex, TeamConfig } from "../../cloud/types.js";
 
 export interface ToolDeps {
 	cache: IndexCache;
@@ -22,6 +23,14 @@ export interface ToolDeps {
 	completionDetector?: CompletionDetector;
 	serverStartTime: number;
 	watcherActive: boolean;
+	/** Cloud API client (present when cloud/team mode is enabled) */
+	cloudClient?: ICloudIndexClient;
+	/** Local overlay index for dirty files (present when cloud mode is enabled) */
+	overlayIndex?: IOverlayIndex;
+	/** Current HEAD commit SHA (present when cloud mode is enabled) */
+	currentCommitSha?: string;
+	/** Team configuration (present when cloud mode is enabled) */
+	teamConfig?: TeamConfig;
 }
 
 /**

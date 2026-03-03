@@ -19,7 +19,7 @@ import type {
 	RerankedSearchResult,
 	UnitType,
 } from "../types.js";
-import type { VectorStore } from "../core/store.js";
+import type { IVectorStore } from "../core/store.js";
 import {
 	QueryRouter,
 	createQueryRouter,
@@ -90,7 +90,7 @@ export interface EnhancedSearchResult {
 // ============================================================================
 
 export class EnhancedRetriever {
-	private store: VectorStore;
+	private store: IVectorStore;
 	private embeddings: IEmbeddingsClient;
 	private llmClient: ILLMClient | null;
 	private queryRouter: QueryRouter;
@@ -99,7 +99,7 @@ export class EnhancedRetriever {
 	private options: Required<EnhancedRetrieverOptions>;
 
 	constructor(
-		store: VectorStore,
+		store: IVectorStore,
 		embeddings: IEmbeddingsClient,
 		llmClient: ILLMClient | null,
 		options: EnhancedRetrieverOptions = {},
@@ -385,7 +385,7 @@ export class EnhancedRetriever {
  * Create an enhanced retriever
  */
 export function createEnhancedRetriever(
-	store: VectorStore,
+	store: IVectorStore,
 	embeddings: IEmbeddingsClient,
 	llmClient: ILLMClient | null,
 	options?: EnhancedRetrieverOptions,
