@@ -80,6 +80,7 @@ export class LocalCloudStub implements ICloudIndexClient {
 	async checkChunks(
 		_repoSlug: string,
 		hashes: string[],
+		_commitSha?: string,
 	): Promise<ChunkCheckResult> {
 		const existing: string[] = [];
 		const missing: string[] = [];

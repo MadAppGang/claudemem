@@ -365,7 +365,7 @@ export interface ICloudIndexClient {
 	 * Check which content hashes already exist in the cloud.
 	 * Use this before uploading to skip already-stored chunks.
 	 */
-	checkChunks(repoSlug: string, hashes: string[]): Promise<ChunkCheckResult>;
+	checkChunks(repoSlug: string, hashes: string[], commitSha?: string): Promise<ChunkCheckResult>;
 
 	/**
 	 * Upload an index for a specific commit.

@@ -29,6 +29,7 @@ import type {
 	UploadIndexRequest,
 	UploadIndexResponse,
 } from "./types.js";
+import { getMachineId } from "./machine-id.js";
 
 // ============================================================================
 // Error class
@@ -77,12 +78,14 @@ export class ThinCloudClient implements ICloudIndexClient {
 	private readonly endpoint: string;
 	private readonly token: string;
 	private readonly version: number;
+	private readonly machineId: string;
 
 	constructor(options: ThinCloudClientOptions) {
 		// Strip trailing slash so URL joining is consistent
 		this.endpoint = options.endpoint.replace(/\/$/, "");
 		this.token = options.token;
 		this.version = options.version ?? 1;
+		this.machineId = getMachineId();
 	}
 
 	// --------------------------------------------------------------------------
@@ -92,11 +95,17 @@ export class ThinCloudClient implements ICloudIndexClient {
 	async checkChunks(
 		repoSlug: string,
 		hashes: string[],
+		commitSha?: string,
 	): Promise<ChunkCheckResult> {
-		return this.post<ChunkCheckResult>("/v1/chunks/check", {
-			repoSlug,
-			hashes,
-		});
+		const extraHeaders: Record<string, string> = {};
+		if (commitSha) {
+			extraHeaders["X-ClaudeMem-Commit-SHA"] = commitSha;
+		}
+		return this.postWithHeaders<ChunkCheckResult>(
+			"/v1/chunks/check",
+			{ repoSlug, hashes },
+			extraHeaders,
+		);
 	}
 
 	async uploadIndex(request: UploadIndexRequest): Promise<UploadIndexResponse> {
@@ -217,6 +226,7 @@ export class ThinCloudClient implements ICloudIndexClient {
 		return {
 			Authorization: `Bearer ${this.token}`,
 			"X-ClaudeMem-Version": String(this.version),
+			"X-ClaudeMem-Machine-ID": this.machineId,
 			"Content-Type": "application/json",
 		};
 	}
@@ -248,6 +258,21 @@ export class ThinCloudClient implements ICloudIndexClient {
 		const response = await fetch(url, {
 			method: "POST",
 			headers: this.headers(),
+			body: JSON.stringify(body),
+		});
+		return this.handleResponse<T>(response);
+	}
+
+	/** POST with JSON body, extra headers merged in, and parse JSON response */
+	protected async postWithHeaders<T>(
+		path: string,
+		body: unknown,
+		extraHeaders: Record<string, string> = {},
+	): Promise<T> {
+		const url = `${this.endpoint}${path}`;
+		const response = await fetch(url, {
+			method: "POST",
+			headers: { ...this.headers(), ...extraHeaders },
 			body: JSON.stringify(body),
 		});
 		return this.handleResponse<T>(response);

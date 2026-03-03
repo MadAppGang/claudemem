@@ -1,0 +1,18 @@
+# Multi-stage build for claudemem cloud server
+# Produces a minimal image with just bun + bundled JS + schema.sql
+
+FROM oven/bun:1 AS builder
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --ignore-scripts
+COPY src/ src/
+COPY tsconfig.json ./
+RUN bun build src/cloud/server/main.ts --outdir dist --target bun
+
+FROM oven/bun:1-slim
+WORKDIR /app
+COPY --from=builder /app/dist/main.js /app/main.js
+COPY src/cloud/server/schema.sql /app/schema.sql
+EXPOSE 4510
+ENV PORT=4510
+CMD ["bun", "run", "/app/main.js"]
