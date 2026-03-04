@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "Gemma-3-1B",
+    "lmsKey": "google/gemma-3-1b",
+    "family": "gemma",
+    "paramsB": 1
+  },
+  "timestamp": "2026-03-04T01:47:41.128Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 0.9597999999999999,
+    "keyword": 0.8684000000000002,
+    "semantic": 0.927,
+    "hyde": 0.1499999999999999,
+    "latencyMs": 1056.76,
+    "total": 0.6899400000000001
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "Gemma-3-1B",
+      "format": 0.33,
+      "keyword": 1,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 3601,
+      "total": 0.326,
+      "expansion": {
+        "raw": "lex: useEffect, cleanup, component, lifecycle, hook, array, state, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle",
+        "lex": "useEffect, cleanup, component, lifecycle, hook, array, state, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "Gemma-3-1B",
+      "format": 0.33,
+      "keyword": 1,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 2771,
+      "total": 0.326,
+      "expansion": {
+        "raw": "lex: submit, form, validate, error, input, button, label, textfield, control, validation, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user,",
+        "lex": "submit, form, validate, error, input, button, label, textfield, control, validation, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user,",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 792,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: Bar, Input, Display, User interface, Component, Search, Field, Control, Widget, Application\nvec: \"Create a bar component in the application,\"\nhyde: ```python\n  class BarComponent:\n    def __init__(self):\n      self.display = \"Bar\"\n  ```",
+        "lex": "Bar, Input, Display, User interface, Component, Search, Field, Control, Widget, Application",
+        "vec": "\"Create a bar component in the application,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 951,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: createEmbeddings, embed, vector, client, data, model, service, API, platform\nvec: createEmbeddingsClient, embed_data, client_service, data_collection, model_setup, service_api, platform_integration\nhyde: ```python\n  # Placeholder - this would be a very basic embedding generation function.\n  return {\"embedding\": \"some_random_value\"}\n```",
+        "lex": "createEmbeddings, embed, vector, client, data, model, service, API, platform",
+        "vec": "createEmbeddingsClient, embed_data, client_service, data_collection, model_setup, service_api, platform_integration",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1350,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: parameter, size, value, array, object, data, configuration, index, number, variable, field, element, quantity, value, attribute, key, data_type, operation, process, calculation, index, number, parameter, value, array, object, configuration, field, element, quantity, value, attribute, key, data_type, operation, process, calculation, index, number, parameter\nvec: \"parseParameterSize\", \"the size of a parameter,\" \"determine the parameter's value,\" \"how to determine the parameter's size\"\nhyde: ```python\n  def parseParameterSize(parameter_size):\n    return parameter_size\n```",
+        "lex": "parameter, size, value, array, object, data, configuration, index, number, variable, field, element, quantity, value, attribute, key, data_type, operation, process, calculation, index, number, parameter, value, array, object, configuration, field, element, quantity, value, attribute, key, data_type, operation, process, calculation, index, number, parameter",
+        "vec": "\"parseParameterSize\", \"the size of a parameter,\" \"determine the parameter's value,\" \"how to determine the parameter's size\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1223,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: build, index, combine, combined, index, data, structure, database, schema, table, CSV, JSON, XML, pandas, numpy, excel, dataframe\nvec: \"create a combined index for data analysis\"\nhyde: ```python\n  import pandas as pd\n\n  df = pd.DataFrame()\n  df['column1'] = 1\n  df['column2'] = 2\n  df['column3'] = 3\n  df.to_csv('combined_data.csv', index=False)\n```",
+        "lex": "build, index, combine, combined, index, data, structure, database, schema, table, CSV, JSON, XML, pandas, numpy, excel, dataframe",
+        "vec": "\"create a combined index for data analysis\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 964,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: cosineSimilarity, similarity, distance, metric, calculation, algorithm, function, library, tool\nvec: cosineSimilarity is a way to measure the similarity between two vectors in a space.\nhyde: ```python\n    def cosine_similarity(a, b):\n        return 1 if (a - b) == 0 else a * b / (a**2 + b**2)\n```",
+        "lex": "cosineSimilarity, similarity, distance, metric, calculation, algorithm, function, library, tool",
+        "vec": "cosineSimilarity is a way to measure the similarity between two vectors in a space.",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1392,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: query, generator, class, programming, code, algorithm, data structure, Python, object-oriented\nvec: \"create a query generator class,\" \"implement a query generation system,\" \"design a Python module for data processing\"\nhyde: ```python\nclass QueryGenerator:\n    def __init__(self):\n        self.query = \"\"\n        self.data = []\n    def generate(self):\n        self.query += \" \"\n        self.data = []\n        for i in range(10):\n            self.query += \" \"\n            self.data.append(i)\n        self.query += \" \"\n```",
+        "lex": "query, generator, class, programming, code, algorithm, data structure, Python, object-oriented",
+        "vec": "\"create a query generator class,\" \"implement a query generation system,\" \"design a Python module for data processing\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1249,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: aggregate, retrieval, results, data, report, summary, analysis, process, workflow\nvec: \"combine multiple datasets to create a unified view,\"\nhyde: ```python\n  # Placeholder for data aggregation logic.\n  data = [\n      {\"id\": \"1\", \"value\": 10},\n      {\"id\": \"2\", \"value\": 20},\n      {\"id\": \"3\", \"value\": 30}\n  ]\n  combined_data = {\"sum\": sum(data), \"average\": average(data)}\n  return combined_data\n```",
+        "lex": "aggregate, retrieval, results, data, report, summary, analysis, process, workflow",
+        "vec": "\"combine multiple datasets to create a unified view,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1464,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: local, llm, client, server, api, connection, setup, initialization, authentication, endpoint, request, response, data, format, library, framework, service, environment, configuration, deployment, integration, architecture, database, storage, metadata, data, model, training, prediction, generation.\nvec: \"Create a local LLM client to interact with an API.\"\nhyde: ```python\n    import llm_client\n\n    try:\n        llm_client.connect(\"your_api_endpoint\")\n        response = llm_client.generate()\n        print(response)\n    except Exception as e:\n        print(f\"Error: {e}\")\n```",
+        "lex": "local, llm, client, server, api, connection, setup, initialization, authentication, endpoint, request, response, data, format, library, framework, service, environment, configuration, deployment, integration, architecture, database, storage, metadata, data, model, training, prediction, generation.",
+        "vec": "\"Create a local LLM client to interact with an API.\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1089,
+      "total": 0.8487500000000001,
+      "expansion": {
+        "raw": "lex: TypeError, can't read property of undefined, type error, programming error, code debugging, syntax error, undefined variable, missing property, read-only property, invalid type, programming issue, code problem, error message, debugging, syntax error\nvec:  A function that attempts to access a property of an undefined object, resulting in a TypeError.\nhyde:  `def my_function(): print(\"Hello\")`",
+        "lex": "TypeError, can't read property of undefined, type error, programming error, code debugging, syntax error, undefined variable, missing property, read-only property, invalid type, programming issue, code problem, error message, debugging, syntax error",
+        "vec": "A function that attempts to access a property of an undefined object, resulting in a TypeError.",
+        "hyde": "`def my_function(): print(\"Hello\")`"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1037,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: resolve, ECONNREFUSED, localhost, network, connection, error, server, process, service\nvec: \"resolve the connection to localhost\"\nhyde: ```python\n    try:\n        client = localhost.connect()\n        print(\"Connected to localhost\")\n    except Exception as e:\n        print(f\"Connection failed: {e}\")\n```",
+        "lex": "resolve, ECONNREFUSED, localhost, network, connection, error, server, process, service",
+        "vec": "\"resolve the connection to localhost\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.54,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 635,
+      "total": 0.638,
+      "expansion": {
+        "raw": "lex: module, not found, cannot, resolve, import\nvec: \"The module 'module' is not recognized.\"\nhyde: ```python\n  def my_module():\n    pass\n  ```",
+        "lex": "module, not found, cannot, resolve, import",
+        "vec": "\"The module 'module' is not recognized.\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 965,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: CORS, Cross-Origin Request, HTTP authorization, security, origin, server-side, API, authentication\nvec: \"CORS headers not allowed\"\nhyde: ```python\n  # This code snippet checks if the origin header is invalid for a specific request.\n  # It's a simplified example and might not be suitable for production.\n  # print(\"Origin header invalid\")\n```",
+        "lex": "CORS, Cross-Origin Request, HTTP authorization, security, origin, server-side, API, authentication",
+        "vec": "\"CORS headers not allowed\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 725,
+      "total": 0.7140000000000001,
+      "expansion": {
+        "raw": "lex: out-of-memory, heap, allocation, failure, memory, process, OS, debugging\nvec: \"The program crashed while attempting to allocate more memory than available,\"\nhyde: ```python\n  print(\"out of memory heap allocation failed\")\n```",
+        "lex": "out-of-memory, heap, allocation, failure, memory, process, OS, debugging",
+        "vec": "\"The program crashed while attempting to allocate more memory than available,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 607,
+      "total": 0.68625,
+      "expansion": {
+        "raw": "lex: database, connection, timeout, pool, exhausted\nvec: The database connection pool is running out of available connections.\nhyde:  `db_pool.max_connections = 10;`",
+        "lex": "database, connection, timeout, pool, exhausted",
+        "vec": "The database connection pool is running out of available connections.",
+        "hyde": "`db_pool.max_connections = 10;`"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 687,
+      "total": 0.8407500000000001,
+      "expansion": {
+        "raw": "lex: promise, rejection, failed attempt, error, code, async, handling, unhandled, error\nvec: The agreement was broken; a critical issue arose during the asynchronous operation.\nhyde:  `async.error(\"unhandled error\")`",
+        "lex": "promise, rejection, failed attempt, error, code, async, handling, unhandled, error",
+        "vec": "The agreement was broken; a critical issue arose during the asynchronous operation.",
+        "hyde": "`async.error(\"unhandled error\")`"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 945,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: circular dependency, import cycle, recursive dependency, data dependency, dependency graph, cyclic reference, loop in code\nvec: The program is stuck in a recursive loop where one function calls another, creating a cycle of dependencies.\nhyde: ```python\ndef func1():\n    print(\"func1\")\n    func2()\n\ndef func2():\n    print(\"func2\")\n    func1()\n```",
+        "lex": "circular dependency, import cycle, recursive dependency, data dependency, dependency graph, cyclic reference, loop in code",
+        "vec": "The program is stuck in a recursive loop where one function calls another, creating a cycle of dependencies.",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 0.75,
+      "hyde": 0.2,
+      "latencyMs": 634,
+      "total": 0.6890000000000001,
+      "expansion": {
+        "raw": "lex: type, argument, assignment, parameter, error, not, assignable, to, parameter\nvec: type error argument not assignable to parameter\nhyde:  type 'error' argument cannot be assigned to a parameter",
+        "lex": "type, argument, assignment, parameter, error, not, assignable, to, parameter",
+        "vec": "type error argument not assignable to parameter",
+        "hyde": "type 'error' argument cannot be assigned to a parameter"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1126,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: permission, denied, file, access, eaccess, restricted, access, write, read, execute, privilege, authorization, security, system, account, user, root, admin\nvec: \"I am unable to access a file because I don't have the necessary permissions.\"\nhyde: ```python\n  # This is a placeholder, replace with actual code to simulate permission checks.\n  if 'file' in request.path:\n    print(\"Access denied\")\n  else:\n    print(\"File access successful\")\n```",
+        "lex": "permission, denied, file, access, eaccess, restricted, access, write, read, execute, privilege, authorization, security, system, account, user, root, admin",
+        "vec": "\"I am unable to access a file because I don't have the necessary permissions.\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 870,
+      "total": 0.8487500000000001,
+      "expansion": {
+        "raw": "lex: authentication, login, session, user, credential, password, api, security, verify, sign-in, JWT, OAuth, access_token\nvec: user authentication process, secure login, verify credentials, system login, application login, authentication protocol\nhyde:  def authenticate(user_id):\n    # Placeholder implementation - not a real code snippet\n    return True\n",
+        "lex": "authentication, login, session, user, credential, password, api, security, verify, sign-in, JWT, OAuth, access_token",
+        "vec": "user authentication process, secure login, verify credentials, system login, application login, authentication protocol",
+        "hyde": "def authenticate(user_id):"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1171,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: rate limiting, authorization, concurrency, limits, request_counts, monitoring, logging, session_duration, API_rate\nvec: \"implement a system to restrict the number of requests per minute,\" \"how do you handle rate limiting in an application?\"\nhyde: ```python\n    def rate_limit():\n        while True:\n            try:\n                # Simulate a request\n                print(\"Request initiated...\")\n                yield 1\n            except Exception as e:\n                print(f\"Error: {e}\")\n```",
+        "lex": "rate limiting, authorization, concurrency, limits, request_counts, monitoring, logging, session_duration, API_rate",
+        "vec": "\"implement a system to restrict the number of requests per minute,\" \"how do you handle rate limiting in an application?\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 749,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: caching, strategy, invalidation, database, performance, optimization, Redis, Memcached, system\nvec: \"implement a strategy to clear out old data in a database,\"\nhyde: ```python\n    # Clear cache entries from the database\n    db.flush()\n```",
+        "lex": "caching, strategy, invalidation, database, performance, optimization, Redis, Memcached, system",
+        "vec": "\"implement a strategy to clear out old data in a database,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1158,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: retry, loop, exponential, backoff, synchronization, failover, service, stability, debugging\nvec:  \"implement a retry mechanism with exponential backoff to handle transient errors,\"\nhyde: ```python\nimport time\ndef retry_with_exponential_backoff(attempt, max_retries=3):\n  if attempt < max_retries:\n    print(\"Retrying...\")\n    time.sleep(1)  # Simulate some work\n    return True\n  else:\n    print(\"Max retries reached.\")\n    return False\n```",
+        "lex": "retry, loop, exponential, backoff, synchronization, failover, service, stability, debugging",
+        "vec": "\"implement a retry mechanism with exponential backoff to handle transient errors,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1589,
+      "total": 0.685,
+      "expansion": {
+        "raw": "lex: connection, database, pool, system, data, storage, application, service, interface, architecture, configuration, performance, optimization, database, management, concurrency, replication, backup, maintenance, integration, deployment.\nvec: \"connecting to a database system,\" \"implementing a database connection,\" \"building a database pool,\" \"efficient data storage for a database.\"\nhyde: ```python\n    class DatabaseConnection:\n        def __init__(self):\n            self.connection = None\n            self.timeout = 10\n        def connect(self):\n            self.connection = \"DatabaseConnection(\" + self.connection + \")\"\n            print(f\"Connected to database: {self.connection}\")\n        def close(self):\n            print(\"Closing the connection\")\n    ```",
+        "lex": "connection, database, pool, system, data, storage, application, service, interface, architecture, configuration, performance, optimization, database, management, concurrency, replication, backup, maintenance, integration, deployment.",
+        "vec": "\"connecting to a database system,\" \"implementing a database connection,\" \"building a database pool,\" \"efficient data storage for a database.\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 676,
+      "total": 0.682,
+      "expansion": {
+        "raw": "lex: event, driven, architecture, pubsub\nvec: event-driven system, event-triggered architecture, pubsub implementation\nhyde:  ```python\ndef pubsub_system(event):\n    print(\"Event received:\", event)\n```",
+        "lex": "event, driven, architecture, pubsub",
+        "vec": "event-driven system, event-triggered architecture, pubsub implementation",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 685,
+      "total": 0.622,
+      "expansion": {
+        "raw": "lex: dependency, injection, service, container\nvec: \"A robust and flexible system for managing application dependencies\"\nhyde: ```python\n  class DependencyService:\n      def __init__(self):\n          self.dependencies = {}\n  ```",
+        "lex": "dependency, injection, service, container",
+        "vec": "\"A robust and flexible system for managing application dependencies\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 868,
+      "total": 0.622,
+      "expansion": {
+        "raw": "lex: pagination, cursor, offset, limit\nvec: \"display a page of results with a specific number of items,\"\nhyde: ```python\n  # Assuming a simple pagination system\n  page = 3\n  data = get_data(page)\n  # ... (code to display the data)\n  print(\"Page:\", page)\n```",
+        "lex": "pagination, cursor, offset, limit",
+        "vec": "\"display a page of results with a specific number of items,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 631,
+      "total": 0.7935000000000001,
+      "expansion": {
+        "raw": "lex: graceful, shutdown, signal, handling, system, process, error\nvec: The application gracefully shuts down the system after a certain period.\nhyde:  `system.signal.shutdown(signal.SIG_INT)`",
+        "lex": "graceful, shutdown, signal, handling, system, process, error",
+        "vec": "The application gracefully shuts down the system after a certain period.",
+        "hyde": "`system.signal.shutdown(signal.SIG_INT)`"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 688,
+      "total": 0.622,
+      "expansion": {
+        "raw": "lex: streaming, response, server, events\nvec: \"A data stream is being sent from a server to the client, capturing various events as they occur.\"\nhyde: ```python\n    def handle_events(event):\n        print(\"Received event:\", event)\n```",
+        "lex": "streaming, response, server, events",
+        "vec": "\"A data stream is being sent from a server to the client, capturing various events as they occur.\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 964,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: react, context, redux, state management, UI library, JavaScript framework, component library, application development\n\nvec: React context vs Redux state management, UI design challenges, frontend architecture, JavaScript best practices, modern web development\n\nhyde: ```javascript\n  // React Context API\n  function MyComponent({ data }) {\n    return <div>{data.someValue}</div>;\n  }\n```",
+        "lex": "react, context, redux, state management, UI library, JavaScript framework, component library, application development",
+        "vec": "React context vs Redux state management, UI design challenges, frontend architecture, JavaScript best practices, modern web development",
+        "hyde": "```javascript"
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 0.6,
+      "hyde": 0.1,
+      "latencyMs": 620,
+      "total": 0.55,
+      "expansion": {
+        "raw": "lex: express, middleware, chain, next, function\nvec: \"express.util.middleware.chain.next\",\nhyde: ```javascript\nfunction next(req, res, next) {\n  // ...\n}\n```",
+        "lex": "express, middleware, chain, next, function",
+        "vec": "\"express.util.middleware.chain.next\",",
+        "hyde": "```javascript"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 828,
+      "total": 0.7050000000000001,
+      "expansion": {
+        "raw": "lex: Prisma, ORM, Query, FindMany, Database, Schema, Relation, Data, Model, Table, Fields, Columns, Attributes, Properties, Types, Configuration, Database, Connection\nvec: \"Implement a database query to find multiple records from a specific schema.\"\nhyde: ```\n  SELECT * FROM MySchema.MyTable;\n```",
+        "lex": "Prisma, ORM, Query, FindMany, Database, Schema, Relation, Data, Model, Table, Fields, Columns, Attributes, Properties, Types, Configuration, Database, Connection",
+        "vec": "\"Implement a database query to find multiple records from a specific schema.\"",
+        "hyde": "```"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1137,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: next.js, server, component, data, fetching, api, route, data-fetch, fetch, state, props, render, component\nvec: Next.js server component data fetching, Fetching data from a Next.js server component, Data fetching for Next.js components,  Next.js data source, API data fetching in Next.js\nhyde: <script>\n  // Placeholder for a simple component rendering function\n  function MyComponent() {\n    return <div>Hello, world!</div>;\n  }\n</script>\n",
+        "lex": "next.js, server, component, data, fetching, api, route, data-fetch, fetch, state, props, render, component",
+        "vec": "Next.js server component data fetching, Fetching data from a Next.js server component, Data fetching for Next.js components,  Next.js data source, API data fetching in Next.js",
+        "hyde": "<script>"
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 732,
+      "total": 0.63,
+      "expansion": {
+        "raw": "lex: zod, schema, validation, parse, transform\nvec: Zod schema validation is a process of converting data to a format suitable for database systems.\nhyde:  ```python\nimport zod\n\nz = zod.parse('your_schema.py')\n```",
+        "lex": "zod, schema, validation, parse, transform",
+        "vec": "Zod schema validation is a process of converting data to a format suitable for database systems.",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 616,
+      "total": 0.622,
+      "expansion": {
+        "raw": "lex: tRPC, router, procedure, mutation\nvec: \"A protocol for manipulating the TRPC router,\"\nhyde: ```python\n  def mutation_function(data):\n    return data + 1\n```",
+        "lex": "tRPC, router, procedure, mutation",
+        "vec": "\"A protocol for manipulating the TRPC router,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1105,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: Tailwind, responsive, breakpoints, utility, CSS, framework, UI, design, component, grid, layout, typography, theme, responsive design, CSS-in-JS\nvec: Tailwind's responsive breakpoints are a powerful system for creating visually appealing and functional user interfaces.\nhyde: ```javascript\n  const Tailwind = require('tailwindcss');\n\n  // Example usage:\n  const container = new Tailwind.container();\n  container.addTheme('gray');\n```",
+        "lex": "Tailwind, responsive, breakpoints, utility, CSS, framework, UI, design, component, grid, layout, typography, theme, responsive design, CSS-in-JS",
+        "vec": "Tailwind's responsive breakpoints are a powerful system for creating visually appealing and functional user interfaces.",
+        "hyde": "```javascript"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1178,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: jest, mocking, module, test, spying, assertion, mock, unit testing\nvec: \"Implement a Jest mocking strategy to simulate component interactions during tests\"\nhyde: ```javascript\n  const myModule = {\n    someFunction: () => {\n      // some code here\n    }\n  };\n\n  const myMock = jest.spyOn(myModule, 'someFunction');\n  console.log(\"Mocked function called\");\n```",
+        "lex": "jest, mocking, module, test, spying, assertion, mock, unit testing",
+        "vec": "\"Implement a Jest mocking strategy to simulate component interactions during tests\"",
+        "hyde": "```javascript"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1218,
+      "total": 0.7220000000000001,
+      "expansion": {
+        "raw": "lex: docker, compose, multi-service, networking, service, architecture, backend, deployment, infrastructure\nvec: Docker Compose is a tool for building and running multi-container applications.\nhyde: ```python\nimport docker\n\n# This is a placeholder for a Docker Compose setup.\n# It's intended to demonstrate how the query might be processed.\n#  It assumes a basic Docker Compose setup and a specific service name.\n#  The '...' would need to be replaced with more specific data based on the query's intent.\n#  The '...' would need to be replaced with more specific data based on the query's intent.\n```",
+        "lex": "docker, compose, multi-service, networking, service, architecture, backend, deployment, infrastructure",
+        "vec": "Docker Compose is a tool for building and running multi-container applications.",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1028,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: github, actions, ci, workflow, matrix, automation, build, testing, pipeline, DevOps\nvec: GitHub Actions CI workflow is a project-based automation system for managing software development pipelines.\nhyde: ```python\nimport pandas as pd\n\ndf = pd.DataFrame({'name': ['feature', 'bug'], 'description': ['automated test', 'manual fix']})\ndf.to_csv('workflow_matrix.csv', index=False)\n```",
+        "lex": "github, actions, ci, workflow, matrix, automation, build, testing, pipeline, DevOps",
+        "vec": "GitHub Actions CI workflow is a project-based automation system for managing software development pipelines.",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 802,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: unused, import, module, namespace, framework, library, code, function, class, variable, keyword, directive, statement, build, configuration, etc.\nvec: \"unused code segments,\" \"hidden imports,\" \"dead code\"\nhyde: ```python\n  def my_function():\n    pass\n```",
+        "lex": "unused, import, module, namespace, framework, library, code, function, class, variable, keyword, directive, statement, build, configuration, etc.",
+        "vec": "\"unused code segments,\" \"hidden imports,\" \"dead code\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 852,
+      "total": 0.7622500000000001,
+      "expansion": {
+        "raw": "lex:detect, circular_dependencies,modules,dependency_chains,module_relationships,network_flow,system_architecture\nvec:detect a circular dependency in the module network,identify the specific modules involved,resolve the cyclic connections between them\nhyde:defmodule detect_circular_dependencies(modules)\n    return True if modules == [1,2,3] else False",
+        "lex": "detect, circular_dependencies,modules,dependency_chains,module_relationships,network_flow,system_architecture",
+        "vec": "detect a circular dependency in the module network,identify the specific modules involved,resolve the cyclic connections between them",
+        "hyde": "defmodule detect_circular_dependencies(modules)"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "Gemma-3-1B",
+      "format": 0.33,
+      "keyword": 1,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 2581,
+      "total": 0.326,
+      "expansion": {
+        "raw": "lex: dead, unreachable, undefined, error, crash, halt, stop, fail, corrupted, invalid, broken, defunct, obsolete, forgotten, missing, uninitialized, null, zero, empty, void, unreachable, intermittent, asynchronous, deadlock, loop, infinite, recursive, stack overflow, memory leak, undefined variable, syntax error, runtime error, unreachable reference, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument,",
+        "lex": "dead, unreachable, undefined, error, crash, halt, stop, fail, corrupted, invalid, broken, defunct, obsolete, forgotten, missing, uninitialized, null, zero, empty, void, unreachable, intermittent, asynchronous, deadlock, loop, infinite, recursive, stack overflow, memory leak, undefined variable, syntax error, runtime error, unreachable reference, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument,",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 775,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: database, SQL, injection, hacking, exploit, code, vulnerability, security, data, corruption\nvec: database security breach, SQL injection attack, data leak, unauthorized access, system compromise, digital threat\nhyde: ```python\ndef sanitize_input(data):\n  return data.strip()\n```",
+        "lex": "database, SQL, injection, hacking, exploit, code, vulnerability, security, data, corruption",
+        "vec": "database security breach, SQL injection attack, data leak, unauthorized access, system compromise, digital threat",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 770,
+      "total": 0.63,
+      "expansion": {
+        "raw": "Lex: code, duplication, similar, functions, refactor\nvec: \"code duplication, similar functions, refactoring,\"\nhyde: ```python\ndef duplicate_check(code):\n    if code == \"duplicate_function\":\n        return True\n    else:\n        return False\n```",
+        "lex": "code, duplication, similar, functions, refactor",
+        "vec": "\"code duplication, similar functions, refactoring,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1079,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: performance, bottleneck, query, system, optimization, database, application, code, architecture, hardware, network, latency, resource\nvec: \"performance analysis of a system,\" \"reducing bottlenecks in a database query,\" \"optimizing performance through a N+1 query\"\nhyde: ```python\n    def analyze_query(query):\n        # Placeholder for actual code analysis\n        return \"Analyzing query: 'performance bottleneck N+1 query' -  Further investigation required.\"\n```",
+        "lex": "performance, bottleneck, query, system, optimization, database, application, code, architecture, hardware, network, latency, resource",
+        "vec": "\"performance analysis of a system,\" \"reducing bottlenecks in a database query,\" \"optimizing performance through a N+1 query\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 972,
+      "total": 0.63,
+      "expansion": {
+        "raw": "lex: missing, error, handling, try, catch\nvec:  \"implement a robust error-handling mechanism to gracefully manage unexpected situations during program execution,\"\nhyde:  ```python\ntry:\n    # Code to potentially cause an error\n    print(\"This will likely fail.\")\nexcept Exception as e:\n    # Handle the exception\n    print(f\"An error occurred: {e}\")\n```",
+        "lex": "missing, error, handling, try, catch",
+        "vec": "\"implement a robust error-handling mechanism to gracefully manage unexpected situations during program execution,\"",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 0.54,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 638,
+      "total": 0.69425,
+      "expansion": {
+        "raw": "lex:  type, safety, any, assertion, unsafe, cast\nvec:  \"Type safety checks and casting are crucial for robust programming.\"\nhyde:  `// Type-safe cast implementation with assertion validation`",
+        "lex": "type, safety, any, assertion, unsafe, cast",
+        "vec": "\"Type safety checks and casting are crucial for robust programming.\"",
+        "hyde": "`// Type-safe cast implementation with assertion validation`"
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 741,
+      "total": 0.8175000000000001,
+      "expansion": {
+        "raw": "lex:memory leak, event listener, cleanup, bug, crash, error, system, application, code\nvec:The application’s memory leak is causing a crash during operation.\nhyde:  `cleanup_event_listeners()` function to revert to previous state.",
+        "lex": "memory leak, event listener, cleanup, bug, crash, error, system, application, code",
+        "vec": "The application’s memory leak is causing a crash during operation.",
+        "hyde": "`cleanup_event_listeners()` function to revert to previous state."
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "Gemma-3-1B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 910,
+      "total": 0.7300000000000001,
+      "expansion": {
+        "raw": "lex: race, condition, async, concurrent, access, programming, error, synchronization, concurrency, architecture\nvec: \"Asynchronous programming with concurrent access\"\nhyde: ```python\n  class RaceCondition:\n      def __init__(self):\n          self.condition = True\n  print(self.condition)\n```",
+        "lex": "race, condition, async, concurrent, access, programming, error, synchronization, concurrency, architecture",
+        "vec": "\"Asynchronous programming with concurrent access\"",
+        "hyde": "```python"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect, cleanup, component, lifecycle, hook, array, state, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle, hook, undefined, null, ref, return, hooks, cleanup, array, state, component, lifecycle",
+      "latencyMs": 3601,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: submit, form, validate, error, input, button, label, textfield, control, validation, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user, interface, data, process, code, function, state, update, display, element, input, field, form, control, validation, error, feedback, user,",
+      "latencyMs": 2771,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: Bar, Input, Display, User interface, Component, Search, Field, Control, Widget, Application\nvec: \"Create a bar component in the application,\"\nhyde: ```python\n  class BarComponent:\n    def __init__(self):\n      self.display = \"Bar\"\n  ```",
+      "latencyMs": 792,
+      "tokenCount": 66
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: createEmbeddings, embed, vector, client, data, model, service, API, platform\nvec: createEmbeddingsClient, embed_data, client_service, data_collection, model_setup, service_api, platform_integration\nhyde: ```python\n  # Placeholder - this would be a very basic embedding generation function.\n  return {\"embedding\": \"some_random_value\"}\n```",
+      "latencyMs": 951,
+      "tokenCount": 88
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parameter, size, value, array, object, data, configuration, index, number, variable, field, element, quantity, value, attribute, key, data_type, operation, process, calculation, index, number, parameter, value, array, object, configuration, field, element, quantity, value, attribute, key, data_type, operation, process, calculation, index, number, parameter\nvec: \"parseParameterSize\", \"the size of a parameter,\" \"determine the parameter's value,\" \"how to determine the parameter's size\"\nhyde: ```python\n  def parseParameterSize(parameter_size):\n    return parameter_size\n```",
+      "latencyMs": 1350,
+      "tokenCount": 143
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: build, index, combine, combined, index, data, structure, database, schema, table, CSV, JSON, XML, pandas, numpy, excel, dataframe\nvec: \"create a combined index for data analysis\"\nhyde: ```python\n  import pandas as pd\n\n  df = pd.DataFrame()\n  df['column1'] = 1\n  df['column2'] = 2\n  df['column3'] = 3\n  df.to_csv('combined_data.csv', index=False)\n```",
+      "latencyMs": 1223,
+      "tokenCount": 118
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosineSimilarity, similarity, distance, metric, calculation, algorithm, function, library, tool\nvec: cosineSimilarity is a way to measure the similarity between two vectors in a space.\nhyde: ```python\n    def cosine_similarity(a, b):\n        return 1 if (a - b) == 0 else a * b / (a**2 + b**2)\n```",
+      "latencyMs": 964,
+      "tokenCount": 86
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: query, generator, class, programming, code, algorithm, data structure, Python, object-oriented\nvec: \"create a query generator class,\" \"implement a query generation system,\" \"design a Python module for data processing\"\nhyde: ```python\nclass QueryGenerator:\n    def __init__(self):\n        self.query = \"\"\n        self.data = []\n    def generate(self):\n        self.query += \" \"\n        self.data = []\n        for i in range(10):\n            self.query += \" \"\n            self.data.append(i)\n        self.query += \" \"\n```",
+      "latencyMs": 1392,
+      "tokenCount": 141
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregate, retrieval, results, data, report, summary, analysis, process, workflow\nvec: \"combine multiple datasets to create a unified view,\"\nhyde: ```python\n  # Placeholder for data aggregation logic.\n  data = [\n      {\"id\": \"1\", \"value\": 10},\n      {\"id\": \"2\", \"value\": 20},\n      {\"id\": \"3\", \"value\": 30}\n  ]\n  combined_data = {\"sum\": sum(data), \"average\": average(data)}\n  return combined_data\n```",
+      "latencyMs": 1249,
+      "tokenCount": 128
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: local, llm, client, server, api, connection, setup, initialization, authentication, endpoint, request, response, data, format, library, framework, service, environment, configuration, deployment, integration, architecture, database, storage, metadata, data, model, training, prediction, generation.\nvec: \"Create a local LLM client to interact with an API.\"\nhyde: ```python\n    import llm_client\n\n    try:\n        llm_client.connect(\"your_api_endpoint\")\n        response = llm_client.generate()\n        print(response)\n    except Exception as e:\n        print(f\"Error: {e}\")\n```",
+      "latencyMs": 1464,
+      "tokenCount": 148
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: TypeError, can't read property of undefined, type error, programming error, code debugging, syntax error, undefined variable, missing property, read-only property, invalid type, programming issue, code problem, error message, debugging, syntax error\nvec:  A function that attempts to access a property of an undefined object, resulting in a TypeError.\nhyde:  `def my_function(): print(\"Hello\")`",
+      "latencyMs": 1089,
+      "tokenCount": 89
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: resolve, ECONNREFUSED, localhost, network, connection, error, server, process, service\nvec: \"resolve the connection to localhost\"\nhyde: ```python\n    try:\n        client = localhost.connect()\n        print(\"Connected to localhost\")\n    except Exception as e:\n        print(f\"Connection failed: {e}\")\n```",
+      "latencyMs": 1037,
+      "tokenCount": 79
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: module, not found, cannot, resolve, import\nvec: \"The module 'module' is not recognized.\"\nhyde: ```python\n  def my_module():\n    pass\n  ```",
+      "latencyMs": 635,
+      "tokenCount": 44
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: CORS, Cross-Origin Request, HTTP authorization, security, origin, server-side, API, authentication\nvec: \"CORS headers not allowed\"\nhyde: ```python\n  # This code snippet checks if the origin header is invalid for a specific request.\n  # It's a simplified example and might not be suitable for production.\n  # print(\"Origin header invalid\")\n```",
+      "latencyMs": 965,
+      "tokenCount": 85
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: out-of-memory, heap, allocation, failure, memory, process, OS, debugging\nvec: \"The program crashed while attempting to allocate more memory than available,\"\nhyde: ```python\n  print(\"out of memory heap allocation failed\")\n```",
+      "latencyMs": 725,
+      "tokenCount": 56
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database, connection, timeout, pool, exhausted\nvec: The database connection pool is running out of available connections.\nhyde:  `db_pool.max_connections = 10;`",
+      "latencyMs": 607,
+      "tokenCount": 44
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: promise, rejection, failed attempt, error, code, async, handling, unhandled, error\nvec: The agreement was broken; a critical issue arose during the asynchronous operation.\nhyde:  `async.error(\"unhandled error\")`",
+      "latencyMs": 687,
+      "tokenCount": 53
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: circular dependency, import cycle, recursive dependency, data dependency, dependency graph, cyclic reference, loop in code\nvec: The program is stuck in a recursive loop where one function calls another, creating a cycle of dependencies.\nhyde: ```python\ndef func1():\n    print(\"func1\")\n    func2()\n\ndef func2():\n    print(\"func2\")\n    func1()\n```",
+      "latencyMs": 945,
+      "tokenCount": 88
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type, argument, assignment, parameter, error, not, assignable, to, parameter\nvec: type error argument not assignable to parameter\nhyde:  type 'error' argument cannot be assigned to a parameter",
+      "latencyMs": 634,
+      "tokenCount": 47
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: permission, denied, file, access, eaccess, restricted, access, write, read, execute, privilege, authorization, security, system, account, user, root, admin\nvec: \"I am unable to access a file because I don't have the necessary permissions.\"\nhyde: ```python\n  # This is a placeholder, replace with actual code to simulate permission checks.\n  if 'file' in request.path:\n    print(\"Access denied\")\n  else:\n    print(\"File access successful\")\n```",
+      "latencyMs": 1126,
+      "tokenCount": 114
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: authentication, login, session, user, credential, password, api, security, verify, sign-in, JWT, OAuth, access_token\nvec: user authentication process, secure login, verify credentials, system login, application login, authentication protocol\nhyde:  def authenticate(user_id):\n    # Placeholder implementation - not a real code snippet\n    return True\n",
+      "latencyMs": 870,
+      "tokenCount": 80
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate limiting, authorization, concurrency, limits, request_counts, monitoring, logging, session_duration, API_rate\nvec: \"implement a system to restrict the number of requests per minute,\" \"how do you handle rate limiting in an application?\"\nhyde: ```python\n    def rate_limit():\n        while True:\n            try:\n                # Simulate a request\n                print(\"Request initiated...\")\n                yield 1\n            except Exception as e:\n                print(f\"Error: {e}\")\n```",
+      "latencyMs": 1171,
+      "tokenCount": 113
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: caching, strategy, invalidation, database, performance, optimization, Redis, Memcached, system\nvec: \"implement a strategy to clear out old data in a database,\"\nhyde: ```python\n    # Clear cache entries from the database\n    db.flush()\n```",
+      "latencyMs": 749,
+      "tokenCount": 60
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: retry, loop, exponential, backoff, synchronization, failover, service, stability, debugging\nvec:  \"implement a retry mechanism with exponential backoff to handle transient errors,\"\nhyde: ```python\nimport time\ndef retry_with_exponential_backoff(attempt, max_retries=3):\n  if attempt < max_retries:\n    print(\"Retrying...\")\n    time.sleep(1)  # Simulate some work\n    return True\n  else:\n    print(\"Max retries reached.\")\n    return False\n```",
+      "latencyMs": 1158,
+      "tokenCount": 121
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: connection, database, pool, system, data, storage, application, service, interface, architecture, configuration, performance, optimization, database, management, concurrency, replication, backup, maintenance, integration, deployment.\nvec: \"connecting to a database system,\" \"implementing a database connection,\" \"building a database pool,\" \"efficient data storage for a database.\"\nhyde: ```python\n    class DatabaseConnection:\n        def __init__(self):\n            self.connection = None\n            self.timeout = 10\n        def connect(self):\n            self.connection = \"DatabaseConnection(\" + self.connection + \")\"\n            print(f\"Connected to database: {self.connection}\")\n        def close(self):\n            print(\"Closing the connection\")\n    ```",
+      "latencyMs": 1589,
+      "tokenCount": 167
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event, driven, architecture, pubsub\nvec: event-driven system, event-triggered architecture, pubsub implementation\nhyde:  ```python\ndef pubsub_system(event):\n    print(\"Event received:\", event)\n```",
+      "latencyMs": 676,
+      "tokenCount": 53
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency, injection, service, container\nvec: \"A robust and flexible system for managing application dependencies\"\nhyde: ```python\n  class DependencyService:\n      def __init__(self):\n          self.dependencies = {}\n  ```",
+      "latencyMs": 685,
+      "tokenCount": 53
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination, cursor, offset, limit\nvec: \"display a page of results with a specific number of items,\"\nhyde: ```python\n  # Assuming a simple pagination system\n  page = 3\n  data = get_data(page)\n  # ... (code to display the data)\n  print(\"Page:\", page)\n```",
+      "latencyMs": 868,
+      "tokenCount": 76
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful, shutdown, signal, handling, system, process, error\nvec: The application gracefully shuts down the system after a certain period.\nhyde:  `system.signal.shutdown(signal.SIG_INT)`",
+      "latencyMs": 631,
+      "tokenCount": 48
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: streaming, response, server, events\nvec: \"A data stream is being sent from a server to the client, capturing various events as they occur.\"\nhyde: ```python\n    def handle_events(event):\n        print(\"Received event:\", event)\n```",
+      "latencyMs": 688,
+      "tokenCount": 59
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: react, context, redux, state management, UI library, JavaScript framework, component library, application development\n\nvec: React context vs Redux state management, UI design challenges, frontend architecture, JavaScript best practices, modern web development\n\nhyde: ```javascript\n  // React Context API\n  function MyComponent({ data }) {\n    return <div>{data.someValue}</div>;\n  }\n```",
+      "latencyMs": 964,
+      "tokenCount": 86
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: express, middleware, chain, next, function\nvec: \"express.util.middleware.chain.next\",\nhyde: ```javascript\nfunction next(req, res, next) {\n  // ...\n}\n```",
+      "latencyMs": 620,
+      "tokenCount": 50
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: Prisma, ORM, Query, FindMany, Database, Schema, Relation, Data, Model, Table, Fields, Columns, Attributes, Properties, Types, Configuration, Database, Connection\nvec: \"Implement a database query to find multiple records from a specific schema.\"\nhyde: ```\n  SELECT * FROM MySchema.MyTable;\n```",
+      "latencyMs": 828,
+      "tokenCount": 74
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: next.js, server, component, data, fetching, api, route, data-fetch, fetch, state, props, render, component\nvec: Next.js server component data fetching, Fetching data from a Next.js server component, Data fetching for Next.js components,  Next.js data source, API data fetching in Next.js\nhyde: <script>\n  // Placeholder for a simple component rendering function\n  function MyComponent() {\n    return <div>Hello, world!</div>;\n  }\n</script>\n",
+      "latencyMs": 1137,
+      "tokenCount": 118
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: zod, schema, validation, parse, transform\nvec: Zod schema validation is a process of converting data to a format suitable for database systems.\nhyde:  ```python\nimport zod\n\nz = zod.parse('your_schema.py')\n```",
+      "latencyMs": 732,
+      "tokenCount": 60
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC, router, procedure, mutation\nvec: \"A protocol for manipulating the TRPC router,\"\nhyde: ```python\n  def mutation_function(data):\n    return data + 1\n```",
+      "latencyMs": 616,
+      "tokenCount": 47
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: Tailwind, responsive, breakpoints, utility, CSS, framework, UI, design, component, grid, layout, typography, theme, responsive design, CSS-in-JS\nvec: Tailwind's responsive breakpoints are a powerful system for creating visually appealing and functional user interfaces.\nhyde: ```javascript\n  const Tailwind = require('tailwindcss');\n\n  // Example usage:\n  const container = new Tailwind.container();\n  container.addTheme('gray');\n```",
+      "latencyMs": 1105,
+      "tokenCount": 99
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: jest, mocking, module, test, spying, assertion, mock, unit testing\nvec: \"Implement a Jest mocking strategy to simulate component interactions during tests\"\nhyde: ```javascript\n  const myModule = {\n    someFunction: () => {\n      // some code here\n    }\n  };\n\n  const myMock = jest.spyOn(myModule, 'someFunction');\n  console.log(\"Mocked function called\");\n```",
+      "latencyMs": 1178,
+      "tokenCount": 98
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker, compose, multi-service, networking, service, architecture, backend, deployment, infrastructure\nvec: Docker Compose is a tool for building and running multi-container applications.\nhyde: ```python\nimport docker\n\n# This is a placeholder for a Docker Compose setup.\n# It's intended to demonstrate how the query might be processed.\n#  It assumes a basic Docker Compose setup and a specific service name.\n#  The '...' would need to be replaced with more specific data based on the query's intent.\n#  The '...' would need to be replaced with more specific data based on the query's intent.\n```",
+      "latencyMs": 1218,
+      "tokenCount": 138
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: github, actions, ci, workflow, matrix, automation, build, testing, pipeline, DevOps\nvec: GitHub Actions CI workflow is a project-based automation system for managing software development pipelines.\nhyde: ```python\nimport pandas as pd\n\ndf = pd.DataFrame({'name': ['feature', 'bug'], 'description': ['automated test', 'manual fix']})\ndf.to_csv('workflow_matrix.csv', index=False)\n```",
+      "latencyMs": 1028,
+      "tokenCount": 98
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused, import, module, namespace, framework, library, code, function, class, variable, keyword, directive, statement, build, configuration, etc.\nvec: \"unused code segments,\" \"hidden imports,\" \"dead code\"\nhyde: ```python\n  def my_function():\n    pass\n```",
+      "latencyMs": 802,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex:detect, circular_dependencies,modules,dependency_chains,module_relationships,network_flow,system_architecture\nvec:detect a circular dependency in the module network,identify the specific modules involved,resolve the cyclic connections between them\nhyde:defmodule detect_circular_dependencies(modules)\n    return True if modules == [1,2,3] else False",
+      "latencyMs": 852,
+      "tokenCount": 79
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: dead, unreachable, undefined, error, crash, halt, stop, fail, corrupted, invalid, broken, defunct, obsolete, forgotten, missing, uninitialized, null, zero, empty, void, unreachable, intermittent, asynchronous, deadlock, loop, infinite, recursive, stack overflow, memory leak, undefined variable, syntax error, runtime error, unreachable reference, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument, unreachable array, null pointer exception, undefined value, empty object, zero-value, missing property, invalid type, syntax error, runtime error, undefined variable, null pointer, zero-length, empty list, undefined function, missing field, invalid argument,",
+      "latencyMs": 2581,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: database, SQL, injection, hacking, exploit, code, vulnerability, security, data, corruption\nvec: database security breach, SQL injection attack, data leak, unauthorized access, system compromise, digital threat\nhyde: ```python\ndef sanitize_input(data):\n  return data.strip()\n```",
+      "latencyMs": 775,
+      "tokenCount": 66
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "Lex: code, duplication, similar, functions, refactor\nvec: \"code duplication, similar functions, refactoring,\"\nhyde: ```python\ndef duplicate_check(code):\n    if code == \"duplicate_function\":\n        return True\n    else:\n        return False\n```",
+      "latencyMs": 770,
+      "tokenCount": 63
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: performance, bottleneck, query, system, optimization, database, application, code, architecture, hardware, network, latency, resource\nvec: \"performance analysis of a system,\" \"reducing bottlenecks in a database query,\" \"optimizing performance through a N+1 query\"\nhyde: ```python\n    def analyze_query(query):\n        # Placeholder for actual code analysis\n        return \"Analyzing query: 'performance bottleneck N+1 query' -  Further investigation required.\"\n```",
+      "latencyMs": 1079,
+      "tokenCount": 102
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: missing, error, handling, try, catch\nvec:  \"implement a robust error-handling mechanism to gracefully manage unexpected situations during program execution,\"\nhyde:  ```python\ntry:\n    # Code to potentially cause an error\n    print(\"This will likely fail.\")\nexcept Exception as e:\n    # Handle the exception\n    print(f\"An error occurred: {e}\")\n```",
+      "latencyMs": 972,
+      "tokenCount": 87
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex:  type, safety, any, assertion, unsafe, cast\nvec:  \"Type safety checks and casting are crucial for robust programming.\"\nhyde:  `// Type-safe cast implementation with assertion validation`",
+      "latencyMs": 638,
+      "tokenCount": 46
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex:memory leak, event listener, cleanup, bug, crash, error, system, application, code\nvec:The application’s memory leak is causing a crash during operation.\nhyde:  `cleanup_event_listeners()` function to revert to previous state.",
+      "latencyMs": 741,
+      "tokenCount": 56
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race, condition, async, concurrent, access, programming, error, synchronization, concurrency, architecture\nvec: \"Asynchronous programming with concurrent access\"\nhyde: ```python\n  class RaceCondition:\n      def __init__(self):\n          self.condition = True\n  print(self.condition)\n```",
+      "latencyMs": 910,
+      "tokenCount": 69
+    }
+  ]
+}

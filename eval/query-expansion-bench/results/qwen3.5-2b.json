@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "Qwen3.5-2B",
+    "lmsKey": "qwen3.5-2b",
+    "family": "qwen3.5",
+    "paramsB": 2
+  },
+  "timestamp": "2026-03-03T17:49:20.041Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 0.9593999999999997,
+    "keyword": 0.9887999999999999,
+    "semantic": 0.8999999999999997,
+    "hyde": 0.49499999999999966,
+    "latencyMs": 9368.94,
+    "total": 0.7116899999999999
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 2425,
+      "total": 0.7637500000000002,
+      "expansion": {
+        "raw": "lex: useEffect cleanup function, useCallback cleanup hook, async cleanup function, cleanup effect, window cleanup, DOM cleanup, lifecycle cleanup, cleanup logic, asynchronous cleanup, synchronous cleanup\nvec: Implement a useEffect hook to handle cleanup operations after component mounting or before unmounting, ensuring resources are properly released and state is reset appropriately when the component re-renders or unmounts.\nhyde: <useEffect() { const cleanup = () => { await someAsyncCleanup(); setStateToInitial(); }} />",
+        "lex": "useEffect cleanup function, useCallback cleanup hook, async cleanup function, cleanup effect, window cleanup, DOM cleanup, lifecycle cleanup, cleanup logic, asynchronous cleanup, synchronous cleanup",
+        "vec": "Implement a useEffect hook to handle cleanup operations after component mounting or before unmounting, ensuring resources are properly released and state is reset appropriately when the component re-renders or unmounts.",
+        "hyde": "<useEffect() { const cleanup = () => { await someAsyncCleanup(); setStateToInitial(); }} />"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 7408,
+      "total": 0.7275000000000001,
+      "expansion": {
+        "raw": "lex: handleSubmit, onSubmit handler, client-side form submission, onsubmit callback, JavaScript event listener, DOM manipulation after submit\nvec: When a user clicks or submits an interactive form element in the browser, the code executes its handler function to process data and perform actions like validation or redirection.\nhyde: <form onsubmit=\"handleSubmit(event)\"><|im_end|>\n",
+        "lex": "handleSubmit, onSubmit handler, client-side form submission, onsubmit callback, JavaScript event listener, DOM manipulation after submit",
+        "vec": "When a user clicks or submits an interactive form element in the browser, the code executes its handler function to process data and perform actions like validation or redirection.",
+        "hyde": "<form onsubmit=\"handleSubmit(event)\"><|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.45,
+      "latencyMs": 8209,
+      "total": 0.6875000000000001,
+      "expansion": {
+        "raw": "lex: SearchBar, input field component, form control, UI element, web application component, HTML5 tag, accessibility widget.\nvec: A search bar is a user interface element designed to allow users to quickly locate and filter content within an application or website, typically functioning as a form control that accepts text input to perform queries.\nhyde: <input type=\"search\" class=\"search-bar\"><|im_end|>\n",
+        "lex": "SearchBar, input field component, form control, UI element, web application component, HTML5 tag, accessibility widget.",
+        "vec": "A search bar is a user interface element designed to allow users to quickly locate and filter content within an application or website, typically functioning as a form control that accepts text input to perform queries.",
+        "hyde": "<input type=\"search\" class=\"search-bar\"><|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 8708,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: createEmbeddingsClient, embedding client, vector database client, generate embeddings API, text to vector conversion service\nvec: A specialized library or class designed for creating and managing embeddings within a vector database, typically used to transform text data into numerical vectors for similarity search or machine learning tasks.\nhyde: class EmbeddingsClient { public: void createEmbeddings(const string& text); private: vector<vector<double>> embeddings; }<|im_end|>\n",
+        "lex": "createEmbeddingsClient, embedding client, vector database client, generate embeddings API, text to vector conversion service",
+        "vec": "A specialized library or class designed for creating and managing embeddings within a vector database, typically used to transform text data into numerical vectors for similarity search or machine learning tasks.",
+        "hyde": "class EmbeddingsClient { public: void createEmbeddings(const string& text); private: vector<vector<double>> embeddings; }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 8138,
+      "total": 0.7660000000000001,
+      "expansion": {
+        "raw": "lex: parseParameterSize, parameter size parsing, parameter size extraction, getParameterSize, parseValueSize\nvec: Extract the size of a specified parameter from the input data using a parsing function.\nhyde: def parseParameterSize(data): return int(data.split()[1])<|im_end|>\n",
+        "lex": "parseParameterSize, parameter size parsing, parameter size extraction, getParameterSize, parseValueSize",
+        "vec": "Extract the size of a specified parameter from the input data using a parsing function.",
+        "hyde": "def parseParameterSize(data): return int(data.split()[1])<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 8668,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: buildCombinedIndex, constructCombinedIndex, createCombinedIndex, combineIndexes, indexBuilder\nvec: Create a combined index by merging multiple datasets or aggregating information from various sources to form a unified dataset for efficient querying and retrieval.\nhyde: def buildCombinedIndex(): return [dataset1, dataset2, dataset3]<|im_end|>\n",
+        "lex": "buildCombinedIndex, constructCombinedIndex, createCombinedIndex, combineIndexes, indexBuilder",
+        "vec": "Create a combined index by merging multiple datasets or aggregating information from various sources to form a unified dataset for efficient querying and retrieval.",
+        "hyde": "def buildCombinedIndex(): return [dataset1, dataset2, dataset3]<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 9227,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: cosine similarity, dot product metric, angle between vectors, vector space geometry, normalized cosine similarity\nvec: A helper function or tool designed to calculate the cosine similarity between two vectors, which measures the angle and magnitude of their relationship in a vector space.\nhyde: def cosine_helper(v1, v2): return math.cosine_similarity(v1, v2)<|im_end|>\n",
+        "lex": "cosine similarity, dot product metric, angle between vectors, vector space geometry, normalized cosine similarity",
+        "vec": "A helper function or tool designed to calculate the cosine similarity between two vectors, which measures the angle and magnitude of their relationship in a vector space.",
+        "hyde": "def cosine_helper(v1, v2): return math.cosine_similarity(v1, v2)<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 9422,
+      "total": 0.7587500000000001,
+      "expansion": {
+        "raw": "lex: QueryGenerator class, Java class, query generation library, algorithmic search, dynamic programming, optimization problem solver.\nvec: A specialized class in Java designed to handle the generation of queries for various search algorithms, often used within optimization frameworks or machine learning pipelines.\nhyde: class QueryGenerator { public void generate(String query) throws Exception; }<|im_end|>\n",
+        "lex": "QueryGenerator class, Java class, query generation library, algorithmic search, dynamic programming, optimization problem solver.",
+        "vec": "A specialized class in Java designed to handle the generation of queries for various search algorithms, often used within optimization frameworks or machine learning pipelines.",
+        "hyde": "class QueryGenerator { public void generate(String query) throws Exception; }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 10069,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: aggregateRetrievalResults, aggregate retrieval results, aggregation of retrieval results, retrieve and aggregate results, aggregate multiple search results\nvec: You want to gather and summarize the outcomes of various retrieval processes. This could involve collecting data from multiple sources, performing calculations on retrieved items, or compiling a final list of aggregated findings.\nhyde: def aggregateRetrievalResults(data): return [item for item in data if item.isValid]<|im_end|>\n",
+        "lex": "aggregateRetrievalResults, aggregate retrieval results, aggregation of retrieval results, retrieve and aggregate results, aggregate multiple search results",
+        "vec": "You want to gather and summarize the outcomes of various retrieval processes. This could involve collecting data from multiple sources, performing calculations on retrieved items, or compiling a final list of aggregated findings.",
+        "hyde": "def aggregateRetrievalResults(data): return [item for item in data if item.isValid]<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 10172,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: LocalLLMClient constructor, local large language model client initialization, LLM client factory pattern instantiation.\nvec: Initialize a local Large Language Model client with the constructor, which typically involves setting up memory and configuration parameters for the model.\nhyde: def __init__(self): self._model = LocalLLMClient.__new__(LocalLLMClient, local_config)<|im_end|>\n",
+        "lex": "LocalLLMClient constructor, local large language model client initialization, LLM client factory pattern instantiation.",
+        "vec": "Initialize a local Large Language Model client with the constructor, which typically involves setting up memory and configuration parameters for the model.",
+        "hyde": "def __init__(self): self._model = LocalLLMClient.__new__(LocalLLMClient, local_config)<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 10689,
+      "total": 0.6650000000000001,
+      "expansion": {
+        "raw": "lex: TypeError, undefined property access, runtime error, JavaScript exception, uncaught reference\nvec: encountering a runtime error where an undefined value is being accessed as a property, leading to a TypeError in your code execution flow\nhyde: try-catch block wrapping the property access, nullish coalescing operator fallback<|im_end|>\n",
+        "lex": "TypeError, undefined property access, runtime error, JavaScript exception, uncaught reference",
+        "vec": "encountering a runtime error where an undefined value is being accessed as a property, leading to a TypeError in your code execution flow",
+        "hyde": "try-catch block wrapping the property access, nullish coalescing operator fallback<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 11370,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: connection refused, TCP handshake failure, network unreachable, localhost binding error, DNS resolution failure, socket timeout, connection reset by peer.\nvec: when a client attempts to connect to localhost but receives an error message saying connection refused, what could be the underlying cause?\nhyde: <code>if (err.code === 'ECONNREFUSED') { console.log('Connection refused'); }</code><|im_end|>\n",
+        "lex": "connection refused, TCP handshake failure, network unreachable, localhost binding error, DNS resolution failure, socket timeout, connection reset by peer.",
+        "vec": "when a client attempts to connect to localhost but receives an error message saying connection refused, what could be the underlying cause?",
+        "hyde": "<code>if (err.code === 'ECONNREFUSED') { console.log('Connection refused'); }</code><|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.7,
+      "latencyMs": 13816,
+      "total": 0.7500000000000001,
+      "expansion": {
+        "raw": "lex: module not found cannot resolve import, missing package declaration, undefined variable name, circular dependency in imports, syntax error in import statement, invalid module path, unregistered library, missing namespace directive.\nvec: when a JavaScript or TypeScript file references another module that isn't defined, the compiler can't locate it. This often stems from missing package declarations, incorrect variable names, circular import dependencies, syntax errors in the import statement itself, invalid module paths, or a library that hasn't been registered with the compiler.\nhyde: import { ModuleNotFoundError } from 'module'; const x = undefined; // or check package.json, fix import path, add missing namespace<|im_end|>\n",
+        "lex": "module not found cannot resolve import, missing package declaration, undefined variable name, circular dependency in imports, syntax error in import statement, invalid module path, unregistered library, missing namespace directive.",
+        "vec": "when a JavaScript or TypeScript file references another module that isn't defined, the compiler can't locate it. This often stems from missing package declarations, incorrect variable names, circular import dependencies, syntax errors in the import statement itself, invalid module paths, or a library that hasn't been registered with the compiler.",
+        "hyde": "import { ModuleNotFoundError } from 'module'; const x = undefined; // or check package.json, fix import path, add missing namespace<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.325,
+      "latencyMs": 12338,
+      "total": 0.6562500000000001,
+      "expansion": {
+        "raw": "lex: cross-origin resource sharing, HTTP CORS policy, origin header validation, preflight request, security headers, web server configuration\nvec: when a browser tries to load a resource from a different domain or subdomain, the server must respond with specific security headers like cross-origin resources sharing to prevent unauthorized access and ensure proper origin validation.\nhyde: <script>document.domain = \"example.com\";</script><|im_end|>\n",
+        "lex": "cross-origin resource sharing, HTTP CORS policy, origin header validation, preflight request, security headers, web server configuration",
+        "vec": "when a browser tries to load a resource from a different domain or subdomain, the server must respond with specific security headers like cross-origin resources sharing to prevent unauthorized access and ensure proper origin validation.",
+        "hyde": "<script>document.domain = \"example.com\";</script><|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 13715,
+      "total": 0.7587500000000001,
+      "expansion": {
+        "raw": "lex: heap allocation failure, memory exhaustion, OOM error, out of memory exception, malloc failure, runtime stack overflow, heap space limit exceeded, system OOM killer triggered\nvec: when a program attempts to allocate more memory than available in its heap, leading to an allocation failure or crash due to insufficient resources\nhyde: #!/usr/bin/python3 -c \"import os; print('Out of memory!')\" 2>/dev/null || echo \"OOM: Out of Memory\"<|im_end|>\n",
+        "lex": "heap allocation failure, memory exhaustion, OOM error, out of memory exception, malloc failure, runtime stack overflow, heap space limit exceeded, system OOM killer triggered",
+        "vec": "when a program attempts to allocate more memory than available in its heap, leading to an allocation failure or crash due to insufficient resources",
+        "hyde": "#!/usr/bin/python3 -c \"import os; print('Out of memory!')\" 2>/dev/null || echo \"OOM: Out of Memory\"<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 19339,
+      "total": 0.7437500000000001,
+      "expansion": {
+        "raw": "lex: database connection pool exhaustion, timeout threshold exceeded, connection limit reached, DB connection failure, resource contention in database layer, SQL query execution timeout, deadlock in database pool, connection pool manager error.\nvec: When a user's request to access data or perform an action fails due to insufficient database connections, the system returns a timeout error because all available resources are fully utilized.\nhyde: <code class=\"python\">def handle_db_timeout(): raise ConnectionError(\"Pool exhausted\")</code><|im_end|>\n",
+        "lex": "database connection pool exhaustion, timeout threshold exceeded, connection limit reached, DB connection failure, resource contention in database layer, SQL query execution timeout, deadlock in database pool, connection pool manager error.",
+        "vec": "When a user's request to access data or perform an action fails due to insufficient database connections, the system returns a timeout error because all available resources are fully utilized.",
+        "hyde": "<code class=\"python\">def handle_db_timeout(): raise ConnectionError(\"Pool exhausted\")</code><|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 24591,
+      "total": 0.6812500000000001,
+      "expansion": {
+        "raw": "lex: unhandled promise rejection, async error handling, catch block, try-catch-finally, Promise.reject, asynchronous code, event loop, callback stack overflow.\nvec: When an unhandled promise rejection occurs in asynchronous code, the event loop may crash or cause a stack overflow if not properly handled with try-catch blocks.\nhyde: async/await without catch -> unhandled promise rejection error<|im_end|>\n",
+        "lex": "unhandled promise rejection, async error handling, catch block, try-catch-finally, Promise.reject, asynchronous code, event loop, callback stack overflow.",
+        "vec": "When an unhandled promise rejection occurs in asynchronous code, the event loop may crash or cause a stack overflow if not properly handled with try-catch blocks.",
+        "hyde": "async/await without catch -> unhandled promise rejection error<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 14610,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: circular dependency, import cycle, module loop, mutual recursion, transitive closure in code analysis, package resolution failure, forward reference, backward reference, import statement cycle.\nvec: When a module imports itself or creates a loop where one module depends on another which in turn depends back, resulting in an unresolvable import cycle that halts the build process or causes a runtime error.\nhyde: def detect_cycle(): if module_a imports module_b and module_b imports module_a: raise ImportError(\"Circular dependency detected\")<|im_end|>\n",
+        "lex": "circular dependency, import cycle, module loop, mutual recursion, transitive closure in code analysis, package resolution failure, forward reference, backward reference, import statement cycle.",
+        "vec": "When a module imports itself or creates a loop where one module depends on another which in turn depends back, resulting in an unresolvable import cycle that halts the build process or causes a runtime error.",
+        "hyde": "def detect_cycle(): if module_a imports module_b and module_b imports module_a: raise ImportError(\"Circular dependency detected\")<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 6344,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: type mismatch, argument not assignable to parameter, compile-time error, invalid cast, undefined variable, missing return type, wrong data type mismatch, parameter out of bounds, uninitialized variable.\nvec: A programming error occurs when a value passed as an argument cannot be assigned to the corresponding parameter in a function or method, often due to type incompatibility, missing return types, or incorrect variable declarations.\nhyde: void function(int x) { if (x < 0) return; }<|im_end|>\n",
+        "lex": "type mismatch, argument not assignable to parameter, compile-time error, invalid cast, undefined variable, missing return type, wrong data type mismatch, parameter out of bounds, uninitialized variable.",
+        "vec": "A programming error occurs when a value passed as an argument cannot be assigned to the corresponding parameter in a function or method, often due to type incompatibility, missing return types, or incorrect variable declarations.",
+        "hyde": "void function(int x) { if (x < 0) return; }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 6498,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: permission denied, EACCES access error, file system I/O failure, unauthorized access attempt, restricted directory entry\nvec: when a user or process tries to access a file but lacks the necessary permissions, resulting in an error code like EACCES due to blocked access rights or missing authentication tokens.\nhyde: import os; if not os.access(path, os.W_OK | os.R_OK): raise PermissionError(\"Access denied: EACCES\")<|im_end|>\n",
+        "lex": "permission denied, EACCES access error, file system I/O failure, unauthorized access attempt, restricted directory entry",
+        "vec": "when a user or process tries to access a file but lacks the necessary permissions, resulting in an error code like EACCES due to blocked access rights or missing authentication tokens.",
+        "hyde": "import os; if not os.access(path, os.W_OK | os.R_OK): raise PermissionError(\"Access denied: EACCES\")<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 6732,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: authentication middleware, auth gateway, access control proxy, JWT handler, OAuth2 server, SAML identity provider, token validation engine, session management service, user verification layer.\nvec: A middleware component that handles authentication and authorization processes for web applications or APIs, often involving token validation, session management, and identity verification.\nhyde: def auth_middleware = new AuthenticationMiddleware(); auth_middleware.handleRequest(req, res);<|im_end|>\n",
+        "lex": "authentication middleware, auth gateway, access control proxy, JWT handler, OAuth2 server, SAML identity provider, token validation engine, session management service, user verification layer.",
+        "vec": "A middleware component that handles authentication and authorization processes for web applications or APIs, often involving token validation, session management, and identity verification.",
+        "hyde": "def auth_middleware = new AuthenticationMiddleware(); auth_middleware.handleRequest(req, res);<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "Qwen3.5-2B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 5101,
+      "total": 0.547,
+      "expansion": {
+        "raw": "lex: rate limiting, throttling, request quota, bandwidth control, DDoS protection, API gateway, SLA management\nvec: implementing rate limits to manage traffic flow and protect services from overload while maintaining performance.<|im_end|>\n",
+        "lex": "rate limiting, throttling, request quota, bandwidth control, DDoS protection, API gateway, SLA management",
+        "vec": "implementing rate limits to manage traffic flow and protect services from overload while maintaining performance.<|im_end|>",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.7,
+      "latencyMs": 6259,
+      "total": 0.7500000000000001,
+      "expansion": {
+        "raw": "lex: cache invalidation, memory management, object lifecycle, stale data detection, eviction policies, write-through vs. write-back caching, cache coherency protocols, garbage collection, memory pressure, concurrency control, distributed systems, database caching, application layer caching, in-memory data stores.\nvec: When a cache hits miss or becomes stale, the system must decide which entries to discard and how to refresh them. This involves complex algorithms for eviction, synchronization with other caches, handling concurrent access, and maintaining consistency across distributed nodes.\nhyde: def invalidate_cache(cache): if cache.is_stale(): remove_entry() and refresh_from_source()<|im_end|>\n",
+        "lex": "cache invalidation, memory management, object lifecycle, stale data detection, eviction policies, write-through vs. write-back caching, cache coherency protocols, garbage collection, memory pressure, concurrency control, distributed systems, database caching, application layer caching, in-memory data stores.",
+        "vec": "When a cache hits miss or becomes stale, the system must decide which entries to discard and how to refresh them. This involves complex algorithms for eviction, synchronization with other caches, handling concurrent access, and maintaining consistency across distributed nodes.",
+        "hyde": "def invalidate_cache(cache): if cache.is_stale(): remove_entry() and refresh_from_source()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5344,
+      "total": 0.6962500000000001,
+      "expansion": {
+        "raw": "lex: exponential backoff retry, jitter-based retry, exponential delay recovery, circuit breaker with backoff, adaptive timeout scaling\nvec: when a request fails repeatedly, the system automatically waits longer before retrying to avoid overwhelming the service with rapid failures.\nhyde: exponential_backoff_retry = true, jitter_active = false<|im_end|>\n",
+        "lex": "exponential backoff retry, jitter-based retry, exponential delay recovery, circuit breaker with backoff, adaptive timeout scaling",
+        "vec": "when a request fails repeatedly, the system automatically waits longer before retrying to avoid overwhelming the service with rapid failures.",
+        "hyde": "exponential_backoff_retry = true, jitter_active = false<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.7,
+      "latencyMs": 8485,
+      "total": 0.7500000000000001,
+      "expansion": {
+        "raw": "lex: connection pooling, database connection management, SQL query optimization, distributed database systems, high concurrency, resource allocation, transaction isolation, ACID properties, connection limit settings, query timeout handling.\nvec: \"connection pooling\" is a technique used in database systems to reuse connections, reducing overhead and improving performance. It involves managing multiple client connections efficiently while maintaining data integrity through isolation levels like ACID (Atomicity, Consistency, Isolation, Durability). This approach is critical for handling high concurrency scenarios where multiple users access a database simultaneously without degrading performance.\nhyde: <code class=\"python\">def optimize_connection_pool(db_config):</code> <br/>  pool = ConnectionPool(max_concurrency=10, timeout=30) <br/>  while True: <br/>    conn = pool.get_connection() <br/>    try: <br/>      result = conn.execute(\"SELECT * FROM users\") <br/>      pool.release_connection() <br/>    except: <br/>      pass</code><|im_end|>\n",
+        "lex": "connection pooling, database connection management, SQL query optimization, distributed database systems, high concurrency, resource allocation, transaction isolation, ACID properties, connection limit settings, query timeout handling.",
+        "vec": "\"connection pooling\" is a technique used in database systems to reuse connections, reducing overhead and improving performance. It involves managing multiple client connections efficiently while maintaining data integrity through isolation levels like ACID (Atomicity, Consistency, Isolation, Durability). This approach is critical for handling high concurrency scenarios where multiple users access a database simultaneously without degrading performance.",
+        "hyde": "<code class=\"python\">def optimize_connection_pool(db_config):</code> <br/>  pool = ConnectionPool(max_concurrency=10, timeout=30) <br/>  while True: <br/>    conn = pool.get_connection() <br/>    try: <br/>      result = conn.execute(\"SELECT * FROM users\") <br/>      pool.release_connection() <br/>    except: <br/>      pass</code><|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 5976,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: event-driven architecture, pub/sub pattern, asynchronous programming, decoupled components, message queues, streaming data pipelines\nvec: in a system where events trigger actions through decoupled components using asynchronous programming, often utilizing message queues to stream data flows between independent parts of the architecture.\nhyde: def event_driven_arch (self): self.set_up_pub_sub(); self.subscribe_event()<|im_end|>\n",
+        "lex": "event-driven architecture, pub/sub pattern, asynchronous programming, decoupled components, message queues, streaming data pipelines",
+        "vec": "in a system where events trigger actions through decoupled components using asynchronous programming, often utilizing message queues to stream data flows between independent parts of the architecture.",
+        "hyde": "def event_driven_arch (self): self.set_up_pub_sub(); self.subscribe_event()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 5544,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: dependency injection, container abstraction, service locator, DI framework, singleton pattern, factory method, constructor injection, setter injection\nvec: A design pattern where a service container manages the creation and lifecycle of dependent services, facilitating dependency injection to decouple components.\nhyde: def container = new ServiceContainer(); container.inject(new UserService()); container.inject(new PaymentService());<|im_end|>\n",
+        "lex": "dependency injection, container abstraction, service locator, DI framework, singleton pattern, factory method, constructor injection, setter injection",
+        "vec": "A design pattern where a service container manages the creation and lifecycle of dependent services, facilitating dependency injection to decouple components.",
+        "hyde": "def container = new ServiceContainer(); container.inject(new UserService()); container.inject(new PaymentService());<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5915,
+      "total": 0.6962500000000001,
+      "expansion": {
+        "raw": "lex: page_size, record_limit, offset, cursor, sort_by, asc_desc, skip, take, next_cursor, prev_cursor\nvec: retrieving data from a database with pagination controls where you specify the number of records per page, the starting position to skip, and sort order parameters like ascending or descending.\nhyde: SELECT * FROM table LIMIT 10 OFFSET 5 ORDER BY created_at DESC;<|im_end|>\n",
+        "lex": "page_size, record_limit, offset, cursor, sort_by, asc_desc, skip, take, next_cursor, prev_cursor",
+        "vec": "retrieving data from a database with pagination controls where you specify the number of records per page, the starting position to skip, and sort order parameters like ascending or descending.",
+        "hyde": "SELECT * FROM table LIMIT 10 OFFSET 5 ORDER BY created_at DESC;<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 6391,
+      "total": 0.7587500000000001,
+      "expansion": {
+        "raw": "lex: graceful shutdown, signal handling, process termination, daemon exit, IPC signaling, POSIX signals, OS kernel shutdown\nvec: When a program or system needs to gracefully shut down in response to an incoming signal, how does the code handle that event?\nhyde: graceful_shutdown(signal_handler) { if (signal_received) { cleanup_resources(); return; } }<|im_end|>\n",
+        "lex": "graceful shutdown, signal handling, process termination, daemon exit, IPC signaling, POSIX signals, OS kernel shutdown",
+        "vec": "When a program or system needs to gracefully shut down in response to an incoming signal, how does the code handle that event?",
+        "hyde": "graceful_shutdown(signal_handler) { if (signal_received) { cleanup_resources(); return; } }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 6628,
+      "total": 0.6650000000000001,
+      "expansion": {
+        "raw": "lex: streaming response server sent events, SSE, HTTP Server-Sent Events, real-time data delivery, push notifications, WebSocket, HTTP/1.1, RFC 7626\nvec: A real-time communication protocol where the server sends data to a client via HTTP/1.1, allowing for continuous streaming of responses and events without requiring the client to poll frequently.\nhyde: <code>streaming_response_server_sent_events</code><|im_end|>\n",
+        "lex": "streaming response server sent events, SSE, HTTP Server-Sent Events, real-time data delivery, push notifications, WebSocket, HTTP/1.1, RFC 7626",
+        "vec": "A real-time communication protocol where the server sends data to a client via HTTP/1.1, allowing for continuous streaming of responses and events without requiring the client to poll frequently.",
+        "hyde": "<code>streaming_response_server_sent_events</code><|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 8657,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: React Context API, Redux, state management, prop drilling, component composition, TypeScript, JavaScript, ESM modules, dependency injection, global state, local state, middleware, action creators, reducer functions, store setup, provider pattern, context providers, context consumers, event handlers, navigation state, user authentication, data fetching, async operations, error handling, logging.\nvec: \"When comparing React Context API versus Redux state management in modern web development, one must evaluate how each approach handles global vs. local state, the nature of data flow (prop drilling versus direct access), and the ecosystem's impact on developer productivity, scalability, and long-term maintainability of applications.\"\nhyde: \"const Context = createContext(); const Provider = (props) => <Context.Provider {...props} />; const Consumer = () => useContext();\"<|im_end|>\n",
+        "lex": "React Context API, Redux, state management, prop drilling, component composition, TypeScript, JavaScript, ESM modules, dependency injection, global state, local state, middleware, action creators, reducer functions, store setup, provider pattern, context providers, context consumers, event handlers, navigation state, user authentication, data fetching, async operations, error handling, logging.",
+        "vec": "\"When comparing React Context API versus Redux state management in modern web development, one must evaluate how each approach handles global vs. local state, the nature of data flow (prop drilling versus direct access), and the ecosystem's impact on developer productivity, scalability, and long-term maintainability of applications.\"",
+        "hyde": "\"const Context = createContext(); const Provider = (props) => <Context.Provider {...props} />; const Consumer = () => useContext();\"<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.7,
+      "latencyMs": 8313,
+      "total": 0.7500000000000001,
+      "expansion": {
+        "raw": "lex: Express middleware chain next function, Express.js stack trace, Express app router, Express route handler, Express middleware layering, Express dependency injection, Express request lifecycle, Express error handling, Express middleware composition.\nvec: When you build a web application with the Express.js framework, you typically set up an app object and then chain multiple middleware functions together in sequence to process incoming requests, validate data, transform responses, and finally handle any errors before sending them back to the client.\nhyde: const app = express(); app.use(express.json()); app.use((req, res, next) => { if (req.method === 'GET') return; else next(); }); app.get('/', (req, res) => { res.json({ message: 'Hello' }); });<|im_end|>\n",
+        "lex": "Express middleware chain next function, Express.js stack trace, Express app router, Express route handler, Express middleware layering, Express dependency injection, Express request lifecycle, Express error handling, Express middleware composition.",
+        "vec": "When you build a web application with the Express.js framework, you typically set up an app object and then chain multiple middleware functions together in sequence to process incoming requests, validate data, transform responses, and finally handle any errors before sending them back to the client.",
+        "hyde": "const app = express(); app.use(express.json()); app.use((req, res, next) => { if (req.method === 'GET') return; else next(); }); app.get('/', (req, res) => { res.json({ message: 'Hello' }); });<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 8735,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: Prisma ORM findMany method, database query execution, relational database query, SQL WHERE clause, Prisma schema definition, ORM abstraction layer.\nvec: Execute a database query using the findMany method within Prisma ORM to retrieve multiple records from a relational database based on specified criteria.\nhyde: // Prisma findMany query setup; const result = await db.$query.findMany({ where: { status: 'active' } });<|im_end|>\n",
+        "lex": "Prisma ORM findMany method, database query execution, relational database query, SQL WHERE clause, Prisma schema definition, ORM abstraction layer.",
+        "vec": "Execute a database query using the findMany method within Prisma ORM to retrieve multiple records from a relational database based on specified criteria.",
+        "hyde": "// Prisma findMany query setup; const result = await db.$query.findMany({ where: { status: 'active' } });<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "Qwen3.5-2B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0,
+      "latencyMs": 12586,
+      "total": 0.507,
+      "expansion": {
+        "raw": "lex: next.js server component data fetching, react hooks, async/await, promises, dependency injection, lifecycle events, middleware, SSR, SSG, server-side rendering, hydration, client side rendering, bundlers, webpack, v8, node.js, express, graphql, graphql-tools, apollo, graphql-apollo, graphql-hq, graphql-js, graphql-query, graphql-middleware, graphql-schema, graphql-typescript, graphql-validation, graphql-execute, graphql-client, graphql-server, graphql-request, graphql-fetch, graphql-graphql, graphql-http, graphql-websocket, graphql-ws, graphql-pubsub, graphql-subscriber, graphql-eventemitter, graphql-retry, graphql-circuit, graphql-graphql-client, graphql-http-client, graphql-websocket-client, graphql-ws-client, graphql-pubsub-client, graphql-subscriber-client, graphql-eventemitter-client, graphql-retry-client, graphql-circuit-client.\nvec: \"When you're building a Next.js application and need to fetch data from the server, here are key concepts like hooks, async/await patterns, dependency injection, lifecycle events, middleware strategies, server-side rendering (SSR) vs client-side rendering (CSR), bundler configurations like webpack and v8, and how Next.js integrates with popular GraphQL libraries such as Apollo, Graphql-apollo, and Graphql-hq. You should also consider the lifecycle events, middleware strategies, bundler configurations like webpack and v8, and",
+        "lex": "next.js server component data fetching, react hooks, async/await, promises, dependency injection, lifecycle events, middleware, SSR, SSG, server-side rendering, hydration, client side rendering, bundlers, webpack, v8, node.js, express, graphql, graphql-tools, apollo, graphql-apollo, graphql-hq, graphql-js, graphql-query, graphql-middleware, graphql-schema, graphql-typescript, graphql-validation, graphql-execute, graphql-client, graphql-server, graphql-request, graphql-fetch, graphql-graphql, graphql-http, graphql-websocket, graphql-ws, graphql-pubsub, graphql-subscriber, graphql-eventemitter, graphql-retry, graphql-circuit, graphql-graphql-client, graphql-http-client, graphql-websocket-client, graphql-ws-client, graphql-pubsub-client, graphql-subscriber-client, graphql-eventemitter-client, graphql-retry-client, graphql-circuit-client.",
+        "vec": "\"When you're building a Next.js application and need to fetch data from the server, here are key concepts like hooks, async/await patterns, dependency injection, lifecycle events, middleware strategies, server-side rendering (SSR) vs client-side rendering (CSR), bundler configurations like webpack and v8, and how Next.js integrates with popular GraphQL libraries such as Apollo, Graphql-apollo, and Graphql-hq. You should also consider the lifecycle events, middleware strategies, bundler configurations like webpack and v8, and",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 8303,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "lex: Zod schema validation, JSON parsing, data transformation, TypeScript interfaces, API request/response handling, error handling in JavaScript.\nvec: \"A developer needs to validate incoming JSON data against a Zod schema, then parse the validated object into a structured format for further processing and transformation.\"\nhyde: \"const z = new Zod(); const schema = z.object({ name: String, age: Number }); const validated = await z.validate(data); const transformed = await validate.parse(validated);\"<|im_end|>\n",
+        "lex": "Zod schema validation, JSON parsing, data transformation, TypeScript interfaces, API request/response handling, error handling in JavaScript.",
+        "vec": "\"A developer needs to validate incoming JSON data against a Zod schema, then parse the validated object into a structured format for further processing and transformation.\"",
+        "hyde": "\"const z = new Zod(); const schema = z.object({ name: String, age: Number }); const validated = await z.validate(data); const transformed = await validate.parse(validated);\"<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 8856,
+      "total": 0.7587500000000001,
+      "expansion": {
+        "raw": "lex: tRPC router procedure mutation, RPC method definition, TypeScript runtime protocol, TRPC client library, TRPC server-side function call\nvec: Implementing a mutation operation within the router procedure using the TRPC framework, involving client-side request handling and server-side state updates in TypeScript.\nhyde: const routerProcedure = createRouter({ procedure: (input) => { return input; } });<|im_end|>\n",
+        "lex": "tRPC router procedure mutation, RPC method definition, TypeScript runtime protocol, TRPC client library, TRPC server-side function call",
+        "vec": "Implementing a mutation operation within the router procedure using the TRPC framework, involving client-side request handling and server-side state updates in TypeScript.",
+        "hyde": "const routerProcedure = createRouter({ procedure: (input) => { return input; } });<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 11296,
+      "total": 0.7587500000000001,
+      "expansion": {
+        "raw": "lex: Tailwind CSS breakpoints, grid system utilities, responsive design utility classes, mobile-first layout helpers, flexbox and grid utility patterns.\nvec: \"Tailwind CSS breakpoints\" are used for responsive design utilities, including grid system helpers and mobile-first layout patterns.\nhyde: <script>const breakpoints = ['sm', 'md', 'lg', 'xl']; const utilities = {sm: 'flex', md: 'grid', lg: 'hidden'}; return { breakpoints, utilities }; </script><|im_end|>\n",
+        "lex": "Tailwind CSS breakpoints, grid system utilities, responsive design utility classes, mobile-first layout helpers, flexbox and grid utility patterns.",
+        "vec": "\"Tailwind CSS breakpoints\" are used for responsive design utilities, including grid system helpers and mobile-first layout patterns.",
+        "hyde": "<script>const breakpoints = ['sm', 'md', 'lg', 'xl']; const utilities = {sm: 'flex', md: 'grid', lg: 'hidden'}; return { breakpoints, utilities }; </script><|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "Qwen3.5-2B",
+      "format": 0.33,
+      "keyword": 0.76,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14819,
+      "total": 0.23300000000000004,
+      "expansion": {
+        "raw": "lex: jest jest mock jest spy jest testing jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest testing jest testing jest testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing",
+        "lex": "jest jest mock jest spy jest testing jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest testing jest testing jest testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.325,
+      "latencyMs": 10648,
+      "total": 0.6562500000000001,
+      "expansion": {
+        "raw": "lex: docker compose, multi-service networking, service discovery, container orchestration, bridge networks, host networking, namespace isolation, docker-compose.yml configuration, service mesh architecture\nvec: orchestrate multiple services using a single compose file to enable seamless communication and resource sharing across containers, leveraging bridge networks for isolated environments while maintaining host connectivity through namespace isolation.\nhyde: docker compose --network bridge create -f services.yaml, where services.yaml defines a multi-service topology with explicit port mappings and service discovery rules for container orchestration.<|im_end|>\n",
+        "lex": "docker compose, multi-service networking, service discovery, container orchestration, bridge networks, host networking, namespace isolation, docker-compose.yml configuration, service mesh architecture",
+        "vec": "orchestrate multiple services using a single compose file to enable seamless communication and resource sharing across containers, leveraging bridge networks for isolated environments while maintaining host connectivity through namespace isolation.",
+        "hyde": "docker compose --network bridge create -f services.yaml, where services.yaml defines a multi-service topology with explicit port mappings and service discovery rules for container orchestration.<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 12674,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: GitHub Actions CI workflow matrix, GitLab CI pipeline configuration, Jenkins CI/CD automation, Docker-based deployment pipelines, multi-branch pull request merging strategies, automated testing frameworks integration, CI/CD pipeline orchestration tools.\nvec: \"A comprehensive guide on setting up and managing GitHub Actions CI workflows using a matrix approach for scaling across multiple branches, environments, and configurations to streamline continuous integration and deployment processes.\"\nhyde: <code class=\"language-python\">def setup_ci_matrix(): # Initialize GitHub Actions context with matrix strategy for CI/CD pipeline configuration return {\"workflow\": \"github-actions\", \"matrix\": [\"dev\", \"staging\", \"prod\"], \"steps\": [\"test\", \"build\", \"deploy\"]}</code><|im_end|>\n",
+        "lex": "GitHub Actions CI workflow matrix, GitLab CI pipeline configuration, Jenkins CI/CD automation, Docker-based deployment pipelines, multi-branch pull request merging strategies, automated testing frameworks integration, CI/CD pipeline orchestration tools.",
+        "vec": "\"A comprehensive guide on setting up and managing GitHub Actions CI workflows using a matrix approach for scaling across multiple branches, environments, and configurations to streamline continuous integration and deployment processes.\"",
+        "hyde": "<code class=\"language-python\">def setup_ci_matrix(): # Initialize GitHub Actions context with matrix strategy for CI/CD pipeline configuration return {\"workflow\": \"github-actions\", \"matrix\": [\"dev\", \"staging\", \"prod\"], \"steps\": [\"test\", \"build\", \"deploy\"]}</code><|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.45,
+      "latencyMs": 19052,
+      "total": 0.6725000000000001,
+      "expansion": {
+        "raw": "lex: unused imports, dead code elimination, unreachable code, compile-time errors, import pollution, legacy dependencies, stale imports, unused variable removal, dead function calls, code cleanup, refactoring, dependency injection, import statement syntax, unused package declaration, dead code detection, static analysis tools, code quality metrics, maintainability assessment.\nvec: \"Identify and remove unused imports from your codebase to eliminate dead code, unreachable logic, and stale dependencies that hinder maintainability. Utilize static analysis tools to detect compile-time errors caused by unused imports and refactor code to improve overall quality.\"\nhyde: \"import_unused_code = True; unused_imports = filter(lambda x: not x.is_used, all_imports); dead_code = remove_if_not_called(code); code_cleanliness_score = calculate_metrics();\"<|im_end|>\n",
+        "lex": "unused imports, dead code elimination, unreachable code, compile-time errors, import pollution, legacy dependencies, stale imports, unused variable removal, dead function calls, code cleanup, refactoring, dependency injection, import statement syntax, unused package declaration, dead code detection, static analysis tools, code quality metrics, maintainability assessment.",
+        "vec": "\"Identify and remove unused imports from your codebase to eliminate dead code, unreachable logic, and stale dependencies that hinder maintainability. Utilize static analysis tools to detect compile-time errors caused by unused imports and refactor code to improve overall quality.\"",
+        "hyde": "\"import_unused_code = True; unused_imports = filter(lambda x: not x.is_used, all_imports); dead_code = remove_if_not_called(code); code_cleanliness_score = calculate_metrics();\"<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 23356,
+      "total": 0.7437500000000001,
+      "expansion": {
+        "raw": "lex: circular dependency, module interdependence, class coupling, transitive dependency graph, cycle detection algorithm, forward/backward chaining analysis\nvec: \"identify circular dependencies within a software module structure\"\nhyde: def detect_cycle(graph): return [v for v in nodes if is_cyclic(v, graph)]<|im_end|>\n",
+        "lex": "circular dependency, module interdependence, class coupling, transitive dependency graph, cycle detection algorithm, forward/backward chaining analysis",
+        "vec": "\"identify circular dependencies within a software module structure\"",
+        "hyde": "def detect_cycle(graph): return [v for v in nodes if is_cyclic(v, graph)]<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "Qwen3.5-2B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0,
+      "latencyMs": 7685,
+      "total": 0.507,
+      "expansion": {
+        "raw": "lex: dead code detection, unreachable code identification, dead code elimination, unreachable code analysis, dead code removal, unreachable block detection, code optimization, dead code pruning, unreachable path tracing.\nvec: \"dead code detection\" and \"unreachable code identification\" are critical in software development for identifying lines of code that will never be executed by the program. This involves analyzing control flow graphs to pinpoint dead code blocks, which are then removed or commented out during compilation and runtime execution to improve performance and maintainability.<|im_end|>\n",
+        "lex": "dead code detection, unreachable code identification, dead code elimination, unreachable code analysis, dead code removal, unreachable block detection, code optimization, dead code pruning, unreachable path tracing.",
+        "vec": "\"dead code detection\" and \"unreachable code identification\" are critical in software development for identifying lines of code that will never be executed by the program. This involves analyzing control flow graphs to pinpoint dead code blocks, which are then removed or commented out during compilation and runtime execution to improve performance and maintainability.<|im_end|>",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 5133,
+      "total": 0.7587500000000001,
+      "expansion": {
+        "raw": "lex: SQL injection, database injection, web application security, SQL exploitation, code injection, malicious query, payload injection, vulnerability assessment, penetration testing\nvec: A security flaw where an attacker manipulates the SQL query to bypass authorization or access restricted data, commonly occurring in web applications and database systems.\nhyde: <code class=\"sql-injection\">SELECT * FROM users WHERE username = 'admin' AND (password = '' OR 1=1)</code><|im_end|>\n",
+        "lex": "SQL injection, database injection, web application security, SQL exploitation, code injection, malicious query, payload injection, vulnerability assessment, penetration testing",
+        "vec": "A security flaw where an attacker manipulates the SQL query to bypass authorization or access restricted data, commonly occurring in web applications and database systems.",
+        "hyde": "<code class=\"sql-injection\">SELECT * FROM users WHERE username = 'admin' AND (password = '' OR 1=1)</code><|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 4933,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: code duplication, function refactoring, code smell, redundant logic, similar method names, class inheritance, static analysis, unit test coverage\nvec: \"Identify and refactor code duplication by analyzing similar functions to improve maintainability and reduce technical debt.\"\nhyde: <code>def refactor_code_duplication():\n    for func in codebase:\n        if is_similar(func):\n            apply_refactoring_rules(func)\n</code><|im_end|>\n",
+        "lex": "code duplication, function refactoring, code smell, redundant logic, similar method names, class inheritance, static analysis, unit test coverage",
+        "vec": "\"Identify and refactor code duplication by analyzing similar functions to improve maintainability and reduce technical debt.\"",
+        "hyde": "<code>def refactor_code_duplication():"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 5799,
+      "total": 0.7187500000000001,
+      "expansion": {
+        "raw": "lex: N+1 query performance bottleneck, concurrent request handling, database load optimization, resource contention, multi-threaded processing, latency analysis, throughput metrics, system scaling, database indexing, query optimization, caching strategies, load balancing, distributed systems, high availability.\nvec: When a system experiences performance bottlenecks specifically related to N+1 query patterns, how can we optimize the database load handling and resource contention? What strategies exist for improving latency, increasing throughput, and scaling systems to handle multiple concurrent requests efficiently while maintaining high availability?\nhyde: def optimize_n1_query_system(): # Checks for N+1 query patterns, analyzes resource contention, and implements caching strategies to improve performance<|im_end|>\n",
+        "lex": "N+1 query performance bottleneck, concurrent request handling, database load optimization, resource contention, multi-threaded processing, latency analysis, throughput metrics, system scaling, database indexing, query optimization, caching strategies, load balancing, distributed systems, high availability.",
+        "vec": "When a system experiences performance bottlenecks specifically related to N+1 query patterns, how can we optimize the database load handling and resource contention? What strategies exist for improving latency, increasing throughput, and scaling systems to handle multiple concurrent requests efficiently while maintaining high availability?",
+        "hyde": "def optimize_n1_query_system(): # Checks for N+1 query patterns, analyzes resource contention, and implements caching strategies to improve performance<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "Qwen3.5-2B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0,
+      "latencyMs": 5320,
+      "total": 0.507,
+      "expansion": {
+        "raw": "lex: exception handling, try-catch blocks, error management, null pointer checks, resource cleanup, try-finally blocks, exception chaining, runtime errors, debugging, logging, validation, security patches.\nvec: When a program encounters unexpected failures or bugs during execution, developers use try-catch blocks to isolate errors and prevent them from crashing the application. This approach involves wrapping code sections that might throw exceptions to handle potential issues gracefully, such as by catching specific exception types and displaying user-friendly messages or logging the error details. Proper implementation of try-catch blocks ensures that code remains stable even when encountering missing data, invalid inputs, or system failures.<|im_end|>\n",
+        "lex": "exception handling, try-catch blocks, error management, null pointer checks, resource cleanup, try-finally blocks, exception chaining, runtime errors, debugging, logging, validation, security patches.",
+        "vec": "When a program encounters unexpected failures or bugs during execution, developers use try-catch blocks to isolate errors and prevent them from crashing the application. This approach involves wrapping code sections that might throw exceptions to handle potential issues gracefully, such as by catching specific exception types and displaying user-friendly messages or logging the error details. Proper implementation of try-catch blocks ensures that code remains stable even when encountering missing data, invalid inputs, or system failures.<|im_end|>",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 4769,
+      "total": 0.7725000000000002,
+      "expansion": {
+        "raw": "lex: type safety, assertion, unsafe cast, static analysis, compiler warnings, memory safety, null pointer dereference, runtime error detection, code review\nvec: ensuring type safety through assertions while avoiding unsafe casts to prevent potential runtime errors and memory corruption in software development.\nhyde: <code>assert(x != null) && cast(x, T);</code><|im_end|>\n",
+        "lex": "type safety, assertion, unsafe cast, static analysis, compiler warnings, memory safety, null pointer dereference, runtime error detection, code review",
+        "vec": "ensuring type safety through assertions while avoiding unsafe casts to prevent potential runtime errors and memory corruption in software development.",
+        "hyde": "<code>assert(x != null) && cast(x, T);</code><|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 4563,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: memory leak, event listener, cleanup handler, garbage collection, resource unbinding, callback removal\nvec: when a memory leak occurs during event listener management, the cleanup handler is invoked to free resources and remove callbacks.\nhyde: def cleanup_event_listener(event): if event is not None: del event; return<|im_end|>\n",
+        "lex": "memory leak, event listener, cleanup handler, garbage collection, resource unbinding, callback removal",
+        "vec": "when a memory leak occurs during event listener management, the cleanup handler is invoked to free resources and remove callbacks.",
+        "hyde": "def cleanup_event_listener(event): if event is not None: del event; return<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "Qwen3.5-2B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.2,
+      "latencyMs": 4819,
+      "total": 0.6700000000000002,
+      "expansion": {
+        "raw": "lex: race condition, async programming, concurrent access, thread safety, synchronization primitives, deadlock prevention, atomic operations, lock-free algorithms, race condition detection, concurrent programming models\nvec: When developers build software with multiple threads running simultaneously, they must handle potential race conditions that can cause data inconsistency or system crashes. Asynchronous programming allows non-blocking I/O while concurrent access manages shared resources safely to prevent race conditions, ensuring atomic operations and deadlock prevention across various programming models.\nhyde: async_concurrent_race_condition_sync<|im_end|>\n",
+        "lex": "race condition, async programming, concurrent access, thread safety, synchronization primitives, deadlock prevention, atomic operations, lock-free algorithms, race condition detection, concurrent programming models",
+        "vec": "When developers build software with multiple threads running simultaneously, they must handle potential race conditions that can cause data inconsistency or system crashes. Asynchronous programming allows non-blocking I/O while concurrent access manages shared resources safely to prevent race conditions, ensuring atomic operations and deadlock prevention across various programming models.",
+        "hyde": "async_concurrent_race_condition_sync<|im_end|>"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect cleanup function, useCallback cleanup hook, async cleanup function, cleanup effect, window cleanup, DOM cleanup, lifecycle cleanup, cleanup logic, asynchronous cleanup, synchronous cleanup\nvec: Implement a useEffect hook to handle cleanup operations after component mounting or before unmounting, ensuring resources are properly released and state is reset appropriately when the component re-renders or unmounts.\nhyde: <useEffect() { const cleanup = () => { await someAsyncCleanup(); setStateToInitial(); }} />",
+      "latencyMs": 2425,
+      "tokenCount": 104
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: handleSubmit, onSubmit handler, client-side form submission, onsubmit callback, JavaScript event listener, DOM manipulation after submit\nvec: When a user clicks or submits an interactive form element in the browser, the code executes its handler function to process data and perform actions like validation or redirection.\nhyde: <form onsubmit=\"handleSubmit(event)\"><|im_end|>\n",
+      "latencyMs": 7408,
+      "tokenCount": 73
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: SearchBar, input field component, form control, UI element, web application component, HTML5 tag, accessibility widget.\nvec: A search bar is a user interface element designed to allow users to quickly locate and filter content within an application or website, typically functioning as a form control that accepts text input to perform queries.\nhyde: <input type=\"search\" class=\"search-bar\"><|im_end|>\n",
+      "latencyMs": 8209,
+      "tokenCount": 85
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: createEmbeddingsClient, embedding client, vector database client, generate embeddings API, text to vector conversion service\nvec: A specialized library or class designed for creating and managing embeddings within a vector database, typically used to transform text data into numerical vectors for similarity search or machine learning tasks.\nhyde: class EmbeddingsClient { public: void createEmbeddings(const string& text); private: vector<vector<double>> embeddings; }<|im_end|>\n",
+      "latencyMs": 8708,
+      "tokenCount": 91
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parseParameterSize, parameter size parsing, parameter size extraction, getParameterSize, parseValueSize\nvec: Extract the size of a specified parameter from the input data using a parsing function.\nhyde: def parseParameterSize(data): return int(data.split()[1])<|im_end|>\n",
+      "latencyMs": 8138,
+      "tokenCount": 60
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: buildCombinedIndex, constructCombinedIndex, createCombinedIndex, combineIndexes, indexBuilder\nvec: Create a combined index by merging multiple datasets or aggregating information from various sources to form a unified dataset for efficient querying and retrieval.\nhyde: def buildCombinedIndex(): return [dataset1, dataset2, dataset3]<|im_end|>\n",
+      "latencyMs": 8668,
+      "tokenCount": 71
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosine similarity, dot product metric, angle between vectors, vector space geometry, normalized cosine similarity\nvec: A helper function or tool designed to calculate the cosine similarity between two vectors, which measures the angle and magnitude of their relationship in a vector space.\nhyde: def cosine_helper(v1, v2): return math.cosine_similarity(v1, v2)<|im_end|>\n",
+      "latencyMs": 9227,
+      "tokenCount": 79
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: QueryGenerator class, Java class, query generation library, algorithmic search, dynamic programming, optimization problem solver.\nvec: A specialized class in Java designed to handle the generation of queries for various search algorithms, often used within optimization frameworks or machine learning pipelines.\nhyde: class QueryGenerator { public void generate(String query) throws Exception; }<|im_end|>\n",
+      "latencyMs": 9422,
+      "tokenCount": 75
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregateRetrievalResults, aggregate retrieval results, aggregation of retrieval results, retrieve and aggregate results, aggregate multiple search results\nvec: You want to gather and summarize the outcomes of various retrieval processes. This could involve collecting data from multiple sources, performing calculations on retrieved items, or compiling a final list of aggregated findings.\nhyde: def aggregateRetrievalResults(data): return [item for item in data if item.isValid]<|im_end|>\n",
+      "latencyMs": 10069,
+      "tokenCount": 92
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: LocalLLMClient constructor, local large language model client initialization, LLM client factory pattern instantiation.\nvec: Initialize a local Large Language Model client with the constructor, which typically involves setting up memory and configuration parameters for the model.\nhyde: def __init__(self): self._model = LocalLLMClient.__new__(LocalLLMClient, local_config)<|im_end|>\n",
+      "latencyMs": 10172,
+      "tokenCount": 81
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: TypeError, undefined property access, runtime error, JavaScript exception, uncaught reference\nvec: encountering a runtime error where an undefined value is being accessed as a property, leading to a TypeError in your code execution flow\nhyde: try-catch block wrapping the property access, nullish coalescing operator fallback<|im_end|>\n",
+      "latencyMs": 10689,
+      "tokenCount": 67
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: connection refused, TCP handshake failure, network unreachable, localhost binding error, DNS resolution failure, socket timeout, connection reset by peer.\nvec: when a client attempts to connect to localhost but receives an error message saying connection refused, what could be the underlying cause?\nhyde: <code>if (err.code === 'ECONNREFUSED') { console.log('Connection refused'); }</code><|im_end|>\n",
+      "latencyMs": 11370,
+      "tokenCount": 86
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: module not found cannot resolve import, missing package declaration, undefined variable name, circular dependency in imports, syntax error in import statement, invalid module path, unregistered library, missing namespace directive.\nvec: when a JavaScript or TypeScript file references another module that isn't defined, the compiler can't locate it. This often stems from missing package declarations, incorrect variable names, circular import dependencies, syntax errors in the import statement itself, invalid module paths, or a library that hasn't been registered with the compiler.\nhyde: import { ModuleNotFoundError } from 'module'; const x = undefined; // or check package.json, fix import path, add missing namespace<|im_end|>\n",
+      "latencyMs": 13816,
+      "tokenCount": 138
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: cross-origin resource sharing, HTTP CORS policy, origin header validation, preflight request, security headers, web server configuration\nvec: when a browser tries to load a resource from a different domain or subdomain, the server must respond with specific security headers like cross-origin resources sharing to prevent unauthorized access and ensure proper origin validation.\nhyde: <script>document.domain = \"example.com\";</script><|im_end|>\n",
+      "latencyMs": 12338,
+      "tokenCount": 87
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: heap allocation failure, memory exhaustion, OOM error, out of memory exception, malloc failure, runtime stack overflow, heap space limit exceeded, system OOM killer triggered\nvec: when a program attempts to allocate more memory than available in its heap, leading to an allocation failure or crash due to insufficient resources\nhyde: #!/usr/bin/python3 -c \"import os; print('Out of memory!')\" 2>/dev/null || echo \"OOM: Out of Memory\"<|im_end|>\n",
+      "latencyMs": 13715,
+      "tokenCount": 103
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database connection pool exhaustion, timeout threshold exceeded, connection limit reached, DB connection failure, resource contention in database layer, SQL query execution timeout, deadlock in database pool, connection pool manager error.\nvec: When a user's request to access data or perform an action fails due to insufficient database connections, the system returns a timeout error because all available resources are fully utilized.\nhyde: <code class=\"python\">def handle_db_timeout(): raise ConnectionError(\"Pool exhausted\")</code><|im_end|>\n",
+      "latencyMs": 19339,
+      "tokenCount": 104
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: unhandled promise rejection, async error handling, catch block, try-catch-finally, Promise.reject, asynchronous code, event loop, callback stack overflow.\nvec: When an unhandled promise rejection occurs in asynchronous code, the event loop may crash or cause a stack overflow if not properly handled with try-catch blocks.\nhyde: async/await without catch -> unhandled promise rejection error<|im_end|>\n",
+      "latencyMs": 24591,
+      "tokenCount": 85
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: circular dependency, import cycle, module loop, mutual recursion, transitive closure in code analysis, package resolution failure, forward reference, backward reference, import statement cycle.\nvec: When a module imports itself or creates a loop where one module depends on another which in turn depends back, resulting in an unresolvable import cycle that halts the build process or causes a runtime error.\nhyde: def detect_cycle(): if module_a imports module_b and module_b imports module_a: raise ImportError(\"Circular dependency detected\")<|im_end|>\n",
+      "latencyMs": 14610,
+      "tokenCount": 110
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type mismatch, argument not assignable to parameter, compile-time error, invalid cast, undefined variable, missing return type, wrong data type mismatch, parameter out of bounds, uninitialized variable.\nvec: A programming error occurs when a value passed as an argument cannot be assigned to the corresponding parameter in a function or method, often due to type incompatibility, missing return types, or incorrect variable declarations.\nhyde: void function(int x) { if (x < 0) return; }<|im_end|>\n",
+      "latencyMs": 6344,
+      "tokenCount": 104
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: permission denied, EACCES access error, file system I/O failure, unauthorized access attempt, restricted directory entry\nvec: when a user or process tries to access a file but lacks the necessary permissions, resulting in an error code like EACCES due to blocked access rights or missing authentication tokens.\nhyde: import os; if not os.access(path, os.W_OK | os.R_OK): raise PermissionError(\"Access denied: EACCES\")<|im_end|>\n",
+      "latencyMs": 6498,
+      "tokenCount": 97
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: authentication middleware, auth gateway, access control proxy, JWT handler, OAuth2 server, SAML identity provider, token validation engine, session management service, user verification layer.\nvec: A middleware component that handles authentication and authorization processes for web applications or APIs, often involving token validation, session management, and identity verification.\nhyde: def auth_middleware = new AuthenticationMiddleware(); auth_middleware.handleRequest(req, res);<|im_end|>\n",
+      "latencyMs": 6732,
+      "tokenCount": 91
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate limiting, throttling, request quota, bandwidth control, DDoS protection, API gateway, SLA management\nvec: implementing rate limits to manage traffic flow and protect services from overload while maintaining performance.<|im_end|>\n",
+      "latencyMs": 5101,
+      "tokenCount": 47
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: cache invalidation, memory management, object lifecycle, stale data detection, eviction policies, write-through vs. write-back caching, cache coherency protocols, garbage collection, memory pressure, concurrency control, distributed systems, database caching, application layer caching, in-memory data stores.\nvec: When a cache hits miss or becomes stale, the system must decide which entries to discard and how to refresh them. This involves complex algorithms for eviction, synchronization with other caches, handling concurrent access, and maintaining consistency across distributed nodes.\nhyde: def invalidate_cache(cache): if cache.is_stale(): remove_entry() and refresh_from_source()<|im_end|>\n",
+      "latencyMs": 6259,
+      "tokenCount": 132
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: exponential backoff retry, jitter-based retry, exponential delay recovery, circuit breaker with backoff, adaptive timeout scaling\nvec: when a request fails repeatedly, the system automatically waits longer before retrying to avoid overwhelming the service with rapid failures.\nhyde: exponential_backoff_retry = true, jitter_active = false<|im_end|>\n",
+      "latencyMs": 5344,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: connection pooling, database connection management, SQL query optimization, distributed database systems, high concurrency, resource allocation, transaction isolation, ACID properties, connection limit settings, query timeout handling.\nvec: \"connection pooling\" is a technique used in database systems to reuse connections, reducing overhead and improving performance. It involves managing multiple client connections efficiently while maintaining data integrity through isolation levels like ACID (Atomicity, Consistency, Isolation, Durability). This approach is critical for handling high concurrency scenarios where multiple users access a database simultaneously without degrading performance.\nhyde: <code class=\"python\">def optimize_connection_pool(db_config):</code> <br/>  pool = ConnectionPool(max_concurrency=10, timeout=30) <br/>  while True: <br/>    conn = pool.get_connection() <br/>    try: <br/>      result = conn.execute(\"SELECT * FROM users\") <br/>      pool.release_connection() <br/>    except: <br/>      pass</code><|im_end|>\n",
+      "latencyMs": 8485,
+      "tokenCount": 215
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event-driven architecture, pub/sub pattern, asynchronous programming, decoupled components, message queues, streaming data pipelines\nvec: in a system where events trigger actions through decoupled components using asynchronous programming, often utilizing message queues to stream data flows between independent parts of the architecture.\nhyde: def event_driven_arch (self): self.set_up_pub_sub(); self.subscribe_event()<|im_end|>\n",
+      "latencyMs": 5976,
+      "tokenCount": 83
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency injection, container abstraction, service locator, DI framework, singleton pattern, factory method, constructor injection, setter injection\nvec: A design pattern where a service container manages the creation and lifecycle of dependent services, facilitating dependency injection to decouple components.\nhyde: def container = new ServiceContainer(); container.inject(new UserService()); container.inject(new PaymentService());<|im_end|>\n",
+      "latencyMs": 5544,
+      "tokenCount": 77
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: page_size, record_limit, offset, cursor, sort_by, asc_desc, skip, take, next_cursor, prev_cursor\nvec: retrieving data from a database with pagination controls where you specify the number of records per page, the starting position to skip, and sort order parameters like ascending or descending.\nhyde: SELECT * FROM table LIMIT 10 OFFSET 5 ORDER BY created_at DESC;<|im_end|>\n",
+      "latencyMs": 5915,
+      "tokenCount": 87
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful shutdown, signal handling, process termination, daemon exit, IPC signaling, POSIX signals, OS kernel shutdown\nvec: When a program or system needs to gracefully shut down in response to an incoming signal, how does the code handle that event?\nhyde: graceful_shutdown(signal_handler) { if (signal_received) { cleanup_resources(); return; } }<|im_end|>\n",
+      "latencyMs": 6391,
+      "tokenCount": 77
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: streaming response server sent events, SSE, HTTP Server-Sent Events, real-time data delivery, push notifications, WebSocket, HTTP/1.1, RFC 7626\nvec: A real-time communication protocol where the server sends data to a client via HTTP/1.1, allowing for continuous streaming of responses and events without requiring the client to poll frequently.\nhyde: <code>streaming_response_server_sent_events</code><|im_end|>\n",
+      "latencyMs": 6628,
+      "tokenCount": 96
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: React Context API, Redux, state management, prop drilling, component composition, TypeScript, JavaScript, ESM modules, dependency injection, global state, local state, middleware, action creators, reducer functions, store setup, provider pattern, context providers, context consumers, event handlers, navigation state, user authentication, data fetching, async operations, error handling, logging.\nvec: \"When comparing React Context API versus Redux state management in modern web development, one must evaluate how each approach handles global vs. local state, the nature of data flow (prop drilling versus direct access), and the ecosystem's impact on developer productivity, scalability, and long-term maintainability of applications.\"\nhyde: \"const Context = createContext(); const Provider = (props) => <Context.Provider {...props} />; const Consumer = () => useContext();\"<|im_end|>\n",
+      "latencyMs": 8657,
+      "tokenCount": 172
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: Express middleware chain next function, Express.js stack trace, Express app router, Express route handler, Express middleware layering, Express dependency injection, Express request lifecycle, Express error handling, Express middleware composition.\nvec: When you build a web application with the Express.js framework, you typically set up an app object and then chain multiple middleware functions together in sequence to process incoming requests, validate data, transform responses, and finally handle any errors before sending them back to the client.\nhyde: const app = express(); app.use(express.json()); app.use((req, res, next) => { if (req.method === 'GET') return; else next(); }); app.get('/', (req, res) => { res.json({ message: 'Hello' }); });<|im_end|>\n",
+      "latencyMs": 8313,
+      "tokenCount": 159
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: Prisma ORM findMany method, database query execution, relational database query, SQL WHERE clause, Prisma schema definition, ORM abstraction layer.\nvec: Execute a database query using the findMany method within Prisma ORM to retrieve multiple records from a relational database based on specified criteria.\nhyde: // Prisma findMany query setup; const result = await db.$query.findMany({ where: { status: 'active' } });<|im_end|>\n",
+      "latencyMs": 8735,
+      "tokenCount": 94
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: next.js server component data fetching, react hooks, async/await, promises, dependency injection, lifecycle events, middleware, SSR, SSG, server-side rendering, hydration, client side rendering, bundlers, webpack, v8, node.js, express, graphql, graphql-tools, apollo, graphql-apollo, graphql-hq, graphql-js, graphql-query, graphql-middleware, graphql-schema, graphql-typescript, graphql-validation, graphql-execute, graphql-client, graphql-server, graphql-request, graphql-fetch, graphql-graphql, graphql-http, graphql-websocket, graphql-ws, graphql-pubsub, graphql-subscriber, graphql-eventemitter, graphql-retry, graphql-circuit, graphql-graphql-client, graphql-http-client, graphql-websocket-client, graphql-ws-client, graphql-pubsub-client, graphql-subscriber-client, graphql-eventemitter-client, graphql-retry-client, graphql-circuit-client.\nvec: \"When you're building a Next.js application and need to fetch data from the server, here are key concepts like hooks, async/await patterns, dependency injection, lifecycle events, middleware strategies, server-side rendering (SSR) vs client-side rendering (CSR), bundler configurations like webpack and v8, and how Next.js integrates with popular GraphQL libraries such as Apollo, Graphql-apollo, and Graphql-hq. You should also consider the lifecycle events, middleware strategies, bundler configurations like webpack and v8, and",
+      "latencyMs": 12586,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: Zod schema validation, JSON parsing, data transformation, TypeScript interfaces, API request/response handling, error handling in JavaScript.\nvec: \"A developer needs to validate incoming JSON data against a Zod schema, then parse the validated object into a structured format for further processing and transformation.\"\nhyde: \"const z = new Zod(); const schema = z.object({ name: String, age: Number }); const validated = await z.validate(data); const transformed = await validate.parse(validated);\"<|im_end|>\n",
+      "latencyMs": 8303,
+      "tokenCount": 102
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC router procedure mutation, RPC method definition, TypeScript runtime protocol, TRPC client library, TRPC server-side function call\nvec: Implementing a mutation operation within the router procedure using the TRPC framework, involving client-side request handling and server-side state updates in TypeScript.\nhyde: const routerProcedure = createRouter({ procedure: (input) => { return input; } });<|im_end|>\n",
+      "latencyMs": 8856,
+      "tokenCount": 84
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: Tailwind CSS breakpoints, grid system utilities, responsive design utility classes, mobile-first layout helpers, flexbox and grid utility patterns.\nvec: \"Tailwind CSS breakpoints\" are used for responsive design utilities, including grid system helpers and mobile-first layout patterns.\nhyde: <script>const breakpoints = ['sm', 'md', 'lg', 'xl']; const utilities = {sm: 'flex', md: 'grid', lg: 'hidden'}; return { breakpoints, utilities }; </script><|im_end|>\n",
+      "latencyMs": 11296,
+      "tokenCount": 108
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: jest jest mock jest spy jest testing jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest jest testing jest testing jest testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing testing",
+      "latencyMs": 14819,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker compose, multi-service networking, service discovery, container orchestration, bridge networks, host networking, namespace isolation, docker-compose.yml configuration, service mesh architecture\nvec: orchestrate multiple services using a single compose file to enable seamless communication and resource sharing across containers, leveraging bridge networks for isolated environments while maintaining host connectivity through namespace isolation.\nhyde: docker compose --network bridge create -f services.yaml, where services.yaml defines a multi-service topology with explicit port mappings and service discovery rules for container orchestration.<|im_end|>\n",
+      "latencyMs": 10648,
+      "tokenCount": 108
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: GitHub Actions CI workflow matrix, GitLab CI pipeline configuration, Jenkins CI/CD automation, Docker-based deployment pipelines, multi-branch pull request merging strategies, automated testing frameworks integration, CI/CD pipeline orchestration tools.\nvec: \"A comprehensive guide on setting up and managing GitHub Actions CI workflows using a matrix approach for scaling across multiple branches, environments, and configurations to streamline continuous integration and deployment processes.\"\nhyde: <code class=\"language-python\">def setup_ci_matrix(): # Initialize GitHub Actions context with matrix strategy for CI/CD pipeline configuration return {\"workflow\": \"github-actions\", \"matrix\": [\"dev\", \"staging\", \"prod\"], \"steps\": [\"test\", \"build\", \"deploy\"]}</code><|im_end|>\n",
+      "latencyMs": 12674,
+      "tokenCount": 153
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused imports, dead code elimination, unreachable code, compile-time errors, import pollution, legacy dependencies, stale imports, unused variable removal, dead function calls, code cleanup, refactoring, dependency injection, import statement syntax, unused package declaration, dead code detection, static analysis tools, code quality metrics, maintainability assessment.\nvec: \"Identify and remove unused imports from your codebase to eliminate dead code, unreachable logic, and stale dependencies that hinder maintainability. Utilize static analysis tools to detect compile-time errors caused by unused imports and refactor code to improve overall quality.\"\nhyde: \"import_unused_code = True; unused_imports = filter(lambda x: not x.is_used, all_imports); dead_code = remove_if_not_called(code); code_cleanliness_score = calculate_metrics();\"<|im_end|>\n",
+      "latencyMs": 19052,
+      "tokenCount": 166
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: circular dependency, module interdependence, class coupling, transitive dependency graph, cycle detection algorithm, forward/backward chaining analysis\nvec: \"identify circular dependencies within a software module structure\"\nhyde: def detect_cycle(graph): return [v for v in nodes if is_cyclic(v, graph)]<|im_end|>\n",
+      "latencyMs": 23356,
+      "tokenCount": 66
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: dead code detection, unreachable code identification, dead code elimination, unreachable code analysis, dead code removal, unreachable block detection, code optimization, dead code pruning, unreachable path tracing.\nvec: \"dead code detection\" and \"unreachable code identification\" are critical in software development for identifying lines of code that will never be executed by the program. This involves analyzing control flow graphs to pinpoint dead code blocks, which are then removed or commented out during compilation and runtime execution to improve performance and maintainability.<|im_end|>\n",
+      "latencyMs": 7685,
+      "tokenCount": 105
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: SQL injection, database injection, web application security, SQL exploitation, code injection, malicious query, payload injection, vulnerability assessment, penetration testing\nvec: A security flaw where an attacker manipulates the SQL query to bypass authorization or access restricted data, commonly occurring in web applications and database systems.\nhyde: <code class=\"sql-injection\">SELECT * FROM users WHERE username = 'admin' AND (password = '' OR 1=1)</code><|im_end|>\n",
+      "latencyMs": 5133,
+      "tokenCount": 98
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: code duplication, function refactoring, code smell, redundant logic, similar method names, class inheritance, static analysis, unit test coverage\nvec: \"Identify and refactor code duplication by analyzing similar functions to improve maintainability and reduce technical debt.\"\nhyde: <code>def refactor_code_duplication():\n    for func in codebase:\n        if is_similar(func):\n            apply_refactoring_rules(func)\n</code><|im_end|>\n",
+      "latencyMs": 4933,
+      "tokenCount": 95
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: N+1 query performance bottleneck, concurrent request handling, database load optimization, resource contention, multi-threaded processing, latency analysis, throughput metrics, system scaling, database indexing, query optimization, caching strategies, load balancing, distributed systems, high availability.\nvec: When a system experiences performance bottlenecks specifically related to N+1 query patterns, how can we optimize the database load handling and resource contention? What strategies exist for improving latency, increasing throughput, and scaling systems to handle multiple concurrent requests efficiently while maintaining high availability?\nhyde: def optimize_n1_query_system(): # Checks for N+1 query patterns, analyzes resource contention, and implements caching strategies to improve performance<|im_end|>\n",
+      "latencyMs": 5799,
+      "tokenCount": 142
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: exception handling, try-catch blocks, error management, null pointer checks, resource cleanup, try-finally blocks, exception chaining, runtime errors, debugging, logging, validation, security patches.\nvec: When a program encounters unexpected failures or bugs during execution, developers use try-catch blocks to isolate errors and prevent them from crashing the application. This approach involves wrapping code sections that might throw exceptions to handle potential issues gracefully, such as by catching specific exception types and displaying user-friendly messages or logging the error details. Proper implementation of try-catch blocks ensures that code remains stable even when encountering missing data, invalid inputs, or system failures.<|im_end|>\n",
+      "latencyMs": 5320,
+      "tokenCount": 133
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: type safety, assertion, unsafe cast, static analysis, compiler warnings, memory safety, null pointer dereference, runtime error detection, code review\nvec: ensuring type safety through assertions while avoiding unsafe casts to prevent potential runtime errors and memory corruption in software development.\nhyde: <code>assert(x != null) && cast(x, T);</code><|im_end|>\n",
+      "latencyMs": 4769,
+      "tokenCount": 78
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memory leak, event listener, cleanup handler, garbage collection, resource unbinding, callback removal\nvec: when a memory leak occurs during event listener management, the cleanup handler is invoked to free resources and remove callbacks.\nhyde: def cleanup_event_listener(event): if event is not None: del event; return<|im_end|>\n",
+      "latencyMs": 4563,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race condition, async programming, concurrent access, thread safety, synchronization primitives, deadlock prevention, atomic operations, lock-free algorithms, race condition detection, concurrent programming models\nvec: When developers build software with multiple threads running simultaneously, they must handle potential race conditions that can cause data inconsistency or system crashes. Asynchronous programming allows non-blocking I/O while concurrent access manages shared resources safely to prevent race conditions, ensuring atomic operations and deadlock prevention across various programming models.\nhyde: async_concurrent_race_condition_sync<|im_end|>\n",
+      "latencyMs": 4819,
+      "tokenCount": 106
+    }
+  ]
+}

@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "LFM2-350M",
+    "lmsKey": "lfm2-350m",
+    "family": "lfm2",
+    "paramsB": 0.35
+  },
+  "timestamp": "2026-03-03T16:00:06.146Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 0.4628000000000002,
+    "keyword": 0,
+    "semantic": 0.5960000000000001,
+    "hyde": 0.2529999999999999,
+    "latencyMs": 1338.32,
+    "total": 0.36561000000000005
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 1423,
+      "total": 0.25425,
+      "expansion": {
+        "raw": "hyde: For a code search query expansion, consider expanding it into lex terms for BM25 search (e.g., \"BM25 search optimization\", \"effect cleanup\") and vec terms for semantic vector search (e.g., BM25 scores, effect timelines) to capture different facets of the original query.\n\nvec: \n- `effect` (for effect cleanup)\n- `capture` (for optimization)\n- `scores` (for semantic vector search)\n\nhyde: Here's a hypothetical code snippet to illustrate this expansion:\n```javascript\nuseEffect(() => {\n  const effect = \"effect cleanup\";\n  const score = `BM25 score: ${Math.abs(results[0][1])}`;\n  const vector = `BM25 score: ${Math.abs(results[0][4])}`;\n  //... additional code for evaluation and cleanup\n}, [effect]);\n```\nThis expands the original query into a more comprehensive search context, leveraging lexical and semantic terms to enhance search efficacy.",
+        "lex": null,
+        "vec": "",
+        "hyde": "Here's a hypothetical code snippet to illustrate this expansion:"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 1786,
+      "total": 0.06,
+      "expansion": {
+        "raw": "Given the query, here's a hypothetical expansion into three types:\n\n- lex: Function expansions for handlingSubmit in JavaScript, including parameters and error handling.\n- vec: A natural language rephrasing for semantic vector search, such as using a pre-trained word embedding model.\n- hyde: A concise code snippet to summarize or expand the handlingSubmit function, possibly indicating a specific implementation or optimization.\n\nFor instance: \n```javascript\nfunction handleSubmit(form) {\n  // Handle form submission logic here...\n  const response = new ErrorHandler({\n    error: (e) => {\n      console.error(e.message);\n      return { statusCode: 400, message: 'Invalid request' };\n    },\n    success: (data) => {\n      // Handle successful submission...\n    }\n  });\n}\n```",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 0.8,
+      "hyde": 0.325,
+      "latencyMs": 1940,
+      "total": 0.43525,
+      "expansion": {
+        "raw": "hyde: The searchBar component is a UI element in React for building search functionalities, often utilizing libraries like `react-hook-form` or `mui-css`. It typically includes a text input, a search box with autocomplete suggestions, and a button to perform the search.\n\nvec: The `searchBar` component from `react-hook-form` is a React hook that allows developers to manage form state and validation for search inputs. It can be used in conjunction with hooks like `useState` or `useCallback` to enhance form handling and validation.\n\nhyde: Here's a simple implementation of the `searchBar` component using `react-hook-form`:\n```jsx\nimport { Form, Input, Button } from 'eact-hook-form';\nimport { useState } from 'eact';\n\nconst SearchBar = () => {\n  const [formData, { setFormData }] = useState({ query: '', searchTerm: '' });\n  const { handleSubmit } = useForm();\n\n  const onSubmit = async (data) => {\n    // Handle form submission\n  };\n\n  return (\n    <form onSubmit={handleSubmit(onSubmit)}>\n      <Input\n        type=\"text\"\n        placeholder=\"Search...\"\n        value={formData.query}\n        onChange={(v, e) => setFormData({...formData, query: v }",
+        "lex": null,
+        "vec": "The `searchBar` component from `react-hook-form` is a React hook that allows developers to manage form state and validation for search inputs. It can be used in conjunction with hooks like `useState` or `useCallback` to enhance form handling and validation.",
+        "hyde": "Here's a simple implementation of the `searchBar` component using `react-hook-form`:"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "LFM2-350M",
+      "format": 0.33,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 168,
+      "total": 0.41600000000000004,
+      "expansion": {
+        "raw": "vec: embeddings client, hyde: semantic vector embedding representation, hie: a method for generating contextual embeddings from text data.",
+        "lex": null,
+        "vec": "embeddings client, hyde: semantic vector embedding representation, hie: a method for generating contextual embeddings from text data.",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 757,
+      "total": 0.489,
+      "expansion": {
+        "raw": "hyde: a hypothetical code snippet for semantic vector search, which could expand to include variations like \"parameter size evaluation\" or \"input size analysis\".\n\nvec: a phrase used in semantic vector search to represent the size of input data or parameters, often varying based on context.\n\nhyde: a technique to incorporate parameter size in the search process, potentially alongside other techniques like vector expansion or attention mechanisms.",
+        "lex": null,
+        "vec": "a phrase used in semantic vector search to represent the size of input data or parameters, often varying based on context.",
+        "hyde": "a technique to incorporate parameter size in the search process, potentially alongside other techniques like vector expansion or attention mechanisms."
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 1332,
+      "total": 0.5515,
+      "expansion": {
+        "raw": "hyde: Identify the key variables and operators in a compound SQL query for building an index on a database, considering factors like column types, indexing strategies, and performance metrics.\n\nvec: Construct a semantic vector representation of the target term(s) for a multi-dimensional search, leveraging techniques like word embeddings or contextual embeddings to capture semantic meaning.\n\nhyde: A common expression for expanding a search query into a semantic vector representation is `(term1 + term2 +... + termN) ⊇ [vector_embedding]`, where `term1` and `term2` are the search terms, and `vector_embedding` is a vector derived from their contexts using techniques such as BERT or similar models.",
+        "lex": null,
+        "vec": "Construct a semantic vector representation of the target term(s) for a multi-dimensional search, leveraging techniques like word embeddings or contextual embeddings to capture semantic meaning.",
+        "hyde": "A common expression for expanding a search query into a semantic vector representation is `(term1 + term2 +... + termN) ⊇ [vector_embedding]`, where `term1` and `term2` are the search terms, and `vector_embedding` is a vector derived from their contexts using techniques such as BERT or similar models."
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1081,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "vec: a method for computing the cosine similarity between two vectors, often used in BM25 search and text analysis.\n\nhyde: cosine similarity is a measure of the cosine angle between two vectors, ranging from -1 to 1. It's commonly used in text similarity calculations and information retrieval tasks, including cosineSimilarity for BM25 search.\n\nIn a hypothetical context, the code snippet could be: cos(vec1[0] / (vec1[1] * vec2[1]) + (vec2[0] - vec1[0]) / (vec2[1] * vec2[2])) for cosineSimilarity.",
+        "lex": null,
+        "vec": "a method for computing the cosine similarity between two vectors, often used in BM25 search and text analysis.",
+        "hyde": "cosine similarity is a measure of the cosine angle between two vectors, ranging from -1 to 1. It's commonly used in text similarity calculations and information retrieval tasks, including cosineSimilarity for BM25 search."
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 603,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "hyde: A code expansion engine used for generating search queries in BM25 search, including lexical and semantic terms, synonyms, and related identifiers.\n\nvec: A natural language rephrasing technique for semantic vector search, which can be used to expand the meaning of keywords in a query.\n\nhyple: A concise code snippet for expanding BM25 search queries, which might include lexical variations and synonyms to enhance search relevance.",
+        "lex": null,
+        "vec": "A natural language rephrasing technique for semantic vector search, which can be used to expand the meaning of keywords in a query.",
+        "hyde": "A code expansion engine used for generating search queries in BM25 search, including lexical and semantic terms, synonyms, and related identifiers."
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 372,
+      "total": 0.15,
+      "expansion": {
+        "raw": "hyper:\n- aggregateRetrievalResults, \n- searchTerms, \n- retrievalQuery\n\nhyde:\naggregateRetrievalResults, retrieveContext, contextualData",
+        "lex": null,
+        "vec": null,
+        "hyde": ""
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 1423,
+      "total": 0.5515,
+      "expansion": {
+        "raw": "hyde: The `LocalLLMClient` constructor is a class designed to initialize and configure language-level Language Model Embeddings (LLMs) for natural language processing tasks. It typically includes parameters for model selection, hyperparameter tuning, and integration with LLM APIs like Hugging Face's Transformers.\n\nvec: The constructor accepts a `LLMClient` instance, an input token (e.g., text or sentence), and optional arguments for hyperparameter settings such as learning rate, batch size, and number of layers.\n\nhyde: Here's a simple snippet for generating a code expansion:\n```python\nclass LocalLLMClient:\n    def __init__(self, model_path, batch_size=32):\n        self.model = self._build_model(model_path)\n        # Additional setup for LLM client\n```\nThis code snippet demonstrates a basic structure for initializing an LLM client with specified parameters.",
+        "lex": null,
+        "vec": "The constructor accepts a `LLMClient` instance, an input token (e.g., text or sentence), and optional arguments for hyperparameter settings such as learning rate, batch size, and number of layers.",
+        "hyde": "Here's a simple snippet for generating a code expansion:"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 883,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "hyde: Consider using `.property()` for type-safe property access, especially in Python 3.x, to avoid `TypeError`. For example: `result = model.attribute(name)` instead of `result = model[name]`.\n\nvec: The expression `model.property(name)` is a valid syntax for semantic vector search, as it directly accesses the vector associated with the specified identifier.\n\nhyde: If you're using PyTorch, `model.feature_vector` or `vectors` might be more appropriate than raw property access for handling sparse tensors and vectorized operations.",
+        "lex": null,
+        "vec": "The expression `model.property(name)` is a valid syntax for semantic vector search, as it directly accesses the vector associated with the specified identifier.",
+        "hyde": "If you're using PyTorch, `model.feature_vector` or `vectors` might be more appropriate than raw property access for handling sparse tensors and vectorized operations."
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 850,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "vec: `resolve(ECONNREFUSED, 'localhost')`\n\nhyde: This query expands the original search to include a more specific and concise way of resolving the `ECONNREFUSED` error, utilizing a semantic vector search approach for better context understanding.\n\nHere's the expanded lexical expansion:\n- Lex: `resolve(ECONNREFUSED, 'localhost')`\n- vec: `resolve(ECONNREFUSED, 'localhost', 'eply-with-if-not-exist')`\n- Hyde: `hyde: This expands to a more succinct semantic vector search syntax, indicating the use of a `resolve` function for handling the specific error condition.",
+        "lex": null,
+        "vec": "`resolve(ECONNREFUSED, 'localhost')`",
+        "hyde": "This query expands the original search to include a more specific and concise way of resolving the `ECONNREFUSED` error, utilizing a semantic vector search approach for better context understanding."
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 0.8,
+      "hyde": 0.325,
+      "latencyMs": 969,
+      "total": 0.48025,
+      "expansion": {
+        "raw": "hyde: Check if the module name and its path are correctly specified in the import statement. Ensure there are no typos or missing semicolons, and verify that the module path is accessible.\n\nvec: Verify if the module name (e.g., \"math\" or a custom module) and its path are correctly formatted in the import statement. Ensure there's no missing colon or semicolon, and that the module is correctly imported with a valid library path.\n\nhyode: If the import fails, recheck the module name and path for any syntax errors or typos. Ensure that \"import\" is present in the module declaration and that the path to the module is correct. If necessary, add a colon or semicolon after \"import\" and verify the module's existence.",
+        "lex": null,
+        "vec": "Verify if the module name (e.g., \"math\" or a custom module) and its path are correctly formatted in the import statement. Ensure there's no missing colon or semicolon, and that the module is correctly imported with a valid library path.",
+        "hyde": "Check if the module name and its path are correctly specified in the import statement. Ensure there are no typos or missing semicolons, and verify that the module path is accessible."
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 836,
+      "total": 0.25425,
+      "expansion": {
+        "raw": "hyde: This query expands a search to identify CORS (Cross-Origin Resource Sharing) headers that are not permitted in the context of a request originating from a different domain.\n\nvec: \n- lex: \"origin not allowed headers\"\n- vec: \"CORS origin restrictions\"\n- hyde: \"HTTP CORS headers\" \n\nHowever, a more precise search term would be:\n- hyde: \"CORS origin headers forbidden in context\"\n- vec: \"origin not allowed CORS header\"",
+        "lex": null,
+        "vec": "",
+        "hyde": "This query expands a search to identify CORS (Cross-Origin Resource Sharing) headers that are not permitted in the context of a request originating from a different domain."
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 1345,
+      "total": 0.489,
+      "expansion": {
+        "raw": "hyde: What is the exact cause and potential solutions for out of memory heap allocation failure?\n\nvec: If the heap size is too small, consider increasing it using `heapify` or `heapq.heapify`. If the heap grows beyond a certain threshold, consider using a stack-based allocation strategy or reusing existing objects.\n\nhyde: Could you provide an example of a heap initialization code?\n\nvec: Here's a simple Python snippet:\n```python\nimport heapq\nheap = []\nfor _ in range(1000):\n    heapq.heappush(heap, None)\n```\nThis initializes a large list of `None` values to simulate an out-of-memory heap.",
+        "lex": null,
+        "vec": "Here's a simple Python snippet:",
+        "hyde": "Could you provide an example of a heap initialization code?"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1556,
+      "total": 0.47525,
+      "expansion": {
+        "raw": "hyde: Could be a result of a high database connection pool exhaustion, potentially due to insufficient resources or a sudden spike in query volume.\n\nvec: \"database connection timeout pool exhausted\" could be rephrased as \"exhausted database connection pool pool exhaustion.\"\n\nhyde: A short hypothetical code snippet to test this query could be:\n```python\nimport psycopr.connect\nconn = None\ntry:\n    conn = psycopr.Pool(5, max_connect=10)  # Adjust pool size as needed\nexcept psycopr.errors.ConnectionFailure:\n    print(\"Failed to establish database connection pool.\")\nexcept Exception as e:\n    print(f\"Error establishing database connection pool: {e}\")\n```\nThis snippet demonstrates a hypothetical code for handling potential database connection pool exhaustion.",
+        "lex": null,
+        "vec": "\"database connection timeout pool exhausted\" could be rephrased as \"exhausted database connection pool pool exhaustion.\"",
+        "hyde": "A short hypothetical code snippet to test this query could be:"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 669,
+      "total": 0.105,
+      "expansion": {
+        "raw": "**lex:** \"promise rejection\" could be expanded into:\n- **technical terms:** \"rejection of promise\"\n- **synonyms:** \"failure to fulfill\" or \"unmet promise\"\n- **related identifiers:** \"async error\", \"condition not met\"\n\n**vec:** `promise.rejected.withCondition('async error: promise not met')`\n\n**hyde:** `(promise => rejectPromise)`. This expands the original query into a semantic vector search context, highlighting related terms and conditions for better understanding.",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.2,
+      "latencyMs": 899,
+      "total": 0.223,
+      "expansion": {
+        "raw": "hyde: Circular Dependency Detected Import Cycle\n\nThis query expands a search into three distinct types:\n- lex: Identifies keywords related to BM25 search (technical terms, synonyms) for the concept of \"import cycle\".\n- vec: A natural language rephrasing that could be used to express the idea of a circular dependency in an abstract form.\n- hye: A hypothetical code snippet that encapsulates the core concept of a circular dependency in an understandable manner.",
+        "lex": null,
+        "vec": null,
+        "hyde": "Circular Dependency Detected Import Cycle"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.45,
+      "latencyMs": 1401,
+      "total": 0.2855,
+      "expansion": {
+        "raw": "hyde: Check the argument passed for 'parameter' in your BM25 search configuration. Ensure it's a valid parameter name or type, and if not assignable, consider using alternative parameters like 'wge' (weighted gate) or 'cost' for better flexibility.\n\nHere are three lines of expanded search queries:\n\n1. **lex**: BM25 weighting parameter (e.g., 'wge' or 'cost') for adjusting the model's performance.\n2. **vec**: A vector of positive and negative scores representing the search term's relevance to your dataset.\n3. **hyde**: A concise code snippet for semantic vector search, often used in conjunction with BM25.\n\nThese expanded queries enhance the search functionality by providing more options for parameter tuning and semantic understanding.",
+        "lex": null,
+        "vec": null,
+        "hyde": "Check the argument passed for 'parameter' in your BM25 search configuration. Ensure it's a valid parameter name or type, and if not assignable, consider using alternative parameters like 'wge' (weighted gate) or 'cost' for better flexibility."
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 836,
+      "total": 0.489,
+      "expansion": {
+        "raw": "hyde: Permission denied, file not found. Check permissions and try again with adjusted parameters or alternative search techniques.\n\nvec: Permission denied, file not found (using TF-IDF vector representation). Consider using a different search algorithm or alternative method like fuzzy matching.\n\nhyde: Verify the file's permissions and ensure the search space is correctly defined. If using TF-IDF, consider rephrasing to \"TF-IDF vector representation of the document corpus.\"",
+        "lex": null,
+        "vec": "Permission denied, file not found (using TF-IDF vector representation). Consider using a different search algorithm or alternative method like fuzzy matching.",
+        "hyde": "Verify the file's permissions and ensure the search space is correctly defined. If using TF-IDF, consider rephrasing to \"TF-IDF vector representation of the document corpus.\""
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 0.6,
+      "hyde": 0.325,
+      "latencyMs": 1583,
+      "total": 0.39525,
+      "expansion": {
+        "raw": "hyde: Authentication Middleware, lex: \"authenticateMiddlewareFunction\", vec: \"middlewareFunction\"\n\nAuthentication Middleware:\nA middleware function designed to handle HTTP authentication, ensuring secure access by verifying user credentials or tokens. It typically involves setting headers like \"Authorization: Bearer <token>\" and can be implemented using libraries or frameworks.\n\nMiddlewareFunction:\nA reusable function that encapsulates authentication logic, allowing for modular and maintainable code. It might include methods to decode tokens, validate them against a database or secret key, and then proceed with the request.\n\nMiddlewareDecoder:\nA utility function that converts raw authentication credentials (like JSON Web Token) into a structured format suitable for processing, often used in conjunction with middleware to transform and validate incoming requests.\n\nhype: A hypothetical code snippet for semantic vector search in authentication contexts, expanding on the concept of BM25 search and its variants.\n\nvec: \"authenticateMiddlewareDecorator\"",
+        "lex": null,
+        "vec": "\"authenticateMiddlewareDecorator\"",
+        "hyde": "Authentication Middleware, lex: \"authenticateMiddlewareFunction\", vec: \"middlewareFunction\""
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.2,
+      "latencyMs": 1918,
+      "total": 0.178,
+      "expansion": {
+        "raw": "hyde: Rate limiting can be implemented using various techniques, including token bucket rate limiting, leaky bucket rate limiting, and adaptive rate limiting. Each method has its strengths and weaknesses, and the choice depends on specific use cases like throughput, latency, and resource constraints.\n\nHere's a hypothetical code snippet for rate limiting using token bucket:\n\n```python\nimport time\nfrom collections import deque\nclass RateLimiter:\n    def __init__(self, max_rate=1000, bucket_size=200):\n        self.bucket = deque([() for _ in range(max_rate - bucket_size)])\n        self.rate_threshold = max_rate // 2\n        self.lock = threading.Lock()\n\n    def acquire(self):\n        with self.lock:\n            while len(self.bucket) >= 1:\n                for _ in range(min(bucket_size, self.rate_threshold - len(self.bucket))):\n                    self.bucket.popleft()\n            if not self.bucket:\n                self.bucket.append(())\n\n    def release(self, item):\n        with self.lock:\n            while len(self.bucket) > item.size():\n                self.bucket.popleft()\n            self.bucket.append(item)\n```\n\nThis code provides a basic implementation of rate limiting using a token bucket algorithm.",
+        "lex": null,
+        "vec": null,
+        "hyde": "Rate limiting can be implemented using various techniques, including token bucket rate limiting, leaky bucket rate limiting, and adaptive rate limiting. Each method has its strengths and weaknesses, and the choice depends on specific use cases like throughput, latency, and resource constraints."
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.2,
+      "latencyMs": 437,
+      "total": 0.268,
+      "expansion": {
+        "raw": "hyde: Can be a technique to invalidate cache entries when data changes, ensuring the most up-to-date information is served. For semantic search, consider using techniques like vector-based indexing or inverted indexes to rephrase and expand cache results. In terms of lexical analysis, you might use techniques like tokenization to dissect and evaluate the meaning embedded in cache results.",
+        "lex": null,
+        "vec": null,
+        "hyde": "Can be a technique to invalidate cache entries when data changes, ensuring the most up-to-date information is served. For semantic search, consider using techniques like vector-based indexing or inverted indexes to rephrase and expand cache results. In terms of lexical analysis, you might use techniques like tokenization to dissect and evaluate the meaning embedded in cache results."
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 1349,
+      "total": 0.5427500000000001,
+      "expansion": {
+        "raw": "hyde: Retry logic with exponential backoff involves a retry mechanism that increases the wait time between retries exponentially, often capped to prevent infinite loops. This ensures robustness against transient failures while balancing between delay and resource usage.\n\nvec: Retry logic with exponential backoff can be implemented using a function that takes a delay parameter, multiplies it by a factor (e.g., 2 for 1s, 3 for 2s), and returns the result of that multiplication. The factor can be adjusted based on observed failure rates to optimize wait times between retries.\n\nhyde: A common implementation of exponential backoff in code is encapsulated as a function `retry_with_exponential_backoff(delay, max_attempts)`, which takes a delay (default 1 second) and the number of attempts as arguments. This function returns a promise that resolves with the result of `Math.pow(delay, max_attempts) * 1000`, representing the total delay in milliseconds.",
+        "lex": null,
+        "vec": "Retry logic with exponential backoff can be implemented using a function that takes a delay parameter, multiplies it by a factor (e.g., 2 for 1s, 3 for 2s), and returns the result of that multiplication. The factor can be adjusted based on observed failure rates to optimize wait times between retries.",
+        "hyde": "A common implementation of exponential backoff in code is encapsulated as a function `retry_with_exponential_backoff(delay, max_attempts)`, which takes a delay (default 1 second) and the number of attempts as arguments. This function returns a promise that resolves with the result of `Math.pow(delay, max_attempts) * 1000`, representing the total delay in milliseconds."
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 753,
+      "total": 0.25425,
+      "expansion": {
+        "raw": "hyde: Connection Pooling Database refers to a strategy where multiple connections are reused from the database server, improving performance and resource utilization. lex: Connection Pooling Database can be implemented using various techniques like active, passive, or connection pooling strategies. vec: The concept is often compared to a virtual connection pool in distributed systems, where multiple instances of the same resource are shared among different requests. hye: A common approach to managing connection pooling is the use of a dedicated pool manager, which keeps track of active connections and ensures efficient resource allocation.",
+        "lex": null,
+        "vec": null,
+        "hyde": "Connection Pooling Database refers to a strategy where multiple connections are reused from the database server, improving performance and resource utilization. lex: Connection Pooling Database can be implemented using various techniques like active, passive, or connection pooling strategies. vec: The concept is often compared to a virtual connection pool in distributed systems, where multiple instances of the same resource are shared among different requests. hye: A common approach to managing connection pooling is the use of a dedicated pool manager, which keeps track of active connections and ensures efficient resource allocation."
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 833,
+      "total": 0.5515,
+      "expansion": {
+        "raw": "hyde: Event-Driven Architecture (EDA) in event-driven architecture (EDA) for pub subscriptions, where events trigger actions or state changes in the system.\n\nvec: Pub/Sub for event-driven architecture (EDA) with pub subscriptions, where events trigger actions or state changes in the system.\n\nhyode: A code snippet for expanding an event-driven architecture (EDA) pub sub to a more concise and expressive format, utilizing lexical variations for better semantic understanding.",
+        "lex": null,
+        "vec": "Pub/Sub for event-driven architecture (EDA) with pub subscriptions, where events trigger actions or state changes in the system.",
+        "hyde": "Event-Driven Architecture (EDA) in event-driven architecture (EDA) for pub subscriptions, where events trigger actions or state changes in the system."
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.45,
+      "latencyMs": 2196,
+      "total": 0.2405,
+      "expansion": {
+        "raw": "hyde: Dependency Injection Service Container (DICS) is a design pattern that facilitates dependency injection, enabling modular and testable code. It allows developers to decouple components by providing an abstraction layer for dependency management, promoting loose coupling and easier maintenance.\n\nIn terms of lexical variants:\n- **ben:** Dependency Injection Service Container (DICS) is a design pattern for managing dependencies in applications.\n- **syn:** A synonym for \"dependency\" (in the context of DICS) in technical contexts.\n- **hyp:** A short hypothetical code snippet for semantic vector search (SVD) in natural language processing, often used to represent the meaning of words or phrases.\n\nIn a broader sense:\n- **vec:** A natural language rephrasing for semantic vector search (SVD) in machine learning contexts.\n- **hyde:** A concise code snippet for a hypothetical DICS implementation in Python, demonstrating the core concept of dependency injection.",
+        "lex": null,
+        "vec": null,
+        "hyde": "Dependency Injection Service Container (DICS) is a design pattern that facilitates dependency injection, enabling modular and testable code. It allows developers to decouple components by providing an abstraction layer for dependency management, promoting loose coupling and easier maintenance."
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "LFM2-350M",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 712,
+      "total": 0.25425,
+      "expansion": {
+        "raw": "hyde: The query `paginationCursorOffsetLimit` can be expanded as:\n- lex: Query operators for pagination (technical terms, synonyms, related identifiers)\n- vec: A natural rephrasing for semantic vector search (e.g., `paginationCursorOffsetLimit` could be replaced with `queryOffsetLimit` or `offsetLimit`)\n- hye: A hypothetical code snippet to enhance semantic understanding of query parameters in pagination contexts.",
+        "lex": null,
+        "vec": null,
+        "hyde": "The query `paginationCursorOffsetLimit` can be expanded as:"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 647,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "hex: a code snippet for detecting graceful shutdown signals in system calls, highlighting the use of error codes and signal handling mechanisms.\n\nvec: a lexical expansion for semantic vector search in BM25, identifying key terms and their relationships.\n\nhyde: a hypothetical code to expand the search for graceful shutdown signals, potentially involving signal handling patterns and error codes.",
+        "lex": null,
+        "vec": "a lexical expansion for semantic vector search in BM25, identifying key terms and their relationships.",
+        "hyde": "a hypothetical code to expand the search for graceful shutdown signals, potentially involving signal handling patterns and error codes."
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "LFM2-350M",
+      "format": 0.33,
+      "keyword": 0,
+      "semantic": 0.8,
+      "hyde": 0,
+      "latencyMs": 1741,
+      "total": 0.28600000000000003,
+      "expansion": {
+        "raw": "vec: \"streamingResponseServer\" could be a variant of \"query expansion,\" used to expand the meaning of an input query in response to streaming events. vec: \"event\" could be replaced by \"streamingResponseServerEvent,\" a synonym for the original query expansion technique. hyde: This query expands the concept of \"event\" to include streaming response servers, which are pivotal in real-time data processing and event-driven architectures.",
+        "lex": null,
+        "vec": "\"streamingResponseServer\" could be a variant of \"query expansion,\" used to expand the meaning of an input query in response to streaming events. vec: \"event\" could be replaced by \"streamingResponseServerEvent,\" a synonym for the original query expansion technique. hyde: This query expands the concept of \"event\" to include streaming response servers, which are pivotal in real-time data processing and event-driven architectures.",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1129,
+      "total": 0.58275,
+      "expansion": {
+        "raw": "vec: \"React Context\" could be expanded to include \"Context API\" or \"Contextual State Management\" as synonyms.\n\nhyde: A concise hypothetical code snippet for semantic vector search could be: `ContextedState = context + { value: vec(context.value, 'tate') };`\n\nThis expands the search to include related terms and synonyms for a more comprehensive semantic understanding of React context vs Redux state management.",
+        "lex": null,
+        "vec": "\"React Context\" could be expanded to include \"Context API\" or \"Contextual State Management\" as synonyms.",
+        "hyde": "A concise hypothetical code snippet for semantic vector search could be: `ContextedState = context + { value: vec(context.value, 'tate') };`"
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 738,
+      "total": 0.489,
+      "expansion": {
+        "raw": "hyde: To expand a query for middleware chain analysis, consider variations like \"middleware execution flow\" or \"integration sequence.\"\n\nvec: Middleware Execution Flow (MEF), Node.js, etc., could be used for semantic analysis.\n\nhyde: An example of a natural language rephrasing could be, \"What are the middleware functions in this workflow?\"",
+        "lex": null,
+        "vec": "Middleware Execution Flow (MEF), Node.js, etc., could be used for semantic analysis.",
+        "hyde": "An example of a natural language rephrasing could be, \"What are the middleware functions in this workflow?\""
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 0.6,
+      "hyde": 0.325,
+      "latencyMs": 1810,
+      "total": 0.39525,
+      "expansion": {
+        "raw": "vec: \"Prisma Query\"\n\nhyde: A common lex for expressing a search query in SQL, which can be expanded to include various techniques like using `SELECT` with `WHERE` clauses or `LIKE` for partial matches.\n\nhyple: For a semantic search context, consider using a rephrased expression like \"findMany with PRIMARY KEY\" to capture the intent of retrieving all records where a specific field (PRIMARY KEY) matches a given condition.\n\nhyple: This rephrasing can be expanded to include more semantic understanding, such as \"findMany with a condition matching the field value\" or \"findWith specific criteria.\"",
+        "lex": null,
+        "vec": "\"Prisma Query\"",
+        "hyde": "A common lex for expressing a search query in SQL, which can be expanded to include various techniques like using `SELECT` with `WHERE` clauses or `LIKE` for partial matches."
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "LFM2-350M",
+      "format": 0.33,
+      "keyword": 0,
+      "semantic": 0.8,
+      "hyde": 0,
+      "latencyMs": 2608,
+      "total": 0.28600000000000003,
+      "expansion": {
+        "raw": "vec: Query for next.js Server Component Data Fetching can be expanded into lex terms like \"server-side data retrieval\" or \"client-side data handling\". For vec expressions, consider synonyms such as \"component-fetching\" or \"data-intensive\". A hypothetical code snippet to match this query could be: `serverData = await myComponent.getServerSideProps({ data: { pageSize: 10 } });`\n\nHyede: To expand the concept, consider related identifiers like \"data-fetching\" or \"client-side data management\". This can be represented in a short code snippet: `myComponent.DataFetching = fetchData({ pageSize: 10 });`\n\nThis expands the search into lex terms and related identifiers for a comprehensive data fetching strategy in Next.js.",
+        "lex": null,
+        "vec": "Query for next.js Server Component Data Fetching can be expanded into lex terms like \"server-side data retrieval\" or \"client-side data handling\". For vec expressions, consider synonyms such as \"component-fetching\" or \"data-intensive\". A hypothetical code snippet to match this query could be: `serverData = await myComponent.getServerSideProps({ data: { pageSize: 10 } });`",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1468,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "hyde: a method to enhance the Zod schema's ability to validate data transformations, combining lexical and semantic terms for a more robust validation process.\n\nvec: The Zod schema validation parse transform could involve techniques like semantic vector space (SVS) or a combination of lexical and semantic terms to better assess data transformations' validity.\n\nhyde: A specific example of such a method might be using a semantic vector space (SVS) to map input and output transformations, ensuring that the mapping adheres to expected semantic relationships.",
+        "lex": null,
+        "vec": "The Zod schema validation parse transform could involve techniques like semantic vector space (SVS) or a combination of lexical and semantic terms to better assess data transformations' validity.",
+        "hyde": "A specific example of such a method might be using a semantic vector space (SVS) to map input and output transformations, ensuring that the mapping adheres to expected semantic relationships."
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 2302,
+      "total": 0.49775,
+      "expansion": {
+        "raw": "hyde: Mutations in the TPC (Transcription Complex Protein) router procedure for RPC (Reverse Transcriptional Polymorphism) can be categorized under various types of code expansions. For instance, a mutation in the TPC1 or TPC2 genes might be described using terms like \"TPC1 Mutation\" and \"RPC Router Mutation.\" A natural rephrasing could be: \"Mutation in TPC1 or TPC2 genes affecting the RPC router procedure.\"\n\nvec: Mutations in the Transcriptional Polymorphism Control Regulatory Sequence (TPCRCS) or TPC Mutations for RPC can be expressed using terms like \"TPC Mutation\" and \"RPC Regulatory Sequence.\" A semantic vector expansion could be: \"TPC Mutation affecting RPC Regulatory Sequence TPCs.\"\n\nhyde: A hypothetical code snippet to enhance the search for RPC router procedure mutations could be: `(mutation_type TPC1 Mutation | mutation_position RPC)`",
+        "lex": null,
+        "vec": "Mutations in the Transcriptional Polymorphism Control Regulatory Sequence (TPCRCS) or TPC Mutations for RPC can be expressed using terms like \"TPC Mutation\" and \"RPC Regulatory Sequence.\" A semantic vector expansion could be: \"TPC Mutation affecting RPC Regulatory Sequence TPCs.\"",
+        "hyde": "A hypothetical code snippet to enhance the search for RPC router procedure mutations could be: `(mutation_type TPC1 Mutation | mutation_position RPC)`"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1783,
+      "total": 0.47525,
+      "expansion": {
+        "raw": "hyde: utility-first CSS framework for building responsive designs, including Tailwind's breakpoints utilities.\n\nvec: Tailwind's utility classes (e.g., `text-2xl`, `bg-gray-100`) for creating responsive breakpoints and custom styling.\n\nhyple: A concise JavaScript snippet (e.g., `@apply flex`) to apply Tailwind's responsive breakpoints in a single line of code, enhancing maintainability and readability.\n\nHybrid: A hypothetical code snippet demonstrating how to dynamically adjust breakpoints based on screen width using Tailwind's utility classes, aiding in responsive design implementation.",
+        "lex": null,
+        "vec": "Tailwind's utility classes (e.g., `text-2xl`, `bg-gray-100`) for creating responsive breakpoints and custom styling.",
+        "hyde": "utility-first CSS framework for building responsive designs, including Tailwind's breakpoints utilities."
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 849,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "hyde: A JavaScript module for creating and using spies, which can be used to spy on functions or methods in a module.\n\nvec: A JavaScript object that could represent the results of a function call, allowing for flexible and complex semantic vector comparisons.\n\nhyde: A hypothetical code snippet to construct a spy on a Jest mock module, enabling detailed inspection of function calls and their outputs.",
+        "lex": null,
+        "vec": "A JavaScript object that could represent the results of a function call, allowing for flexible and complex semantic vector comparisons.",
+        "hyde": "A hypothetical code snippet to construct a spy on a Jest mock module, enabling detailed inspection of function calls and their outputs."
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 715,
+      "total": 0.52025,
+      "expansion": {
+        "raw": "vec: network configuration options and related identifiers for Docker Compose services, including service names, ports, and networking features like overlay networks.\nhyde: A hypothetical code snippet for semantic network search, such as a query matching a combination of service names and their network configurations.\nge: Geeky explanation of how to expand the query into a more natural, user-friendly format using semantic network search techniques.",
+        "lex": null,
+        "vec": "network configuration options and related identifiers for Docker Compose services, including service names, ports, and networking features like overlay networks.",
+        "hyde": "A hypothetical code snippet for semantic network search, such as a query matching a combination of service names and their network configurations."
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 3442,
+      "total": 0.06,
+      "expansion": {
+        "raw": "To expand the query into three types of expansions:\n\n- lex: Metadata expansion for GitHub Actions, including metadata fields like `description`, `license`, and `workflow.yaml`.\n- vec: A semantic vector representation of GitHub Actions workflows, derived from the `vec` keyword used in the search.\n- hyde: A concise code snippet that expands a GitHub Actions workflow matrix, describing the workflow's components and dependencies.\n\nHere's an example of a hypothetical code snippet (`hyde`):\n```yaml\nname: GitHub Actions CI Workflow Matrix\n\non:\n  stage: ci/checkout\n  inputs:\n    docker_image: \"gitlab-ci.yml\"\n    github_token: \"<your_github_token>\"\n  \nwork:\n  run_contexts:\n    - docker: \"gcr.io/darick/python:3.9.2\"\n    - workflow-manager: \"github.io/workflow-manager\"\n\njobs:\n  build:\n    runs-on: [*]\n    steps:\n      - name: Checkout code\n        uses: actions/checkout@v4\n      \n      - name: Run GitHub Actions workflow\n        run: |\n          git clone https://github.com/your-username/gitlab-ci.workflow.toml\n          cd gitlab-ci.workflow\n         .env.export",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1571,
+      "total": 0.53775,
+      "expansion": {
+        "raw": "vec: search for keywords like \"unused_imports_dead_code\" in a codebase, potentially using terms such as \"code_refinement,\" \"refactoring,\" or \"dead_code_identification.\"\n\nhyde: A hypothetical code snippet might be: `import unused_module as U; for module in find_modules(code) where not(imported_module in [U])`\n\nThis snippet expands the original query to include a semantic search for identifying unused imports as dead code, potentially using terms related to refactoring and code analysis.",
+        "lex": null,
+        "vec": "search for keywords like \"unused_imports_dead_code\" in a codebase, potentially using terms such as \"code_refinement,\" \"refactoring,\" or \"dead_code_identification.\"",
+        "hyde": "A hypothetical code snippet might be: `import unused_module as U; for module in find_modules(code) where not(imported_module in [U])`"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 2158,
+      "total": 0.06,
+      "expansion": {
+        "raw": "To detect circular dependency modules, consider the following expansions:\n\n- lex: \"module_dependency_graph\" could be expanded to \"graph_detection\" for semantic network representation, or \"dependency_cycle_mapping\" for identifying circular paths.\n- vec: The query could be rephrased to \"detect_cyclic_dependencies\" or \"identify_circular_dependency_nodes\".\n- hyde: A relevant code snippet for detecting circular dependencies might be \"import_dependency_graph as DG; for each dependency, DG.iter_dependencies(dependency) if not already visited returns cycle_detected\" or \"check_dependency_graph(G) for cycles\".\n\nThese expansions expand the original query into more specific and technical terms while maintaining the core concept of identifying circular dependencies.",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 2034,
+      "total": 0.47525,
+      "expansion": {
+        "raw": "To detect dead code detection and unreachable states in a system, we can expand the query to include lexical terms like \"dead code detection,\" synonyms such as \"execution termination\" or \"unreachable state,\" and related identifiers like \"control flow analysis\" or \"state transition.\" This expands the search to capture semantic nuances and contextual information.\n\nvec: dead_code_detection, unreachable_state, control_flow_analysis\nhyde: (expanded to include \"state transition\" and \"control flow analysis\")\n\nThis expanded query expands the search into lexical terms, synonyms, and related identifiers to provide a more comprehensive analysis of dead code detection and unreachable states in the system.",
+        "lex": null,
+        "vec": "dead_code_detection, unreachable_state, control_flow_analysis",
+        "hyde": "(expanded to include \"state transition\" and \"control flow analysis\")"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "LFM2-350M",
+      "format": 0.33,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 484,
+      "total": 0.41600000000000004,
+      "expansion": {
+        "raw": "query: insecure sql injection vulnerabilities, parameterized queries, input validation\n\nvec: parameterized queries, SQL injection techniques, vulnerability types, authentication mechanisms.",
+        "lex": null,
+        "vec": "parameterized queries, SQL injection techniques, vulnerability types, authentication mechanisms.",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 0.8,
+      "hyde": 0.325,
+      "latencyMs": 1659,
+      "total": 0.43525,
+      "expansion": {
+        "raw": "hyde: Code Duplication Similarity Search (C-DS) for identifying and resolving code duplications in source code, often using techniques like semantic vector search to compare function names or variable names for similarity.\n\nvec: Function Refactoring Syntax (FRS) - a technique in software engineering where code is restructured to improve readability and maintainability, often involving identifying duplicated or redundant code sections.\n\nhyde: A hypothetical code snippet for a search engine to detect and resolve code duplication, utilizing semantic vector similarity to compare function names or variable definitions across a codebase.",
+        "lex": null,
+        "vec": "Function Refactoring Syntax (FRS) - a technique in software engineering where code is restructured to improve readability and maintainability, often involving identifying duplicated or redundant code sections.",
+        "hyde": "A hypothetical code snippet for a search engine to detect and resolve code duplication, utilizing semantic vector similarity to compare function names or variable definitions across a codebase."
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 1626,
+      "total": 0.06,
+      "expansion": {
+        "raw": "To identify a performance bottleneck for N+1 queries, consider the following expanded search:\n\n- Lexical variants for BM25 search: Query rephrasing, query expansion\n- Synonyms and related identifiers: Query expansion for BM25 (e.g., \"performance\" vs. \"results\")\n\nHypered code:\nquery = \"performance bottleneck N+1 queries\"\nexpansion_terms = {\n    \"query\": \"performance bottleneck\",\n    \"n+1_query\": \"N+1 queries\"\n}\n\nThis expands the search into semantic terms and related identifiers for a more comprehensive analysis of performance issues.",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 1728,
+      "total": 0.06,
+      "expansion": {
+        "raw": "To address a missing error handling in `try-catch` blocks, expand the query into three types:\n\n- lex: synonyms for `try-catch` (e.g., `try`, `catch`, `exception`)\n- vec: a hypothetical code snippet for semantic vector search (e.g., `try_quantize_vector`)\n\nThis expands the query into three types: technical terms (synonyms), semantic search functions, and related identifiers.\n\nHere's a refined expanded query:\n`hyde: TryCatchErrorHandlingWithSemanticVectorSearch (try, catch, exception handling)`",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "LFM2-350M",
+      "format": 0.67,
+      "keyword": 0,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 1044,
+      "total": 0.489,
+      "expansion": {
+        "raw": "hyde: \"is a safe cast of the original code, ensuring type safety and preventing unsafe casts.\"\n\nvec: \"A rephrased assertion that avoids unsafe casting, using a safer type conversion or alternative syntax.\"\n\nhyde: \"A hypothetical code snippet demonstrating an assertion that is both expressive and type-safe, avoiding unsafe casts.\"",
+        "lex": null,
+        "vec": "\"A rephrased assertion that avoids unsafe casting, using a safer type conversion or alternative syntax.\"",
+        "hyde": "\"A hypothetical code snippet demonstrating an assertion that is both expressive and type-safe, avoiding unsafe casts.\""
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 2295,
+      "total": 0.06,
+      "expansion": {
+        "raw": "Vector expansion:\n- lex: \"event listeners for garbage collection\" could be expanded to include related identifiers like `gc` or `GC` for more precision.\n- vec: \"Memory Leak Event Listener Cleanup\" could be rephrased to `Event Listener for Garbage Collection Cleanup` for better semantic clarity.\n\nHypothetical code:\n```javascript\n// Example of a cleanup function using vec\nfunction cleanupMemoryLeak() {\n  //... (code to listen for garbage collection events)\n  if (event.triggered) {\n    const gcEvent = event.gc; // Assuming 'gc' is a valid identifier\n    gcEvent.terminate(); // Clean up the listener\n  }\n}\n```",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "LFM2-350M",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 2175,
+      "total": 0.06,
+      "expansion": {
+        "raw": "hexadecimal: race conditions in asynchronous programming often involve concurrency and synchronization to prevent race conditions. vec: a term used in semantic vector search for indexing, which could be adapted to discuss race conditions in concurrent access. hye: a short code snippet for expressing the concept of a race condition in concurrent programming, which might be used to expand on the topic.\n\nHere are three lines:\n\n1. **lex**: \"race conditions in asynchronous programming often involve synchronization primitives like mutexes or semaphores to ensure thread safety.\"\n2. **vec**: \"semaphore\" could be used as a term to describe a mechanism that limits the number of threads accessing a shared resource.\"\n3. **hyde**: \"eventual consistency\" is a common terminology in concurrency to describe the trade-off between immediate consistency and eventual consistency in concurrent systems.",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "hyde: For a code search query expansion, consider expanding it into lex terms for BM25 search (e.g., \"BM25 search optimization\", \"effect cleanup\") and vec terms for semantic vector search (e.g., BM25 scores, effect timelines) to capture different facets of the original query.\n\nvec: \n- `effect` (for effect cleanup)\n- `capture` (for optimization)\n- `scores` (for semantic vector search)\n\nhyde: Here's a hypothetical code snippet to illustrate this expansion:\n```javascript\nuseEffect(() => {\n  const effect = \"effect cleanup\";\n  const score = `BM25 score: ${Math.abs(results[0][1])}`;\n  const vector = `BM25 score: ${Math.abs(results[0][4])}`;\n  //... additional code for evaluation and cleanup\n}, [effect]);\n```\nThis expands the original query into a more comprehensive search context, leveraging lexical and semantic terms to enhance search efficacy.",
+      "latencyMs": 1423,
+      "tokenCount": 214
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "Given the query, here's a hypothetical expansion into three types:\n\n- lex: Function expansions for handlingSubmit in JavaScript, including parameters and error handling.\n- vec: A natural language rephrasing for semantic vector search, such as using a pre-trained word embedding model.\n- hyde: A concise code snippet to summarize or expand the handlingSubmit function, possibly indicating a specific implementation or optimization.\n\nFor instance: \n```javascript\nfunction handleSubmit(form) {\n  // Handle form submission logic here...\n  const response = new ErrorHandler({\n    error: (e) => {\n      console.error(e.message);\n      return { statusCode: 400, message: 'Invalid request' };\n    },\n    success: (data) => {\n      // Handle successful submission...\n    }\n  });\n}\n```",
+      "latencyMs": 1786,
+      "tokenCount": 171
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "hyde: The searchBar component is a UI element in React for building search functionalities, often utilizing libraries like `react-hook-form` or `mui-css`. It typically includes a text input, a search box with autocomplete suggestions, and a button to perform the search.\n\nvec: The `searchBar` component from `react-hook-form` is a React hook that allows developers to manage form state and validation for search inputs. It can be used in conjunction with hooks like `useState` or `useCallback` to enhance form handling and validation.\n\nhyde: Here's a simple implementation of the `searchBar` component using `react-hook-form`:\n```jsx\nimport { Form, Input, Button } from 'eact-hook-form';\nimport { useState } from 'eact';\n\nconst SearchBar = () => {\n  const [formData, { setFormData }] = useState({ query: '', searchTerm: '' });\n  const { handleSubmit } = useForm();\n\n  const onSubmit = async (data) => {\n    // Handle form submission\n  };\n\n  return (\n    <form onSubmit={handleSubmit(onSubmit)}>\n      <Input\n        type=\"text\"\n        placeholder=\"Search...\"\n        value={formData.query}\n        onChange={(v, e) => setFormData({...formData, query: v }",
+      "latencyMs": 1940,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "vec: embeddings client, hyde: semantic vector embedding representation, hie: a method for generating contextual embeddings from text data.",
+      "latencyMs": 168,
+      "tokenCount": 29
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "hyde: a hypothetical code snippet for semantic vector search, which could expand to include variations like \"parameter size evaluation\" or \"input size analysis\".\n\nvec: a phrase used in semantic vector search to represent the size of input data or parameters, often varying based on context.\n\nhyde: a technique to incorporate parameter size in the search process, potentially alongside other techniques like vector expansion or attention mechanisms.",
+      "latencyMs": 757,
+      "tokenCount": 85
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "hyde: Identify the key variables and operators in a compound SQL query for building an index on a database, considering factors like column types, indexing strategies, and performance metrics.\n\nvec: Construct a semantic vector representation of the target term(s) for a multi-dimensional search, leveraging techniques like word embeddings or contextual embeddings to capture semantic meaning.\n\nhyde: A common expression for expanding a search query into a semantic vector representation is `(term1 + term2 +... + termN) ⊇ [vector_embedding]`, where `term1` and `term2` are the search terms, and `vector_embedding` is a vector derived from their contexts using techniques such as BERT or similar models.",
+      "latencyMs": 1332,
+      "tokenCount": 153
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "vec: a method for computing the cosine similarity between two vectors, often used in BM25 search and text analysis.\n\nhyde: cosine similarity is a measure of the cosine angle between two vectors, ranging from -1 to 1. It's commonly used in text similarity calculations and information retrieval tasks, including cosineSimilarity for BM25 search.\n\nIn a hypothetical context, the code snippet could be: cos(vec1[0] / (vec1[1] * vec2[1]) + (vec2[0] - vec1[0]) / (vec2[1] * vec2[2])) for cosineSimilarity.",
+      "latencyMs": 1081,
+      "tokenCount": 142
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "hyde: A code expansion engine used for generating search queries in BM25 search, including lexical and semantic terms, synonyms, and related identifiers.\n\nvec: A natural language rephrasing technique for semantic vector search, which can be used to expand the meaning of keywords in a query.\n\nhyple: A concise code snippet for expanding BM25 search queries, which might include lexical variations and synonyms to enhance search relevance.",
+      "latencyMs": 603,
+      "tokenCount": 94
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "hyper:\n- aggregateRetrievalResults, \n- searchTerms, \n- retrievalQuery\n\nhyde:\naggregateRetrievalResults, retrieveContext, contextualData",
+      "latencyMs": 372,
+      "tokenCount": 39
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "hyde: The `LocalLLMClient` constructor is a class designed to initialize and configure language-level Language Model Embeddings (LLMs) for natural language processing tasks. It typically includes parameters for model selection, hyperparameter tuning, and integration with LLM APIs like Hugging Face's Transformers.\n\nvec: The constructor accepts a `LLMClient` instance, an input token (e.g., text or sentence), and optional arguments for hyperparameter settings such as learning rate, batch size, and number of layers.\n\nhyde: Here's a simple snippet for generating a code expansion:\n```python\nclass LocalLLMClient:\n    def __init__(self, model_path, batch_size=32):\n        self.model = self._build_model(model_path)\n        # Additional setup for LLM client\n```\nThis code snippet demonstrates a basic structure for initializing an LLM client with specified parameters.",
+      "latencyMs": 1423,
+      "tokenCount": 191
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "hyde: Consider using `.property()` for type-safe property access, especially in Python 3.x, to avoid `TypeError`. For example: `result = model.attribute(name)` instead of `result = model[name]`.\n\nvec: The expression `model.property(name)` is a valid syntax for semantic vector search, as it directly accesses the vector associated with the specified identifier.\n\nhyde: If you're using PyTorch, `model.feature_vector` or `vectors` might be more appropriate than raw property access for handling sparse tensors and vectorized operations.",
+      "latencyMs": 883,
+      "tokenCount": 129
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "vec: `resolve(ECONNREFUSED, 'localhost')`\n\nhyde: This query expands the original search to include a more specific and concise way of resolving the `ECONNREFUSED` error, utilizing a semantic vector search approach for better context understanding.\n\nHere's the expanded lexical expansion:\n- Lex: `resolve(ECONNREFUSED, 'localhost')`\n- vec: `resolve(ECONNREFUSED, 'localhost', 'eply-with-if-not-exist')`\n- Hyde: `hyde: This expands to a more succinct semantic vector search syntax, indicating the use of a `resolve` function for handling the specific error condition.",
+      "latencyMs": 850,
+      "tokenCount": 152
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "hyde: Check if the module name and its path are correctly specified in the import statement. Ensure there are no typos or missing semicolons, and verify that the module path is accessible.\n\nvec: Verify if the module name (e.g., \"math\" or a custom module) and its path are correctly formatted in the import statement. Ensure there's no missing colon or semicolon, and that the module is correctly imported with a valid library path.\n\nhyode: If the import fails, recheck the module name and path for any syntax errors or typos. Ensure that \"import\" is present in the module declaration and that the path to the module is correct. If necessary, add a colon or semicolon after \"import\" and verify the module's existence.",
+      "latencyMs": 969,
+      "tokenCount": 164
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "hyde: This query expands a search to identify CORS (Cross-Origin Resource Sharing) headers that are not permitted in the context of a request originating from a different domain.\n\nvec: \n- lex: \"origin not allowed headers\"\n- vec: \"CORS origin restrictions\"\n- hyde: \"HTTP CORS headers\" \n\nHowever, a more precise search term would be:\n- hyde: \"CORS origin headers forbidden in context\"\n- vec: \"origin not allowed CORS header\"",
+      "latencyMs": 836,
+      "tokenCount": 106
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "hyde: What is the exact cause and potential solutions for out of memory heap allocation failure?\n\nvec: If the heap size is too small, consider increasing it using `heapify` or `heapq.heapify`. If the heap grows beyond a certain threshold, consider using a stack-based allocation strategy or reusing existing objects.\n\nhyde: Could you provide an example of a heap initialization code?\n\nvec: Here's a simple Python snippet:\n```python\nimport heapq\nheap = []\nfor _ in range(1000):\n    heapq.heappush(heap, None)\n```\nThis initializes a large list of `None` values to simulate an out-of-memory heap.",
+      "latencyMs": 1345,
+      "tokenCount": 153
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "hyde: Could be a result of a high database connection pool exhaustion, potentially due to insufficient resources or a sudden spike in query volume.\n\nvec: \"database connection timeout pool exhausted\" could be rephrased as \"exhausted database connection pool pool exhaustion.\"\n\nhyde: A short hypothetical code snippet to test this query could be:\n```python\nimport psycopr.connect\nconn = None\ntry:\n    conn = psycopr.Pool(5, max_connect=10)  # Adjust pool size as needed\nexcept psycopr.errors.ConnectionFailure:\n    print(\"Failed to establish database connection pool.\")\nexcept Exception as e:\n    print(f\"Error establishing database connection pool: {e}\")\n```\nThis snippet demonstrates a hypothetical code for handling potential database connection pool exhaustion.",
+      "latencyMs": 1556,
+      "tokenCount": 175
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "**lex:** \"promise rejection\" could be expanded into:\n- **technical terms:** \"rejection of promise\"\n- **synonyms:** \"failure to fulfill\" or \"unmet promise\"\n- **related identifiers:** \"async error\", \"condition not met\"\n\n**vec:** `promise.rejected.withCondition('async error: promise not met')`\n\n**hyde:** `(promise => rejectPromise)`. This expands the original query into a semantic vector search context, highlighting related terms and conditions for better understanding.",
+      "latencyMs": 669,
+      "tokenCount": 117
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "hyde: Circular Dependency Detected Import Cycle\n\nThis query expands a search into three distinct types:\n- lex: Identifies keywords related to BM25 search (technical terms, synonyms) for the concept of \"import cycle\".\n- vec: A natural language rephrasing that could be used to express the idea of a circular dependency in an abstract form.\n- hye: A hypothetical code snippet that encapsulates the core concept of a circular dependency in an understandable manner.",
+      "latencyMs": 899,
+      "tokenCount": 103
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "hyde: Check the argument passed for 'parameter' in your BM25 search configuration. Ensure it's a valid parameter name or type, and if not assignable, consider using alternative parameters like 'wge' (weighted gate) or 'cost' for better flexibility.\n\nHere are three lines of expanded search queries:\n\n1. **lex**: BM25 weighting parameter (e.g., 'wge' or 'cost') for adjusting the model's performance.\n2. **vec**: A vector of positive and negative scores representing the search term's relevance to your dataset.\n3. **hyde**: A concise code snippet for semantic vector search, often used in conjunction with BM25.\n\nThese expanded queries enhance the search functionality by providing more options for parameter tuning and semantic understanding.",
+      "latencyMs": 1401,
+      "tokenCount": 168
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "hyde: Permission denied, file not found. Check permissions and try again with adjusted parameters or alternative search techniques.\n\nvec: Permission denied, file not found (using TF-IDF vector representation). Consider using a different search algorithm or alternative method like fuzzy matching.\n\nhyde: Verify the file's permissions and ensure the search space is correctly defined. If using TF-IDF, consider rephrasing to \"TF-IDF vector representation of the document corpus.\"",
+      "latencyMs": 836,
+      "tokenCount": 102
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "hyde: Authentication Middleware, lex: \"authenticateMiddlewareFunction\", vec: \"middlewareFunction\"\n\nAuthentication Middleware:\nA middleware function designed to handle HTTP authentication, ensuring secure access by verifying user credentials or tokens. It typically involves setting headers like \"Authorization: Bearer <token>\" and can be implemented using libraries or frameworks.\n\nMiddlewareFunction:\nA reusable function that encapsulates authentication logic, allowing for modular and maintainable code. It might include methods to decode tokens, validate them against a database or secret key, and then proceed with the request.\n\nMiddlewareDecoder:\nA utility function that converts raw authentication credentials (like JSON Web Token) into a structured format suitable for processing, often used in conjunction with middleware to transform and validate incoming requests.\n\nhype: A hypothetical code snippet for semantic vector search in authentication contexts, expanding on the concept of BM25 search and its variants.\n\nvec: \"authenticateMiddlewareDecorator\"",
+      "latencyMs": 1583,
+      "tokenCount": 207
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "hyde: Rate limiting can be implemented using various techniques, including token bucket rate limiting, leaky bucket rate limiting, and adaptive rate limiting. Each method has its strengths and weaknesses, and the choice depends on specific use cases like throughput, latency, and resource constraints.\n\nHere's a hypothetical code snippet for rate limiting using token bucket:\n\n```python\nimport time\nfrom collections import deque\nclass RateLimiter:\n    def __init__(self, max_rate=1000, bucket_size=200):\n        self.bucket = deque([() for _ in range(max_rate - bucket_size)])\n        self.rate_threshold = max_rate // 2\n        self.lock = threading.Lock()\n\n    def acquire(self):\n        with self.lock:\n            while len(self.bucket) >= 1:\n                for _ in range(min(bucket_size, self.rate_threshold - len(self.bucket))):\n                    self.bucket.popleft()\n            if not self.bucket:\n                self.bucket.append(())\n\n    def release(self, item):\n        with self.lock:\n            while len(self.bucket) > item.size():\n                self.bucket.popleft()\n            self.bucket.append(item)\n```\n\nThis code provides a basic implementation of rate limiting using a token bucket algorithm.",
+      "latencyMs": 1918,
+      "tokenCount": 280
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "hyde: Can be a technique to invalidate cache entries when data changes, ensuring the most up-to-date information is served. For semantic search, consider using techniques like vector-based indexing or inverted indexes to rephrase and expand cache results. In terms of lexical analysis, you might use techniques like tokenization to dissect and evaluate the meaning embedded in cache results.",
+      "latencyMs": 437,
+      "tokenCount": 77
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "hyde: Retry logic with exponential backoff involves a retry mechanism that increases the wait time between retries exponentially, often capped to prevent infinite loops. This ensures robustness against transient failures while balancing between delay and resource usage.\n\nvec: Retry logic with exponential backoff can be implemented using a function that takes a delay parameter, multiplies it by a factor (e.g., 2 for 1s, 3 for 2s), and returns the result of that multiplication. The factor can be adjusted based on observed failure rates to optimize wait times between retries.\n\nhyde: A common implementation of exponential backoff in code is encapsulated as a function `retry_with_exponential_backoff(delay, max_attempts)`, which takes a delay (default 1 second) and the number of attempts as arguments. This function returns a promise that resolves with the result of `Math.pow(delay, max_attempts) * 1000`, representing the total delay in milliseconds.",
+      "latencyMs": 1349,
+      "tokenCount": 217
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "hyde: Connection Pooling Database refers to a strategy where multiple connections are reused from the database server, improving performance and resource utilization. lex: Connection Pooling Database can be implemented using various techniques like active, passive, or connection pooling strategies. vec: The concept is often compared to a virtual connection pool in distributed systems, where multiple instances of the same resource are shared among different requests. hye: A common approach to managing connection pooling is the use of a dedicated pool manager, which keeps track of active connections and ensures efficient resource allocation.",
+      "latencyMs": 753,
+      "tokenCount": 113
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "hyde: Event-Driven Architecture (EDA) in event-driven architecture (EDA) for pub subscriptions, where events trigger actions or state changes in the system.\n\nvec: Pub/Sub for event-driven architecture (EDA) with pub subscriptions, where events trigger actions or state changes in the system.\n\nhyode: A code snippet for expanding an event-driven architecture (EDA) pub sub to a more concise and expressive format, utilizing lexical variations for better semantic understanding.",
+      "latencyMs": 833,
+      "tokenCount": 105
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "hyde: Dependency Injection Service Container (DICS) is a design pattern that facilitates dependency injection, enabling modular and testable code. It allows developers to decouple components by providing an abstraction layer for dependency management, promoting loose coupling and easier maintenance.\n\nIn terms of lexical variants:\n- **ben:** Dependency Injection Service Container (DICS) is a design pattern for managing dependencies in applications.\n- **syn:** A synonym for \"dependency\" (in the context of DICS) in technical contexts.\n- **hyp:** A short hypothetical code snippet for semantic vector search (SVD) in natural language processing, often used to represent the meaning of words or phrases.\n\nIn a broader sense:\n- **vec:** A natural language rephrasing for semantic vector search (SVD) in machine learning contexts.\n- **hyde:** A concise code snippet for a hypothetical DICS implementation in Python, demonstrating the core concept of dependency injection.",
+      "latencyMs": 2196,
+      "tokenCount": 209
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "hyde: The query `paginationCursorOffsetLimit` can be expanded as:\n- lex: Query operators for pagination (technical terms, synonyms, related identifiers)\n- vec: A natural rephrasing for semantic vector search (e.g., `paginationCursorOffsetLimit` could be replaced with `queryOffsetLimit` or `offsetLimit`)\n- hye: A hypothetical code snippet to enhance semantic understanding of query parameters in pagination contexts.",
+      "latencyMs": 712,
+      "tokenCount": 99
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "hex: a code snippet for detecting graceful shutdown signals in system calls, highlighting the use of error codes and signal handling mechanisms.\n\nvec: a lexical expansion for semantic vector search in BM25, identifying key terms and their relationships.\n\nhyde: a hypothetical code to expand the search for graceful shutdown signals, potentially involving signal handling patterns and error codes.",
+      "latencyMs": 647,
+      "tokenCount": 77
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "vec: \"streamingResponseServer\" could be a variant of \"query expansion,\" used to expand the meaning of an input query in response to streaming events. vec: \"event\" could be replaced by \"streamingResponseServerEvent,\" a synonym for the original query expansion technique. hyde: This query expands the concept of \"event\" to include streaming response servers, which are pivotal in real-time data processing and event-driven architectures.",
+      "latencyMs": 1741,
+      "tokenCount": 89
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "vec: \"React Context\" could be expanded to include \"Context API\" or \"Contextual State Management\" as synonyms.\n\nhyde: A concise hypothetical code snippet for semantic vector search could be: `ContextedState = context + { value: vec(context.value, 'tate') };`\n\nThis expands the search to include related terms and synonyms for a more comprehensive semantic understanding of React context vs Redux state management.",
+      "latencyMs": 1129,
+      "tokenCount": 93
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "hyde: To expand a query for middleware chain analysis, consider variations like \"middleware execution flow\" or \"integration sequence.\"\n\nvec: Middleware Execution Flow (MEF), Node.js, etc., could be used for semantic analysis.\n\nhyde: An example of a natural language rephrasing could be, \"What are the middleware functions in this workflow?\"",
+      "latencyMs": 738,
+      "tokenCount": 81
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "vec: \"Prisma Query\"\n\nhyde: A common lex for expressing a search query in SQL, which can be expanded to include various techniques like using `SELECT` with `WHERE` clauses or `LIKE` for partial matches.\n\nhyple: For a semantic search context, consider using a rephrased expression like \"findMany with PRIMARY KEY\" to capture the intent of retrieving all records where a specific field (PRIMARY KEY) matches a given condition.\n\nhyple: This rephrasing can be expanded to include more semantic understanding, such as \"findMany with a condition matching the field value\" or \"findWith specific criteria.\"",
+      "latencyMs": 1810,
+      "tokenCount": 142
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "vec: Query for next.js Server Component Data Fetching can be expanded into lex terms like \"server-side data retrieval\" or \"client-side data handling\". For vec expressions, consider synonyms such as \"component-fetching\" or \"data-intensive\". A hypothetical code snippet to match this query could be: `serverData = await myComponent.getServerSideProps({ data: { pageSize: 10 } });`\n\nHyede: To expand the concept, consider related identifiers like \"data-fetching\" or \"client-side data management\". This can be represented in a short code snippet: `myComponent.DataFetching = fetchData({ pageSize: 10 });`\n\nThis expands the search into lex terms and related identifiers for a comprehensive data fetching strategy in Next.js.",
+      "latencyMs": 2608,
+      "tokenCount": 172
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "hyde: a method to enhance the Zod schema's ability to validate data transformations, combining lexical and semantic terms for a more robust validation process.\n\nvec: The Zod schema validation parse transform could involve techniques like semantic vector space (SVS) or a combination of lexical and semantic terms to better assess data transformations' validity.\n\nhyde: A specific example of such a method might be using a semantic vector space (SVS) to map input and output transformations, ensuring that the mapping adheres to expected semantic relationships.",
+      "latencyMs": 1468,
+      "tokenCount": 113
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "hyde: Mutations in the TPC (Transcription Complex Protein) router procedure for RPC (Reverse Transcriptional Polymorphism) can be categorized under various types of code expansions. For instance, a mutation in the TPC1 or TPC2 genes might be described using terms like \"TPC1 Mutation\" and \"RPC Router Mutation.\" A natural rephrasing could be: \"Mutation in TPC1 or TPC2 genes affecting the RPC router procedure.\"\n\nvec: Mutations in the Transcriptional Polymorphism Control Regulatory Sequence (TPCRCS) or TPC Mutations for RPC can be expressed using terms like \"TPC Mutation\" and \"RPC Regulatory Sequence.\" A semantic vector expansion could be: \"TPC Mutation affecting RPC Regulatory Sequence TPCs.\"\n\nhyde: A hypothetical code snippet to enhance the search for RPC router procedure mutations could be: `(mutation_type TPC1 Mutation | mutation_position RPC)`",
+      "latencyMs": 2302,
+      "tokenCount": 223
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "hyde: utility-first CSS framework for building responsive designs, including Tailwind's breakpoints utilities.\n\nvec: Tailwind's utility classes (e.g., `text-2xl`, `bg-gray-100`) for creating responsive breakpoints and custom styling.\n\nhyple: A concise JavaScript snippet (e.g., `@apply flex`) to apply Tailwind's responsive breakpoints in a single line of code, enhancing maintainability and readability.\n\nHybrid: A hypothetical code snippet demonstrating how to dynamically adjust breakpoints based on screen width using Tailwind's utility classes, aiding in responsive design implementation.",
+      "latencyMs": 1783,
+      "tokenCount": 137
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "hyde: A JavaScript module for creating and using spies, which can be used to spy on functions or methods in a module.\n\nvec: A JavaScript object that could represent the results of a function call, allowing for flexible and complex semantic vector comparisons.\n\nhyde: A hypothetical code snippet to construct a spy on a Jest mock module, enabling detailed inspection of function calls and their outputs.",
+      "latencyMs": 849,
+      "tokenCount": 83
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "vec: network configuration options and related identifiers for Docker Compose services, including service names, ports, and networking features like overlay networks.\nhyde: A hypothetical code snippet for semantic network search, such as a query matching a combination of service names and their network configurations.\nge: Geeky explanation of how to expand the query into a more natural, user-friendly format using semantic network search techniques.",
+      "latencyMs": 715,
+      "tokenCount": 86
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "To expand the query into three types of expansions:\n\n- lex: Metadata expansion for GitHub Actions, including metadata fields like `description`, `license`, and `workflow.yaml`.\n- vec: A semantic vector representation of GitHub Actions workflows, derived from the `vec` keyword used in the search.\n- hyde: A concise code snippet that expands a GitHub Actions workflow matrix, describing the workflow's components and dependencies.\n\nHere's an example of a hypothetical code snippet (`hyde`):\n```yaml\nname: GitHub Actions CI Workflow Matrix\n\non:\n  stage: ci/checkout\n  inputs:\n    docker_image: \"gitlab-ci.yml\"\n    github_token: \"<your_github_token>\"\n  \nwork:\n  run_contexts:\n    - docker: \"gcr.io/darick/python:3.9.2\"\n    - workflow-manager: \"github.io/workflow-manager\"\n\njobs:\n  build:\n    runs-on: [*]\n    steps:\n      - name: Checkout code\n        uses: actions/checkout@v4\n      \n      - name: Run GitHub Actions workflow\n        run: |\n          git clone https://github.com/your-username/gitlab-ci.workflow.toml\n          cd gitlab-ci.workflow\n         .env.export",
+      "latencyMs": 3442,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "vec: search for keywords like \"unused_imports_dead_code\" in a codebase, potentially using terms such as \"code_refinement,\" \"refactoring,\" or \"dead_code_identification.\"\n\nhyde: A hypothetical code snippet might be: `import unused_module as U; for module in find_modules(code) where not(imported_module in [U])`\n\nThis snippet expands the original query to include a semantic search for identifying unused imports as dead code, potentially using terms related to refactoring and code analysis.",
+      "latencyMs": 1571,
+      "tokenCount": 124
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "To detect circular dependency modules, consider the following expansions:\n\n- lex: \"module_dependency_graph\" could be expanded to \"graph_detection\" for semantic network representation, or \"dependency_cycle_mapping\" for identifying circular paths.\n- vec: The query could be rephrased to \"detect_cyclic_dependencies\" or \"identify_circular_dependency_nodes\".\n- hyde: A relevant code snippet for detecting circular dependencies might be \"import_dependency_graph as DG; for each dependency, DG.iter_dependencies(dependency) if not already visited returns cycle_detected\" or \"check_dependency_graph(G) for cycles\".\n\nThese expansions expand the original query into more specific and technical terms while maintaining the core concept of identifying circular dependencies.",
+      "latencyMs": 2158,
+      "tokenCount": 172
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "To detect dead code detection and unreachable states in a system, we can expand the query to include lexical terms like \"dead code detection,\" synonyms such as \"execution termination\" or \"unreachable state,\" and related identifiers like \"control flow analysis\" or \"state transition.\" This expands the search to capture semantic nuances and contextual information.\n\nvec: dead_code_detection, unreachable_state, control_flow_analysis\nhyde: (expanded to include \"state transition\" and \"control flow analysis\")\n\nThis expanded query expands the search into lexical terms, synonyms, and related identifiers to provide a more comprehensive analysis of dead code detection and unreachable states in the system.",
+      "latencyMs": 2034,
+      "tokenCount": 151
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "query: insecure sql injection vulnerabilities, parameterized queries, input validation\n\nvec: parameterized queries, SQL injection techniques, vulnerability types, authentication mechanisms.",
+      "latencyMs": 484,
+      "tokenCount": 33
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "hyde: Code Duplication Similarity Search (C-DS) for identifying and resolving code duplications in source code, often using techniques like semantic vector search to compare function names or variable names for similarity.\n\nvec: Function Refactoring Syntax (FRS) - a technique in software engineering where code is restructured to improve readability and maintainability, often involving identifying duplicated or redundant code sections.\n\nhyde: A hypothetical code snippet for a search engine to detect and resolve code duplication, utilizing semantic vector similarity to compare function names or variable definitions across a codebase.",
+      "latencyMs": 1659,
+      "tokenCount": 124
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "To identify a performance bottleneck for N+1 queries, consider the following expanded search:\n\n- Lexical variants for BM25 search: Query rephrasing, query expansion\n- Synonyms and related identifiers: Query expansion for BM25 (e.g., \"performance\" vs. \"results\")\n\nHypered code:\nquery = \"performance bottleneck N+1 queries\"\nexpansion_terms = {\n    \"query\": \"performance bottleneck\",\n    \"n+1_query\": \"N+1 queries\"\n}\n\nThis expands the search into semantic terms and related identifiers for a more comprehensive analysis of performance issues.",
+      "latencyMs": 1626,
+      "tokenCount": 136
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "To address a missing error handling in `try-catch` blocks, expand the query into three types:\n\n- lex: synonyms for `try-catch` (e.g., `try`, `catch`, `exception`)\n- vec: a hypothetical code snippet for semantic vector search (e.g., `try_quantize_vector`)\n\nThis expands the query into three types: technical terms (synonyms), semantic search functions, and related identifiers.\n\nHere's a refined expanded query:\n`hyde: TryCatchErrorHandlingWithSemanticVectorSearch (try, catch, exception handling)`",
+      "latencyMs": 1728,
+      "tokenCount": 131
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "hyde: \"is a safe cast of the original code, ensuring type safety and preventing unsafe casts.\"\n\nvec: \"A rephrased assertion that avoids unsafe casting, using a safer type conversion or alternative syntax.\"\n\nhyde: \"A hypothetical code snippet demonstrating an assertion that is both expressive and type-safe, avoiding unsafe casts.\"",
+      "latencyMs": 1044,
+      "tokenCount": 75
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "Vector expansion:\n- lex: \"event listeners for garbage collection\" could be expanded to include related identifiers like `gc` or `GC` for more precision.\n- vec: \"Memory Leak Event Listener Cleanup\" could be rephrased to `Event Listener for Garbage Collection Cleanup` for better semantic clarity.\n\nHypothetical code:\n```javascript\n// Example of a cleanup function using vec\nfunction cleanupMemoryLeak() {\n  //... (code to listen for garbage collection events)\n  if (event.triggered) {\n    const gcEvent = event.gc; // Assuming 'gc' is a valid identifier\n    gcEvent.terminate(); // Clean up the listener\n  }\n}\n```",
+      "latencyMs": 2295,
+      "tokenCount": 157
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "hexadecimal: race conditions in asynchronous programming often involve concurrency and synchronization to prevent race conditions. vec: a term used in semantic vector search for indexing, which could be adapted to discuss race conditions in concurrent access. hye: a short code snippet for expressing the concept of a race condition in concurrent programming, which might be used to expand on the topic.\n\nHere are three lines:\n\n1. **lex**: \"race conditions in asynchronous programming often involve synchronization primitives like mutexes or semaphores to ensure thread safety.\"\n2. **vec**: \"semaphore\" could be used as a term to describe a mechanism that limits the number of threads accessing a shared resource.\"\n3. **hyde**: \"eventual consistency\" is a common terminology in concurrency to describe the trade-off between immediate consistency and eventual consistency in concurrent systems.",
+      "latencyMs": 2175,
+      "tokenCount": 184
+    }
+  ]
+}

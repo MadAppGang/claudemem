@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "Qwen3.5-0.8B",
+    "lmsKey": "qwen3.5-0.8b-mlx",
+    "family": "qwen3.5",
+    "paramsB": 0.8
+  },
+  "timestamp": "2026-03-03T17:10:51.484Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 1,
+    "keyword": 0.8024000000000002,
+    "semantic": 0.996,
+    "hyde": 0.3389999999999997,
+    "latencyMs": 7497.02,
+    "total": 0.6657299999999999
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1997,
+      "total": 0.645,
+      "expansion": {
+        "raw": "lex: useEffect cleanup, lifecycle hooks, cleanup events\nvec: A hook that automatically executes when an event fires to clean up a component after it has been used.\nhyde: useEffect cleanup",
+        "lex": "useEffect cleanup, lifecycle hooks, cleanup events",
+        "vec": "A hook that automatically executes when an event fires to clean up a component after it has been used.",
+        "hyde": "useEffect cleanup"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 7062,
+      "total": 0.6402500000000001,
+      "expansion": {
+        "raw": "lex: handleSubmit, eventHandler, formSubmit\nvec: A function that triggers the submission of a user input field by calling an event handler, typically associated with form submission events\nhyde: <script>alert('Submitting...</script>')<|im_end|>\n",
+        "lex": "handleSubmit, eventHandler, formSubmit",
+        "vec": "A function that triggers the submission of a user input field by calling an event handler, typically associated with form submission events",
+        "hyde": "<script>alert('Submitting...</script>')<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 6914,
+      "total": 0.6795000000000001,
+      "expansion": {
+        "raw": "lex: search bar, search component, search widget\nvec: [search][field] query term in the search bar or search field\nhyde: <div class=\"search-bar\">Search</div><|im_end|>\n",
+        "lex": "search bar, search component, search widget",
+        "vec": "[search][field] query term in the search bar or search field",
+        "hyde": "<div class=\"search-bar\">Search</div><|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 6913,
+      "total": 0.6642500000000001,
+      "expansion": {
+        "raw": "lex: createEmbeddingsClient, embeddings, embedding model, vector database\nvec: A client library that uses the `createEmbeddingsClient` function to generate embeddings for a machine learning model, typically used in vector databases like Pinecone or Azure ML.\nhyde: # python code to create an embeddings client for a vector database<|im_end|>\n",
+        "lex": "createEmbeddingsClient, embeddings, embedding model, vector database",
+        "vec": "A client library that uses the `createEmbeddingsClient` function to generate embeddings for a machine learning model, typically used in vector databases like Pinecone or Azure ML.",
+        "hyde": "# python code to create an embeddings client for a vector database<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 6751,
+      "total": 0.6795000000000001,
+      "expansion": {
+        "raw": "lex: parseParameterSize, parameter size, parse parameter\nvec: \"calculate the dimension of a parsed parameter in a text parsing context\"\nhyde: /model::parseParameterSize()<|im_end|>\n",
+        "lex": "parseParameterSize, parameter size, parse parameter",
+        "vec": "\"calculate the dimension of a parsed parameter in a text parsing context\"",
+        "hyde": "/model::parseParameterSize()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 6775,
+      "total": 0.6482500000000001,
+      "expansion": {
+        "raw": "lex: buildCombinedIndex, combined index, multi-index\nvec: A function that combines an existing index into a single unified index for faster retrieval.\nhyde: #buildCombinedIndex()<|im_end|>\n",
+        "lex": "buildCombinedIndex, combined index, multi-index",
+        "vec": "A function that combines an existing index into a single unified index for faster retrieval.",
+        "hyde": "#buildCombinedIndex()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 7789,
+      "total": 0.6947500000000001,
+      "expansion": {
+        "raw": "lex: cosineSimilarity, helper, vector, dot product, similarity metric\nvec: A function or tool that calculates the cosine similarity between two vectors by taking their dot product and normalizing it, often used to measure how closely aligned two data points are in a high-dimensional space.\nhyde: #cosineSimilarityHelper = lambda (v1, v2): normalize((v1 * v2).sum() / math.sqrt(len(v1) * len(v2)))<|im_end|>\n",
+        "lex": "cosineSimilarity, helper, vector, dot product, similarity metric",
+        "vec": "A function or tool that calculates the cosine similarity between two vectors by taking their dot product and normalizing it, often used to measure how closely aligned two data points are in a high-dimensional space.",
+        "hyde": "#cosineSimilarityHelper = lambda (v1, v2): normalize((v1 * v2).sum() / math.sqrt(len(v1) * len(v2)))<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 7077,
+      "total": 0.6402500000000001,
+      "expansion": {
+        "raw": "lex: QueryGenerator, GeneratorClass, Generator, GeneratorClass\nvec: A class designed to generate query strings for a generator engine that can be used by the user interface.\nhyde: class QueryGenerator<|im_end|>\n",
+        "lex": "QueryGenerator, GeneratorClass, Generator, GeneratorClass",
+        "vec": "A class designed to generate query strings for a generator engine that can be used by the user interface.",
+        "hyde": "class QueryGenerator<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 8107,
+      "total": 0.6402500000000001,
+      "expansion": {
+        "raw": "lex: aggregateRetrievalResults, aggregatedRetrieval, aggregationResults\nvec: A function that computes the aggregate of retrieval results across multiple documents or a set of retrieved items, often used in document similarity or ranking algorithms.\nhyde: A python function that returns the aggregated result of retrieval results, typically used in document similarity or ranking algorithms.<|im_end|>\n",
+        "lex": "aggregateRetrievalResults, aggregatedRetrieval, aggregationResults",
+        "vec": "A function that computes the aggregate of retrieval results across multiple documents or a set of retrieved items, often used in document similarity or ranking algorithms.",
+        "hyde": "A python function that returns the aggregated result of retrieval results, typically used in document similarity or ranking algorithms.<|im_end|>"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 8966,
+      "total": 0.6715000000000001,
+      "expansion": {
+        "raw": "lex: LocalLLMClient, local_llm_client, llm_local_client\nvec: A client constructor that initializes a LocalLLMClient instance for local machine inference, typically used in Python with PyTorch or TensorFlow.\nhyde: class LocalLLMClient()<|im_end|>\n",
+        "lex": "LocalLLMClient, local_llm_client, llm_local_client",
+        "vec": "A client constructor that initializes a LocalLLMClient instance for local machine inference, typically used in Python with PyTorch or TensorFlow.",
+        "hyde": "class LocalLLMClient()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 11935,
+      "total": 0.58825,
+      "expansion": {
+        "raw": "lex: TypeError, undefined property, undefined read\nvec: \"Cannot read property of an undefined value\"\nhyde: # 1. Check if variable is defined before use\\n2. Use .value or .name instead of undefined<|im_end|>\n",
+        "lex": "TypeError, undefined property, undefined read",
+        "vec": "\"Cannot read property of an undefined value\"",
+        "hyde": "# 1. Check if variable is defined before use\\n2. Use .value or .name instead of undefined<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 20956,
+      "total": 0.6412500000000001,
+      "expansion": {
+        "raw": "lex: ECONNREFUSED, localhost, resolver, bind, tcp\nvec: A connection refused error indicating that a port on `localhost` is not available for the specified TCP connection.\nhyde: # Error: ECONNREFUSED localhost:8080<|im_end|>\n",
+        "lex": "ECONNREFUSED, localhost, resolver, bind, tcp",
+        "vec": "A connection refused error indicating that a port on `localhost` is not available for the specified TCP connection.",
+        "hyde": "# Error: ECONNREFUSED localhost:8080<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 13714,
+      "total": 0.7267500000000001,
+      "expansion": {
+        "raw": "lex: import, module not found, resolve, identifier\nvec: \"Import error: Module 'module' is not found in the current context\"\nhyde: /usr/bin/python3 -c \"import sys; print('Import error')\"<|im_end|>\n",
+        "lex": "import, module not found, resolve, identifier",
+        "vec": "\"Import error: Module 'module' is not found in the current context\"",
+        "hyde": "/usr/bin/python3 -c \"import sys; print('Import error')\"<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 5507,
+      "total": 0.6795000000000001,
+      "expansion": {
+        "raw": "lex: cors, origin, allowed_headers, cross-origin\nvec: A CORS error occurs when a request includes an Origin header that is not permitted in the allowed headers configuration for your CORS policy.\nhyde: #pragma cors = { \"origin\": [\"*\"], \"allowed_methods\": [\"GET\", \"POST\"] }<|im_end|>\n",
+        "lex": "cors, origin, allowed_headers, cross-origin",
+        "vec": "A CORS error occurs when a request includes an Origin header that is not permitted in the allowed headers configuration for your CORS policy.",
+        "hyde": "#pragma cors = { \"origin\": [\"*\"], \"allowed_methods\": [\"GET\", \"POST\"] }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 5338,
+      "total": 0.7275000000000001,
+      "expansion": {
+        "raw": "lex: out of memory heap allocation failed, OOM, heap overflow, memory limit exceeded\nvec: A crash or error indicating that the program tried to allocate a heap object (e.g., memory for a file, thread, or process) that exceeds the available heap capacity.\nhyde: #include <unistd.h> int main() { free(); }<|im_end|>\n",
+        "lex": "out of memory heap allocation failed, OOM, heap overflow, memory limit exceeded",
+        "vec": "A crash or error indicating that the program tried to allocate a heap object (e.g., memory for a file, thread, or process) that exceeds the available heap capacity.",
+        "hyde": "#include <unistd.h> int main() { free(); }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.6799999999999999,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 5215,
+      "total": 0.6010000000000001,
+      "expansion": {
+        "raw": "lex: database_connection_timeout pool_exhausted\nvec: A failed connection attempt where the timeout limit for a database connection has been exceeded, indicating that resources are running out or the client is waiting indefinitely.\nhyde: `pool_exhausted` in `connect_timeout`<|im_end|>\n",
+        "lex": "database_connection_timeout pool_exhausted",
+        "vec": "A failed connection attempt where the timeout limit for a database connection has been exceeded, indicating that resources are running out or the client is waiting indefinitely.",
+        "hyde": "`pool_exhausted` in `connect_timeout`<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5063,
+      "total": 0.6722500000000001,
+      "expansion": {
+        "raw": "lex: promise rejected unhandled async error, PromiseRejectionAsyncError, AsyncRejectionHandler\nvec: A promise that has been rejected and caught by an async handler, indicating a failure in asynchronous communication or network events\nhyde: /async/ promise rejected unhandled error<|im_end|>\n",
+        "lex": "promise rejected unhandled async error, PromiseRejectionAsyncError, AsyncRejectionHandler",
+        "vec": "A promise that has been rejected and caught by an async handler, indicating a failure in asynchronous communication or network events",
+        "hyde": "/async/ promise rejected unhandled error<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 5138,
+      "total": 0.7035000000000001,
+      "expansion": {
+        "raw": "lex: circular dependency, import cycle, module conflict, stale import\nvec: a code block that references the same variable or function twice in a way that causes it to be re-evaluated immediately, creating an infinite loop or stale reference\nhyde: # noqa: F821 [Circular dependency detected]<|im_end|>\n",
+        "lex": "circular dependency, import cycle, module conflict, stale import",
+        "vec": "a code block that references the same variable or function twice in a way that causes it to be re-evaluated immediately, creating an infinite loop or stale reference",
+        "hyde": "# noqa: F821 [Circular dependency detected]<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.58,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5156,
+      "total": 0.6122500000000001,
+      "expansion": {
+        "raw": "lex: type error, argument not assignable to parameter\nvec: a syntax or semantic violation where an expression like `type` is expected to be a variable, but it is not assignable because it's an error\nhyde: #pragma type_error(\"Argument not assignable to parameter\")<|im_end|>\n",
+        "lex": "type error, argument not assignable to parameter",
+        "vec": "a syntax or semantic violation where an expression like `type` is expected to be a variable, but it is not assignable because it's an error",
+        "hyde": "#pragma type_error(\"Argument not assignable to parameter\")<|im_end|>"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 4994,
+      "total": 0.7172500000000002,
+      "expansion": {
+        "raw": "lex: EACCES, file access denied, restricted access, permission refused\nvec: A user or system is blocked from accessing a file due to EACCES, which means they are denied permission for access control\nhyde: #!/usr/bin/python3 -c \"print('Access denied via EACCES')\"<|im_end|>\n",
+        "lex": "EACCES, file access denied, restricted access, permission refused",
+        "vec": "A user or system is blocked from accessing a file due to EACCES, which means they are denied permission for access control",
+        "hyde": "#!/usr/bin/python3 -c \"print('Access denied via EACCES')\"<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5026,
+      "total": 0.6722500000000001,
+      "expansion": {
+        "raw": "lex: authentication middleware, authorization, access control, security layer\nvec: a middleware component that enforces security policies and validates user credentials to protect systems against unauthorized access\nhyde: #pragma authentication middleware;<|im_end|>\n",
+        "lex": "authentication middleware, authorization, access control, security layer",
+        "vec": "a middleware component that enforces security policies and validates user credentials to protect systems against unauthorized access",
+        "hyde": "#pragma authentication middleware;<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 5213,
+      "total": 0.6410000000000001,
+      "expansion": {
+        "raw": "lex: rate limiting, throttling, API quotas, client-side blocking\nvec: a mechanism where the system restricts or limits how frequently a user can make requests to an API endpoint\nhyde: A client-side implementation that blocks network connections or sends timeouts when a user exceeds the rate limit threshold.<|im_end|>\n",
+        "lex": "rate limiting, throttling, API quotas, client-side blocking",
+        "vec": "a mechanism where the system restricts or limits how frequently a user can make requests to an API endpoint",
+        "hyde": "A client-side implementation that blocks network connections or sends timeouts when a user exceeds the rate limit threshold.<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5306,
+      "total": 0.6642500000000001,
+      "expansion": {
+        "raw": "lex: invalidation, cache update, stale data, expiration\nvec: \"invalidating a cache strategy to remove old entries or trigger a refresh\"\nhyde: # Invalidation logic for caching<|im_end|>\n",
+        "lex": "invalidation, cache update, stale data, expiration",
+        "vec": "\"invalidating a cache strategy to remove old entries or trigger a refresh\"",
+        "hyde": "# Invalidation logic for caching<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 5319,
+      "total": 0.6875000000000001,
+      "expansion": {
+        "raw": "lex: exponential backoff, retry logic, exponential decay\nvec: A retry mechanism that applies an exponentially decreasing interval between attempts when a request fails.\nhyde: #pytorch/nn/modules/loss.py:exponential_decay()<|im_end|>\n",
+        "lex": "exponential backoff, retry logic, exponential decay",
+        "vec": "A retry mechanism that applies an exponentially decreasing interval between attempts when a request fails.",
+        "hyde": "#pytorch/nn/modules/loss.py:exponential_decay()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5453,
+      "total": 0.6882500000000001,
+      "expansion": {
+        "raw": "lex: connection pooling database, pooled pool, distributed storage, relational databases\nvec: A query for a database that uses connection pooling to share connections across multiple instances, ensuring efficient resource reuse while handling high load.\nhyde: #pragma conn_pool = \"shared\";<|im_end|>\n",
+        "lex": "connection pooling database, pooled pool, distributed storage, relational databases",
+        "vec": "A query for a database that uses connection pooling to share connections across multiple instances, ensuring efficient resource reuse while handling high load.",
+        "hyde": "#pragma conn_pool = \"shared\";<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 5586,
+      "total": 0.6250000000000001,
+      "expansion": {
+        "raw": "lex: event-driven, pub-sub, asynchronous, message queues\nvec: an architecture where events trigger specific services to publish messages asynchronously over a network.\nhyde: #event-driven-architecture-pub-sub<|im_end|>\n",
+        "lex": "event-driven, pub-sub, asynchronous, message queues",
+        "vec": "an architecture where events trigger specific services to publish messages asynchronously over a network.",
+        "hyde": "#event-driven-architecture-pub-sub<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 5674,
+      "total": 0.6160000000000001,
+      "expansion": {
+        "raw": "lex: dependency injection, service container, injector, container-based dependency resolution\nvec: A dependency injection service that manages a containerized instance of its own services.\nhyde: # /src/container.ts\nconst Container = {\n  dependencies: {},\n};<|im_end|>\n",
+        "lex": "dependency injection, service container, injector, container-based dependency resolution",
+        "vec": "A dependency injection service that manages a containerized instance of its own services.",
+        "hyde": "# /src/container.ts"
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 5853,
+      "total": 0.58825,
+      "expansion": {
+        "raw": "lex: pagination cursor offset limit\nvec: how to use a pagination cursor with an offset and limit parameter in web frameworks like Django, FastAPI, or Flask.\nhyde: /api/paginate/?cursor=0&limit=10<|im_end|>\n",
+        "lex": "pagination cursor offset limit",
+        "vec": "how to use a pagination cursor with an offset and limit parameter in web frameworks like Django, FastAPI, or Flask.",
+        "hyde": "/api/paginate/?cursor=0&limit=10<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 6469,
+      "total": 0.6402500000000001,
+      "expansion": {
+        "raw": "lex: graceful_shutdown,shutdown_handler,signal_handling\nvec: A function that gracefully handles the termination of an application by signaling the OS to stop, typically using a specific signal type like SIGTERM or SIGKILL.\nhyde: A function that gracefully handles the termination of an application by signaling the OS to stop, typically using a specific signal type like SIGTERM or SIGKILL.<|im_end|>\n",
+        "lex": "graceful_shutdown,shutdown_handler,signal_handling",
+        "vec": "A function that gracefully handles the termination of an application by signaling the OS to stop, typically using a specific signal type like SIGTERM or SIGKILL.",
+        "hyde": "A function that gracefully handles the termination of an application by signaling the OS to stop, typically using a specific signal type like SIGTERM or SIGKILL.<|im_end|>"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 6038,
+      "total": 0.6650000000000001,
+      "expansion": {
+        "raw": "lex: streaming response server sent events, event stream, real-time data delivery\nvec: A system that delivers streaming responses to clients in real time using event streams and continuous data delivery\nhyde: #server_streaming_response_sent_events<|im_end|>\n",
+        "lex": "streaming response server sent events, event stream, real-time data delivery",
+        "vec": "A system that delivers streaming responses to clients in real time using event streams and continuous data delivery",
+        "hyde": "#server_streaming_response_sent_events<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 6349,
+      "total": 0.6650000000000001,
+      "expansion": {
+        "raw": "lex: React context, Redux state management, state sharing, global state, immutability, immutable state updates\nvec: How to compare React context with Redux when managing shared global state across components, focusing on the trade-offs between mutable vs immutable updates and event binding in React.\nhyde: #context-vs-redux comparison<|im_end|>\n",
+        "lex": "React context, Redux state management, state sharing, global state, immutability, immutable state updates",
+        "vec": "How to compare React context with Redux when managing shared global state across components, focusing on the trade-offs between mutable vs immutable updates and event binding in React.",
+        "hyde": "#context-vs-redux comparison<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 6691,
+      "total": 0.6962500000000001,
+      "expansion": {
+        "raw": "lex: express middleware chain, next function, http request handler, route path\nvec: A sequence of middleware steps where the `next` function invokes the next handler in a chain, typically used to inject new middleware after a request passes through existing ones\nhyde: express middleware chain next function<|im_end|>\n",
+        "lex": "express middleware chain, next function, http request handler, route path",
+        "vec": "A sequence of middleware steps where the `next` function invokes the next handler in a chain, typically used to inject new middleware after a request passes through existing ones",
+        "hyde": "express middleware chain next function<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 7022,
+      "total": 0.6642500000000001,
+      "expansion": {
+        "raw": "lex: Prisma, ORM, findMany, where, filter, database\nvec: A PRisma ORM query using findMany to retrieve a list of entities filtered by a 'where' clause.\nhyde: #pragma findMany where { ... }<|im_end|>\n",
+        "lex": "Prisma, ORM, findMany, where, filter, database",
+        "vec": "A PRisma ORM query using findMany to retrieve a list of entities filtered by a 'where' clause.",
+        "hyde": "#pragma findMany where { ... }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 7405,
+      "total": 0.6650000000000001,
+      "expansion": {
+        "raw": "lex: nextjs server component data fetching, server component fetcher, server-side components, dynamic loading, dynamic rendering\nvec: A Next.js server component that dynamically fetches data from a source and renders it in the DOM, often used for dynamic loading or conditional rendering\nhyde: /components/nextjs-server-components<|im_end|>\n",
+        "lex": "nextjs server component data fetching, server component fetcher, server-side components, dynamic loading, dynamic rendering",
+        "vec": "A Next.js server component that dynamically fetches data from a source and renders it in the DOM, often used for dynamic loading or conditional rendering",
+        "hyde": "/components/nextjs-server-components<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.225,
+      "latencyMs": 7162,
+      "total": 0.6152500000000001,
+      "expansion": {
+        "raw": "lex: `zod`, `schema-validate`, `parse-transform`\nvec: A Zod instance that validates and transforms a JSON or YAML schema into a parsed, valid object.\nhyde: `zod()`.<|im_end|>\n",
+        "lex": "`zod`, `schema-validate`, `parse-transform`",
+        "vec": "A Zod instance that validates and transforms a JSON or YAML schema into a parsed, valid object.",
+        "hyde": "`zod()`.<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 7836,
+      "total": 0.6722500000000001,
+      "expansion": {
+        "raw": "lex: tRPC router, procedure mutation, rpc, protocol, gRPC\nvec: A user is trying to modify a tRPC router through a procedure mutation endpoint, likely using RPC or gRPC protocols.\nhyde: /api/rpc/mutate?proto=tRPC&method=procedure_mutate<|im_end|>\n",
+        "lex": "tRPC router, procedure mutation, rpc, protocol, gRPC",
+        "vec": "A user is trying to modify a tRPC router through a procedure mutation endpoint, likely using RPC or gRPC protocols.",
+        "hyde": "/api/rpc/mutate?proto=tRPC&method=procedure_mutate<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 8743,
+      "total": 0.7347500000000001,
+      "expansion": {
+        "raw": "lex: tailwind, responsive breakpoints, utility classes, media queries\nvec: CSS framework utilities designed for mobile and desktop breakpoint adaptation to ensure consistent styling across different screen sizes.\nhyde: <script>document.querySelector('meta[name=\"viewport\"]').setAttribute(\"content\", 'width=device-width, initial-scale=1.0');</script><|im_end|>\n",
+        "lex": "tailwind, responsive breakpoints, utility classes, media queries",
+        "vec": "CSS framework utilities designed for mobile and desktop breakpoint adaptation to ensure consistent styling across different screen sizes.",
+        "hyde": "<script>document.querySelector('meta[name=\"viewport\"]').setAttribute(\"content\", 'width=device-width, initial-scale=1.0');</script><|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 8580,
+      "total": 0.5650000000000001,
+      "expansion": {
+        "raw": "lex: jest mock module spyOn testing, jest mock module spyOn testing, jest mock module spyOn testing\nvec: A Jest mock module that uses spyOn to simulate methods for testing, jest mock module spyOn testing, jest mock module spyOn testing\nhyde: # jest mock module spyOn testing<|im_end|>\n",
+        "lex": "jest mock module spyOn testing, jest mock module spyOn testing, jest mock module spyOn testing",
+        "vec": "A Jest mock module that uses spyOn to simulate methods for testing, jest mock module spyOn testing, jest mock module spyOn testing",
+        "hyde": "# jest mock module spyOn testing<|im_end|>"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 9020,
+      "total": 0.6330000000000001,
+      "expansion": {
+        "raw": "lex: docker-compose multi service networking, compose multi-service networking\nvec: A Docker Compose script that manages multiple services with network isolation and configuration management.\nhyde: #!/usr/bin/docker-compose -n --network-name myapp\n\n---<|im_end|>\n",
+        "lex": "docker-compose multi service networking, compose multi-service networking",
+        "vec": "A Docker Compose script that manages multiple services with network isolation and configuration management.",
+        "hyde": "#!/usr/bin/docker-compose -n --network-name myapp"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 10165,
+      "total": 0.5962500000000001,
+      "expansion": {
+        "raw": "lex: GitHub Actions CI workflow matrix, GitHub Actions CI Matrix, GitHub Actions CI Matrix\nvec: A visualization of how different combinations of environment variables and steps in a GitHub Actions CI workflow can be tested across multiple scenarios.\nhyde: # Generate a matrix of all possible environment variable combinations for the CI workflow<|im_end|>\n",
+        "lex": "GitHub Actions CI workflow matrix, GitHub Actions CI Matrix, GitHub Actions CI Matrix",
+        "vec": "A visualization of how different combinations of environment variables and steps in a GitHub Actions CI workflow can be tested across multiple scenarios.",
+        "hyde": "# Generate a matrix of all possible environment variable combinations for the CI workflow<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.6799999999999999,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 12542,
+      "total": 0.6635000000000001,
+      "expansion": {
+        "raw": "lex: unused_imports dead_code\nvec: find unused imports and remove dead code from a file\nhyde: python: find_unused_imports()<|im_end|>\n",
+        "lex": "unused_imports dead_code",
+        "vec": "find unused imports and remove dead code from a file",
+        "hyde": "python: find_unused_imports()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 15268,
+      "total": 0.7197500000000001,
+      "expansion": {
+        "raw": "lex: circular dependencies, modules, dependency graph, cycle detection\nvec: \"detecting cycles in a module dependency tree where nodes form an unbroken loop\"\nhyde: `import cycle_detection; from modules import circular_deps; class CircularDependencyDetector(cycle_detection): pass`<|im_end|>\n",
+        "lex": "circular dependencies, modules, dependency graph, cycle detection",
+        "vec": "\"detecting cycles in a module dependency tree where nodes form an unbroken loop\"",
+        "hyde": "`import cycle_detection; from modules import circular_deps; class CircularDependencyDetector(cycle_detection): pass`<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 23315,
+      "total": 0.6180000000000001,
+      "expansion": {
+        "raw": "lex: deadcode, unreachable, unreachable code detection, dead code check\nvec: A phrase indicating the presence of unreachably executed or unreachable code blocks within a program.\nhyde: # deadcode_detection_unreachable\n<|im_end|>\n",
+        "lex": "deadcode, unreachable, unreachable code detection, dead code check",
+        "vec": "A phrase indicating the presence of unreachably executed or unreachable code blocks within a program.",
+        "hyde": "# deadcode_detection_unreachable"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 9581,
+      "total": 0.6650000000000001,
+      "expansion": {
+        "raw": "lex: security vulnerability sql injection, sql-injection, exploit, payload, malicious code execution\nvec: query about a security flaw allowing unauthorized users to execute arbitrary SQL commands via input injection, potentially leading to data exfiltration or system compromise\nhyde: #security_vulnerability_sql_injection_query<|im_end|>\n",
+        "lex": "security vulnerability sql injection, sql-injection, exploit, payload, malicious code execution",
+        "vec": "query about a security flaw allowing unauthorized users to execute arbitrary SQL commands via input injection, potentially leading to data exfiltration or system compromise",
+        "hyde": "#security_vulnerability_sql_injection_query<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 4611,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: code duplication, similar functions, refactor, function optimization\nvec: \"refactoring\" of duplicate functions to eliminate redundancy while improving efficiency and maintainability.\nhyde: #py: def refactor(func): return func.copy()<|im_end|>\n",
+        "lex": "code duplication, similar functions, refactor, function optimization",
+        "vec": "\"refactoring\" of duplicate functions to eliminate redundancy while improving efficiency and maintainability.",
+        "hyde": "#py: def refactor(func): return func.copy()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 4551,
+      "total": 0.7877500000000002,
+      "expansion": {
+        "raw": "lex: performance bottleneck, N+1 query, optimization, scalability, resource contention\nvec: a scenario where the system is struggling with a single-threaded N+1 query, leading to performance bottlenecks and potential resource contention across the architecture\nhyde: #pragma omp parallel for(i=0 to n-1) { ... }<|im_end|>\n",
+        "lex": "performance bottleneck, N+1 query, optimization, scalability, resource contention",
+        "vec": "a scenario where the system is struggling with a single-threaded N+1 query, leading to performance bottlenecks and potential resource contention across the architecture",
+        "hyde": "#pragma omp parallel for(i=0 to n-1) { ... }<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 4675,
+      "total": 0.7172500000000002,
+      "expansion": {
+        "raw": "lex: missing error handling, try catch, exception management\nvec: code lacking proper error handling with try-catch blocks to manage potential runtime errors\nhyde: if an exception occurs, the program should catch it using try-catch and re-throw or handle the error gracefully<|im_end|>\n",
+        "lex": "missing error handling, try catch, exception management",
+        "vec": "code lacking proper error handling with try-catch blocks to manage potential runtime errors",
+        "hyde": "if an exception occurs, the program should catch it using try-catch and re-throw or handle the error gracefully<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.54,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 4769,
+      "total": 0.6180000000000001,
+      "expansion": {
+        "raw": "lex: type safety, assertion, unsafe cast, cast, any\nvec: A query about \"type safety\", \"any\", \"unsafe cast\" in the context of programming, referring to constraints on variable types and casting rules.\nhyde: #type safety any assertion unsafe cast<|im_end|>\n",
+        "lex": "type safety, assertion, unsafe cast, cast, any",
+        "vec": "A query about \"type safety\", \"any\", \"unsafe cast\" in the context of programming, referring to constraints on variable types and casting rules.",
+        "hyde": "#type safety any assertion unsafe cast<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 4582,
+      "total": 0.7092500000000002,
+      "expansion": {
+        "raw": "lex: memory leak event listener cleanup, event listener cleanup, callback cleanup\nvec: \"memory_leak\", \"listener_cleanup\", \"event_listener_cleanup\"\nhyde: /api/cleanup_memory_leaks()<|im_end|>\n",
+        "lex": "memory leak event listener cleanup, event listener cleanup, callback cleanup",
+        "vec": "\"memory_leak\", \"listener_cleanup\", \"event_listener_cleanup\"",
+        "hyde": "/api/cleanup_memory_leaks()<|im_end|>"
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "Qwen3.5-0.8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 4680,
+      "total": 0.7092500000000002,
+      "expansion": {
+        "raw": "lex: race condition, async, concurrent access, multithreading\nvec: a scenario where two threads or processes attempt to modify shared resources simultaneously without synchronization, leading to data corruption and lost updates.\nhyde: #pragma once #pragma once;<|im_end|>\n",
+        "lex": "race condition, async, concurrent access, multithreading",
+        "vec": "a scenario where two threads or processes attempt to modify shared resources simultaneously without synchronization, leading to data corruption and lost updates.",
+        "hyde": "#pragma once #pragma once;<|im_end|>"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect cleanup, lifecycle hooks, cleanup events\nvec: A hook that automatically executes when an event fires to clean up a component after it has been used.\nhyde: useEffect cleanup",
+      "latencyMs": 1997,
+      "tokenCount": 40
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: handleSubmit, eventHandler, formSubmit\nvec: A function that triggers the submission of a user input field by calling an event handler, typically associated with form submission events\nhyde: <script>alert('Submitting...</script>')<|im_end|>\n",
+      "latencyMs": 7062,
+      "tokenCount": 51
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: search bar, search component, search widget\nvec: [search][field] query term in the search bar or search field\nhyde: <div class=\"search-bar\">Search</div><|im_end|>\n",
+      "latencyMs": 6914,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: createEmbeddingsClient, embeddings, embedding model, vector database\nvec: A client library that uses the `createEmbeddingsClient` function to generate embeddings for a machine learning model, typically used in vector databases like Pinecone or Azure ML.\nhyde: # python code to create an embeddings client for a vector database<|im_end|>\n",
+      "latencyMs": 6913,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parseParameterSize, parameter size, parse parameter\nvec: \"calculate the dimension of a parsed parameter in a text parsing context\"\nhyde: /model::parseParameterSize()<|im_end|>\n",
+      "latencyMs": 6751,
+      "tokenCount": 42
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: buildCombinedIndex, combined index, multi-index\nvec: A function that combines an existing index into a single unified index for faster retrieval.\nhyde: #buildCombinedIndex()<|im_end|>\n",
+      "latencyMs": 6775,
+      "tokenCount": 42
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosineSimilarity, helper, vector, dot product, similarity metric\nvec: A function or tool that calculates the cosine similarity between two vectors by taking their dot product and normalizing it, often used to measure how closely aligned two data points are in a high-dimensional space.\nhyde: #cosineSimilarityHelper = lambda (v1, v2): normalize((v1 * v2).sum() / math.sqrt(len(v1) * len(v2)))<|im_end|>\n",
+      "latencyMs": 7789,
+      "tokenCount": 101
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: QueryGenerator, GeneratorClass, Generator, GeneratorClass\nvec: A class designed to generate query strings for a generator engine that can be used by the user interface.\nhyde: class QueryGenerator<|im_end|>\n",
+      "latencyMs": 7077,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregateRetrievalResults, aggregatedRetrieval, aggregationResults\nvec: A function that computes the aggregate of retrieval results across multiple documents or a set of retrieved items, often used in document similarity or ranking algorithms.\nhyde: A python function that returns the aggregated result of retrieval results, typically used in document similarity or ranking algorithms.<|im_end|>\n",
+      "latencyMs": 8107,
+      "tokenCount": 74
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: LocalLLMClient, local_llm_client, llm_local_client\nvec: A client constructor that initializes a LocalLLMClient instance for local machine inference, typically used in Python with PyTorch or TensorFlow.\nhyde: class LocalLLMClient()<|im_end|>\n",
+      "latencyMs": 8966,
+      "tokenCount": 59
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: TypeError, undefined property, undefined read\nvec: \"Cannot read property of an undefined value\"\nhyde: # 1. Check if variable is defined before use\\n2. Use .value or .name instead of undefined<|im_end|>\n",
+      "latencyMs": 11935,
+      "tokenCount": 51
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: ECONNREFUSED, localhost, resolver, bind, tcp\nvec: A connection refused error indicating that a port on `localhost` is not available for the specified TCP connection.\nhyde: # Error: ECONNREFUSED localhost:8080<|im_end|>\n",
+      "latencyMs": 20956,
+      "tokenCount": 58
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: import, module not found, resolve, identifier\nvec: \"Import error: Module 'module' is not found in the current context\"\nhyde: /usr/bin/python3 -c \"import sys; print('Import error')\"<|im_end|>\n",
+      "latencyMs": 13714,
+      "tokenCount": 53
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: cors, origin, allowed_headers, cross-origin\nvec: A CORS error occurs when a request includes an Origin header that is not permitted in the allowed headers configuration for your CORS policy.\nhyde: #pragma cors = { \"origin\": [\"*\"], \"allowed_methods\": [\"GET\", \"POST\"] }<|im_end|>\n",
+      "latencyMs": 5507,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: out of memory heap allocation failed, OOM, heap overflow, memory limit exceeded\nvec: A crash or error indicating that the program tried to allocate a heap object (e.g., memory for a file, thread, or process) that exceeds the available heap capacity.\nhyde: #include <unistd.h> int main() { free(); }<|im_end|>\n",
+      "latencyMs": 5338,
+      "tokenCount": 76
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database_connection_timeout pool_exhausted\nvec: A failed connection attempt where the timeout limit for a database connection has been exceeded, indicating that resources are running out or the client is waiting indefinitely.\nhyde: `pool_exhausted` in `connect_timeout`<|im_end|>\n",
+      "latencyMs": 5215,
+      "tokenCount": 59
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: promise rejected unhandled async error, PromiseRejectionAsyncError, AsyncRejectionHandler\nvec: A promise that has been rejected and caught by an async handler, indicating a failure in asynchronous communication or network events\nhyde: /async/ promise rejected unhandled error<|im_end|>\n",
+      "latencyMs": 5063,
+      "tokenCount": 59
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: circular dependency, import cycle, module conflict, stale import\nvec: a code block that references the same variable or function twice in a way that causes it to be re-evaluated immediately, creating an infinite loop or stale reference\nhyde: # noqa: F821 [Circular dependency detected]<|im_end|>\n",
+      "latencyMs": 5138,
+      "tokenCount": 67
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type error, argument not assignable to parameter\nvec: a syntax or semantic violation where an expression like `type` is expected to be a variable, but it is not assignable because it's an error\nhyde: #pragma type_error(\"Argument not assignable to parameter\")<|im_end|>\n",
+      "latencyMs": 5156,
+      "tokenCount": 60
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: EACCES, file access denied, restricted access, permission refused\nvec: A user or system is blocked from accessing a file due to EACCES, which means they are denied permission for access control\nhyde: #!/usr/bin/python3 -c \"print('Access denied via EACCES')\"<|im_end|>\n",
+      "latencyMs": 4994,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: authentication middleware, authorization, access control, security layer\nvec: a middleware component that enforces security policies and validates user credentials to protect systems against unauthorized access\nhyde: #pragma authentication middleware;<|im_end|>\n",
+      "latencyMs": 5026,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate limiting, throttling, API quotas, client-side blocking\nvec: a mechanism where the system restricts or limits how frequently a user can make requests to an API endpoint\nhyde: A client-side implementation that blocks network connections or sends timeouts when a user exceeds the rate limit threshold.<|im_end|>\n",
+      "latencyMs": 5213,
+      "tokenCount": 64
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: invalidation, cache update, stale data, expiration\nvec: \"invalidating a cache strategy to remove old entries or trigger a refresh\"\nhyde: # Invalidation logic for caching<|im_end|>\n",
+      "latencyMs": 5306,
+      "tokenCount": 43
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: exponential backoff, retry logic, exponential decay\nvec: A retry mechanism that applies an exponentially decreasing interval between attempts when a request fails.\nhyde: #pytorch/nn/modules/loss.py:exponential_decay()<|im_end|>\n",
+      "latencyMs": 5319,
+      "tokenCount": 51
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: connection pooling database, pooled pool, distributed storage, relational databases\nvec: A query for a database that uses connection pooling to share connections across multiple instances, ensuring efficient resource reuse while handling high load.\nhyde: #pragma conn_pool = \"shared\";<|im_end|>\n",
+      "latencyMs": 5453,
+      "tokenCount": 57
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event-driven, pub-sub, asynchronous, message queues\nvec: an architecture where events trigger specific services to publish messages asynchronously over a network.\nhyde: #event-driven-architecture-pub-sub<|im_end|>\n",
+      "latencyMs": 5586,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency injection, service container, injector, container-based dependency resolution\nvec: A dependency injection service that manages a containerized instance of its own services.\nhyde: # /src/container.ts\nconst Container = {\n  dependencies: {},\n};<|im_end|>\n",
+      "latencyMs": 5674,
+      "tokenCount": 56
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination cursor offset limit\nvec: how to use a pagination cursor with an offset and limit parameter in web frameworks like Django, FastAPI, or Flask.\nhyde: /api/paginate/?cursor=0&limit=10<|im_end|>\n",
+      "latencyMs": 5853,
+      "tokenCount": 54
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful_shutdown,shutdown_handler,signal_handling\nvec: A function that gracefully handles the termination of an application by signaling the OS to stop, typically using a specific signal type like SIGTERM or SIGKILL.\nhyde: A function that gracefully handles the termination of an application by signaling the OS to stop, typically using a specific signal type like SIGTERM or SIGKILL.<|im_end|>\n",
+      "latencyMs": 6469,
+      "tokenCount": 82
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: streaming response server sent events, event stream, real-time data delivery\nvec: A system that delivers streaming responses to clients in real time using event streams and continuous data delivery\nhyde: #server_streaming_response_sent_events<|im_end|>\n",
+      "latencyMs": 6038,
+      "tokenCount": 50
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: React context, Redux state management, state sharing, global state, immutability, immutable state updates\nvec: How to compare React context with Redux when managing shared global state across components, focusing on the trade-offs between mutable vs immutable updates and event binding in React.\nhyde: #context-vs-redux comparison<|im_end|>\n",
+      "latencyMs": 6349,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: express middleware chain, next function, http request handler, route path\nvec: A sequence of middleware steps where the `next` function invokes the next handler in a chain, typically used to inject new middleware after a request passes through existing ones\nhyde: express middleware chain next function<|im_end|>\n",
+      "latencyMs": 6691,
+      "tokenCount": 62
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: Prisma, ORM, findMany, where, filter, database\nvec: A PRisma ORM query using findMany to retrieve a list of entities filtered by a 'where' clause.\nhyde: #pragma findMany where { ... }<|im_end|>\n",
+      "latencyMs": 7022,
+      "tokenCount": 55
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: nextjs server component data fetching, server component fetcher, server-side components, dynamic loading, dynamic rendering\nvec: A Next.js server component that dynamically fetches data from a source and renders it in the DOM, often used for dynamic loading or conditional rendering\nhyde: /components/nextjs-server-components<|im_end|>\n",
+      "latencyMs": 7405,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: `zod`, `schema-validate`, `parse-transform`\nvec: A Zod instance that validates and transforms a JSON or YAML schema into a parsed, valid object.\nhyde: `zod()`.<|im_end|>\n",
+      "latencyMs": 7162,
+      "tokenCount": 48
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC router, procedure mutation, rpc, protocol, gRPC\nvec: A user is trying to modify a tRPC router through a procedure mutation endpoint, likely using RPC or gRPC protocols.\nhyde: /api/rpc/mutate?proto=tRPC&method=procedure_mutate<|im_end|>\n",
+      "latencyMs": 7836,
+      "tokenCount": 65
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: tailwind, responsive breakpoints, utility classes, media queries\nvec: CSS framework utilities designed for mobile and desktop breakpoint adaptation to ensure consistent styling across different screen sizes.\nhyde: <script>document.querySelector('meta[name=\"viewport\"]').setAttribute(\"content\", 'width=device-width, initial-scale=1.0');</script><|im_end|>\n",
+      "latencyMs": 8743,
+      "tokenCount": 72
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: jest mock module spyOn testing, jest mock module spyOn testing, jest mock module spyOn testing\nvec: A Jest mock module that uses spyOn to simulate methods for testing, jest mock module spyOn testing, jest mock module spyOn testing\nhyde: # jest mock module spyOn testing<|im_end|>\n",
+      "latencyMs": 8580,
+      "tokenCount": 59
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker-compose multi service networking, compose multi-service networking\nvec: A Docker Compose script that manages multiple services with network isolation and configuration management.\nhyde: #!/usr/bin/docker-compose -n --network-name myapp\n\n---<|im_end|>\n",
+      "latencyMs": 9020,
+      "tokenCount": 53
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: GitHub Actions CI workflow matrix, GitHub Actions CI Matrix, GitHub Actions CI Matrix\nvec: A visualization of how different combinations of environment variables and steps in a GitHub Actions CI workflow can be tested across multiple scenarios.\nhyde: # Generate a matrix of all possible environment variable combinations for the CI workflow<|im_end|>\n",
+      "latencyMs": 10165,
+      "tokenCount": 65
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused_imports dead_code\nvec: find unused imports and remove dead code from a file\nhyde: python: find_unused_imports()<|im_end|>\n",
+      "latencyMs": 12542,
+      "tokenCount": 34
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: circular dependencies, modules, dependency graph, cycle detection\nvec: \"detecting cycles in a module dependency tree where nodes form an unbroken loop\"\nhyde: `import cycle_detection; from modules import circular_deps; class CircularDependencyDetector(cycle_detection): pass`<|im_end|>\n",
+      "latencyMs": 15268,
+      "tokenCount": 60
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: deadcode, unreachable, unreachable code detection, dead code check\nvec: A phrase indicating the presence of unreachably executed or unreachable code blocks within a program.\nhyde: # deadcode_detection_unreachable\n<|im_end|>\n",
+      "latencyMs": 23315,
+      "tokenCount": 49
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: security vulnerability sql injection, sql-injection, exploit, payload, malicious code execution\nvec: query about a security flaw allowing unauthorized users to execute arbitrary SQL commands via input injection, potentially leading to data exfiltration or system compromise\nhyde: #security_vulnerability_sql_injection_query<|im_end|>\n",
+      "latencyMs": 9581,
+      "tokenCount": 64
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: code duplication, similar functions, refactor, function optimization\nvec: \"refactoring\" of duplicate functions to eliminate redundancy while improving efficiency and maintainability.\nhyde: #py: def refactor(func): return func.copy()<|im_end|>\n",
+      "latencyMs": 4611,
+      "tokenCount": 50
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: performance bottleneck, N+1 query, optimization, scalability, resource contention\nvec: a scenario where the system is struggling with a single-threaded N+1 query, leading to performance bottlenecks and potential resource contention across the architecture\nhyde: #pragma omp parallel for(i=0 to n-1) { ... }<|im_end|>\n",
+      "latencyMs": 4551,
+      "tokenCount": 72
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: missing error handling, try catch, exception management\nvec: code lacking proper error handling with try-catch blocks to manage potential runtime errors\nhyde: if an exception occurs, the program should catch it using try-catch and re-throw or handle the error gracefully<|im_end|>\n",
+      "latencyMs": 4675,
+      "tokenCount": 59
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: type safety, assertion, unsafe cast, cast, any\nvec: A query about \"type safety\", \"any\", \"unsafe cast\" in the context of programming, referring to constraints on variable types and casting rules.\nhyde: #type safety any assertion unsafe cast<|im_end|>\n",
+      "latencyMs": 4769,
+      "tokenCount": 60
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memory leak event listener cleanup, event listener cleanup, callback cleanup\nvec: \"memory_leak\", \"listener_cleanup\", \"event_listener_cleanup\"\nhyde: /api/cleanup_memory_leaks()<|im_end|>\n",
+      "latencyMs": 4582,
+      "tokenCount": 46
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race condition, async, concurrent access, multithreading\nvec: a scenario where two threads or processes attempt to modify shared resources simultaneously without synchronization, leading to data corruption and lost updates.\nhyde: #pragma once #pragma once;<|im_end|>\n",
+      "latencyMs": 4680,
+      "tokenCount": 54
+    }
+  ]
+}

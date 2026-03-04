@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "LFM2-2.6B",
+    "lmsKey": "lfm2-2.6b",
+    "family": "lfm2",
+    "paramsB": 2.6
+  },
+  "timestamp": "2026-03-03T16:33:41.985Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 1,
+    "keyword": 0.9128000000000004,
+    "semantic": 0.996,
+    "hyde": 0.5974999999999995,
+    "latencyMs": 1878.88,
+    "total": 0.8163350000000006
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 2103,
+      "total": 0.7245000000000001,
+      "expansion": {
+        "raw": "lex: useEffect, cleanUp, eventLoop, callbackQueue  \nvec: A function that sets up and tears down side effects in React components, ensuring resources are released when the component unmounts or updates.  \nhyde: `useEffect(() => { ... cleanupFunction(); }, [dependencies]);`",
+        "lex": "useEffect, cleanUp, eventLoop, callbackQueue",
+        "vec": "A function that sets up and tears down side effects in React components, ensuring resources are released when the component unmounts or updates.",
+        "hyde": "`useEffect(() => { ... cleanupFunction(); }, [dependencies]);`"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.66,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 3662,
+      "total": 0.7670000000000001,
+      "expansion": {
+        "raw": "lex: form submission, onsubmit handler, event.preventDefault, React useCallback, input validation  \nvec: A function that processes form data on submission, preventing default behavior and validating inputs before triggering action  \nhyde: `const handleSubmit = (event) => { event.preventDefault(); const formData = new FormData(event.target); const errors = validateForm(formData); if (errors.length) alert(errors.join(', ')); else onSubmit(formData); }`",
+        "lex": "form submission, onsubmit handler, event.preventDefault, React useCallback, input validation",
+        "vec": "A function that processes form data on submission, preventing default behavior and validating inputs before triggering action",
+        "hyde": "`const handleSubmit = (event) => { event.preventDefault(); const formData = new FormData(event.target); const errors = validateForm(formData); if (errors.length) alert(errors.join(', ')); else onSubmit(formData); }`"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1909,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: search bar, input field, UI control, web component, frontend element  \nvec: A search functionality interface allowing user input for query submission and display results in a web application  \nhyde: `const searchBar = document.querySelector('#search-input');`",
+        "lex": "search bar, input field, UI control, web component, frontend element",
+        "vec": "A search functionality interface allowing user input for query submission and display results in a web application",
+        "hyde": "`const searchBar = document.querySelector('#search-input');`"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2791,
+      "total": 0.7950000000000002,
+      "expansion": {
+        "raw": "lex: embed, generate_embedding, vectorize_text, semantic_representation, model_inference  \nvec: Develop a client to generate embeddings for text inputs using a pre-trained language model, enabling semantic similarity comparisons and downstream NLP tasks  \nhyde: `def createEmbeddingsClient(model_path='bert-base-uncased'): ... return EmbeddingService.from_model(model_path)`",
+        "lex": "embed, generate_embedding, vectorize_text, semantic_representation, model_inference",
+        "vec": "Develop a client to generate embeddings for text inputs using a pre-trained language model, enabling semantic similarity comparisons and downstream NLP tasks",
+        "hyde": "`def createEmbeddingsClient(model_path='bert-base-uncased'): ... return EmbeddingService.from_model(model_path)`"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2605,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: parameter parsing, size estimation, API input validation, data structure dimensions  \nvec: determine the size of a parameter object or field in a software system using defined metrics and data types  \nhyde: def parse_param_size(param): return len(param.data) if isinstance(param, Parameter) else 0",
+        "lex": "parameter parsing, size estimation, API input validation, data structure dimensions",
+        "vec": "determine the size of a parameter object or field in a software system using defined metrics and data types",
+        "hyde": "def parse_param_size(param): return len(param.data) if isinstance(param, Parameter) else 0"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2648,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "lex: index builder, combined index, merge index, search index, document index  \nvec: Create a unified index that aggregates multiple data sources for efficient retrieval and querying  \nhyde: `def buildCombinedIndex(documents, metadata): combined = Index()\\n    for doc in documents:\\n        combined.add(doc['text'], doc['tags'])\\n    return combined`",
+        "lex": "index builder, combined index, merge index, search index, document index",
+        "vec": "Create a unified index that aggregates multiple data sources for efficient retrieval and querying",
+        "hyde": "`def buildCombinedIndex(documents, metadata): combined = Index()\\n    for doc in documents:\\n        combined.add(doc['text'], doc['tags'])\\n    return combined`"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 3156,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "lex: cosine similarity, vector dot product, angular distance metric, similarity score  \nvec: Measure the angle between two vectors to determine how closely aligned they are, often used in text or feature space analysis  \nhyde: `import numpy as np; def cosine_similarity(a, b): return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))`",
+        "lex": "cosine similarity, vector dot product, angular distance metric, similarity score",
+        "vec": "Measure the angle between two vectors to determine how closely aligned they are, often used in text or feature space analysis",
+        "hyde": "`import numpy as np; def cosine_similarity(a, b): return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))`"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2513,
+      "total": 0.7877500000000002,
+      "expansion": {
+        "raw": "lex: query generator, text input processor, question formulation tool  \nvec: A system that takes user prompts and generates structured queries using semantic understanding and natural language processing techniques  \nhyde: `def generate_query(self, user_input): return f\"Generate questions based on '{user_input}' using semantic matching and keyword extraction.\"`",
+        "lex": "query generator, text input processor, question formulation tool",
+        "vec": "A system that takes user prompts and generates structured queries using semantic understanding and natural language processing techniques",
+        "hyde": "`def generate_query(self, user_input): return f\"Generate questions based on '{user_input}' using semantic matching and keyword extraction.\"`"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2939,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: aggregated search results, result aggregation, data consolidation, unified retrieval output  \nvec: Combine multiple retrieved items into a single summary or ranked list for improved relevance and completeness  \nhyde: def aggregate_results(ret1, ret2, ret3): return sorted([item for sublist in [ret1, ret2, ret3] for item in sublist], key=lambda x: relevance_score(x), reverse=True)",
+        "lex": "aggregated search results, result aggregation, data consolidation, unified retrieval output",
+        "vec": "Combine multiple retrieved items into a single summary or ranked list for improved relevance and completeness",
+        "hyde": "def aggregate_results(ret1, ret2, ret3): return sorted([item for sublist in [ret1, ret2, ret3] for item in sublist], key=lambda x: relevance_score(x), reverse=True)"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 4486,
+      "total": 0.7645000000000002,
+      "expansion": {
+        "raw": "lex: local_llm, LLM client, local language model integration, inference engine  \nvec: Create an instance of LocalLLMClient to enable on-device execution of a local language model for text generation and inference tasks  \nhyde: `class LocalLLMClient: pass`  \n```python  \nclass LocalLLMClient(BaseClient):  \n    def __init__(self, model_path: str):  \n        self.model = load_model(model_path)  # Hypothetical function to load local model  \n        self.device = \"local\"  \n```",
+        "lex": "local_llm, LLM client, local language model integration, inference engine",
+        "vec": "Create an instance of LocalLLMClient to enable on-device execution of a local language model for text generation and inference tasks",
+        "hyde": "`class LocalLLMClient: pass`"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 3288,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: type error, undefined property, null reference, JavaScript error handling, debugging undefined values  \nvec: Check if the object you're accessing is properly initialized and not null before attempting to read its properties, using optional chaining or explicit null checks  \nhyde: `const value = obj?.property; if (value === undefined) console.warn('Property is undefined');`",
+        "lex": "type error, undefined property, null reference, JavaScript error handling, debugging undefined values",
+        "vec": "Check if the object you're accessing is properly initialized and not null before attempting to read its properties, using optional chaining or explicit null checks",
+        "hyde": "`const value = obj?.property; if (value === undefined) console.warn('Property is undefined');`"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 4345,
+      "total": 0.7412500000000002,
+      "expansion": {
+        "raw": "lex: connection refused, port binding, socket error, network timeout, localhost connectivity  \nvec: Check if the service is running on port 80/443 or another specified port; verify firewall rules and host configuration for localhost access  \nhyde: `curl -v localhost` or `telnet localhost 80` to diagnose connection issues; ensure no network policies block localhost traffic",
+        "lex": "connection refused, port binding, socket error, network timeout, localhost connectivity",
+        "vec": "Check if the service is running on port 80/443 or another specified port; verify firewall rules and host configuration for localhost access",
+        "hyde": "`curl -v localhost` or `telnet localhost 80` to diagnose connection issues; ensure no network policies block localhost traffic"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 6840,
+      "total": 0.7027500000000001,
+      "expansion": {
+        "raw": "lex: module, missing module, import error, Python import, package not found  \nvec: When encountering a \"module not found\" or \"cannot resolve import\" error in Python, check for typos in module names, verify package installation (e.g., via pip), and ensure correct relative or absolute import paths  \nhyde: `import sys; try: __import__('module_name') except ImportError as e: print(f\"Module not found: {e}\")`",
+        "lex": "module, missing module, import error, Python import, package not found",
+        "vec": "When encountering a \"module not found\" or \"cannot resolve import\" error in Python, check for typos in module names, verify package installation (e.g., via pip), and ensure correct relative or absolute import paths",
+        "hyde": "`import sys; try: __import__('module_name') except ImportError as e: print(f\"Module not found: {e}\")`"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 7254,
+      "total": 0.7820000000000001,
+      "expansion": {
+        "raw": "lex: cors, cross-origin resource sharing, preflight request, CORS policy, allow headers  \nvec: When a browser blocks cross-origin requests due to missing or restricted CORS headers in the server response, leading to failed API calls from different domains.  \nhyde: ```javascript const config = { origin: '*', accessControlHeaders: ['Origin', 'Access-Control-Allow-Credentials'] }; fetch('https://api.example.com/data', { config: config }); ```",
+        "lex": "cors, cross-origin resource sharing, preflight request, CORS policy, allow headers",
+        "vec": "When a browser blocks cross-origin requests due to missing or restricted CORS headers in the server response, leading to failed API calls from different domains.",
+        "hyde": "```javascript const config = { origin: '*', accessControlHeaders: ['Origin', 'Access-Control-Allow-Credentials'] }; fetch('https://api.example.com/data', { config: config }); ```"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 6262,
+      "total": 0.7427500000000001,
+      "expansion": {
+        "raw": "lex: malloc, heap overflow, memory exhaustion, dynamic allocation error  \nvec: Memory allocation failed due to insufficient heap space; consider increasing size or optimizing memory usage  \nhyde: def try_alloc(size, callback): if not try_malloc(size, callback): raise MemoryError(\"Out of memory\")",
+        "lex": "malloc, heap overflow, memory exhaustion, dynamic allocation error",
+        "vec": "Memory allocation failed due to insufficient heap space; consider increasing size or optimizing memory usage",
+        "hyde": "def try_alloc(size, callback): if not try_malloc(size, callback): raise MemoryError(\"Out of memory\")"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2657,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: database, connection, timeout, pool exhaustion, resource limit  \nvec: A system alert indicating that the application's database connection pool has reached its capacity and is timing out, preventing further connections  \nhyde: `if (connectionPool.isExhausted()) { throw new TimeoutException(\"Database connection pool exhausted\"); }`",
+        "lex": "database, connection, timeout, pool exhaustion, resource limit",
+        "vec": "A system alert indicating that the application's database connection pool has reached its capacity and is timing out, preventing further connections",
+        "hyde": "`if (connectionPool.isExhausted()) { throw new TimeoutException(\"Database connection pool exhausted\"); }`"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 977,
+      "total": 0.8487500000000001,
+      "expansion": {
+        "raw": "lex: promise rejection, unhandled promise error, asynchronous failure, uncaught reject, async exception  \nvec: An asynchronous operation in JavaScript that returns a promise which is not properly handled, leading to an unhandled error when the promise is rejected.  \nhyde: `process.on('unhandledRejection', (err) => { console.error('Uncaught promise error:', err); });`",
+        "lex": "promise rejection, unhandled promise error, asynchronous failure, uncaught reject, async exception",
+        "vec": "An asynchronous operation in JavaScript that returns a promise which is not properly handled, leading to an unhandled error when the promise is rejected.",
+        "hyde": "`process.on('unhandledRejection', (err) => { console.error('Uncaught promise error:', err); });`"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2128,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "lex: circular dependency, import loop, cyclic dependencies, module interdependence  \nvec: When two or more modules depend on each other directly or indirectly causing build failures, identify and resolve import cycles  \nhyde: ```python\\nimport sys\\nimport pkgutil\\nimport io\\n\\ndef find_cycle(module_name, seen=None):\\n    if seen is None:\\n        seen = set()\\n    try:\\n        package = __import__(module_name, fromlist=[sys.argv[0]]))\\n        if module_name in seen:\\n            raise ImportError(f\"Circular import detected: {module_name}\\n\\tFound in:\\n\\t{', '.join(seen)}\\n\\tResolve dependencies to break the cycle.\\n\")\\n        seen.add(module_name)\\n        for name, obj in pkgutil.walk_packages(\\\\n            sys.modules[package.__path__]):\\n            if find_cycle(name, seen):\\n                pass\\n    except ImportError as e:\\n        print(e)\\```",
+        "lex": "circular dependency, import loop, cyclic dependencies, module interdependence",
+        "vec": "When two or more modules depend on each other directly or indirectly causing build failures, identify and resolve import cycles",
+        "hyde": "```python\\nimport sys\\nimport pkgutil\\nimport io\\n\\ndef find_cycle(module_name, seen=None):\\n    if seen is None:\\n        seen = set()\\n    try:\\n        package = __import__(module_name, fromlist=[sys.argv[0]]))\\n        if module_name in seen:\\n            raise ImportError(f\"Circular import detected: {module_name}\\n\\tFound in:\\n\\t{', '.join(seen)}\\n\\tResolve dependencies to break the cycle.\\n\")\\n        seen.add(module_name)\\n        for name, obj in pkgutil.walk_packages(\\\\n            sys.modules[package.__path__]):\\n            if find_cycle(name, seen):\\n                pass\\n    except ImportError as e:\\n        print(e)\\```"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 773,
+      "total": 0.8247500000000001,
+      "expansion": {
+        "raw": "lex: type error, unassignable argument, function parameter mismatch  \nvec: A function expects a value for an error type that cannot be assigned, leading to compilation failure  \nhyde: `def process_data(data): if not isinstance(data, str) or data == 'error': raise TypeError(\"data must be a string\")`",
+        "lex": "type error, unassignable argument, function parameter mismatch",
+        "vec": "A function expects a value for an error type that cannot be assigned, leading to compilation failure",
+        "hyde": "`def process_data(data): if not isinstance(data, str) or data == 'error': raise TypeError(\"data must be a string\")`"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 847,
+      "total": 0.8007500000000001,
+      "expansion": {
+        "raw": "lex: access_denied, eacces_error, permission_rejection, file_access_failure  \nvec: Check if the user has proper permissions to access a file or resource, ensuring correct ownership and access rights are set  \nhyde: `try: os.access('file_path', 'r'); except PermissionError as e: print(f\"Permission denied: {e}\")`",
+        "lex": "access_denied, eacces_error, permission_rejection, file_access_failure",
+        "vec": "Check if the user has proper permissions to access a file or resource, ensuring correct ownership and access rights are set",
+        "hyde": "`try: os.access('file_path', 'r'); except PermissionError as e: print(f\"Permission denied: {e}\")`"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 811,
+      "total": 0.8640000000000001,
+      "expansion": {
+        "raw": "lex: auth, authorization, token validation, session management, security middleware  \nvec: Middleware that verifies user credentials and controls access to protected resources using tokens or sessions  \nhyde: `import jwt; def authenticate(request): return jwt.decode(request.headers.get('Authorization'), 'secret_key', algorithms=['HS256'])`",
+        "lex": "auth, authorization, token validation, session management, security middleware",
+        "vec": "Middleware that verifies user credentials and controls access to protected resources using tokens or sessions",
+        "hyde": "`import jwt; def authenticate(request): return jwt.decode(request.headers.get('Authorization'), 'secret_key', algorithms=['HS256'])`"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2036,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "lex: rate limit, throttling, API quota, request control, backoff strategy  \nvec: Implementing rate limiting to manage and restrict the number of requests an API endpoint can handle within a specified time window, preventing abuse and ensuring fair usage.  \nhyde: `from flask import Flask, request`\\n```python\\nclass RateLimiter:\\n    def __init__(self):\\n        self.requests = {}  # Track request counts per IP\\n\\n    def is_allowed(self, ip):\\n        now = time.time()\\n        if ip not in self.requests or now - self.requests[ip]['last'] > 60:\\n            self.requests[ip] = {'count': 1, 'last': now}\\n            return True\\n        if self.requests[ip]['count'] < 5:\\n            self.requests[ip]['count'] += 1\\n            return True\\n        return False\\n```",
+        "lex": "rate limit, throttling, API quota, request control, backoff strategy",
+        "vec": "Implementing rate limiting to manage and restrict the number of requests an API endpoint can handle within a specified time window, preventing abuse and ensuring fair usage.",
+        "hyde": "`from flask import Flask, request`\\n```python\\nclass RateLimiter:\\n    def __init__(self):\\n        self.requests = {}  # Track request counts per IP\\n\\n    def is_allowed(self, ip):\\n        now = time.time()\\n        if ip not in self.requests or now - self.requests[ip]['last'] > 60:\\n            self.requests[ip] = {'count': 1, 'last': now}\\n            return True\\n        if self.requests[ip]['count'] < 5:\\n            self.requests[ip]['count'] += 1\\n            return True\\n        return False\\n```"
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1152,
+      "total": 0.8720000000000001,
+      "expansion": {
+        "raw": "lex: cache eviction, cache refresh, cache expiration, cache invalidation policy, stale data removal  \nvec: How to effectively manage and remove outdated entries from a cache system using time-based or usage-driven invalidation techniques  \nhyde: ```python def invalidate_cache(key, ttl_seconds): current_time = time.time() if current_time - last_update < ttl_seconds: return False  # cache is valid, no action needed else: cache.pop(key) or mark for removal ```",
+        "lex": "cache eviction, cache refresh, cache expiration, cache invalidation policy, stale data removal",
+        "vec": "How to effectively manage and remove outdated entries from a cache system using time-based or usage-driven invalidation techniques",
+        "hyde": "```python def invalidate_cache(key, ttl_seconds): current_time = time.time() if current_time - last_update < ttl_seconds: return False  # cache is valid, no action needed else: cache.pop(key) or mark for removal ```"
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1085,
+      "total": 0.8720000000000001,
+      "expansion": {
+        "raw": "lex: retry, exponential backoff, error handling, rate limiting, reconnection strategy  \nvec: Implement a retry mechanism that increases wait time exponentially after each failed attempt, commonly used to handle transient network errors or service outages.  \nhyde: `import time; def retry(func, max_retries=5): for i in range(max_retries): try: return func() except Exception as e: time.sleep(2 ** i); continue`",
+        "lex": "retry, exponential backoff, error handling, rate limiting, reconnection strategy",
+        "vec": "Implement a retry mechanism that increases wait time exponentially after each failed attempt, commonly used to handle transient network errors or service outages.",
+        "hyde": "`import time; def retry(func, max_retries=5): for i in range(max_retries): try: return func() except Exception as e: time.sleep(2 ** i); continue`"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1103,
+      "total": 0.8560000000000001,
+      "expansion": {
+        "raw": "lex: connection management, pooling mechanism, database resource allocation  \nvec: A system that manages multiple connections to a database efficiently by reusing existing ones, improving performance and resource utilization  \nhyde: `from sqlalchemy import create_engine; engine = create_engine('postgresql://user:pass@host:port/db', pool_size=10, max_overflow=5)`",
+        "lex": "connection management, pooling mechanism, database resource allocation",
+        "vec": "A system that manages multiple connections to a database efficiently by reusing existing ones, improving performance and resource utilization",
+        "hyde": "`from sqlalchemy import create_engine; engine = create_engine('postgresql://user:pass@host:port/db', pool_size=10, max_overflow=5)`"
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 1031,
+      "total": 0.8175000000000001,
+      "expansion": {
+        "raw": "lex: event-driven systems, message queues, pub-sub pattern, asynchronous messaging, decoupled components  \nvec: Systems that enable communication between distributed services using publish-subscribe mechanisms for real-time event propagation and state synchronization  \nhyde: `publish(\"user_created\", data)` triggers subscribers to react; implement with a pub-sub broker like Redis or NATS, supporting topics and event filtering",
+        "lex": "event-driven systems, message queues, pub-sub pattern, asynchronous messaging, decoupled components",
+        "vec": "Systems that enable communication between distributed services using publish-subscribe mechanisms for real-time event propagation and state synchronization",
+        "hyde": "`publish(\"user_created\", data)` triggers subscribers to react; implement with a pub-sub broker like Redis or NATS, supporting topics and event filtering"
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 738,
+      "total": 0.8487500000000001,
+      "expansion": {
+        "raw": "lex: dependency injection, IoC (Inversion of Control), service container, DI framework, container-based dependency management  \nvec: A system that manages object creation and injection of dependencies throughout an application using a centralized container for configuration  \nhyde: `container.register('ServiceA', ServiceImpl);`",
+        "lex": "dependency injection, IoC (Inversion of Control), service container, DI framework, container-based dependency management",
+        "vec": "A system that manages object creation and injection of dependencies throughout an application using a centralized container for configuration",
+        "hyde": "`container.register('ServiceA', ServiceImpl);`"
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 802,
+      "total": 0.8015000000000001,
+      "expansion": {
+        "raw": "lex: pagination, cursor offset, limit, page range, skip count  \nvec: Implementing efficient data retrieval using pagination with cursor-based offsets and limit parameters for large datasets  \nhyde: `cursor = last_record_cursor + 1; limit = 100; offset = cursor - (last_page_index * limit)`",
+        "lex": "pagination, cursor offset, limit, page range, skip count",
+        "vec": "Implementing efficient data retrieval using pagination with cursor-based offsets and limit parameters for large datasets",
+        "hyde": "`cursor = last_record_cursor + 1; limit = 100; offset = cursor - (last_page_index * limit)`"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 858,
+      "total": 0.8095000000000001,
+      "expansion": {
+        "raw": "lex: shutdown, graceful exit, termination handler, signal processing, process cleanup  \nvec: A system that manages program termination by properly handling OS signals and ensuring all resources are released before exiting cleanly  \nhyde: `signal.signal(signal.SIGTERM, handle_shutdown)` where `handle_shutdown` closes open files and releases locks before exiting()",
+        "lex": "shutdown, graceful exit, termination handler, signal processing, process cleanup",
+        "vec": "A system that manages program termination by properly handling OS signals and ensuring all resources are released before exiting cleanly",
+        "hyde": "`signal.signal(signal.SIGTERM, handle_shutdown)` where `handle_shutdown` closes open files and releases locks before exiting()"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 878,
+      "total": 0.8800000000000001,
+      "expansion": {
+        "raw": "lex: streaming, event stream, websocket server, real-time data feed, pub/sub system  \nvec: A code that listens for live events and broadcasts them to connected clients using a streaming protocol  \nhyde: `import websockets; async def handler(ws): while True: event = await ws.recv(); print(f\"Received event: {event}\")`",
+        "lex": "streaming, event stream, websocket server, real-time data feed, pub/sub system",
+        "vec": "A code that listens for live events and broadcasts them to connected clients using a streaming protocol",
+        "hyde": "`import websockets; async def handler(ws): while True: event = await ws.recv(); print(f\"Received event: {event}\")`"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 790,
+      "total": 0.8720000000000001,
+      "expansion": {
+        "raw": "lex: react context, redux, state management, global state, centralized data flow  \nvec: React and Redux both enable shared application state across components; context provides built-in prop drilling alternatives, while redux offers a predictable store with middleware support  \nhyde: `const value = React.useContext(ThemeContext);`",
+        "lex": "react context, redux, state management, global state, centralized data flow",
+        "vec": "React and Redux both enable shared application state across components; context provides built-in prop drilling alternatives, while redux offers a predictable store with middleware support",
+        "hyde": "`const value = React.useContext(ThemeContext);`"
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 695,
+      "total": 0.7935000000000001,
+      "expansion": {
+        "raw": "lex: middleware, chaining, next(), request handling, HTTP pipeline  \nvec: A sequence of processing steps that passes a request from one component to the next, using `next()` to advance through stages  \nhyde: `next(middleware)();`",
+        "lex": "middleware, chaining, next(), request handling, HTTP pipeline",
+        "vec": "A sequence of processing steps that passes a request from one component to the next, using `next()` to advance through stages",
+        "hyde": "`next(middleware)();`"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 823,
+      "total": 0.8640000000000001,
+      "expansion": {
+        "raw": "lex: prisma, orm, database query, sequelize, type-safe db access  \nvec: Retrieve multiple records from a database using Prisma ORM's findMany method with specified filters  \nhyde: `await prisma.YourModel.findMany({ where: { field: value } })`",
+        "lex": "prisma, orm, database query, sequelize, type-safe db access",
+        "vec": "Retrieve multiple records from a database using Prisma ORM's findMany method with specified filters",
+        "hyde": "`await prisma.YourModel.findMany({ where: { field: value } })`"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 792,
+      "total": 0.8800000000000001,
+      "expansion": {
+        "raw": "lex: nextjs, server components, static generation, isr, data fetching, SSR, React server components  \nvec: Fetching data in Next.js using server components and static generation techniques to optimize performance and reduce client-side requests  \nhyde: `const data = await fetch('/api/data').then(res => res.json());`",
+        "lex": "nextjs, server components, static generation, isr, data fetching, SSR, React server components",
+        "vec": "Fetching data in Next.js using server components and static generation techniques to optimize performance and reduce client-side requests",
+        "hyde": "`const data = await fetch('/api/data').then(res => res.json());`"
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 808,
+      "total": 0.8560000000000001,
+      "expansion": {
+        "raw": "lex: zod, schema validation, parsing, transform, type checking  \nvec: Validating and transforming data using Zod schemas to ensure type correctness during parsing  \nhyde: `const parse = z.safeParse(input); if (!parse) throw new Error('Validation failed'); const result = parse.data;`",
+        "lex": "zod, schema validation, parsing, transform, type checking",
+        "vec": "Validating and transforming data using Zod schemas to ensure type correctness during parsing",
+        "hyde": "`const parse = z.safeParse(input); if (!parse) throw new Error('Validation failed'); const result = parse.data;`"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1658,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: tRPC, gRPC, service proxy, remote procedure invocation, network router, protocol handler  \nvec: A code snippet that defines and implements a tRPC-based router handling remote procedure mutations across distributed systems  \nhyde: ```python\\nclass TPRCRouter:\\n    def __init__(self):\\n        self.protocol_map = {'mutation': 'update_handler'} \\n    def route_proc_mutation(self, method_name, target_service):\\n        if method_name in self.protocol_map:\\n            handler = self.protocol_map[method_name]\\n            # Apply mutation logic for the specified service\\n            return handler(self, target_service)\\n        raise ValueError(f\"No handler for method {method_name}\")\\n```",
+        "lex": "tRPC, gRPC, service proxy, remote procedure invocation, network router, protocol handler",
+        "vec": "A code snippet that defines and implements a tRPC-based router handling remote procedure mutations across distributed systems",
+        "hyde": "```python\\nclass TPRCRouter:\\n    def __init__(self):\\n        self.protocol_map = {'mutation': 'update_handler'} \\n    def route_proc_mutation(self, method_name, target_service):\\n        if method_name in self.protocol_map:\\n            handler = self.protocol_map[method_name]\\n            # Apply mutation logic for the specified service\\n            return handler(self, target_service)\\n        raise ValueError(f\"No handler for method {method_name}\")\\n```"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 792,
+      "total": 0.7855000000000001,
+      "expansion": {
+        "raw": "lex: tailwind, responsive, breakpoint, mobile, tablet, desktop  \nvec: Use Tailwind CSS utility classes to apply responsive design features for different screen sizes like mobile, tablet, and desktop.  \nhyde: `class=\"md:flex lg:grid\"` applies flex layout on medium screens and grid on large ones.",
+        "lex": "tailwind, responsive, breakpoint, mobile, tablet, desktop",
+        "vec": "Use Tailwind CSS utility classes to apply responsive design features for different screen sizes like mobile, tablet, and desktop.",
+        "hyde": "`class=\"md:flex lg:grid\"` applies flex layout on medium screens and grid on large ones."
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 865,
+      "total": 0.74875,
+      "expansion": {
+        "raw": "lex: jest, mock, module, spyOn, testing  \nvec: When writing unit tests in JavaScript using Jest, how to mock a module and verify function calls with spyOn?  \nhyde: `jest.mock('modulePath', () => ({ ... })); spyOn(moduleMock, 'method').toHaveBeenCalledTimes(expectedCount);`",
+        "lex": "jest, mock, module, spyOn, testing",
+        "vec": "When writing unit tests in JavaScript using Jest, how to mock a module and verify function calls with spyOn?",
+        "hyde": "`jest.mock('modulePath', () => ({ ... })); spyOn(moduleMock, 'method').toHaveBeenCalledTimes(expectedCount);`"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 864,
+      "total": 0.7622500000000001,
+      "expansion": {
+        "raw": "lex: docker-compose, compose file, container networking, microservices architecture  \nvec: Explore how Docker Compose enables multi-container applications to communicate seamlessly through defined networks, including service discovery and port mapping  \nhyde: `services: web app --network my-compose-network && docker network create my-compose-network`",
+        "lex": "docker-compose, compose file, container networking, microservices architecture",
+        "vec": "Explore how Docker Compose enables multi-container applications to communicate seamlessly through defined networks, including service discovery and port mapping",
+        "hyde": "`services: web app --network my-compose-network && docker network create my-compose-network`"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 820,
+      "total": 0.7702500000000001,
+      "expansion": {
+        "raw": "lex: github actions, ci/cd pipeline, continuous integration, workflow matrix  \nvec: Explore how multiple configurations of a GitHub Actions workflow interact across different environments and tasks to optimize build processes  \nhyde: `jobs {{ matrix[workflowType, os, matrixNode] }}`",
+        "lex": "github actions, ci/cd pipeline, continuous integration, workflow matrix",
+        "vec": "Explore how multiple configurations of a GitHub Actions workflow interact across different environments and tasks to optimize build processes",
+        "hyde": "`jobs {{ matrix[workflowType, os, matrixNode] }}`"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1058,
+      "total": 0.8560000000000001,
+      "expansion": {
+        "raw": "lex: unused, import, dead code, unreachable, defunct, unused variables  \nvec: Identify Python modules containing imported symbols that are never referenced or used in the program, focusing on unused imports and dead code patterns  \nhyde: `import sys; for name in dir(sys.modules['module']): if not any(hasattr(name, 'used') for used in sys.modules[name].get('usage', [])): print(name)`",
+        "lex": "unused, import, dead code, unreachable, defunct, unused variables",
+        "vec": "Identify Python modules containing imported symbols that are never referenced or used in the program, focusing on unused imports and dead code patterns",
+        "hyde": "`import sys; for name in dir(sys.modules['module']): if not any(hasattr(name, 'used') for used in sys.modules[name].get('usage', [])): print(name)`"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1132,
+      "total": 0.8247500000000001,
+      "expansion": {
+        "raw": "lex: dependency cycle, circular import, module interdependency, cyclic dependency  \nvec: Identify and flag any two or more modules that reference each other directly or indirectly in a closed loop  \nhyde: `import sys; from math import gcd; cycles = [(a, b) for a in modules if (b in sys.modules and a in sys.modules) and gcd(len([x for x in modules if x == y]), 2) > 1]`",
+        "lex": "dependency cycle, circular import, module interdependency, cyclic dependency",
+        "vec": "Identify and flag any two or more modules that reference each other directly or indirectly in a closed loop",
+        "hyde": "`import sys; from math import gcd; cycles = [(a, b) for a in modules if (b in sys.modules and a in sys.modules) and gcd(len([x for x in modules if x == y]), 2) > 1]`"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 912,
+      "total": 0.8487500000000001,
+      "expansion": {
+        "raw": "lex: dead code, unreachable code, unused variables, null pointer dereference, control flow analysis  \nvec: Identify and flag parts of code that are never executed due to unreachable branches or dead paths in the program flow  \nhyde: `def detect_unreachable(): for i in range(10): if condition_always_false: ...`",
+        "lex": "dead code, unreachable code, unused variables, null pointer dereference, control flow analysis",
+        "vec": "Identify and flag parts of code that are never executed due to unreachable branches or dead paths in the program flow",
+        "hyde": "`def detect_unreachable(): for i in range(10): if condition_always_false: ...`"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 787,
+      "total": 0.8480000000000001,
+      "expansion": {
+        "raw": "lex: sqli, SQL injection, database attack, code injection  \nvec: Search for security flaws that allow malicious input to manipulate SQL queries and compromise database integrity  \nhyde: def detect_sql_injection(query): return 'input' in query.lower() or '--' in query  ",
+        "lex": "sqli, SQL injection, database attack, code injection",
+        "vec": "Search for security flaws that allow malicious input to manipulate SQL queries and compromise database integrity",
+        "hyde": "def detect_sql_injection(query): return 'input' in query.lower() or '--' in query"
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1368,
+      "total": 0.8800000000000001,
+      "expansion": {
+        "raw": "lex: code similarity, duplicate code detection, function refactoring, code reuse analysis, common functionality  \nvec: Identify overlapping logic patterns and suggest refactorings to reduce redundancy in codebases  \nhyde: def detect_duplicates(code_list):\\n    refactored = []\\n    for i in code_list:\\n        if any(code_similarity(code1, code2) > 0.8 for code2 in code_list[i+1:]):\\n            refactored.append(code1)\\n    return refactored",
+        "lex": "code similarity, duplicate code detection, function refactoring, code reuse analysis, common functionality",
+        "vec": "Identify overlapping logic patterns and suggest refactorings to reduce redundancy in codebases",
+        "hyde": "def detect_duplicates(code_list):\\n    refactored = []\\n    for i in code_list:\\n        if any(code_similarity(code1, code2) > 0.8 for code2 in code_list[i+1:]):\\n            refactored.append(code1)\\n    return refactored"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1168,
+      "total": 0.8407500000000001,
+      "expansion": {
+        "raw": "lex: n+1 query, eager loading, lazy loading, database optimization, ORM performance  \nvec: Identify and resolve the N+1 query problem in your application by optimizing database interactions, using eager fetching or batch loading techniques to reduce redundant queries  \nhyde: `User(user_id: $userId).posts().eagerLoad()` → `User.findById($userId, 'posts')`",
+        "lex": "n+1 query, eager loading, lazy loading, database optimization, ORM performance",
+        "vec": "Identify and resolve the N+1 query problem in your application by optimizing database interactions, using eager fetching or batch loading techniques to reduce redundant queries",
+        "hyde": "`User(user_id: $userId).posts().eagerLoad()` → `User.findById($userId, 'posts')`"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 894,
+      "total": 0.8175000000000001,
+      "expansion": {
+        "raw": "lex: error handling, exception management, try-except blocks, fault tolerance, code robustness  \nvec: Code snippets that demonstrate catching and handling runtime exceptions using try-catch structures to prevent program crashes  \nhyde: `try: perform_operation() except Exception as e: log_error(e)`",
+        "lex": "error handling, exception management, try-except blocks, fault tolerance, code robustness",
+        "vec": "Code snippets that demonstrate catching and handling runtime exceptions using try-catch structures to prevent program crashes",
+        "hyde": "`try: perform_operation() except Exception as e: log_error(e)`"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 913,
+      "total": 0.8087500000000001,
+      "expansion": {
+        "raw": "lex: type, safety, assertion, unsafe-cast, runtime-checking  \nvec: A programming concern involving type validation and preventing invalid memory operations through assertions instead of unsafe casts  \nhyde: def safe_cast(obj, target_type): if isinstance(obj, target_type): return obj else: raise AssertionError(\"Type mismatch\")",
+        "lex": "type, safety, assertion, unsafe-cast, runtime-checking",
+        "vec": "A programming concern involving type validation and preventing invalid memory operations through assertions instead of unsafe casts",
+        "hyde": "def safe_cast(obj, target_type): if isinstance(obj, target_type): return obj else: raise AssertionError(\"Type mismatch\")"
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1018,
+      "total": 0.8087500000000001,
+      "expansion": {
+        "raw": "lex: memory_leak, event_listener, clean-up, resource_drain, garbage_collection  \nvec: Removing unused or redundant event listeners to prevent memory bloat and ensure efficient resource management in JavaScript applications  \nhyde: `window.removeEventListener('click', oldHandler);` or use weak references with `WeakMap` to avoid retaining event handlers unnecessarily",
+        "lex": "memory_leak, event_listener, clean-up, resource_drain, garbage_collection",
+        "vec": "Removing unused or redundant event listeners to prevent memory bloat and ensure efficient resource management in JavaScript applications",
+        "hyde": "`window.removeEventListener('click', oldHandler);` or use weak references with `WeakMap` to avoid retaining event handlers unnecessarily"
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "LFM2-2.6B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1110,
+      "total": 0.8800000000000001,
+      "expansion": {
+        "raw": "lex: race condition, concurrency issue, simultaneous access, thread safety, locking mechanism  \nvec: When multiple threads or async tasks attempt to modify shared data at the same time, race conditions can occur leading to unpredictable behavior; proper synchronization is required.  \nhyde: `async def safe_update(data): async with lock(): data.update(...)`",
+        "lex": "race condition, concurrency issue, simultaneous access, thread safety, locking mechanism",
+        "vec": "When multiple threads or async tasks attempt to modify shared data at the same time, race conditions can occur leading to unpredictable behavior; proper synchronization is required.",
+        "hyde": "`async def safe_update(data): async with lock(): data.update(...)`"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect, cleanUp, eventLoop, callbackQueue  \nvec: A function that sets up and tears down side effects in React components, ensuring resources are released when the component unmounts or updates.  \nhyde: `useEffect(() => { ... cleanupFunction(); }, [dependencies]);`",
+      "latencyMs": 2103,
+      "tokenCount": 63
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: form submission, onsubmit handler, event.preventDefault, React useCallback, input validation  \nvec: A function that processes form data on submission, preventing default behavior and validating inputs before triggering action  \nhyde: `const handleSubmit = (event) => { event.preventDefault(); const formData = new FormData(event.target); const errors = validateForm(formData); if (errors.length) alert(errors.join(', ')); else onSubmit(formData); }`",
+      "latencyMs": 3662,
+      "tokenCount": 104
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: search bar, input field, UI control, web component, frontend element  \nvec: A search functionality interface allowing user input for query submission and display results in a web application  \nhyde: `const searchBar = document.querySelector('#search-input');`",
+      "latencyMs": 1909,
+      "tokenCount": 55
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: embed, generate_embedding, vectorize_text, semantic_representation, model_inference  \nvec: Develop a client to generate embeddings for text inputs using a pre-trained language model, enabling semantic similarity comparisons and downstream NLP tasks  \nhyde: `def createEmbeddingsClient(model_path='bert-base-uncased'): ... return EmbeddingService.from_model(model_path)`",
+      "latencyMs": 2791,
+      "tokenCount": 85
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parameter parsing, size estimation, API input validation, data structure dimensions  \nvec: determine the size of a parameter object or field in a software system using defined metrics and data types  \nhyde: def parse_param_size(param): return len(param.data) if isinstance(param, Parameter) else 0",
+      "latencyMs": 2605,
+      "tokenCount": 66
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: index builder, combined index, merge index, search index, document index  \nvec: Create a unified index that aggregates multiple data sources for efficient retrieval and querying  \nhyde: `def buildCombinedIndex(documents, metadata): combined = Index()\\n    for doc in documents:\\n        combined.add(doc['text'], doc['tags'])\\n    return combined`",
+      "latencyMs": 2648,
+      "tokenCount": 82
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosine similarity, vector dot product, angular distance metric, similarity score  \nvec: Measure the angle between two vectors to determine how closely aligned they are, often used in text or feature space analysis  \nhyde: `import numpy as np; def cosine_similarity(a, b): return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))`",
+      "latencyMs": 3156,
+      "tokenCount": 89
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: query generator, text input processor, question formulation tool  \nvec: A system that takes user prompts and generates structured queries using semantic understanding and natural language processing techniques  \nhyde: `def generate_query(self, user_input): return f\"Generate questions based on '{user_input}' using semantic matching and keyword extraction.\"`",
+      "latencyMs": 2513,
+      "tokenCount": 66
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregated search results, result aggregation, data consolidation, unified retrieval output  \nvec: Combine multiple retrieved items into a single summary or ranked list for improved relevance and completeness  \nhyde: def aggregate_results(ret1, ret2, ret3): return sorted([item for sublist in [ret1, ret2, ret3] for item in sublist], key=lambda x: relevance_score(x), reverse=True)",
+      "latencyMs": 2939,
+      "tokenCount": 92
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: local_llm, LLM client, local language model integration, inference engine  \nvec: Create an instance of LocalLLMClient to enable on-device execution of a local language model for text generation and inference tasks  \nhyde: `class LocalLLMClient: pass`  \n```python  \nclass LocalLLMClient(BaseClient):  \n    def __init__(self, model_path: str):  \n        self.model = load_model(model_path)  # Hypothetical function to load local model  \n        self.device = \"local\"  \n```",
+      "latencyMs": 4486,
+      "tokenCount": 117
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: type error, undefined property, null reference, JavaScript error handling, debugging undefined values  \nvec: Check if the object you're accessing is properly initialized and not null before attempting to read its properties, using optional chaining or explicit null checks  \nhyde: `const value = obj?.property; if (value === undefined) console.warn('Property is undefined');`",
+      "latencyMs": 3288,
+      "tokenCount": 78
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: connection refused, port binding, socket error, network timeout, localhost connectivity  \nvec: Check if the service is running on port 80/443 or another specified port; verify firewall rules and host configuration for localhost access  \nhyde: `curl -v localhost` or `telnet localhost 80` to diagnose connection issues; ensure no network policies block localhost traffic",
+      "latencyMs": 4345,
+      "tokenCount": 81
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: module, missing module, import error, Python import, package not found  \nvec: When encountering a \"module not found\" or \"cannot resolve import\" error in Python, check for typos in module names, verify package installation (e.g., via pip), and ensure correct relative or absolute import paths  \nhyde: `import sys; try: __import__('module_name') except ImportError as e: print(f\"Module not found: {e}\")`",
+      "latencyMs": 6840,
+      "tokenCount": 100
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: cors, cross-origin resource sharing, preflight request, CORS policy, allow headers  \nvec: When a browser blocks cross-origin requests due to missing or restricted CORS headers in the server response, leading to failed API calls from different domains.  \nhyde: ```javascript const config = { origin: '*', accessControlHeaders: ['Origin', 'Access-Control-Allow-Credentials'] }; fetch('https://api.example.com/data', { config: config }); ```",
+      "latencyMs": 7254,
+      "tokenCount": 107
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: malloc, heap overflow, memory exhaustion, dynamic allocation error  \nvec: Memory allocation failed due to insufficient heap space; consider increasing size or optimizing memory usage  \nhyde: def try_alloc(size, callback): if not try_malloc(size, callback): raise MemoryError(\"Out of memory\")",
+      "latencyMs": 6262,
+      "tokenCount": 62
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database, connection, timeout, pool exhaustion, resource limit  \nvec: A system alert indicating that the application's database connection pool has reached its capacity and is timing out, preventing further connections  \nhyde: `if (connectionPool.isExhausted()) { throw new TimeoutException(\"Database connection pool exhausted\"); }`",
+      "latencyMs": 2657,
+      "tokenCount": 67
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: promise rejection, unhandled promise error, asynchronous failure, uncaught reject, async exception  \nvec: An asynchronous operation in JavaScript that returns a promise which is not properly handled, leading to an unhandled error when the promise is rejected.  \nhyde: `process.on('unhandledRejection', (err) => { console.error('Uncaught promise error:', err); });`",
+      "latencyMs": 977,
+      "tokenCount": 87
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: circular dependency, import loop, cyclic dependencies, module interdependence  \nvec: When two or more modules depend on each other directly or indirectly causing build failures, identify and resolve import cycles  \nhyde: ```python\\nimport sys\\nimport pkgutil\\nimport io\\n\\ndef find_cycle(module_name, seen=None):\\n    if seen is None:\\n        seen = set()\\n    try:\\n        package = __import__(module_name, fromlist=[sys.argv[0]]))\\n        if module_name in seen:\\n            raise ImportError(f\"Circular import detected: {module_name}\\n\\tFound in:\\n\\t{', '.join(seen)}\\n\\tResolve dependencies to break the cycle.\\n\")\\n        seen.add(module_name)\\n        for name, obj in pkgutil.walk_packages(\\\\n            sys.modules[package.__path__]):\\n            if find_cycle(name, seen):\\n                pass\\n    except ImportError as e:\\n        print(e)\\```",
+      "latencyMs": 2128,
+      "tokenCount": 228
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type error, unassignable argument, function parameter mismatch  \nvec: A function expects a value for an error type that cannot be assigned, leading to compilation failure  \nhyde: `def process_data(data): if not isinstance(data, str) or data == 'error': raise TypeError(\"data must be a string\")`",
+      "latencyMs": 773,
+      "tokenCount": 69
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: access_denied, eacces_error, permission_rejection, file_access_failure  \nvec: Check if the user has proper permissions to access a file or resource, ensuring correct ownership and access rights are set  \nhyde: `try: os.access('file_path', 'r'); except PermissionError as e: print(f\"Permission denied: {e}\")`",
+      "latencyMs": 847,
+      "tokenCount": 80
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: auth, authorization, token validation, session management, security middleware  \nvec: Middleware that verifies user credentials and controls access to protected resources using tokens or sessions  \nhyde: `import jwt; def authenticate(request): return jwt.decode(request.headers.get('Authorization'), 'secret_key', algorithms=['HS256'])`",
+      "latencyMs": 811,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate limit, throttling, API quota, request control, backoff strategy  \nvec: Implementing rate limiting to manage and restrict the number of requests an API endpoint can handle within a specified time window, preventing abuse and ensuring fair usage.  \nhyde: `from flask import Flask, request`\\n```python\\nclass RateLimiter:\\n    def __init__(self):\\n        self.requests = {}  # Track request counts per IP\\n\\n    def is_allowed(self, ip):\\n        now = time.time()\\n        if ip not in self.requests or now - self.requests[ip]['last'] > 60:\\n            self.requests[ip] = {'count': 1, 'last': now}\\n            return True\\n        if self.requests[ip]['count'] < 5:\\n            self.requests[ip]['count'] += 1\\n            return True\\n        return False\\n```",
+      "latencyMs": 2036,
+      "tokenCount": 209
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: cache eviction, cache refresh, cache expiration, cache invalidation policy, stale data removal  \nvec: How to effectively manage and remove outdated entries from a cache system using time-based or usage-driven invalidation techniques  \nhyde: ```python def invalidate_cache(key, ttl_seconds): current_time = time.time() if current_time - last_update < ttl_seconds: return False  # cache is valid, no action needed else: cache.pop(key) or mark for removal ```",
+      "latencyMs": 1152,
+      "tokenCount": 105
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: retry, exponential backoff, error handling, rate limiting, reconnection strategy  \nvec: Implement a retry mechanism that increases wait time exponentially after each failed attempt, commonly used to handle transient network errors or service outages.  \nhyde: `import time; def retry(func, max_retries=5): for i in range(max_retries): try: return func() except Exception as e: time.sleep(2 ** i); continue`",
+      "latencyMs": 1085,
+      "tokenCount": 99
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: connection management, pooling mechanism, database resource allocation  \nvec: A system that manages multiple connections to a database efficiently by reusing existing ones, improving performance and resource utilization  \nhyde: `from sqlalchemy import create_engine; engine = create_engine('postgresql://user:pass@host:port/db', pool_size=10, max_overflow=5)`",
+      "latencyMs": 1103,
+      "tokenCount": 84
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event-driven systems, message queues, pub-sub pattern, asynchronous messaging, decoupled components  \nvec: Systems that enable communication between distributed services using publish-subscribe mechanisms for real-time event propagation and state synchronization  \nhyde: `publish(\"user_created\", data)` triggers subscribers to react; implement with a pub-sub broker like Redis or NATS, supporting topics and event filtering",
+      "latencyMs": 1031,
+      "tokenCount": 84
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency injection, IoC (Inversion of Control), service container, DI framework, container-based dependency management  \nvec: A system that manages object creation and injection of dependencies throughout an application using a centralized container for configuration  \nhyde: `container.register('ServiceA', ServiceImpl);`",
+      "latencyMs": 738,
+      "tokenCount": 61
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination, cursor offset, limit, page range, skip count  \nvec: Implementing efficient data retrieval using pagination with cursor-based offsets and limit parameters for large datasets  \nhyde: `cursor = last_record_cursor + 1; limit = 100; offset = cursor - (last_page_index * limit)`",
+      "latencyMs": 802,
+      "tokenCount": 71
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: shutdown, graceful exit, termination handler, signal processing, process cleanup  \nvec: A system that manages program termination by properly handling OS signals and ensuring all resources are released before exiting cleanly  \nhyde: `signal.signal(signal.SIGTERM, handle_shutdown)` where `handle_shutdown` closes open files and releases locks before exiting()",
+      "latencyMs": 858,
+      "tokenCount": 78
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: streaming, event stream, websocket server, real-time data feed, pub/sub system  \nvec: A code that listens for live events and broadcasts them to connected clients using a streaming protocol  \nhyde: `import websockets; async def handler(ws): while True: event = await ws.recv(); print(f\"Received event: {event}\")`",
+      "latencyMs": 878,
+      "tokenCount": 78
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: react context, redux, state management, global state, centralized data flow  \nvec: React and Redux both enable shared application state across components; context provides built-in prop drilling alternatives, while redux offers a predictable store with middleware support  \nhyde: `const value = React.useContext(ThemeContext);`",
+      "latencyMs": 790,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: middleware, chaining, next(), request handling, HTTP pipeline  \nvec: A sequence of processing steps that passes a request from one component to the next, using `next()` to advance through stages  \nhyde: `next(middleware)();`",
+      "latencyMs": 695,
+      "tokenCount": 55
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: prisma, orm, database query, sequelize, type-safe db access  \nvec: Retrieve multiple records from a database using Prisma ORM's findMany method with specified filters  \nhyde: `await prisma.YourModel.findMany({ where: { field: value } })`",
+      "latencyMs": 823,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: nextjs, server components, static generation, isr, data fetching, SSR, React server components  \nvec: Fetching data in Next.js using server components and static generation techniques to optimize performance and reduce client-side requests  \nhyde: `const data = await fetch('/api/data').then(res => res.json());`",
+      "latencyMs": 792,
+      "tokenCount": 71
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: zod, schema validation, parsing, transform, type checking  \nvec: Validating and transforming data using Zod schemas to ensure type correctness during parsing  \nhyde: `const parse = z.safeParse(input); if (!parse) throw new Error('Validation failed'); const result = parse.data;`",
+      "latencyMs": 808,
+      "tokenCount": 69
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC, gRPC, service proxy, remote procedure invocation, network router, protocol handler  \nvec: A code snippet that defines and implements a tRPC-based router handling remote procedure mutations across distributed systems  \nhyde: ```python\\nclass TPRCRouter:\\n    def __init__(self):\\n        self.protocol_map = {'mutation': 'update_handler'} \\n    def route_proc_mutation(self, method_name, target_service):\\n        if method_name in self.protocol_map:\\n            handler = self.protocol_map[method_name]\\n            # Apply mutation logic for the specified service\\n            return handler(self, target_service)\\n        raise ValueError(f\"No handler for method {method_name}\")\\n```",
+      "latencyMs": 1658,
+      "tokenCount": 164
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: tailwind, responsive, breakpoint, mobile, tablet, desktop  \nvec: Use Tailwind CSS utility classes to apply responsive design features for different screen sizes like mobile, tablet, and desktop.  \nhyde: `class=\"md:flex lg:grid\"` applies flex layout on medium screens and grid on large ones.",
+      "latencyMs": 792,
+      "tokenCount": 69
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: jest, mock, module, spyOn, testing  \nvec: When writing unit tests in JavaScript using Jest, how to mock a module and verify function calls with spyOn?  \nhyde: `jest.mock('modulePath', () => ({ ... })); spyOn(moduleMock, 'method').toHaveBeenCalledTimes(expectedCount);`",
+      "latencyMs": 865,
+      "tokenCount": 74
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker-compose, compose file, container networking, microservices architecture  \nvec: Explore how Docker Compose enables multi-container applications to communicate seamlessly through defined networks, including service discovery and port mapping  \nhyde: `services: web app --network my-compose-network && docker network create my-compose-network`",
+      "latencyMs": 864,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: github actions, ci/cd pipeline, continuous integration, workflow matrix  \nvec: Explore how multiple configurations of a GitHub Actions workflow interact across different environments and tasks to optimize build processes  \nhyde: `jobs {{ matrix[workflowType, os, matrixNode] }}`",
+      "latencyMs": 820,
+      "tokenCount": 61
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused, import, dead code, unreachable, defunct, unused variables  \nvec: Identify Python modules containing imported symbols that are never referenced or used in the program, focusing on unused imports and dead code patterns  \nhyde: `import sys; for name in dir(sys.modules['module']): if not any(hasattr(name, 'used') for used in sys.modules[name].get('usage', [])): print(name)`",
+      "latencyMs": 1058,
+      "tokenCount": 97
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: dependency cycle, circular import, module interdependency, cyclic dependency  \nvec: Identify and flag any two or more modules that reference each other directly or indirectly in a closed loop  \nhyde: `import sys; from math import gcd; cycles = [(a, b) for a in modules if (b in sys.modules and a in sys.modules) and gcd(len([x for x in modules if x == y]), 2) > 1]`",
+      "latencyMs": 1132,
+      "tokenCount": 100
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: dead code, unreachable code, unused variables, null pointer dereference, control flow analysis  \nvec: Identify and flag parts of code that are never executed due to unreachable branches or dead paths in the program flow  \nhyde: `def detect_unreachable(): for i in range(10): if condition_always_false: ...`",
+      "latencyMs": 912,
+      "tokenCount": 74
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: sqli, SQL injection, database attack, code injection  \nvec: Search for security flaws that allow malicious input to manipulate SQL queries and compromise database integrity  \nhyde: def detect_sql_injection(query): return 'input' in query.lower() or '--' in query  ",
+      "latencyMs": 787,
+      "tokenCount": 61
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: code similarity, duplicate code detection, function refactoring, code reuse analysis, common functionality  \nvec: Identify overlapping logic patterns and suggest refactorings to reduce redundancy in codebases  \nhyde: def detect_duplicates(code_list):\\n    refactored = []\\n    for i in code_list:\\n        if any(code_similarity(code1, code2) > 0.8 for code2 in code_list[i+1:]):\\n            refactored.append(code1)\\n    return refactored",
+      "latencyMs": 1368,
+      "tokenCount": 120
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: n+1 query, eager loading, lazy loading, database optimization, ORM performance  \nvec: Identify and resolve the N+1 query problem in your application by optimizing database interactions, using eager fetching or batch loading techniques to reduce redundant queries  \nhyde: `User(user_id: $userId).posts().eagerLoad()` → `User.findById($userId, 'posts')`",
+      "latencyMs": 1168,
+      "tokenCount": 87
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: error handling, exception management, try-except blocks, fault tolerance, code robustness  \nvec: Code snippets that demonstrate catching and handling runtime exceptions using try-catch structures to prevent program crashes  \nhyde: `try: perform_operation() except Exception as e: log_error(e)`",
+      "latencyMs": 894,
+      "tokenCount": 63
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: type, safety, assertion, unsafe-cast, runtime-checking  \nvec: A programming concern involving type validation and preventing invalid memory operations through assertions instead of unsafe casts  \nhyde: def safe_cast(obj, target_type): if isinstance(obj, target_type): return obj else: raise AssertionError(\"Type mismatch\")",
+      "latencyMs": 913,
+      "tokenCount": 69
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memory_leak, event_listener, clean-up, resource_drain, garbage_collection  \nvec: Removing unused or redundant event listeners to prevent memory bloat and ensure efficient resource management in JavaScript applications  \nhyde: `window.removeEventListener('click', oldHandler);` or use weak references with `WeakMap` to avoid retaining event handlers unnecessarily",
+      "latencyMs": 1018,
+      "tokenCount": 78
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race condition, concurrency issue, simultaneous access, thread safety, locking mechanism  \nvec: When multiple threads or async tasks attempt to modify shared data at the same time, race conditions can occur leading to unpredictable behavior; proper synchronization is required.  \nhyde: `async def safe_update(data): async with lock(): data.update(...)`",
+      "latencyMs": 1110,
+      "tokenCount": 73
+    }
+  ]
+}

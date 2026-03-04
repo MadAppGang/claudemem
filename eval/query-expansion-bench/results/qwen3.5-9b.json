@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "Qwen3.5-9B",
+    "lmsKey": "qwen3.5-9b",
+    "family": "qwen3.5",
+    "paramsB": 9
+  },
+  "timestamp": "2026-03-03T22:34:55.535Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 0,
+    "keyword": 0,
+    "semantic": 0,
+    "hyde": 0,
+    "latencyMs": 14590,
+    "total": 0.011100000000000007
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 17075,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `useEffect cleanup`\n    *   Task: Expand the query into three specific types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n    *   Constraint: Respond with exactly 3 lines, no other text (formatting must be precise).\n\n2.  **Analyze the Query (`useEffect cleanup`):**\n    *   Context: React.js (JavaScript/TypeScript) development.\n    *   Meaning: How to properly clean up side effects registered in the `useEffect` hook (e.g., removing event listeners, aborting fetches, clearing timers) to prevent memory leaks or stale closures.\n    *   Key Concepts: `useEffect`, cleanup function, return statement in useEffect, dependency array, abortController, event listener removal.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need terms that would appear in file titles, function names, comments, or documentation.\n    *   Keywords: `useEffect`, `cleanup`, `return` function, `removeEventListener`, `AbortController`, `clearTimeout`, `dependencies`, `effect cleanup",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 4404,
+      "total": 0.06,
+      "expansion": {
+        "raw": "",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14332,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"SearchBar component\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Generate `lex` (Keyword Variants):**\n    *   Target: \"SearchBar component\".\n    *   Keywords/Synonyms related to SearchBar in codebases:\n        *   Search input, search bar, search-field, input-search.\n        *   Component names: SearchBar, SearchInput, SearchBox, SearchField.\n        *   Frameworks/Context: React SearchBar, Vue SearchBar, Angular SearchBar.\n        *   Related concepts: search functionality, query input, filter bar, autocomplete component.\n    *   Selection for BM25: SearchBar, searchBar, search-input, search-field, SearchInput, SearchBox, input-search.\n\n3.  **Generate `vec` (Semantic Rephrasing):**\n    *   Target: Natural language description of what the user",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 13139,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `createEmbeddingsClient`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query (`createEmbeddingsClient`):**\n    *   Context: This looks like a method name or function signature, likely from an AI/ML SDK (e.g., Azure Cognitive Services, Google Vertex AI, LangChain, etc.).\n    *   Intent: The user wants to know how to instantiate or create a client object responsible for generating embeddings (vector representations of text/data).\n    *   Keywords: `create`, `EmbeddingsClient`, `client`, `embeddings`, `initialization`, `setup`, `API`, `authentication`.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (BM25 Keywords):**\n        *   Need technical terms, synonyms, related identifiers.\n        *   `createEmbeddingsClient`",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12858,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `parseParameterSize`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (`parseParameterSize`):**\n    *   It looks like a method name or function signature in programming.\n    *   Action: `parse` (extract/interpret).\n    *   Object/Subject: `ParameterSize`.\n    *   Context: Likely related to parsing configuration, arguments, or data structures where a size attribute needs to be extracted.\n    *   Domain: Software development, likely Java, C++, Python, etc., dealing with parameters and sizes.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, variations of the function name.\n    *   Keywords: `parse`, `parameter`, `size`, `getSize`, `getParameters`, `argumentSize`,",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 13186,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `buildCombinedIndex`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query (`buildCombinedIndex`):**\n    *   Context: This looks like a method name, likely in Java, C#, or similar OOP languages. It suggests functionality related to indexing data structures, merging multiple indices into one, or constructing a composite index.\n    *   Domain: Database management systems (DBMS), Search engines, Information Retrieval (IR), Data structures.\n    *   Keywords: `build`, `Combined`, `Index`, `Merge`, `Composite`, `Create`, `Construct`.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (Keyword Variants for BM25):**\n        *   Need terms that would appear in filenames, comments, or variable names related to this function.\n        *   Synonyms/",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 13378,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"cosineSimilarity helper\"\n    *   Task: Expand the query into three specific types (lex, vec, hyde).\n    *   Output Format: Exactly 3 lines (lex:, vec:, hyde:), no other text.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"cosineSimilarity\", \"helper\".\n    *   Intent: The user is likely looking for a utility function, method, or class that calculates cosine similarity. They might be referring to a specific library (like TensorFlow, PyTorch, scikit-learn) or a custom helper function in their codebase.\n    *   Context: Machine Learning, NLP, Vector Search, Data Science.\n\n3.  **Generate `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   \"cosineSimilarity\" -> cosine_similarity, Cosine Similarity, CosineDistance (inverse), vector_similarity.\n    *   \"helper\" -> utility, function, method, class, wrapper, implementation, example.\n    *   Related concepts: sklearn.metrics.pairwise.cosine_similarity, numpy.dot, normalize, vectorization.\n    *   Draft: cosine_similarity, CosineSimilarity, utility function, helper method, vector similarity, calculate",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14664,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"QueryGenerator class\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde). No other text.\n    *   Content Requirements:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Input Query (\"QueryGenerator class\"):**\n    *   Intent: The user is looking for a specific class named `QueryGenerator` in code repositories.\n    *   Context: Likely related to search engines, NLP, data generation, or query optimization.\n    *   Domain: Software Engineering, Machine Learning (LLM), Search Systems.\n\n3.  **Drafting `lex` (Lexical Variants):**\n    *   Need keywords that might appear in filenames, class names, or comments alongside \"QueryGenerator\".\n    *   Variants: `QueryGenerator`, `query_generator`, `generate_query`, `QueryBuilder`, `QueryGen`, `QueryFactory`, `GenerateQueries`.\n    *   Related concepts: `search`, `database`, `sql`, `elasticsearch`, `",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 13743,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `aggregateRetrievalResults`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n    *   Line 1: `lex: ...` (keyword variants for BM25 search)\n    *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n    *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (`aggregateRetrievalResults`):**\n    *   It looks like a method name or function signature in an object-oriented programming context.\n    *   Keywords: `aggregate`, `RetrievalResults` (noun phrase), likely part of a class like `ResultAggregator`, `RetrievalService`, etc.\n    *   Intent: Collecting, combining, or summarizing results from a retrieval process (e.g., search results, database query results).\n    *   Context: Software development, data processing, information retrieval systems.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related terms that would help keyword matching.\n    *   Keywords: `aggregate`,",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 13471,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"LocalLLMClient constructor\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines, no other text.\n    *   Line 1 (lex): Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n    *   Line 2 (vec): A natural language rephrasing for semantic vector search.\n    *   Line 3 (hyde): A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Input Query:**\n    *   \"LocalLLMClient\": This looks like a specific class name, likely related to Local LLM (Large Language Model) clients. It suggests a client implementation for running LLMs locally, possibly in Python or Java (though \"Client\" often implies network/client-server patterns, \"Local\" suggests local execution).\n    *   \"constructor\": This refers to the `__init__` method in Python or the constructor function/class initializer in other languages. It's about initialization, parameters, instantiation.\n\n3.  **Drafting the Lines:**\n\n    *   **Line 1 (lex):**\n        *   Need keywords that would match BM25 search.\n        *   Keywords: `LocalLLMClient`, `__init__`, `constructor`, `initialize`, `",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14676,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"fix TypeError cannot read property of undefined\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   \"fix TypeError cannot read property of undefined\" is a common JavaScript error message.\n    *   It indicates an issue where code tries to access a property on an object that is `undefined` (or not an object).\n    *   Common causes: accessing nested properties without checking existence, destructuring from undefined, calling methods on undefined.\n    *   Context: JavaScript/TypeScript development, debugging, error handling.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `TypeError`, `cannot read property of undefined`, `undefined`, `accessing property`, `object is null or undefined`, `debugging error`, `JavaScript error`, `fix bug`, `check if defined`, `optional chaining`, `null check`.\n    *   Selection: `TypeError`, `undefined`, `",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15464,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"resolve ECONNREFUSED localhost\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   \"ECONNREFUSED\": This is a specific error code in networking (specifically TCP/IP). It means the connection was refused by the remote host.\n    *   \"localhost\": This refers to the local machine (127.0.0.1 or ::1).\n    *   \"resolve\": This implies the user is trying to solve, fix, or debug this issue.\n    *   Context: Likely a Node.js, Python, Go, or general socket programming issue where the client tries to connect to `localhost` but gets an error.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (Keyword Variants for BM25):**\n        *   Need technical terms, synonyms, related identifiers.\n        *   Keywords: `ECONNREFUSED`, `connection refused`, `localhost`, `127.0.0.1`, `socket error`,",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15492,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"module not found cannot resolve import\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   \"module not found cannot resolve import\" is a common error message in Python (and other languages like Node.js, though phrasing varies).\n    *   It indicates a failure in the import system where the interpreter/compiler cannot locate the specified module/package.\n    *   Key concepts: ImportError, ModuleNotFoundError, import error, package not found, path issue, installation missing.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `ImportError`, `ModuleNotFoundError`, `import error`, `module not found`, `cannot resolve import`, `package not installed`, `pip install`, `sys.path`,",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15689,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"CORS origin not allowed headers\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query (\"CORS origin not allowed headers\"):**\n    *   Context: Web development, specifically Cross-Origin Resource Sharing (CORS) errors in browsers.\n    *   Problem: The browser is blocking a request because the server's `Access-Control-Allow-Headers` response header does not include the headers sent in the preflight (OPTIONS) request.\n    *   Keywords: CORS, Cross-Origin Resource Sharing, Access-Control-Allow-Headers, preflight, OPTIONS request, allowed headers, browser error, fetch, axios.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: CORS, Cross-Origin-Resource-Sharing, Access-Control-Allow-Headers, preflight, OPTIONS, allowed headers, origin not allowed, forbidden, 403, fetch, axios, express, cors middleware.\n    *   Selection: CORS, Access-Control-Allow-Headers",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 16006,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"out of memory heap allocation failed\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   \"out of memory\": Indicates a resource exhaustion condition, specifically RAM or virtual memory.\n    *   \"heap allocation failed\": Indicates a specific failure during dynamic memory management (malloc, new, etc.) in the heap segment.\n    *   Context: This is a common error message or exception thrown during runtime in languages like C++, Java, Python (though usually \"MemoryError\"), etc. It suggests a crash or an error handling scenario related to memory limits.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `OutOfMemoryError`, `std::bad_alloc`, `malloc failed`, `memory limit exceeded`, `heap exhausted`, `segmentation fault` (related but distinct), `OOM killer`, `virtual memory`, `dynamic allocation`, `memory exhaustion`.\n    *   Selection: `OutOfMemoryError`, `bad_alloc`, `malloc",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 16948,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"database connection timeout pool exhausted\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"database\", \"connection\", \"timeout\", \"pool\", \"exhausted\".\n    *   Context: This is a common error in software development, specifically related to connection pooling (e.g., JDBC, Hibernate, SQLAlchemy, Node.js pg-pool, etc.). It indicates that all available connections in the pool are being used or waiting for a timeout before acquiring one.\n    *   Intent: The user is likely looking for error messages, causes, solutions, or logs related to this specific issue.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Terms: `ConnectionPool`, `DatabaseError`, `TimeoutException`, `MaxConnections`, `AcquireFailed`, `WaitQueueFull`, `SQLState08003`, `TooManyConnections`.\n    *   Synonyms: `ConnectionTimeout`, `PoolExhausted",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 16082,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"promise rejected unhandled async error\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"promise\", \"rejected\", \"unhandled\", \"async\", \"error\".\n    *   Context: JavaScript/TypeScript development, error handling, asynchronous programming.\n    *   Intent: The user is likely looking for solutions, explanations, or best practices regarding how to handle errors that occur in async functions (like Promises) without being caught by a `.catch()` or `try/catch` block.\n\n3.  **Drafting the Expansions:**\n\n    *   `lex` (Lexical/BM25): Needs specific keywords, synonyms, and related technical terms that would match similar documents in a corpus.\n        *   Keywords: promise, rejected, unhandled, async/await, error handling, catch block, rejection, exception.\n        *   Variants: `unhandled promise rejection`, `async error handling`, `promise catch`, `top level await error`, `nodejs",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 16813,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"circular dependency detected import cycle\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"circular dependency\", \"detected\", \"import cycle\".\n    *   Context: Software development, specifically Python (or similar languages) where import cycles are a common issue.\n    *   Intent: The user is likely looking for error messages, solutions, debugging steps, or code examples related to handling circular imports.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: circular dependency, import cycle, cyclic import, recursion error, module not found, self-referential import, dependency graph, cycle detection.\n    *   Format: Space-separated list of keywords.\n\n4.  **Drafting `vec` (Natural Language Rephrasing):**\n    *   Need a semantic description of what the user wants.\n    *   Idea: \"How to fix circular import errors in Python code\" or \"Explanation of",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15977,
+      "total": 0,
+      "expansion": {
+        "raw": "Okay, let's tackle this query expansion. The user wants three types: lex, vec, and hyde for the search query \"type error argument not assignable to parameter\".\n\nFirst, lex needs keyword variants. So I should think of related terms that might appear in similar errors or documentation. Common TypeScript error messages include \"Type 'X' is not assignable to parameter of type 'Y'\". So keywords could be \"type error\", \"argument\", \"parameter\", \"not assignable\", maybe \"TypeScript\", \"TS\", \"error message\". Also, synonyms like \"incompatible type\", \"mismatched argument\", \"function parameter error\". Maybe include specific terms like \"TS2345\" which is the common error code.\n\nNext, vec should be a natural language rephrasing for semantic search. So instead of the exact error message, phrase it as a question or description that captures the intent. Something like \"How to fix TypeScript error when argument type doesn't match parameter type\". Or \"Resolve type mismatch between function arguments and parameters in TypeScript\".\n\nFor hyde, a short hypothetical code snippet. Since the error is about argument not matching parameter type, maybe create a function where an argument's type doesn't align with the expected parameter. Like:\n\nfunction greet(name: string) {\n  return `Hello, ${name}`;\n}\ngreet(123); // Error: Argument of type 'number' is not assignable to parameter of",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15405,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"permission denied EACCES file access\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"permission denied\", \"EACCES\", \"file access\".\n    *   Context: Programming/Software Development, specifically error handling in file operations.\n    *   Problem: Handling a specific OS-level error (EACCES) when trying to access a file.\n    *   Intent: The user likely wants to know how to handle this error, why it happens, or how to check for it.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers for BM25 matching.\n    *   \"permission denied\" -> `errno`, `EACCES`, `EPERM`, `access denied`, `file not found`",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14482,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"authentication middleware\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Generate `lex` (Keyword Variants for BM25):**\n    *   Goal: Identify technical terms, synonyms, and related identifiers that would match documents containing \"authentication middleware\".\n    *   Keywords: authentication, auth, middleware, interceptor, filter, security, login, token, jwt, oauth, api-gateway, express-middleware, spring-security.\n    *   Format: Space-separated string of keywords.\n\n3.  **Generate `vec` (Natural Language Rephrasing for Semantic Search):**\n    *   Goal: Describe the intent or concept in natural language to help vector embeddings understand context.\n    *   Phrasing: \"Implementing security layers for API access control\", \"How to add login verification before route handling\", \"Design pattern for centralized user authentication in web applications\".\n    *   Selection: Keep it concise but descriptive. \"How to implement centralized security checks for API routes using interceptors and token validation\".\n\n4.  **Generate `hyde` (",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14573,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"rate limiting implementation\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (\"rate limiting implementation\"):**\n    *   Core concept: Controlling request frequency to prevent abuse/overload.\n    *   Context: Software engineering, API design, backend services, distributed systems.\n    *   Keywords: rate limit, throttling, middleware, token bucket, sliding window, Redis, Nginx, API gateway.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: rate limit, rate limiting, limiter, throttling, middleware, token bucket, sliding window, counter, algorithm, redis, nginx, express, flask, spring, api gateway.\n    *   Format: Space-separated or comma-separated list within the",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14078,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"caching strategy invalidation\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"caching strategy invalidation\"):**\n    *   Context: Software engineering, distributed systems, backend development.\n    *   Core Concepts: Caching (caches, cache), Strategy (strategies, policies, patterns), Invalidation (purge, expire, remove, update).\n    *   Intent: How to implement or manage cache invalidation within a caching strategy.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need synonyms and related terms for BM25 matching.\n    *   \"caching\" -> `cache`, `caches`, `cached`\n    *   \"strategy\" -> `strategies`, `policy`, `pattern`, `approach`\n    *   \"invalidation\" -> `invalidate`, `pur",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14204,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"retry logic exponential backoff\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"retry logic exponential backoff\"):**\n    *   Context: Software development, API integration, network programming, error handling.\n    *   Key Concepts: Retry mechanism, Exponential backoff algorithm (wait time increases exponentially), Logic/Implementation.\n    *   Related Terms: `retry`, `backoff`, `exponential`, `delay`, `wait`, `sleep`, `Jitter`, `max_retries`, `retry_count`, `backoff_factor`, `exponential_backoff`.\n\n3.  **Drafting the Lines:**\n\n    *   **lex (Keywords):**\n        *   Need synonyms and related identifiers.\n        *   `retry`, `retries`, `retryable`.\n        *   `backoff`, `exponential_backoff`, `backoff",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14143,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"connection pooling database\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Generate `lex` (Keyword Variants):**\n    *   Target: Technical terms, synonyms, related identifiers for \"connection pooling database\".\n    *   Keywords: `connection_pool`, `db_connection_pool`, `pool_connections`, `database_pooling`, `jdbc_connection_pool`, `max_connections`, `min_connections`, `connection_string`, `pool_size`, `mysql_connection_pool`, `postgres_connection_pool`.\n    *   Selection: Keep it concise but comprehensive for BM25.\n    *   Draft: `connection_pool`, `database_connection`, `pool_size`, `db_pooling`, `jdbc_driver`, `max_connections`.\n\n3.  **Generate `vec` (Natural Language Rephrasing):**\n    *   Target: Semantic meaning, how a user would describe the intent in natural language.\n    *   Intent: How to configure or implement a pool for database connections, benefits of connection pooling in databases.\n    *   Draft: How to configure a connection pool for a database application",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15740,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"event driven architecture pub sub\"\n    *   Task: Expand the query into three specific types of expansions.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"event driven architecture\", \"pub sub\" (publish-subscribe).\n    *   Context: Software design patterns, distributed systems, messaging systems.\n    *   Intent: The user is likely looking for information about how to implement or understand a system that uses an event-driven architecture based on the publish-subscribe pattern.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, and variations of the input keywords.\n    *   \"event driven architecture\" -> event-driven design, EDA, microservices events, asynchronous messaging.\n    *   \"pub sub\" -> publish-subscribe pattern, message broker, Kafka, RabbitMQ, Redis PubSub, event bus.\n    *  ",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14331,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"dependency injection service container\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"dependency injection\", \"service container\".\n    *   Context: Software engineering, design patterns, frameworks (Spring, Angular, etc.), IoC containers.\n    *   Intent: The user is likely looking for information about how dependency injection works within a service container, or code examples showing the implementation of a DI container.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, and variations of the keywords.\n    *   \"dependency injection\" -> DI, inject, dependency resolution, constructor injection, setter injection.\n    *   \"service container\" -> IoC container, service locator, container, bean manager, dependency graph.\n    *  ",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14348,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"pagination cursor offset limit\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query:**\n    *   Keywords: \"pagination\", \"cursor\", \"offset\", \"limit\".\n    *   Context: These are common terms related to database queries, API responses, and data fetching strategies.\n    *   Intent: The user is likely looking for implementation details or patterns regarding how to implement pagination using these specific mechanisms (cursor-based vs. offset-based), or comparing them, or handling the parameters in a query structure.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   \"pagination\" -> `paginate`, `paginated`, `PaginationService`\n    *   \"cursor\" -> `next_cursor`, `prev_cursor`, `cursor_key`, `cursor_id`\n    *   \"offset\" -> `page_offset",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14126,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"graceful shutdown signal handling\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"graceful shutdown signal handling\"):**\n    *   Context: Software development, server management, process control.\n    *   Intent: How to implement a mechanism that allows a program/service to shut down cleanly when receiving specific operating system signals (like SIGTERM, SIGINT).\n    *   Key Concepts: Signal handling, termination, cleanup, exit, process management, asynchronous shutdown.\n\n3.  **Drafting `lex` (Keywords for BM25):**\n    *   Need specific terms that might appear in code or documentation.\n    *   Keywords: `signal`, `SIGTERM`, `SIGINT`, `SIGKILL`, `handler`, `register`, `cleanup`, `shutdown`, `graceful`, `terminate`, `process`, `main`, `exit",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14391,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"streaming response server sent events\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query:**\n    *   Keywords: \"streaming\", \"response\", \"server sent events\" (SSE).\n    *   Intent: The user is likely looking for code examples, implementation details, or libraries related to implementing Server-Sent Events (SSE) in a web server context. They want the server to stream responses back to the client.\n    *   Context: Backend development, WebSocket alternatives (though SSE is different), HTTP protocol, Node.js, Python, Go, etc.\n\n3.  **Drafting the Expansions:**\n\n    *   `lex` (Lexical/BM25): Needs keywords that are synonymous or closely related to the terms in the query.\n        *   \"Server-Sent Events\" (S",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14018,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"React context vs Redux state management\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Generate `lex` (Keyword Variants):**\n    *   Goal: Technical terms, synonyms, related identifiers for keyword matching.\n    *   Keywords from query: React, context, Redux, state management.\n    *   Variants/Synonyms: react-state-management, redux-store, context-api, provider, dispatcher, middleware, flux-pattern, global-state, react-redux, useContext.\n    *   Draft: React context API Redux state management store provider dispatch flux pattern\n\n3.  **Generate `vec` (Natural Language Rephrasing):**\n    *   Goal: Semantic meaning, how a user might describe the problem to an AI or search engine understanding intent.\n    *   Intent: Comparing two state management solutions, deciding which to use, understanding pros/cons.\n    *   Draft: Compare React Context API and Redux for managing application state, which is better for large scale apps\n\n4.  **Generate `hyde` (Hypothetical",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14077,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Express middleware chain next function\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Subject: Express.js (Node.js web framework).\n    *   Topic: Middleware chain, specifically the `next()` function.\n    *   Intent: The user likely wants to understand how middleware works in Express, specifically how to pass control to the next handler using `next()`, or perhaps debugging issues related to middleware execution order, passing data via the next function, or preventing `next()` from being called.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `express`, `middleware`, `next`, `function`, `chain`, `handler`, `app.use`, `route`, `callback`, `error-handling`.\n    *   Format: Space-separated or comma-separated string. Usually, a space-separated list of keywords is standard for BM25 expansion in this context.\n    *  ",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14143,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Prisma ORM query findMany where\"\n    *   Task: Expand the query into three specific types.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Input Query:**\n    *   \"Prisma ORM\": The technology being used (Object-Relational Mapping library for Node.js/TypeScript).\n    *   \"query\": The action being performed (database query).\n    *   \"findMany\": A specific Prisma client method to fetch multiple records.\n    *   \"where\": The filter clause used within the query.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need terms related to Prisma, findMany, filtering, where clause.\n    *   Keywords: `Prisma`, `ORM`, `findMany`, `where`, `filter`, `query`, `select`, `include`, `PrismaClient`, `findMany({ where: })`, `",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14946,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Next.js server component data fetching\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Subject: Next.js (React framework).\n    *   Feature: Server Components (specifically the new architecture in Next.js 13/14).\n    *   Action: Data fetching (getting data from APIs, databases, etc.).\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: Next.js, Server Components, Data Fetching, API Routes, getServerSideProps (legacy), useQuery, swr, react-query, async/await, fetch API, server actions, client components.\n    *   Selection: Next.js, Server Component, Data Fetching, API Route, Async Await, fetch, getServerSideProps (for contrast), Server Action.\n    *   Format: Space-separated or comma-separated string? Usually space-separated for BM25. Let's use a list of relevant terms.\n    *",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15163,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Zod schema validation parse transform\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for vector search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"Zod\", \"schema validation\", \"parse transform\".\n    *   Context: This is about the JavaScript/TypeScript library `zod`. It involves validating data schemas and transforming that data during parsing (e.g., `transform` method, `parse` method).\n    *   Intent: The user likely wants to know how to use Zod's `transform` feature within a schema definition, or how to handle parsing and transforming data in one go (e.g., `z.object().transform()` or `superRefine` vs `transform`). They might be looking for examples of parsing and transforming nested objects or handling errors during transformation.\n\n3.  **Drafting the Expansions:**\n\n    *   `lex` (Keyword Variants for BM25):\n        *   Need technical terms, synonyms, related identifiers.\n        *   \"Zod\", \"zod\", \"schema\", \"validation\", \"",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14647,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"tRPC router procedure mutation\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: `tRPC` (framework), `router`, `procedure`, `mutation`.\n    *   Context: TypeScript, API development, GraphQL-like REST/HTTP operations within the tRPC ecosystem.\n    *   Intent: The user wants to know how to define or implement a mutation procedure within a tRPC router.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, and specific identifiers relevant to tRPC.\n    *   `tRPC` -> `trpc`, `trpc-router`, `typescript-restful-api`.\n    *   `router` -> `createRouter`, `trpcRouter`, `procedure`.\n    *   `procedure` -> `procedures`, `handler`, `query`, `mutation`.\n    *   `mutation` -> `mutate`, `createMutation`, `post`, `update`.\n",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14595,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Tailwind responsive breakpoints utilities\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (\"Tailwind responsive breakpoints utilities\"):**\n    *   Context: CSS framework (Tailwind CSS).\n    *   Key Concepts: Responsive design, breakpoints (sm, md, lg, xl, etc.), utilities (pre-built CSS classes).\n    *   Intent: The user wants to know how to use Tailwind CSS's responsive utility classes for different screen sizes.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers used in code search.\n    *   Keywords: `tailwind`, `responsive`, `breakpoints`, `utilities`, `classes`, `screen-sm`, `md`, `lg`, `xl`, `2xs`, `sm`, `min-width`, `max",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14261,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Jest mock module spyOn testing\"\n    *   Task: Expand the query into three specific types of expansions.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"Jest\", \"mock\", \"module\", \"spyOn\", \"testing\".\n    *   Intent: The user wants to know how to use the `spyOn` function within the Jest mocking library for testing purposes. They are likely looking for examples, documentation, or best practices regarding spying on module exports in Jest.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related technical terms that would appear in search results.\n    *   \"Jest\" -> jest, @jest/core, jest-mock\n    *   \"mock\" -> mock, jest.mock, module.exports\n    *   \"module\" -> module, exports, namespace\n    *   \"spyOn\" ->",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14694,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Docker compose multi service networking\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query (\"Docker compose multi service networking\"):**\n    *   Core concepts: Docker Compose, Multi-service (multiple containers/services), Networking (communication between them).\n    *   Intent: How to connect services defined in a Docker Compose file, configure networks for multiple services (e.g., bridge, custom network), troubleshoot connectivity issues between containers.\n    *   Keywords: docker-compose.yml, services, networks, ports, links (deprecated), depends_on, custom network, bridge network, host network, environment variables.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: docker-compose, compose, multi-container, multiple services, networking",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14648,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"GitHub Actions CI workflow matrix\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Subject: GitHub Actions (CI/CD platform).\n    *   Context: CI workflow (Continuous Integration).\n    *   Specific Feature: Matrix strategy (running tests/builds across multiple combinations of variables like OS, Node version, etc.).\n    *   Intent: The user likely wants to know how to define a test matrix, configure parallel jobs based on variables, or optimize CI pipelines using the `matrix` strategy in GitHub Actions YAML files.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `github-actions`, `workflow.yml`, `strategy.matrix`, `matrix.strategy`, `ci-cd`, `test-matrix`, `os-version`, `node-version`, `jobs.strategy`, `concurrency`, `include-exclude`.\n    *   Draft: github actions, workflow yaml, strategy matrix, ci pipeline, test matrix, os version",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15073,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"find unused imports dead code\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"find\", \"unused imports\", \"dead code\".\n    *   Intent: The user wants to identify parts of their codebase that are not being used (specifically imports) or are dead code (unused functions, variables, etc.). This is a static analysis task.\n    *   Context: Likely looking for linting rules, CLI tools, or IDE features related to code cleanup/refactoring.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related technical terms.\n    *   \"find\" -> detect, locate, identify, check, analyze, scan.\n    *   \"unused imports\" -> unused import, redundant import, dead import, unneeded module.\n    *   \"dead code\" -> unused code, unreachable code, orphaned function, dead functions, remove dead code.\n    *   Tools/Commands often associated",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14400,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"detect circular dependencies modules\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   \"detect\": Action/Verb (find, identify, check, analyze).\n    *   \"circular dependencies\": Core concept (cycles, loops, circular references, dependency cycles).\n    *   \"modules\": Context/Scope (packages, libraries, components, classes, files).\n    *   Domain: Software engineering, dependency management, static analysis.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers for BM25.\n    *   Keywords: detect, find, identify, check, analyze, circular, cycle, cyclic, dependency, dependencies, module, modules, package, packages, class, classes, graph, cycle detection, circular reference.\n    *   Format: Space-separated string (usually).\n\n4.  **Drafting `vec` (Natural Language Rephrasing):**\n    *   Need a semantic description for vector search.\n    *   Idea",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14827,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"dead code detection unreachable\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"dead code\", \"detection\", \"unreachable\".\n    *   Intent: The user wants to find tools, methods, or code related to identifying parts of a program that cannot be executed (unreachable code).\n    *   Context: Software engineering, static analysis, compiler optimization, linting.\n\n3.  **Draft `lex` (Keyword Variants):**\n    *   Need synonyms and related technical terms for BM25 matching.\n    *   \"dead code\" -> dead_code, unused_code, unreachable_code, orphaned_code.\n    *   \"detection\" -> detect, find, analyze, identify, linting, static_analysis.\n    *   \"unreachable\" -> unreachable, unreachable_code, never_executed, dead_branch.\n    *   Related concepts: compiler warnings, code quality, optimization passes, control flow analysis.\n    *   Draft: dead_code detection unreachable static",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14772,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"security vulnerability SQL injection\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (\"security vulnerability SQL injection\"):**\n    *   Core concepts: Security, Vulnerability, SQL Injection.\n    *   Intent: The user is likely looking for information about how to detect, prevent, or fix SQL injection vulnerabilities in software security. They might want code examples showing the vulnerability (bad code) or the fix (good code).\n    *   Domain: Cybersecurity, Web Development, Database Security.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related technical terms that would match similar documents in a corpus.\n    *   Keywords: `security`, `vulnerability`, `SQL injection`, `injection`, `database`, `query`, `prevent`, `fix",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 16060,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"code duplication similar functions refactor\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"code duplication\", \"similar functions\", \"refactor\".\n    *   Intent: The user wants to find tools, techniques, or code patterns related to identifying duplicated code (specifically similar functions) and refactoring them.\n    *   Domain: Software Engineering, Code Quality, Refactoring Tools (e.g., SonarQube, ESLint, IntelliJ).\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers for BM25.\n    *   Keywords: code duplication, duplicate code, similar functions, function similarity, refactoring, extract method, consolidate methods, deduplicate, clone detection.\n    *   Format: Space-separated or comma-separated list of keywords. Usually space-separated for BM25 tokenization.\n    *   Draft: code duplication duplicate functions similar methods refactor refactoring extract method clone detection\n\n4.  **",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 15125,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"performance bottleneck N+1 query\"\n    *   Task: Expand the query into three specific types of expansions.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   \"performance bottleneck\": Indicates slow execution, high latency, resource exhaustion.\n    *   \"N+1 query\": A specific pattern in databases/ORMs where N queries are made to fetch related data for 1 parent query (e.g., fetching a list of users, then fetching details for each user individually).\n    *   Context: Software development, database optimization, ORM (Object-Relational Mapping), SQL, caching, eager loading.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (Keyword Variants for BM25):**\n        *   Need synonyms and related technical terms that would match documents containing the original query or similar issues.\n        *   Keywords: `performance`, `bottleneck`, `slow`, `",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14777,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"missing error handling try catch\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"missing error handling try catch\"):**\n    *   Intent: The user is looking for code that demonstrates how to handle errors using `try-catch` blocks, or they are searching for patterns where error handling is missing (perhaps to find examples of how it *should* be done, or code that lacks it). Given the phrasing \"missing error handling try catch\", it likely implies a search for code that *has* `try-catch` blocks to handle errors, or perhaps linting rules/checks for missing error handling. However, in the context of code search (like IDE autocomplete or codebase search), it usually means \"show me examples of try-catch error handling\".\n    *   Keywords: `try`, `catch`, `error`, `handling`, `exception`, `finally",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14526,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"type safety any assertion unsafe cast\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"type safety\", \"any\", \"assertion\", \"unsafe cast\".\n    *   Context: This looks like a programming query, likely related to TypeScript (due to `any` and type safety discussions) or Rust/Java/C# (unsafe cast). It touches on static/dynamic typing, type checking mechanisms, and potential runtime errors.\n    *   Intent: The user is likely asking about how to handle type safety issues involving the `any` type, assertions (like `assertType`, `satisfies`, or `as`), and unsafe casting operations. They might want examples, best practices, or explanations of the risks involved.\n\n3.  **Drafting `lex` (Keyword Variants for BM2",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 14961,
+      "total": 0.015,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"memory leak event listener cleanup\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"memory leak\", \"event listener\", \"cleanup\".\n    *   Intent: The user is likely looking for code examples, best practices, or methods to prevent memory leaks caused by event listeners (e.g., in JavaScript, Swift, Kotlin, etc.) or how to properly remove them when they are no longer needed.\n\n3.  **Drafting `lex` (Keywords for BM25):**\n    *   Need synonyms and related terms.\n    *   \"memory leak\" -> memory leakage, memory exhaustion, garbage collection, retain cycle.\n    *   \"event listener\" -> event handler, attach listener, addEventListener, removeEventListener, subscription, observer.\n    *   \"cleanup\" -> dispose, teardown, unregister, remove, destroy",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "Qwen3.5-9B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 16569,
+      "total": 0,
+      "expansion": {
+        "raw": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"race condition async concurrent access\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"race condition\", \"async\", \"concurrent access\".\n    *   Context: Software development, specifically concurrency control in asynchronous programming.\n    *   Intent: The user is likely looking for solutions, explanations, or code examples regarding how to prevent race conditions in asynchronous concurrent environments.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   \"race condition\" -> race_condition, data_race, thread_safety, atomicity.\n    *   \"async\" -> asynchronous, aio, await, promise, coroutine, future.\n    *   \"concurrent access\" -> concurrent_execution, parallel_access, mutex, lock, semaphore,",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `useEffect cleanup`\n    *   Task: Expand the query into three specific types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n    *   Constraint: Respond with exactly 3 lines, no other text (formatting must be precise).\n\n2.  **Analyze the Query (`useEffect cleanup`):**\n    *   Context: React.js (JavaScript/TypeScript) development.\n    *   Meaning: How to properly clean up side effects registered in the `useEffect` hook (e.g., removing event listeners, aborting fetches, clearing timers) to prevent memory leaks or stale closures.\n    *   Key Concepts: `useEffect`, cleanup function, return statement in useEffect, dependency array, abortController, event listener removal.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need terms that would appear in file titles, function names, comments, or documentation.\n    *   Keywords: `useEffect`, `cleanup`, `return` function, `removeEventListener`, `AbortController`, `clearTimeout`, `dependencies`, `effect cleanup",
+      "latencyMs": 17075,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "",
+      "latencyMs": 4404,
+      "tokenCount": 0
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"SearchBar component\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Generate `lex` (Keyword Variants):**\n    *   Target: \"SearchBar component\".\n    *   Keywords/Synonyms related to SearchBar in codebases:\n        *   Search input, search bar, search-field, input-search.\n        *   Component names: SearchBar, SearchInput, SearchBox, SearchField.\n        *   Frameworks/Context: React SearchBar, Vue SearchBar, Angular SearchBar.\n        *   Related concepts: search functionality, query input, filter bar, autocomplete component.\n    *   Selection for BM25: SearchBar, searchBar, search-input, search-field, SearchInput, SearchBox, input-search.\n\n3.  **Generate `vec` (Semantic Rephrasing):**\n    *   Target: Natural language description of what the user",
+      "latencyMs": 14332,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `createEmbeddingsClient`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query (`createEmbeddingsClient`):**\n    *   Context: This looks like a method name or function signature, likely from an AI/ML SDK (e.g., Azure Cognitive Services, Google Vertex AI, LangChain, etc.).\n    *   Intent: The user wants to know how to instantiate or create a client object responsible for generating embeddings (vector representations of text/data).\n    *   Keywords: `create`, `EmbeddingsClient`, `client`, `embeddings`, `initialization`, `setup`, `API`, `authentication`.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (BM25 Keywords):**\n        *   Need technical terms, synonyms, related identifiers.\n        *   `createEmbeddingsClient`",
+      "latencyMs": 13139,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `parseParameterSize`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (`parseParameterSize`):**\n    *   It looks like a method name or function signature in programming.\n    *   Action: `parse` (extract/interpret).\n    *   Object/Subject: `ParameterSize`.\n    *   Context: Likely related to parsing configuration, arguments, or data structures where a size attribute needs to be extracted.\n    *   Domain: Software development, likely Java, C++, Python, etc., dealing with parameters and sizes.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, variations of the function name.\n    *   Keywords: `parse`, `parameter`, `size`, `getSize`, `getParameters`, `argumentSize`,",
+      "latencyMs": 12858,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `buildCombinedIndex`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query (`buildCombinedIndex`):**\n    *   Context: This looks like a method name, likely in Java, C#, or similar OOP languages. It suggests functionality related to indexing data structures, merging multiple indices into one, or constructing a composite index.\n    *   Domain: Database management systems (DBMS), Search engines, Information Retrieval (IR), Data structures.\n    *   Keywords: `build`, `Combined`, `Index`, `Merge`, `Composite`, `Create`, `Construct`.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (Keyword Variants for BM25):**\n        *   Need terms that would appear in filenames, comments, or variable names related to this function.\n        *   Synonyms/",
+      "latencyMs": 13186,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"cosineSimilarity helper\"\n    *   Task: Expand the query into three specific types (lex, vec, hyde).\n    *   Output Format: Exactly 3 lines (lex:, vec:, hyde:), no other text.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"cosineSimilarity\", \"helper\".\n    *   Intent: The user is likely looking for a utility function, method, or class that calculates cosine similarity. They might be referring to a specific library (like TensorFlow, PyTorch, scikit-learn) or a custom helper function in their codebase.\n    *   Context: Machine Learning, NLP, Vector Search, Data Science.\n\n3.  **Generate `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   \"cosineSimilarity\" -> cosine_similarity, Cosine Similarity, CosineDistance (inverse), vector_similarity.\n    *   \"helper\" -> utility, function, method, class, wrapper, implementation, example.\n    *   Related concepts: sklearn.metrics.pairwise.cosine_similarity, numpy.dot, normalize, vectorization.\n    *   Draft: cosine_similarity, CosineSimilarity, utility function, helper method, vector similarity, calculate",
+      "latencyMs": 13378,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"QueryGenerator class\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde). No other text.\n    *   Content Requirements:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Input Query (\"QueryGenerator class\"):**\n    *   Intent: The user is looking for a specific class named `QueryGenerator` in code repositories.\n    *   Context: Likely related to search engines, NLP, data generation, or query optimization.\n    *   Domain: Software Engineering, Machine Learning (LLM), Search Systems.\n\n3.  **Drafting `lex` (Lexical Variants):**\n    *   Need keywords that might appear in filenames, class names, or comments alongside \"QueryGenerator\".\n    *   Variants: `QueryGenerator`, `query_generator`, `generate_query`, `QueryBuilder`, `QueryGen`, `QueryFactory`, `GenerateQueries`.\n    *   Related concepts: `search`, `database`, `sql`, `elasticsearch`, `",
+      "latencyMs": 14664,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: `aggregateRetrievalResults`\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n    *   Line 1: `lex: ...` (keyword variants for BM25 search)\n    *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n    *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (`aggregateRetrievalResults`):**\n    *   It looks like a method name or function signature in an object-oriented programming context.\n    *   Keywords: `aggregate`, `RetrievalResults` (noun phrase), likely part of a class like `ResultAggregator`, `RetrievalService`, etc.\n    *   Intent: Collecting, combining, or summarizing results from a retrieval process (e.g., search results, database query results).\n    *   Context: Software development, data processing, information retrieval systems.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related terms that would help keyword matching.\n    *   Keywords: `aggregate`,",
+      "latencyMs": 13743,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"LocalLLMClient constructor\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines, no other text.\n    *   Line 1 (lex): Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n    *   Line 2 (vec): A natural language rephrasing for semantic vector search.\n    *   Line 3 (hyde): A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Input Query:**\n    *   \"LocalLLMClient\": This looks like a specific class name, likely related to Local LLM (Large Language Model) clients. It suggests a client implementation for running LLMs locally, possibly in Python or Java (though \"Client\" often implies network/client-server patterns, \"Local\" suggests local execution).\n    *   \"constructor\": This refers to the `__init__` method in Python or the constructor function/class initializer in other languages. It's about initialization, parameters, instantiation.\n\n3.  **Drafting the Lines:**\n\n    *   **Line 1 (lex):**\n        *   Need keywords that would match BM25 search.\n        *   Keywords: `LocalLLMClient`, `__init__`, `constructor`, `initialize`, `",
+      "latencyMs": 13471,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"fix TypeError cannot read property of undefined\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   \"fix TypeError cannot read property of undefined\" is a common JavaScript error message.\n    *   It indicates an issue where code tries to access a property on an object that is `undefined` (or not an object).\n    *   Common causes: accessing nested properties without checking existence, destructuring from undefined, calling methods on undefined.\n    *   Context: JavaScript/TypeScript development, debugging, error handling.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `TypeError`, `cannot read property of undefined`, `undefined`, `accessing property`, `object is null or undefined`, `debugging error`, `JavaScript error`, `fix bug`, `check if defined`, `optional chaining`, `null check`.\n    *   Selection: `TypeError`, `undefined`, `",
+      "latencyMs": 14676,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"resolve ECONNREFUSED localhost\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   \"ECONNREFUSED\": This is a specific error code in networking (specifically TCP/IP). It means the connection was refused by the remote host.\n    *   \"localhost\": This refers to the local machine (127.0.0.1 or ::1).\n    *   \"resolve\": This implies the user is trying to solve, fix, or debug this issue.\n    *   Context: Likely a Node.js, Python, Go, or general socket programming issue where the client tries to connect to `localhost` but gets an error.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (Keyword Variants for BM25):**\n        *   Need technical terms, synonyms, related identifiers.\n        *   Keywords: `ECONNREFUSED`, `connection refused`, `localhost`, `127.0.0.1`, `socket error`,",
+      "latencyMs": 15464,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"module not found cannot resolve import\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   \"module not found cannot resolve import\" is a common error message in Python (and other languages like Node.js, though phrasing varies).\n    *   It indicates a failure in the import system where the interpreter/compiler cannot locate the specified module/package.\n    *   Key concepts: ImportError, ModuleNotFoundError, import error, package not found, path issue, installation missing.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `ImportError`, `ModuleNotFoundError`, `import error`, `module not found`, `cannot resolve import`, `package not installed`, `pip install`, `sys.path`,",
+      "latencyMs": 15492,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"CORS origin not allowed headers\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query (\"CORS origin not allowed headers\"):**\n    *   Context: Web development, specifically Cross-Origin Resource Sharing (CORS) errors in browsers.\n    *   Problem: The browser is blocking a request because the server's `Access-Control-Allow-Headers` response header does not include the headers sent in the preflight (OPTIONS) request.\n    *   Keywords: CORS, Cross-Origin Resource Sharing, Access-Control-Allow-Headers, preflight, OPTIONS request, allowed headers, browser error, fetch, axios.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: CORS, Cross-Origin-Resource-Sharing, Access-Control-Allow-Headers, preflight, OPTIONS, allowed headers, origin not allowed, forbidden, 403, fetch, axios, express, cors middleware.\n    *   Selection: CORS, Access-Control-Allow-Headers",
+      "latencyMs": 15689,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"out of memory heap allocation failed\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   \"out of memory\": Indicates a resource exhaustion condition, specifically RAM or virtual memory.\n    *   \"heap allocation failed\": Indicates a specific failure during dynamic memory management (malloc, new, etc.) in the heap segment.\n    *   Context: This is a common error message or exception thrown during runtime in languages like C++, Java, Python (though usually \"MemoryError\"), etc. It suggests a crash or an error handling scenario related to memory limits.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `OutOfMemoryError`, `std::bad_alloc`, `malloc failed`, `memory limit exceeded`, `heap exhausted`, `segmentation fault` (related but distinct), `OOM killer`, `virtual memory`, `dynamic allocation`, `memory exhaustion`.\n    *   Selection: `OutOfMemoryError`, `bad_alloc`, `malloc",
+      "latencyMs": 16006,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"database connection timeout pool exhausted\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"database\", \"connection\", \"timeout\", \"pool\", \"exhausted\".\n    *   Context: This is a common error in software development, specifically related to connection pooling (e.g., JDBC, Hibernate, SQLAlchemy, Node.js pg-pool, etc.). It indicates that all available connections in the pool are being used or waiting for a timeout before acquiring one.\n    *   Intent: The user is likely looking for error messages, causes, solutions, or logs related to this specific issue.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Terms: `ConnectionPool`, `DatabaseError`, `TimeoutException`, `MaxConnections`, `AcquireFailed`, `WaitQueueFull`, `SQLState08003`, `TooManyConnections`.\n    *   Synonyms: `ConnectionTimeout`, `PoolExhausted",
+      "latencyMs": 16948,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"promise rejected unhandled async error\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"promise\", \"rejected\", \"unhandled\", \"async\", \"error\".\n    *   Context: JavaScript/TypeScript development, error handling, asynchronous programming.\n    *   Intent: The user is likely looking for solutions, explanations, or best practices regarding how to handle errors that occur in async functions (like Promises) without being caught by a `.catch()` or `try/catch` block.\n\n3.  **Drafting the Expansions:**\n\n    *   `lex` (Lexical/BM25): Needs specific keywords, synonyms, and related technical terms that would match similar documents in a corpus.\n        *   Keywords: promise, rejected, unhandled, async/await, error handling, catch block, rejection, exception.\n        *   Variants: `unhandled promise rejection`, `async error handling`, `promise catch`, `top level await error`, `nodejs",
+      "latencyMs": 16082,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"circular dependency detected import cycle\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"circular dependency\", \"detected\", \"import cycle\".\n    *   Context: Software development, specifically Python (or similar languages) where import cycles are a common issue.\n    *   Intent: The user is likely looking for error messages, solutions, debugging steps, or code examples related to handling circular imports.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: circular dependency, import cycle, cyclic import, recursion error, module not found, self-referential import, dependency graph, cycle detection.\n    *   Format: Space-separated list of keywords.\n\n4.  **Drafting `vec` (Natural Language Rephrasing):**\n    *   Need a semantic description of what the user wants.\n    *   Idea: \"How to fix circular import errors in Python code\" or \"Explanation of",
+      "latencyMs": 16813,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "Okay, let's tackle this query expansion. The user wants three types: lex, vec, and hyde for the search query \"type error argument not assignable to parameter\".\n\nFirst, lex needs keyword variants. So I should think of related terms that might appear in similar errors or documentation. Common TypeScript error messages include \"Type 'X' is not assignable to parameter of type 'Y'\". So keywords could be \"type error\", \"argument\", \"parameter\", \"not assignable\", maybe \"TypeScript\", \"TS\", \"error message\". Also, synonyms like \"incompatible type\", \"mismatched argument\", \"function parameter error\". Maybe include specific terms like \"TS2345\" which is the common error code.\n\nNext, vec should be a natural language rephrasing for semantic search. So instead of the exact error message, phrase it as a question or description that captures the intent. Something like \"How to fix TypeScript error when argument type doesn't match parameter type\". Or \"Resolve type mismatch between function arguments and parameters in TypeScript\".\n\nFor hyde, a short hypothetical code snippet. Since the error is about argument not matching parameter type, maybe create a function where an argument's type doesn't align with the expected parameter. Like:\n\nfunction greet(name: string) {\n  return `Hello, ${name}`;\n}\ngreet(123); // Error: Argument of type 'number' is not assignable to parameter of",
+      "latencyMs": 15977,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"permission denied EACCES file access\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"permission denied\", \"EACCES\", \"file access\".\n    *   Context: Programming/Software Development, specifically error handling in file operations.\n    *   Problem: Handling a specific OS-level error (EACCES) when trying to access a file.\n    *   Intent: The user likely wants to know how to handle this error, why it happens, or how to check for it.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers for BM25 matching.\n    *   \"permission denied\" -> `errno`, `EACCES`, `EPERM`, `access denied`, `file not found`",
+      "latencyMs": 15405,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"authentication middleware\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Generate `lex` (Keyword Variants for BM25):**\n    *   Goal: Identify technical terms, synonyms, and related identifiers that would match documents containing \"authentication middleware\".\n    *   Keywords: authentication, auth, middleware, interceptor, filter, security, login, token, jwt, oauth, api-gateway, express-middleware, spring-security.\n    *   Format: Space-separated string of keywords.\n\n3.  **Generate `vec` (Natural Language Rephrasing for Semantic Search):**\n    *   Goal: Describe the intent or concept in natural language to help vector embeddings understand context.\n    *   Phrasing: \"Implementing security layers for API access control\", \"How to add login verification before route handling\", \"Design pattern for centralized user authentication in web applications\".\n    *   Selection: Keep it concise but descriptive. \"How to implement centralized security checks for API routes using interceptors and token validation\".\n\n4.  **Generate `hyde` (",
+      "latencyMs": 14482,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"rate limiting implementation\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (\"rate limiting implementation\"):**\n    *   Core concept: Controlling request frequency to prevent abuse/overload.\n    *   Context: Software engineering, API design, backend services, distributed systems.\n    *   Keywords: rate limit, throttling, middleware, token bucket, sliding window, Redis, Nginx, API gateway.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: rate limit, rate limiting, limiter, throttling, middleware, token bucket, sliding window, counter, algorithm, redis, nginx, express, flask, spring, api gateway.\n    *   Format: Space-separated or comma-separated list within the",
+      "latencyMs": 14573,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"caching strategy invalidation\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"caching strategy invalidation\"):**\n    *   Context: Software engineering, distributed systems, backend development.\n    *   Core Concepts: Caching (caches, cache), Strategy (strategies, policies, patterns), Invalidation (purge, expire, remove, update).\n    *   Intent: How to implement or manage cache invalidation within a caching strategy.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need synonyms and related terms for BM25 matching.\n    *   \"caching\" -> `cache`, `caches`, `cached`\n    *   \"strategy\" -> `strategies`, `policy`, `pattern`, `approach`\n    *   \"invalidation\" -> `invalidate`, `pur",
+      "latencyMs": 14078,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"retry logic exponential backoff\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"retry logic exponential backoff\"):**\n    *   Context: Software development, API integration, network programming, error handling.\n    *   Key Concepts: Retry mechanism, Exponential backoff algorithm (wait time increases exponentially), Logic/Implementation.\n    *   Related Terms: `retry`, `backoff`, `exponential`, `delay`, `wait`, `sleep`, `Jitter`, `max_retries`, `retry_count`, `backoff_factor`, `exponential_backoff`.\n\n3.  **Drafting the Lines:**\n\n    *   **lex (Keywords):**\n        *   Need synonyms and related identifiers.\n        *   `retry`, `retries`, `retryable`.\n        *   `backoff`, `exponential_backoff`, `backoff",
+      "latencyMs": 14204,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"connection pooling database\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Generate `lex` (Keyword Variants):**\n    *   Target: Technical terms, synonyms, related identifiers for \"connection pooling database\".\n    *   Keywords: `connection_pool`, `db_connection_pool`, `pool_connections`, `database_pooling`, `jdbc_connection_pool`, `max_connections`, `min_connections`, `connection_string`, `pool_size`, `mysql_connection_pool`, `postgres_connection_pool`.\n    *   Selection: Keep it concise but comprehensive for BM25.\n    *   Draft: `connection_pool`, `database_connection`, `pool_size`, `db_pooling`, `jdbc_driver`, `max_connections`.\n\n3.  **Generate `vec` (Natural Language Rephrasing):**\n    *   Target: Semantic meaning, how a user would describe the intent in natural language.\n    *   Intent: How to configure or implement a pool for database connections, benefits of connection pooling in databases.\n    *   Draft: How to configure a connection pool for a database application",
+      "latencyMs": 14143,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"event driven architecture pub sub\"\n    *   Task: Expand the query into three specific types of expansions.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"event driven architecture\", \"pub sub\" (publish-subscribe).\n    *   Context: Software design patterns, distributed systems, messaging systems.\n    *   Intent: The user is likely looking for information about how to implement or understand a system that uses an event-driven architecture based on the publish-subscribe pattern.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, and variations of the input keywords.\n    *   \"event driven architecture\" -> event-driven design, EDA, microservices events, asynchronous messaging.\n    *   \"pub sub\" -> publish-subscribe pattern, message broker, Kafka, RabbitMQ, Redis PubSub, event bus.\n    *  ",
+      "latencyMs": 15740,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"dependency injection service container\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"dependency injection\", \"service container\".\n    *   Context: Software engineering, design patterns, frameworks (Spring, Angular, etc.), IoC containers.\n    *   Intent: The user is likely looking for information about how dependency injection works within a service container, or code examples showing the implementation of a DI container.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, and variations of the keywords.\n    *   \"dependency injection\" -> DI, inject, dependency resolution, constructor injection, setter injection.\n    *   \"service container\" -> IoC container, service locator, container, bean manager, dependency graph.\n    *  ",
+      "latencyMs": 14331,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"pagination cursor offset limit\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query:**\n    *   Keywords: \"pagination\", \"cursor\", \"offset\", \"limit\".\n    *   Context: These are common terms related to database queries, API responses, and data fetching strategies.\n    *   Intent: The user is likely looking for implementation details or patterns regarding how to implement pagination using these specific mechanisms (cursor-based vs. offset-based), or comparing them, or handling the parameters in a query structure.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   \"pagination\" -> `paginate`, `paginated`, `PaginationService`\n    *   \"cursor\" -> `next_cursor`, `prev_cursor`, `cursor_key`, `cursor_id`\n    *   \"offset\" -> `page_offset",
+      "latencyMs": 14348,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"graceful shutdown signal handling\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"graceful shutdown signal handling\"):**\n    *   Context: Software development, server management, process control.\n    *   Intent: How to implement a mechanism that allows a program/service to shut down cleanly when receiving specific operating system signals (like SIGTERM, SIGINT).\n    *   Key Concepts: Signal handling, termination, cleanup, exit, process management, asynchronous shutdown.\n\n3.  **Drafting `lex` (Keywords for BM25):**\n    *   Need specific terms that might appear in code or documentation.\n    *   Keywords: `signal`, `SIGTERM`, `SIGINT`, `SIGKILL`, `handler`, `register`, `cleanup`, `shutdown`, `graceful`, `terminate`, `process`, `main`, `exit",
+      "latencyMs": 14126,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"streaming response server sent events\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query:**\n    *   Keywords: \"streaming\", \"response\", \"server sent events\" (SSE).\n    *   Intent: The user is likely looking for code examples, implementation details, or libraries related to implementing Server-Sent Events (SSE) in a web server context. They want the server to stream responses back to the client.\n    *   Context: Backend development, WebSocket alternatives (though SSE is different), HTTP protocol, Node.js, Python, Go, etc.\n\n3.  **Drafting the Expansions:**\n\n    *   `lex` (Lexical/BM25): Needs keywords that are synonymous or closely related to the terms in the query.\n        *   \"Server-Sent Events\" (S",
+      "latencyMs": 14391,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"React context vs Redux state management\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Generate `lex` (Keyword Variants):**\n    *   Goal: Technical terms, synonyms, related identifiers for keyword matching.\n    *   Keywords from query: React, context, Redux, state management.\n    *   Variants/Synonyms: react-state-management, redux-store, context-api, provider, dispatcher, middleware, flux-pattern, global-state, react-redux, useContext.\n    *   Draft: React context API Redux state management store provider dispatch flux pattern\n\n3.  **Generate `vec` (Natural Language Rephrasing):**\n    *   Goal: Semantic meaning, how a user might describe the problem to an AI or search engine understanding intent.\n    *   Intent: Comparing two state management solutions, deciding which to use, understanding pros/cons.\n    *   Draft: Compare React Context API and Redux for managing application state, which is better for large scale apps\n\n4.  **Generate `hyde` (Hypothetical",
+      "latencyMs": 14018,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Express middleware chain next function\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Subject: Express.js (Node.js web framework).\n    *   Topic: Middleware chain, specifically the `next()` function.\n    *   Intent: The user likely wants to understand how middleware works in Express, specifically how to pass control to the next handler using `next()`, or perhaps debugging issues related to middleware execution order, passing data via the next function, or preventing `next()` from being called.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `express`, `middleware`, `next`, `function`, `chain`, `handler`, `app.use`, `route`, `callback`, `error-handling`.\n    *   Format: Space-separated or comma-separated string. Usually, a space-separated list of keywords is standard for BM25 expansion in this context.\n    *  ",
+      "latencyMs": 14077,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Prisma ORM query findMany where\"\n    *   Task: Expand the query into three specific types.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Input Query:**\n    *   \"Prisma ORM\": The technology being used (Object-Relational Mapping library for Node.js/TypeScript).\n    *   \"query\": The action being performed (database query).\n    *   \"findMany\": A specific Prisma client method to fetch multiple records.\n    *   \"where\": The filter clause used within the query.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need terms related to Prisma, findMany, filtering, where clause.\n    *   Keywords: `Prisma`, `ORM`, `findMany`, `where`, `filter`, `query`, `select`, `include`, `PrismaClient`, `findMany({ where: })`, `",
+      "latencyMs": 14143,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Next.js server component data fetching\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Subject: Next.js (React framework).\n    *   Feature: Server Components (specifically the new architecture in Next.js 13/14).\n    *   Action: Data fetching (getting data from APIs, databases, etc.).\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: Next.js, Server Components, Data Fetching, API Routes, getServerSideProps (legacy), useQuery, swr, react-query, async/await, fetch API, server actions, client components.\n    *   Selection: Next.js, Server Component, Data Fetching, API Route, Async Await, fetch, getServerSideProps (for contrast), Server Action.\n    *   Format: Space-separated or comma-separated string? Usually space-separated for BM25. Let's use a list of relevant terms.\n    *",
+      "latencyMs": 14946,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Zod schema validation parse transform\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for vector search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"Zod\", \"schema validation\", \"parse transform\".\n    *   Context: This is about the JavaScript/TypeScript library `zod`. It involves validating data schemas and transforming that data during parsing (e.g., `transform` method, `parse` method).\n    *   Intent: The user likely wants to know how to use Zod's `transform` feature within a schema definition, or how to handle parsing and transforming data in one go (e.g., `z.object().transform()` or `superRefine` vs `transform`). They might be looking for examples of parsing and transforming nested objects or handling errors during transformation.\n\n3.  **Drafting the Expansions:**\n\n    *   `lex` (Keyword Variants for BM25):\n        *   Need technical terms, synonyms, related identifiers.\n        *   \"Zod\", \"zod\", \"schema\", \"validation\", \"",
+      "latencyMs": 15163,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"tRPC router procedure mutation\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: `tRPC` (framework), `router`, `procedure`, `mutation`.\n    *   Context: TypeScript, API development, GraphQL-like REST/HTTP operations within the tRPC ecosystem.\n    *   Intent: The user wants to know how to define or implement a mutation procedure within a tRPC router.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms, related terms, and specific identifiers relevant to tRPC.\n    *   `tRPC` -> `trpc`, `trpc-router`, `typescript-restful-api`.\n    *   `router` -> `createRouter`, `trpcRouter`, `procedure`.\n    *   `procedure` -> `procedures`, `handler`, `query`, `mutation`.\n    *   `mutation` -> `mutate`, `createMutation`, `post`, `update`.\n",
+      "latencyMs": 14647,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Tailwind responsive breakpoints utilities\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (\"Tailwind responsive breakpoints utilities\"):**\n    *   Context: CSS framework (Tailwind CSS).\n    *   Key Concepts: Responsive design, breakpoints (sm, md, lg, xl, etc.), utilities (pre-built CSS classes).\n    *   Intent: The user wants to know how to use Tailwind CSS's responsive utility classes for different screen sizes.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers used in code search.\n    *   Keywords: `tailwind`, `responsive`, `breakpoints`, `utilities`, `classes`, `screen-sm`, `md`, `lg`, `xl`, `2xs`, `sm`, `min-width`, `max",
+      "latencyMs": 14595,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Jest mock module spyOn testing\"\n    *   Task: Expand the query into three specific types of expansions.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"Jest\", \"mock\", \"module\", \"spyOn\", \"testing\".\n    *   Intent: The user wants to know how to use the `spyOn` function within the Jest mocking library for testing purposes. They are likely looking for examples, documentation, or best practices regarding spying on module exports in Jest.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related technical terms that would appear in search results.\n    *   \"Jest\" -> jest, @jest/core, jest-mock\n    *   \"mock\" -> mock, jest.mock, module.exports\n    *   \"module\" -> module, exports, namespace\n    *   \"spyOn\" ->",
+      "latencyMs": 14261,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"Docker compose multi service networking\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Query (\"Docker compose multi service networking\"):**\n    *   Core concepts: Docker Compose, Multi-service (multiple containers/services), Networking (communication between them).\n    *   Intent: How to connect services defined in a Docker Compose file, configure networks for multiple services (e.g., bridge, custom network), troubleshoot connectivity issues between containers.\n    *   Keywords: docker-compose.yml, services, networks, ports, links (deprecated), depends_on, custom network, bridge network, host network, environment variables.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: docker-compose, compose, multi-container, multiple services, networking",
+      "latencyMs": 14694,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"GitHub Actions CI workflow matrix\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   Subject: GitHub Actions (CI/CD platform).\n    *   Context: CI workflow (Continuous Integration).\n    *   Specific Feature: Matrix strategy (running tests/builds across multiple combinations of variables like OS, Node version, etc.).\n    *   Intent: The user likely wants to know how to define a test matrix, configure parallel jobs based on variables, or optimize CI pipelines using the `matrix` strategy in GitHub Actions YAML files.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   Keywords: `github-actions`, `workflow.yml`, `strategy.matrix`, `matrix.strategy`, `ci-cd`, `test-matrix`, `os-version`, `node-version`, `jobs.strategy`, `concurrency`, `include-exclude`.\n    *   Draft: github actions, workflow yaml, strategy matrix, ci pipeline, test matrix, os version",
+      "latencyMs": 14648,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"find unused imports dead code\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"find\", \"unused imports\", \"dead code\".\n    *   Intent: The user wants to identify parts of their codebase that are not being used (specifically imports) or are dead code (unused functions, variables, etc.). This is a static analysis task.\n    *   Context: Likely looking for linting rules, CLI tools, or IDE features related to code cleanup/refactoring.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related technical terms.\n    *   \"find\" -> detect, locate, identify, check, analyze, scan.\n    *   \"unused imports\" -> unused import, redundant import, dead import, unneeded module.\n    *   \"dead code\" -> unused code, unreachable code, orphaned function, dead functions, remove dead code.\n    *   Tools/Commands often associated",
+      "latencyMs": 15073,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"detect circular dependencies modules\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Query:**\n    *   \"detect\": Action/Verb (find, identify, check, analyze).\n    *   \"circular dependencies\": Core concept (cycles, loops, circular references, dependency cycles).\n    *   \"modules\": Context/Scope (packages, libraries, components, classes, files).\n    *   Domain: Software engineering, dependency management, static analysis.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers for BM25.\n    *   Keywords: detect, find, identify, check, analyze, circular, cycle, cyclic, dependency, dependencies, module, modules, package, packages, class, classes, graph, cycle detection, circular reference.\n    *   Format: Space-separated string (usually).\n\n4.  **Drafting `vec` (Natural Language Rephrasing):**\n    *   Need a semantic description for vector search.\n    *   Idea",
+      "latencyMs": 14400,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"dead code detection unreachable\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"dead code\", \"detection\", \"unreachable\".\n    *   Intent: The user wants to find tools, methods, or code related to identifying parts of a program that cannot be executed (unreachable code).\n    *   Context: Software engineering, static analysis, compiler optimization, linting.\n\n3.  **Draft `lex` (Keyword Variants):**\n    *   Need synonyms and related technical terms for BM25 matching.\n    *   \"dead code\" -> dead_code, unused_code, unreachable_code, orphaned_code.\n    *   \"detection\" -> detect, find, analyze, identify, linting, static_analysis.\n    *   \"unreachable\" -> unreachable, unreachable_code, never_executed, dead_branch.\n    *   Related concepts: compiler warnings, code quality, optimization passes, control flow analysis.\n    *   Draft: dead_code detection unreachable static",
+      "latencyMs": 14827,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"security vulnerability SQL injection\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query (\"security vulnerability SQL injection\"):**\n    *   Core concepts: Security, Vulnerability, SQL Injection.\n    *   Intent: The user is likely looking for information about how to detect, prevent, or fix SQL injection vulnerabilities in software security. They might want code examples showing the vulnerability (bad code) or the fix (good code).\n    *   Domain: Cybersecurity, Web Development, Database Security.\n\n3.  **Drafting `lex` (Keyword Variants for BM25):**\n    *   Need synonyms and related technical terms that would match similar documents in a corpus.\n    *   Keywords: `security`, `vulnerability`, `SQL injection`, `injection`, `database`, `query`, `prevent`, `fix",
+      "latencyMs": 14772,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"code duplication similar functions refactor\"\n    *   Task: Expand the query into three specific types: `lex` (keyword variants for BM25), `vec` (natural language rephrasing for semantic search), and `hyde` (short hypothetical code snippet).\n    *   Constraint: Respond with exactly 3 lines, no other text.\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"code duplication\", \"similar functions\", \"refactor\".\n    *   Intent: The user wants to find tools, techniques, or code patterns related to identifying duplicated code (specifically similar functions) and refactoring them.\n    *   Domain: Software Engineering, Code Quality, Refactoring Tools (e.g., SonarQube, ESLint, IntelliJ).\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers for BM25.\n    *   Keywords: code duplication, duplicate code, similar functions, function similarity, refactoring, extract method, consolidate methods, deduplicate, clone detection.\n    *   Format: Space-separated or comma-separated list of keywords. Usually space-separated for BM25 tokenization.\n    *   Draft: code duplication duplicate functions similar methods refactor refactoring extract method clone detection\n\n4.  **",
+      "latencyMs": 16060,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"performance bottleneck N+1 query\"\n    *   Task: Expand the query into three specific types of expansions.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25 search)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic vector search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   \"performance bottleneck\": Indicates slow execution, high latency, resource exhaustion.\n    *   \"N+1 query\": A specific pattern in databases/ORMs where N queries are made to fetch related data for 1 parent query (e.g., fetching a list of users, then fetching details for each user individually).\n    *   Context: Software development, database optimization, ORM (Object-Relational Mapping), SQL, caching, eager loading.\n\n3.  **Drafting the Expansions:**\n\n    *   **lex (Keyword Variants for BM25):**\n        *   Need synonyms and related technical terms that would match documents containing the original query or similar issues.\n        *   Keywords: `performance`, `bottleneck`, `slow`, `",
+      "latencyMs": 15125,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"missing error handling try catch\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: Natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query (\"missing error handling try catch\"):**\n    *   Intent: The user is looking for code that demonstrates how to handle errors using `try-catch` blocks, or they are searching for patterns where error handling is missing (perhaps to find examples of how it *should* be done, or code that lacks it). Given the phrasing \"missing error handling try catch\", it likely implies a search for code that *has* `try-catch` blocks to handle errors, or perhaps linting rules/checks for missing error handling. However, in the context of code search (like IDE autocomplete or codebase search), it usually means \"show me examples of try-catch error handling\".\n    *   Keywords: `try`, `catch`, `error`, `handling`, `exception`, `finally",
+      "latencyMs": 14777,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"type safety any assertion unsafe cast\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"type safety\", \"any\", \"assertion\", \"unsafe cast\".\n    *   Context: This looks like a programming query, likely related to TypeScript (due to `any` and type safety discussions) or Rust/Java/C# (unsafe cast). It touches on static/dynamic typing, type checking mechanisms, and potential runtime errors.\n    *   Intent: The user is likely asking about how to handle type safety issues involving the `any` type, assertions (like `assertType`, `satisfies`, or `as`), and unsafe casting operations. They might want examples, best practices, or explanations of the risks involved.\n\n3.  **Drafting `lex` (Keyword Variants for BM2",
+      "latencyMs": 14526,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"memory leak event listener cleanup\"\n    *   Role: Code search query expansion engine.\n    *   Output Format: Exactly 3 lines (lex, vec, hyde), no other text.\n    *   Types:\n        *   `lex`: Keyword variants for BM25 search (technical terms, synonyms, related identifiers).\n        *   `vec`: A natural language rephrasing for semantic vector search.\n        *   `hyde`: A short hypothetical code snippet that would match this query.\n\n2.  **Analyze the Query:**\n    *   Keywords: \"memory leak\", \"event listener\", \"cleanup\".\n    *   Intent: The user is likely looking for code examples, best practices, or methods to prevent memory leaks caused by event listeners (e.g., in JavaScript, Swift, Kotlin, etc.) or how to properly remove them when they are no longer needed.\n\n3.  **Drafting `lex` (Keywords for BM25):**\n    *   Need synonyms and related terms.\n    *   \"memory leak\" -> memory leakage, memory exhaustion, garbage collection, retain cycle.\n    *   \"event listener\" -> event handler, attach listener, addEventListener, removeEventListener, subscription, observer.\n    *   \"cleanup\" -> dispose, teardown, unregister, remove, destroy",
+      "latencyMs": 14961,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Input Query: \"race condition async concurrent access\"\n    *   Task: Expand the query into three specific types: `lex`, `vec`, and `hyde`.\n    *   Output Format: Exactly 3 lines, no other text.\n        *   Line 1: `lex: ...` (keyword variants for BM25)\n        *   Line 2: `vec: ...` (natural language rephrasing for semantic search)\n        *   Line 3: `hyde: ...` (short hypothetical code snippet)\n\n2.  **Analyze the Input Query:**\n    *   Keywords: \"race condition\", \"async\", \"concurrent access\".\n    *   Context: Software development, specifically concurrency control in asynchronous programming.\n    *   Intent: The user is likely looking for solutions, explanations, or code examples regarding how to prevent race conditions in asynchronous concurrent environments.\n\n3.  **Drafting `lex` (Keyword Variants):**\n    *   Need technical terms, synonyms, related identifiers.\n    *   \"race condition\" -> race_condition, data_race, thread_safety, atomicity.\n    *   \"async\" -> asynchronous, aio, await, promise, coroutine, future.\n    *   \"concurrent access\" -> concurrent_execution, parallel_access, mutex, lock, semaphore,",
+      "latencyMs": 16569,
+      "tokenCount": 299
+    }
+  ]
+}

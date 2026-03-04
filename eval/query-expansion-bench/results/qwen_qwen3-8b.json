@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "Qwen3-8B",
+    "lmsKey": "qwen/qwen3-8b",
+    "family": "qwen3",
+    "paramsB": 8
+  },
+  "timestamp": "2026-03-03T23:33:08.438Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 0.3206,
+    "keyword": 0.3096,
+    "semantic": 0.228,
+    "hyde": 0.14300000000000004,
+    "latencyMs": 12238.26,
+    "total": 0.22239000000000003
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "Qwen3-8B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 12913,
+      "total": 0.547,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"useEffect cleanup\". Let me break this down.\n\nFirst, for lex expansion. I need to think of related terms and synonyms. \"useEffect\" is a React hook, so maybe terms like \"React cleanup\", \"componentWillUnmount\", or \"effect hooks\". Also, related identifiers could be \"useEffect dependencies\" or \"cleanup functions in React\".\n\nNext, vec expansion. This is for semantic search. I should rephrase the query into a natural language description. Maybe something like \"how to perform cleanup operations in React's useEffect hook\" or \"best practices for cleaning up side effects in React components\".\n\nThen hyde, which is a hypothetical code snippet. The user wants a short example that matches the query. So, a React component using useEffect with a cleanup function, perhaps using return inside useEffect to cancel an interval or fetch request.\n\nWait, I should make sure the hyde example is simple. Like setting up an interval in useEffect and then cleaning it up in the return statement. That's a common use case for cleanup in useEffect.\n\nLet me check if I covered all aspects. Lex has technical terms and synonyms, vec is a rephrased query for semantic search, hyde is a code example. Yeah, that should work.\n</think>\n\nlex: useEffect cleanup, React component unmount, effect hook dependencies, cancelable async requests, componentWillUnmount equivalent\nvec: how to properly clean up side effects in React components using the",
+        "lex": "useEffect cleanup, React component unmount, effect hook dependencies, cancelable async requests, componentWillUnmount equivalent",
+        "vec": "how to properly clean up side effects in React components using the",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 11818,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"handleSubmit function\". Let me break down each part.\n\nFirst, for lex: I need to think of keyword variants and related terms. \"handleSubmit\" is a common function name in forms, so synonyms might include \"onSubmit\", \"submitHandler\", or \"formSubmit\". Also, related identifiers could be things like \"event handler\", \"React onSubmit\", or \"form submission function\". Maybe include terms related to different frameworks, like \"Angular submit\", \"Vue onSubmit\".\n\nNext, vec: This is for semantic vector search. I need a natural language rephrase. Instead of \"handleSubmit function\", maybe something like \"function that handles form submission\" or \"method for processing user input on submit\". Also, think about related concepts like \"event handling in forms\" or \"submit button click handler\".\n\nHyde: A hypothetical code snippet. The user probably wants an example of a handleSubmit function. Let's think of a simple React example where the function prevents default, validates data, and submits. Maybe include a check for empty fields and a console log. Also, consider other frameworks like vanilla JS or Angular, but React is common so that's a safe example.\n\nWait, should I include multiple frameworks in hyde? The user might want a short snippet, so maybe stick to one. React is a good choice because handleSubmit is commonly used there. Make sure the code is minimal but shows the function's purpose.\n\nCheck if all parts are",
+        "lex": null,
+        "vec": null,
+        "hyde": "A hypothetical code snippet. The user probably wants an example of a handleSubmit function. Let's think of a simple React example where the function prevents default, validates data, and submits. Maybe include a check for empty fields and a console log. Also, consider other frameworks like vanilla JS or Angular, but React is common so that's a safe example."
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 11489,
+      "total": 0.7587500000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"SearchBar component\" into lex, vec, and hyde. Let's start with lex. I need to think of keyword variants for BM25 search. So, synonyms for \"SearchBar\" might be \"search bar\", \"search input\", \"filter component\". Also, related identifiers like \"react searchbar\", \"vue search component\", maybe \"material ui search bar\". \n\nFor vec, it's a natural language rephrasing for semantic search. Maybe something like \"component for implementing a searchable input field\" or \"UI element that allows users to search through data\". Need to make it more descriptive.\n\nHyde is a hypothetical code snippet. Let's think of a simple example. Maybe a React component with a search input and a handler. Or a Vue template with a search box. Keep it short, like a function component with an input and onChange event.\n\nWait, the user might be looking for different frameworks. Should I include multiple examples? But hyde should be a short snippet, maybe one example. Let's go with React since it's common. So something like a functional component with an input and a handleChange function. Make sure to include the necessary imports and structure.\n</think>\n\nlex: search bar, search input, filter component, react searchbar, vue search component, material ui search bar\nvec: UI element for searchable input with filtering functionality\nhyde: const SearchBar = ({ onSearch",
+        "lex": "search bar, search input, filter component, react searchbar, vue search component, material ui search bar",
+        "vec": "UI element for searchable input with filtering functionality",
+        "hyde": "const SearchBar = ({ onSearch"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 11459,
+      "total": 0.6955000000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user's query is \"createEmbeddingsClient\". Let me break this down.\n\nFirst, for lex expansion. I need to think about technical terms related to creating an embeddings client. Maybe synonyms like \"initialize\", \"setup\", or \"configure\". Also, related identifiers could be things like \"embedding model\", \"vector database\", or specific libraries like \"FAISS\", \"Pinecone\", or \"Weaviate\". So the lex expansion would include those terms.\n\nNext, vec expansion. This is for semantic search, so I need a natural language rephrase. The original query is about creating a client for embeddings. So maybe something like \"How to set up a client for generating and managing vector embeddings in a machine learning pipeline?\" That's more descriptive and covers the process of setting up such a client.\n\nFor hyde, I need a hypothetical code snippet. The user might be looking for example code using a library like FAISS or something similar. So I'll write a Python example that initializes an embeddings client, maybe using FAISS's IndexFlatL2 and then creating a client instance. The code should be concise but show the necessary steps.\n</think>\n\nlex: createEmbeddingsClient, initializeEmbeddingModel, setupVectorDatabase, FAISS, Pinecone, Weaviate\nvec: How to set up a client for generating and managing vector embeddings in a machine learning pipeline?\nhyde: import faiss; index = faiss.IndexFlatL2",
+        "lex": "createEmbeddingsClient, initializeEmbeddingModel, setupVectorDatabase, FAISS, Pinecone, Weaviate",
+        "vec": "How to set up a client for generating and managing vector embeddings in a machine learning pipeline?",
+        "hyde": "import faiss; index = faiss.IndexFlatL2"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.125,
+      "latencyMs": 11460,
+      "total": 0.6462500000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"parseParameterSize\". Let me break down each part.\n\nFirst, for lex: I need to think of synonyms and related terms. \"Parse\" could be \"interpret\", \"decode\", or \"extract\". \"Parameter\" might have synonyms like \"argument\", \"variable\", or \"option\". \"Size\" could be \"dimension\", \"length\", or \"capacity\". Also, maybe related terms like \"input parsing\" or \"data size analysis\".\n\nNext, vec: This is for semantic search. I should rephrase the query in natural language. Maybe something like \"how to determine the size of a parameter in a parsed input\" or \"methods for evaluating parameter dimensions during parsing\".\n\nHyde: Need a hypothetical code snippet. Perhaps a function that checks the size of a parameter, handling different data types. For example, using isinstance to check if it's a list or string and then getting the length. Also include error handling for unexpected types.\n\nWait, should I consider other data structures? Like dictionaries or objects with a size attribute. Maybe add a check for those as well. Also, make sure the code is concise but covers common cases.\n</think>\n\nlex: parse, interpret, decode, parameter, argument, variable, size, dimension, length, capacity, input parsing, data size analysis\nvec: how to determine the size of a parameter in a parsed input or evaluate parameter dimensions during data processing\nhyde: def",
+        "lex": "parse, interpret, decode, parameter, argument, variable, size, dimension, length, capacity, input parsing, data size analysis",
+        "vec": "how to determine the size of a parameter in a parsed input or evaluate parameter dimensions during data processing",
+        "hyde": "def"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 11439,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"buildCombinedIndex\" into lex, vec, and hyde. Let me start by understanding each part.\n\nFor lex, I need to think of keyword variants and related terms. The main term is \"buildCombinedIndex\". Maybe break it down into parts like \"build index\", \"combined index\", \"merge indexes\". Also, synonyms for build could be create, construct. For combined, maybe merged, integrated. Technical terms related to indexing: full-text index, composite index, hybrid index. Also, possible identifiers like \"buildCombinedIndex\" might be part of a larger system, so maybe related terms like \"index merging\", \"combined search index\".\n\nNext, vec is a natural language rephrase for semantic search. The original query is about building a combined index. So I need to think of different ways to phrase that. Maybe \"how to create a merged search index\", \"techniques for combining multiple indexes into one\", \"methods to build a composite index system\".\n\nHyde is a hypothetical code snippet. The user wants a short example that matches the query. So, perhaps a function or script that combines multiple indexes. Using Python as an example, maybe using libraries like Whoosh or Elasticsearch. The code could involve loading multiple indexes, merging them, and saving the combined one. For example, using a loop to open each index, add documents to a new index, and then commit.\n\nWait, but the user might be",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 10608,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"cosineSimilarity helper\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms related to cosine similarity and synonyms. Maybe \"cosine similarity function\", \"dot product calculation\", \"vector similarity metric\". Also, related identifiers like \"cosine_sim\" or \"scipy cosine similarity\".\n\nNext, vec: A natural language rephrase. Maybe something like \"how to calculate the cosine similarity between two vectors\" or \"function to measure vector similarity using cosine angle\".\n\nHyde: A hypothetical code snippet. Perhaps a Python function using numpy to compute cosine similarity. Import numpy, define a function with vectors as inputs, compute the dot product and norms, then return the similarity.\n\nCheck if all parts are covered. Lex has keywords and synonyms, vec is a rephrased question, hyde is a code example. Looks good.\n</think>\n\nlex: cosine similarity function, dot product calculation, vector similarity metric, cosine_sim, scipy cosine similarity\nvec: how to calculate the cosine similarity between two vectors using a helper function\nhyde: import numpy as np; def cosine_similarity(v1, v2): return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))",
+        "lex": "cosine similarity function, dot product calculation, vector similarity metric, cosine_sim, scipy cosine similarity",
+        "vec": "how to calculate the cosine similarity between two vectors using a helper function",
+        "hyde": "import numpy as np; def cosine_similarity(v1, v2): return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 11899,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"QueryGenerator class\". Let me break down each part.\n\nFirst, for lex: I need to think of synonyms and related terms. \"QueryGenerator\" could be broken down into \"query\" and \"generator\". Synonyms for query might include \"search\", \"request\", \"inquiry\". For generator, maybe \"create\", \"produce\", \"generate\". Also, technical terms related to query generation like \"SQL query\", \"natural language processing\", \"template-based\". Maybe include terms like \"parser\", \"formatter\" as related identifiers.\n\nNext, vec: This is a natural language rephrasing. I need to think of different ways to phrase \"QueryGenerator class\". Maybe \"class that creates search queries\", \"tool for generating database queries\", \"framework for building query objects\". Also consider different contexts like \"query builder\", \"dynamic query creation\".\n\nHyde: A hypothetical code snippet. The user wants a short example that matches the query. So, a class named QueryGenerator with methods to generate queries. Maybe using templates or some logic. For example, a method that takes parameters and returns a query string. Use placeholders for different query types like SQL or NoSQL.\n\nWait, should I include more technical terms in lex? Maybe \"query engine\", \"query builder\" as related identifiers. Also, think about other programming terms related to generating queries, like \"query syntax\", \"query optimization\".\n\nFor vec, maybe also consider",
+        "lex": null,
+        "vec": null,
+        "hyde": "A hypothetical code snippet. The user wants a short example that matches the query. So, a class named QueryGenerator with methods to generate queries. Maybe using templates or some logic. For example, a method that takes parameters and returns a query string. Use placeholders for different query types like SQL or NoSQL."
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 11804,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"aggregateRetrievalResults\" into lex, vec, and hyde. Let me start by understanding each part.\n\nFor lex, I need to think of keyword variants and related terms. The main term is \"aggregateRetrievalResults\". Maybe synonyms for aggregate could be collect, compile, combine. Retrieval results might relate to search results, data retrieval, or query results. So terms like \"collectSearchResults\", \"compileQueryData\", \"combineRetrievalOutcomes\" could be part of the lex expansion. Also, technical terms like \"resultAggregation\", \"dataConsolidation\" might fit.\n\nNext, vec is a natural language rephrase for semantic search. The original query is about aggregating retrieval results, so maybe something like \"method to combine multiple search result sets into a unified output\" or \"technique for merging retrieval outcomes from different sources\". That should capture the essence for a vector search.\n\nHyde is a hypothetical code snippet. The user probably wants a short example that demonstrates aggregating retrieval results. Maybe using Python with a function that combines results from different sources. For example, a function that takes lists of results and merges them, handling duplicates. Using sets to avoid duplicates and then converting back to a list. That's simple and shows the aggregation process.\n\nWait, should I include error handling or more complex logic? Probably keep it basic as per the example. The code should be concise",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 11716,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"LocalLLMClient constructor\". Let me break down each part.\n\nFirst, for lex: I need to think of keyword variants. The main terms are \"LocalLLMClient\" and \"constructor\". Maybe synonyms for constructor like initializer or factory. Also, related identifiers like LocalLLMClient class, methods, or parameters. Maybe include variations like \"LocalLLMClient::__construct\" if that's a common syntax.\n\nNext, vec: A natural language rephrasing. Instead of \"LocalLLMClient constructor\", maybe \"how to instantiate LocalLLMClient\" or \"creating an instance of LocalLLMClient\". Also, think about related concepts like initialization methods or dependency injection.\n\nHyde: A hypothetical code snippet. Since it's a constructor, maybe show a class definition with a constructor. For example, in Python, using __init__, or in another language like Java with a constructor method. Make sure to include parameters that LocalLLMClient might have, like model path or configuration.\n\nWait, the user might be looking for code examples that demonstrate the constructor. So the hyde example should show how to create an instance, maybe with parameters. Let me make sure the code is simple and matches common practices. Also, check if LocalLLMClient is a specific library's class, but since I don't have that context, keep it generic.\n\nDouble-checking each part: lex covers synonyms and related terms",
+        "lex": null,
+        "vec": null,
+        "hyde": "A hypothetical code snippet. Since it's a constructor, maybe show a class definition with a constructor. For example, in Python, using __init__, or in another language like Java with a constructor method. Make sure to include parameters that LocalLLMClient might have, like model path or configuration."
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 11790,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about fixing a TypeError where they can't read a property of undefined. Let me break this down.\n\nFirst, for the lex expansion. I need to think about related technical terms and synonyms. Terms like \"TypeError\", \"undefined property\", \"property access error\". Maybe include related identifiers like \"JavaScript errors\", \"debugging undefined variables\", \"null checks\".\n\nNext, the vec part. This is for semantic search. I should rephrase the query into a more natural language form. Maybe something like \"How to resolve JavaScript error when accessing a property of an undefined variable?\" or \"Best practices for handling undefined properties in JavaScript to avoid TypeErrors.\"\n\nFor hyde, I need a hypothetical code snippet that demonstrates the issue and a fix. The original error occurs when trying to access a property of an undefined variable. So, the code might have something like obj.property, but if obj is undefined, that causes the error. The fix would involve checking if the variable is defined before accessing its properties. So, maybe using optional chaining (obj?.property) or adding a null check.\n\nWait, the user might be looking for examples of how to prevent this error. Let me make sure the hyde example shows both the problem and the solution. Like, a code snippet that tries to access a property without checking, then another that uses optional chaining or a condition to handle it.\n\nI should also consider common scenarios where this error occurs, like when a function returns",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12080,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about resolving an ECONNREFUSED error on localhost. Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to ECONNREFUSED. That's a socket error, so maybe synonyms like \"connection refused\", \"localhost connection issue\". Also, related identifiers could be error codes like 111 or 104. Maybe terms like \"bind\", \"listen\", \"socket programming\". Also, possible causes like \"server not running\", \"firewall blocking\".\n\nNext, the vec expansion. This is for semantic search. I should rephrase the query in natural language. Maybe something like \"how to fix connection refused error when connecting to local server\" or \"common causes of ECONNREFUSED on localhost and solutions\".\n\nFor hyde, a hypothetical code snippet. The user might be trying to connect to a local server that's not running. So a code example could be checking if the server is running, handling exceptions, or using a timeout. Like trying to connect with a try-catch block and checking if the server is active.\n\nWait, should hyde be a code example that would match the query? So maybe a Python snippet using socket to connect and handle the error. Or a Node.js example. Let me think of a simple code that attempts a connection and handles ECONNREFUSED.\n\nI need to make sure each expansion is distinct. Lex for BM25, vec for",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 12221,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is facing a \"module not found cannot resolve import\" error. Let me think about how to expand this query.\n\nFirst, for lex expansion: I need technical terms related to module imports. Terms like \"import error\", \"missing module\", \"resolve import path\", \"package not found\". Also, maybe include common package names like \"numpy\" or \"pandas\" as examples. Synonyms for module could be library, package, dependency.\n\nNext, vec expansion: A natural language rephrasing. Maybe something like \"unable to locate imported module in Python environment\" or \"import statement fails due to missing package\". This helps semantic search understand different ways people phrase the same issue.\n\nHyde snippet: A hypothetical code example. Perhaps a Python script trying to import a non-existent module, like 'import nonexistent_module'. Then the error message that appears. This shows a common scenario leading to the error.\n\nWait, should hyde include the error message? The user might want to see how the error looks. So maybe:\n\nhyde: import nonexistent_module\n\nBut maybe add the error output? The user's original query mentions \"cannot resolve import\", so the hyde example should demonstrate that scenario. Maybe include the error message as part of the snippet? Or just the code that would cause it. Since hyde is a hypothetical code snippet that would match the query, showing the import line and the resulting error would help. But the user's example in the initial",
+        "lex": null,
+        "vec": null,
+        "hyde": "import nonexistent_module"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12158,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"CORS origin not allowed headers\". Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms and synonyms related to CORS issues. Keywords like \"CORS\", \"preflight\", \"Access-Control-Allow-Origin\", \"origin header\", \"CORS policy\", and maybe related HTTP methods like \"OPTIONS\". Also, terms like \"CORS error\" or \"CORS configuration\" might be useful. Maybe include some related headers like \"Access-Control-Request-Headers\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to handle CORS origin header restrictions in HTTP responses\" or \"Solving CORS issues with incorrect Access-Control-Allow-Origin headers\". It should capture the problem of the origin not being allowed and the headers involved.\n\nFor hyde, a hypothetical code snippet. The user might be looking for an example of setting the correct headers in a server response to allow a specific origin. So, a Node.js example using Express would work. The code should include setting the Access-Control-Allow-Origin header and possibly other CORS-related headers like Allow-Methods, Allow-Headers, etc. Maybe include a check for the origin and set it accordingly.\n\nWait, should I use a different framework? Maybe Python Flask or Django? But Express is common. Also, need to make sure the code is concise and shows the necessary headers. Let me check if the example covers the main",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 12065,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"out of memory heap allocation failed\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to memory issues. Terms like \"out of memory\", \"heap overflow\", \"memory allocation failure\", maybe \"segmentation fault\" since that's related. Also, identifiers like \"OOM\" (Out of Memory) and error codes like \"ENOMEM\" or \"EXC_BAD_ACCESS\" on macOS. These would help in BM25 search.\n\nNext, vec: This is for semantic vector search. I should rephrase the query in natural language. Maybe \"memory allocation error during heap management\" or \"system unable to allocate memory for heap\". Also, considering related issues like \"memory exhaustion during program execution\" or \"heap corruption leading to allocation failure\". These rephrased versions capture the same problem but in different ways.\n\nHyde: Need a hypothetical code snippet that matches this query. Think of a scenario where heap allocation fails. For example, in C++, trying to allocate a large array without checking for failure. Or in Python, using a list that grows too big. Maybe a C example where malloc returns null, leading to an error. Also, include a try-catch block in Python to handle memory errors. Make sure the code is short and demonstrates the issue.\n\nCheck if all parts are covered. Lex has technical terms, vec rephrases naturally, hyde",
+        "lex": null,
+        "vec": null,
+        "hyde": "Need a hypothetical code snippet that matches this query. Think of a scenario where heap allocation fails. For example, in C++, trying to allocate a large array without checking for failure. Or in Python, using a list that grows too big. Maybe a C example where malloc returns null, leading to an error. Also, include a try-catch block in Python to handle memory errors. Make sure the code is short and demonstrates the issue."
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "Qwen3-8B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 0.4,
+      "hyde": 0,
+      "latencyMs": 12251,
+      "total": 0.42700000000000005,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about a query related to \"database connection timeout pool exhausted.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms and synonyms related to database connection issues. Keywords like \"connection timeout,\" \"pool exhausted,\" \"database pool,\" \"resource exhaustion,\" \"maximum connections,\" \"wait_timeout,\" \"connect timeout,\" and maybe specific terms like \"JDBC connection pool\" or \"Hibernate session factory.\" Also, related identifiers like \"maxPoolSize\" or \"connectionTimeout.\"\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"how to resolve database connection pool exhaustion and timeout errors\" or \"strategies for preventing database connection timeouts when the pool is exhausted.\" It should capture the problem and possible solutions.\n\nFor hyde, a hypothetical code snippet. The user might be looking for code that handles connection pooling. So, an example using a try-with-resources block to manage connections, setting timeout parameters, and handling exceptions. Maybe using Java's JDBC with a connection pool like HikariCP, including setting maximum pool size and timeout values.\n\nLet me check if I covered all aspects. Lex has technical terms and synonyms, vec is a rephrased problem statement, hyde provides a code example. I think that's it.\n</think>\n\nlex: connection timeout pool exhausted database resource exhaustion maxPoolSize wait_timeout connect timeout JDBC connection pool\nvec: how to",
+        "lex": "connection timeout pool exhausted database resource exhaustion maxPoolSize wait_timeout connect timeout JDBC connection pool",
+        "vec": "how to",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12424,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is looking for a query expansion related to \"promise rejected unhandled async error\". Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms and synonyms related to promises and unhandled errors in async code. Terms like \"Promise rejection\", \"Unhandled promise rejection\", \"Async error handling\", \"JavaScript uncaught exception\", \"Error handling in async functions\". Maybe also include related identifiers like \"Node.js unhandled rejection\" or \"UnhandledRejection event\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to handle unhandled promise rejections in asynchronous JavaScript code\" or \"Best practices for catching errors in async promises\". It should capture the intent of managing unhandled rejections in async operations.\n\nFor hyde, I need a hypothetical code snippet that demonstrates the issue. Perhaps an example where an async function throws an error without a try-catch, leading to an unhandled rejection. Like using Promise.reject() without .catch(), or an async function that doesn't handle errors. Maybe include a setTimeout to simulate async behavior and show the error.\n\nWait, should I use .catch() or something else? The example should show the unhandled rejection. So maybe:\n\nPromise.reject('Error occurred').catch(...); // handled\nPromise.reject('Error occurred'); // unhandled\n\nOr an async function that throws and isn't caught. Also, maybe mention using process.on",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12542,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about a \"circular dependency detected import cycle.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms and synonyms related to circular dependencies in imports. Terms like \"import cycle,\" \"circular reference,\" \"module import loop,\" \"dependency loop,\" \"cyclic import,\" and maybe \"import circularity.\" Also, related identifiers like \"Python import cycle\" since Python is a common context for this issue. Maybe include terms like \"module circular dependency\" and \"circular module import.\"\n\nNext, the vec expansion. This should be a natural language rephrasing for semantic search. So instead of the exact query, phrase it in different ways. Like \"how to resolve import cycles in Python modules,\" or \"error handling for circular dependencies during module imports.\" Also, maybe mention common scenarios like \"modules that depend on each other in a loop\" or \"import statements creating a circular reference.\"\n\nNow the hyde part. Need a hypothetical code snippet that demonstrates the issue. Let's think of two modules, module_a and module_b, each importing the other. For example, module_a imports module_b and uses a function from it, while module_b imports module_a. This creates the circular dependency. The code should show the import statements and maybe a function that causes the cycle. Also, include a comment indicating the error.\n\nWait, should I use Python syntax? Probably, since that's a common scenario",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12398,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, let's tackle this query expansion. The user is looking for a type error where an argument isn't assignable to a parameter. First, I need to break down the original query: \"type error argument not assignable to parameter\". \n\nFor the lex expansion, I should think about synonyms and related technical terms. \"Type error\" could also be \"type mismatch\" or \"invalid type\". \"Argument not assignable\" might relate to \"parameter assignment\", \"type coercion issues\", or \"type compatibility\". Maybe include terms like \"TypeError\" (the actual exception name), \"type checking\", and \"assignment error\". Also, considering programming languages like Python or JavaScript where such errors are common.\n\nNext, the vec expansion. This is for semantic search, so I need a natural language rephrase. Instead of the technical terms, maybe something like \"error when passing an incorrect type to a function parameter\" or \"issue where a variable's type doesn't match the expected parameter type\". It should be more descriptive and less technical to capture the same meaning.\n\nFor hyde, I need a hypothetical code snippet that would cause this error. Let's think of a simple example. In Python, if you have a function expecting an integer but pass a string. Like def add(a: int): ... and then add(\"5\"). That would raise a TypeError. Alternatively, in JavaScript, a function parameter expecting a number but getting a string. The code should be short and demonstrate the error clearly.\n\n",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12348,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about a \"permission denied EACCES file access\" error. Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to EACCES and file permissions. EACCES stands for \"Error Access,\" so synonyms might include \"access denied,\" \"permission error,\" or \"file access issues.\" Also, related identifiers could be things like \"chmod\" for changing permissions, \"sudo\" for elevated access, or specific error codes like \"EACCES\" itself. Maybe include terms like \"file permissions,\" \"read/write access,\" and \"user privileges.\"\n\nNext, the vec expansion. This is for semantic vector search, so I need a natural language rephrase. Instead of technical terms, think about how someone might describe the problem in plain language. Maybe \"unable to access file due to permission restrictions\" or \"error when trying to open file without proper permissions.\" Also, consider related scenarios like \"file access denied by system\" or \"application lacks necessary file permissions.\"\n\nNow, the hyde snippet. This should be a hypothetical code example that matches the query. The error occurs when a program tries to access a file but doesn't have the right permissions. So, a Python example using open() might raise an OSError with EACCES. The code could try to open a file, catch the error, and print a message. Maybe include using sudo or checking permissions as solutions in comments.\n\nWait,",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 12389,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"authentication middleware\". Let me break down each part.\n\nFirst, for lex: I need keyword variants. Technical terms related to authentication middleware might include things like OAuth, JWT, SAML, maybe session management. Also, synonyms could be \"authentication layer\", \"security middleware\". Related identifiers might involve specific frameworks or protocols. So I should list terms like OAuth2, JWT, SAML, session management, API gateways, authentication layer, security middleware, token-based auth, OpenID Connect.\n\nNext, vec: a natural language rephrasing for semantic search. I need to think of different ways to phrase the same concept. Maybe \"how to implement secure user authentication using middleware\", or \"middleware solutions for handling user credentials and access control\". Also, terms like \"secure authentication flow\", \"third-party auth integration\".\n\nHyde: a hypothetical code snippet. The user wants a short example that matches the query. Maybe something using OAuth2 with Flask or Express. For example, a middleware function that checks for a token, verifies it, and allows access. Using libraries like 'passport.js' or 'oauthlib'. The code should demonstrate checking a token, validating it against an issuer, and granting access if valid.\n\nWait, I need to make sure the code is hypothetical but relevant. Maybe using a simple middleware in Node.js with Express, checking for a JWT token in the headers. The code would include steps like extracting the token",
+        "lex": null,
+        "vec": null,
+        "hyde": "a hypothetical code snippet. The user wants a short example that matches the query. Maybe something using OAuth2 with Flask or Express. For example, a middleware function that checks for a token, verifies it, and allows access. Using libraries like 'passport.js' or 'oauthlib'. The code should demonstrate checking a token, validating it against an issuer, and granting access if valid."
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "Qwen3-8B",
+      "format": 0.67,
+      "keyword": 0.96,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 12449,
+      "total": 0.42225,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"rate limiting implementation\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to rate limiting. Terms like \"rate limiting\", \"API throttling\", \"request throttling\", \"token bucket algorithm\", \"sliding window\", \"fixed window\". Also, maybe related identifiers like \"Nginx rate limiting\", \"Redis-based rate limiting\", or \"Express.js rate limiting\". These are specific implementations or tools.\n\nNext, vec: This is for semantic search. I should rephrase the query in natural language. Maybe something like \"how to implement rate limiting in web applications\" or \"techniques for controlling request frequency\". Also, mention different methods like using middleware, in-memory storage, or databases.\n\nHyde: Need a hypothetical code snippet. Let's think of a simple example using a common framework. Maybe in Python with Flask and a token bucket algorithm. Use a dictionary to track request counts, check against a limit, and return appropriate responses. Make sure it's concise but shows the core logic.\n\nCheck if all parts are covered. Lex has technical terms and related identifiers. Vec is a rephrased natural language query. Hyde is a short code example. Avoid markdown, keep each line separate. Make sure the code uses variables and logic to demonstrate rate limiting.\n</think>\n\nlex: rate limiting, API throttling, request throttling, token bucket algorithm, sliding",
+        "lex": "rate limiting, API throttling, request throttling, token bucket algorithm, sliding",
+        "vec": null,
+        "hyde": "Need a hypothetical code snippet. Let's think of a simple example using a common framework. Maybe in Python with Flask and a token bucket algorithm. Use a dictionary to track request counts, check against a limit, and return appropriate responses. Make sure it's concise but shows the core logic."
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 0.7,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 12470,
+      "total": 0.6987500000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"caching strategy invalidation\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to caching strategies and invalidation. Terms like cache eviction, cache coherence, stale data, cache expiration, and maybe specific protocols like MSI or MESI. Also, identifiers like LRU, LFU, or cache tags.\n\nNext, vec: This should be a natural language rephrase for semantic search. Maybe something like \"methods to ensure cache data remains up-to-date by removing outdated entries\" or \"techniques for updating cache contents when underlying data changes\".\n\nHyde: A hypothetical code snippet. Perhaps a function that checks if cached data is stale and invalidates it when necessary. Using something like a timestamp comparison or version check. Maybe in Python with a decorator that handles invalidation based on data changes.\n\nWait, should the hyde example be in a specific language? The user didn't specify, but since it's hypothetical, Python is a safe choice. Let me make sure the code example is simple and directly relates to invalidating cache entries when data changes.\n</think>\n\nlex: cache eviction, cache coherence, stale data, cache expiration, MSI protocol, MESI protocol, LRU, LFU, cache tags\nvec: techniques to ensure cached data remains current by removing outdated entries when underlying data changes\nhyde: def invalidate_cache(data_id): if is_stale(data",
+        "lex": "cache eviction, cache coherence, stale data, cache expiration, MSI protocol, MESI protocol, LRU, LFU, cache tags",
+        "vec": "techniques to ensure cached data remains current by removing outdated entries when underlying data changes",
+        "hyde": "def invalidate_cache(data_id): if is_stale(data"
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 12439,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"retry logic exponential backoff\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to exponential backoff. Terms like \"exponential backoff algorithm\", \"retry mechanisms\", \"network retry strategies\". Also, related identifiers might include specific implementations or frameworks, like \"exponential backoff in Python\", \"retry libraries\", or maybe even specific protocols that use this, like TCP's backoff.\n\nNext, vec: This is for semantic vector search. So I need a natural language rephrase that captures the same meaning. Maybe something like \"strategies for automatically retrying failed requests with increasing delays between attempts\" or \"methods to handle transient failures by escalating retry intervals\".\n\nHyde: A hypothetical code snippet. The user wants a short example that matches the query. So, perhaps a Python function using a library like tenacity. The code would include a retry decorator with exponential backoff, maybe with some parameters like max retries and delay. For example, using @retry decorator with wait_exponential_backoff.\n\nWait, but the user might not be familiar with tenacity. Maybe a more generic example? But since it's hypothetical, using a common library is okay. Also, need to make sure the code snippet is concise and directly relates to exponential backoff.\n\nLet me check if I covered all aspects. Lex has synonyms and related terms, vec is a rephr",
+        "lex": null,
+        "vec": null,
+        "hyde": "A hypothetical code snippet. The user wants a short example that matches the query. So, perhaps a Python function using a library like tenacity. The code would include a retry decorator with exponential backoff, maybe with some parameters like max retries and delay. For example, using @retry decorator with wait_exponential_backoff."
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12412,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"connection pooling database.\" Let me break this down.\n\nFirst, for lex expansion. I need to think of technical terms and synonyms related to connection pooling in databases. Keywords like \"connection pooling,\" \"database connection pooling,\" \"pooling connections,\" maybe \"JDBC connection pool\" since that's a common implementation. Also, related terms like \"database pooling,\" \"connection management,\" and maybe specific technologies like \"HikariCP\" or \"Apache DBCP.\" Also, terms like \"resource pooling,\" \"connection reuse,\" and \"database connection pool configuration.\"\n\nNext, the vec expansion. This is for semantic search, so I need a natural language rephrase. Instead of \"connection pooling database,\" maybe something like \"optimizing database connections using connection pools to improve performance and resource management.\" That's more descriptive and covers the purpose of connection pooling.\n\nFor hyde, I need a hypothetical code snippet. Let's think of a simple example using a common library. Maybe Java with HikariCP. The code would show creating a pool, configuring it, and getting a connection. Include parameters like maximum pool size and connection timeout. Make sure it's concise but shows the essential parts of setting up a connection pool.\n\nCheck if all three expansions are distinct and cover different aspects. Lex is about keywords, vec is a rephrased query for semantic search, and hyde is an example code. Make sure the code uses proper syntax and",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "Qwen3-8B",
+      "format": 0.33,
+      "keyword": 0.6799999999999999,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12520,
+      "total": 0.21699999999999997,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"event driven architecture pub sub.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to event-driven architecture and publish-subscribe patterns. Keywords like \"event sourcing,\" \"message brokers,\" \"Apache Kafka,\" \"RabbitMQ,\" \"callback functions,\" \"event streams,\" \"asynchronous communication,\" and maybe some related patterns like \"observer pattern\" or \"reactive programming.\" Also, identifiers like \"EDA frameworks\" or specific technologies.\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"architecture that uses event propagation for asynchronous communication between services, utilizing publish-subscribe models for decoupled interactions.\" That should capture the essence for vector search.\n\nFor hyde, a hypothetical code snippet. I need to think of a simple example that demonstrates pub-sub in EDA. Using Python with a message broker like Redis or RabbitMQ. Maybe a producer publishing an event and consumers subscribing to it. Using async functions and event loops. Something like setting up a publisher that sends messages to a channel, and subscribers that listen for specific events.\n\nWait, should I use a specific library? Maybe mention a common one like Redis or RabbitMQ. But since it's hypothetical, maybe just pseudocode. Let me structure it with async functions, event loops, and channels. Make sure to include the pub-sub pattern elements.\n</think>\n\nlex: event sourcing,",
+        "lex": "event sourcing,",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "Qwen3-8B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 12336,
+      "total": 0.547,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"dependency injection service container.\" Let me break this down.\n\nFirst, for lex expansion. I need to think of technical terms related to dependency injection and service containers. Keywords like \"DI container,\" \"Inversion of Control,\" \"IoC container,\" \"service locator pattern,\" \"constructor injection,\" \"setter injection,\" \"property injection.\" Also, frameworks like Spring (for Java), ASP.NET Core's DI, and others. Maybe include terms like \"resolution,\" \"lifetime management,\" \"scoped services.\"\n\nNext, vec expansion. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"how to manage and resolve dependencies in a service container using inversion of control principles.\" That should capture the essence for vector search.\n\nHyde is a hypothetical code snippet. Let me think of a simple example. Maybe a Python example using a DI container. Using a class-based approach with a registry to store services. The user can register services and retrieve them, handling dependencies automatically. Something like a registry with a get method that checks if the service is already registered, else creates it. That should demonstrate the concept.\n</think>\n\nlex: dependency injection, DI container, inversion of control, IoC container, service locator pattern, constructor injection, setter injection, property injection, Spring framework, ASP.NET Core DI, service resolution, lifetime management, scoped services\nvec: how to manage and resolve dependencies in a service container",
+        "lex": "dependency injection, DI container, inversion of control, IoC container, service locator pattern, constructor injection, setter injection, property injection, Spring framework, ASP.NET Core DI, service resolution, lifetime management, scoped services",
+        "vec": "how to manage and resolve dependencies in a service container",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12367,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user's query is about \"pagination cursor offset limit\". Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms related to pagination methods. There's \"offset limit\" which is common in SQL, but also terms like \"cursor-based pagination\", \"server-side cursor\", maybe \"limit offset\" as a term. Also, synonyms like \"paging\", \"navigation\", \"scrolling\". Maybe include terms related to databases or APIs, like \"SQL pagination\", \"API pagination techniques\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. So instead of exact terms, think about how someone might describe the concept in different ways. Like \"how to implement efficient pagination using cursor-based methods with offset and limit parameters\", or \"techniques for handling large datasets with pagination using server-side cursors\".\n\nFor hyde, the hypothetical code snippet. The user is looking for a short example that uses cursor, offset, and limit. Maybe in SQL? Like SELECT * FROM table ORDER BY id LIMIT 10 OFFSET 50. But since cursor-based pagination is more modern, perhaps using a cursor value instead of offset. For example, in PostgreSQL, using LIMIT and OFFSET with a WHERE clause on a cursor. Or maybe a Python example with a database query using these parameters.\n\nWait, the user might be referring to both offset-based and cursor-based pagination. But the query mentions \"cursor\", \"offset",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12287,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"graceful shutdown signal handling.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to graceful shutdowns and signal handling. Keywords might include \"signal handling,\" \"graceful shutdown,\" \"SIGTERM,\" \"SIGINT,\" \"shutdown hooks,\" \"application exit,\" \"resource cleanup.\" Also, maybe terms like \"process termination\" or \"shutdown procedures.\" I should list synonyms and related identifiers. For example, \"SIGQUIT\" is another signal, but maybe less common. Also terms like \"shutdown sequence\" or \"termination signals.\"\n\nNext, the vec expansion. This is for semantic search, so a natural language rephrase. Instead of \"graceful shutdown signal handling,\" maybe something like \"how to handle termination signals for a smooth application exit\" or \"methods to ensure proper resource release during process shutdown.\" Need to make it more conversational and cover the same concepts.\n\nFor hyde, a hypothetical code snippet. The user wants a short example. Maybe in Python using signal handlers. For instance, setting up a handler for SIGTERM and SIGINT, then performing cleanup before exiting. Using try-except blocks to catch signals, logging a message, and then calling sys.exit(). Also, maybe using a loop to keep the process running until it receives a shutdown signal. Need to make sure the code is simple and demonstrates the key elements: handling signals, cleanup, and exiting",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12203,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user's query is \"streaming response server sent events\". Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to streaming responses and server-sent events. Keywords like \"server-sent events\", \"SSE\", \"streaming HTTP\", \"event source\", \"real-time data\". Maybe synonyms like \"live updates\" or \"push notifications\". Also, related identifiers like \"EventSource API\", \"SSE protocol\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"real-time data streaming using server-sent events (SSE) for continuous updates\". That captures the essence of the query in a way that's more descriptive for vector search.\n\nNow, the hyde part. Need a hypothetical code snippet that matches the query. The user is probably looking for an example of a server handling SSE connections. So, a simple Node.js or Python server using EventSource. For example, in Node.js with Express and eventsource library. The code would set up a route that streams events, maybe using setInterval to send updates. Make sure to include the necessary headers for SSE, like content-type and event stream.\n\nWait, should I use a specific language? The user didn't specify, so maybe pick a common one like JavaScript. Also, ensure the code includes the correct headers and event formatting. Check for any syntax errors. Alright, that should cover it",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "Qwen3-8B",
+      "format": 0.66,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 12413,
+      "total": 0.547,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about React Context versus Redux for state management. Let me break this down.\n\nFirst, for the lex expansion. I need technical terms and synonyms related to both React Context and Redux. For React Context, keywords might include \"React Context API\", \"context provider\", \"consumer\", \"state lifting\". For Redux, terms like \"Redux store\", \"reducer\", \"action creators\", \"store.subscribe\". Also related identifiers like \"useContext\", \"connect()\", \"Provider\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"Comparing React's Context API for global state management with Redux's centralized store for application state handling.\" That should capture the essence for vector search.\n\nFor hyde, a hypothetical code snippet. Let me think of a simple example that uses both. Maybe a React component using Context and another using Redux. For Context, a Provider with a value, and a Consumer. For Redux, a store setup with createStore, a reducer, and a component using connect(). Need to keep it short but illustrative.\n\nCheck if all parts are covered. Lex has the keywords, vec is a rephrased query, hyde shows code examples. Make sure no markdown and exactly three lines.\n</think>\n\nlex: React Context API, Redux store, useContext, connect(), Provider, Consumer, reducer, action creator, state lifting, global state management\nvec: Comparing centralized state management patterns",
+        "lex": "React Context API, Redux store, useContext, connect(), Provider, Consumer, reducer, action creator, state lifting, global state management",
+        "vec": "Comparing centralized state management patterns",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12364,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"Express middleware chain next function.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to Express middleware and the next function. Keywords like \"Express.js middleware chain,\" \"next() function in Express,\" maybe synonyms like \"request lifecycle,\" \"middleware execution order.\" Also, related identifiers could be things like \"app.use()\", \"req.next,\" or maybe error handling terms like \"err next.\"\n\nNext, the vec expansion. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"How does the next() function facilitate the chaining of middleware in Express.js?\" or \"Explanation of the next() method's role in the middleware execution sequence.\"\n\nFor hyde, I need a hypothetical code snippet. The user probably wants an example of middleware using next(). So something like app.use((req, res, next) => { ... }), showing the next() call. Maybe include a simple middleware that logs and then calls next. Also, mention error handling with next(err) to show different cases.\n\nWait, the user might be looking for how the chain works. So the code example should demonstrate multiple middlewares and the next function passing control. Make sure to include both normal flow and error cases. Also, check if the code is syntactically correct for Express.js.\n\nLet me structure each part again. Lex terms should be technical and related. Vec",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "Qwen3-8B",
+      "format": 0.33,
+      "keyword": 0.96,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12457,
+      "total": 0.273,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about Prisma ORM's findMany where. Let me break this down.\n\nFirst, for lex expansion. I need technical terms related to Prisma's findMany with where clauses. Keywords like \"findMany\", \"where\", \"Prisma ORM\", maybe \"filter\", \"query builder\", \"prisma findMany where example\". Also, synonyms like \"filter\", \"search\", \"conditions\". Maybe related identifiers like \"Prisma filter\", \"prisma where clause\".\n\nNext, vec expansion. This is for semantic search. I should rephrase the query into a natural language description. Something like \"How to use the findMany method in Prisma ORM with a where clause to filter records\". Or maybe \"Example of querying multiple records with conditions in Prisma\".\n\nHyde is a hypothetical code snippet. The user wants a short example that matches the query. So, something like:\n\nconst users = await prisma.user.findMany({\n  where: {\n    age: { gt: 25 },\n    isActive: true\n  }\n});\n\nThat should cover the main points. Let me check if I missed anything. The original query is about using findMany with where, so the code example should demonstrate that. Make sure the syntax is correct for Prisma's findMany method with where conditions.\n</think>\n\nlex: prisma findmany where, prisma orm filter, prisma query builder, prisma where clause, prisma findmany example\n",
+        "lex": "prisma findmany where, prisma orm filter, prisma query builder, prisma where clause, prisma findmany example",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12565,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"Next.js server component data fetching.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to Next.js server components and data fetching. Keywords like \"server components,\" \"data fetching,\" \"API routes,\" \"fetching in Next.js,\" maybe \"use server\" hook, \"edge functions,\" \"server-side rendering.\" Also synonyms like \"loading data,\" \"server API,\" \"Next.js 13 features.\" Maybe related identifiers like \"app directory,\" \"page.tsx,\" \"fetch API.\"\n\nThen the vec part. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"How to efficiently retrieve and display data within Next.js server components, including best practices for API calls and performance optimization.\"\n\nFor hyde, I need a hypothetical code snippet. The user is probably looking for examples of how to fetch data in server components. So, a code example using the 'fetch' function within a server component, maybe using an API route. Like importing a function from an API route and calling it, handling errors, returning the data. Also, maybe using the 'use server' directive if applicable.\n\nWait, Next.js 13 introduced App Router and Server Components. So the example should use the new app directory structure. The code might look like a server component that fetches data from an API route, handles errors, and passes",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "Qwen3-8B",
+      "format": 0.33,
+      "keyword": 0.42,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12427,
+      "total": 0.16500000000000004,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"Zod schema validation parse transform.\" Let me break this down.\n\nFirst, Zod is a TypeScript library for data validation. The query mentions schema validation, so I need to think about related terms. For lex expansion, keywords like \"schema\", \"validation\", \"parse\", \"transform\" are important. Maybe synonyms for validation could be \"data validation\" or \"schema parsing.\" Also, related identifiers like \"@zod/schema\" or \"zod parse error\" might be useful.\n\nFor the vec expansion, I should rephrase the query into a more natural language search. Maybe something like \"how to perform data validation using Zod schema and transformation techniques\" to capture the semantic meaning.\n\nHyde is a hypothetical code snippet. The user might be looking for an example of using Zod to parse and transform data. So, a code example that defines a schema, parses input, and transforms the output. Using z.parse() and maybe a custom transform function would fit here.\n\nI need to make sure each expansion is distinct and covers different aspects. Lex for BM25, vec for semantic search, hyde as a code example. Let me check if I missed any key terms or possible synonyms. Maybe \"type validation\" instead of \"schema validation\"? Or \"data parsing\" as an alternative to \"parse transform.\" Also, ensuring the hyde example is concise and matches the query's intent.\n</think>\n\nlex: zod schema validation",
+        "lex": "zod schema validation",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 12363,
+      "total": 0.7427500000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"tRPC router procedure mutation\". Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to tRPC, router procedures, and mutations. Keywords like \"tRPC\", \"router\", \"procedure\", \"mutation\" are obvious. Maybe synonyms for mutation could be \"update\", \"modify\", or \"change\". Also, related identifiers like \"create\", \"delete\" might be useful. So lex terms could include tRPC, router, procedure, mutation, update, modify, create, delete.\n\nNext, the vec expansion. This is for semantic search. I need a natural language rephrasing. Maybe something like \"how to perform mutations in tRPC router procedures\" or \"methods for updating data using tRPC router\". That should capture the intent of modifying data through the router.\n\nFor hyde, a hypothetical code snippet. The user probably wants an example of a mutation in tRPC. So I'll write a simple Next.js API route using tRPC. The code would define a router with a mutation procedure, like updating a user's name. It should include the necessary imports and the router setup with a mutation function.\n</think>\n\nlex: tRPC, router, procedure, mutation, update, modify, create, delete\nvec: how to perform mutations in tRPC router procedures\nhyde: const appRouter = createTRPCRouter({\n  updateName: procedure.input({ name:",
+        "lex": "tRPC, router, procedure, mutation, update, modify, create, delete",
+        "vec": "how to perform mutations in tRPC router procedures",
+        "hyde": "const appRouter = createTRPCRouter({"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12585,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about Tailwind's responsive breakpoints utilities. Let me break down what they need.\n\nFirst, for the lex part, I need to think of technical terms and synonyms related to Tailwind's breakpoints. The main keywords are \"breakpoints\" and \"responsive utilities\". Maybe include the actual Tailwind classes like sm, md, lg, xl, 2xl. Also terms like \"media queries\", \"screen sizes\", and \"utility classes\". Maybe add related identifiers like \"Tailwind CSS configuration\" or \"preflight\".\n\nFor the vec part, I should rephrase the query into a natural language search. Instead of \"Tailwind responsive breakpoints utilities\", maybe something like \"How to use Tailwind CSS utility classes for different screen sizes\" or \"Tailwind responsive design breakpoints examples\". That's more conversational and might catch semantic searches.\n\nHyde is a hypothetical code snippet. The user wants to see an example of using Tailwind's responsive utilities. So a simple code block showing classes applied with different breakpoints. Like a container that changes layout at different sizes. Maybe something like:\n\n.container {\n  @apply max-w-6xl mx-auto;\n}\n\n@media (min-width: 640px) {\n  .container {\n    @apply px-6;\n  }\n}\n\nWait, but Tailwind uses utility classes directly in HTML. Maybe a code example using the responsive variants. Like:\n\n<div class=\"container sm:px-6 md:py",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12256,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"Jest mock module spyOn testing.\" Let me break this down.\n\nFirst, for the lex expansion. They want keyword variants for BM25 search. So I need technical terms related to Jest mocking, spyOn, and testing. Maybe synonyms like \"spyOn\" could be \"mock function\" or \"stub\". Also, related identifiers like \"jest.fn()\", \"jest.spyOn()\", and terms like \"module mocking\" or \"test spies\". I should include both the exact terms and their synonyms to cover more search variations.\n\nNext, the vec expansion. This is for semantic vector search, so a natural language rephrase. The original query is about using Jest's spyOn to mock modules during testing. So I can rephrase it as \"how to use Jest's spyOn method to mock module functions in unit tests\" or something similar. Make sure it's a fluent rephrase that captures the intent without jargon.\n\nLastly, the hyde snippet. This should be a short hypothetical code example that matches the query. The user is likely looking for an example of how to use spyOn in Jest to test a module. So, I'll create a simple example where a module's function is spied on, and then assert that the function was called. For instance, mocking a module 'myModule' with a function 'doSomething', then using spyOn to check if it was called. Make sure the code is concise and uses Jest's syntax correctly.\n",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12537,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"Docker compose multi service networking.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to Docker compose networking. Keywords like \"Docker networks,\" \"service linking,\" \"overlay networks,\" \"bridge network,\" \"custom networks,\" and maybe some synonyms like \"container networking\" or \"multi-container communication.\" Also, related identifiers like Docker's Compose file syntax elements such as \"networks:\" section, \"depends_on,\" or \"links.\" Maybe include terms like \"network aliases\" and \"port mapping.\"\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to configure Docker Compose to enable communication between multiple services using custom networks and networking drivers.\" That covers the main points of multi-service networking in Docker Compose.\n\nFor hyde, I need a hypothetical code snippet. Let's think of a simple Docker Compose example with multiple services using a custom network. Services like a web app and a database, both connected to the same network. Include the networks section in the compose file, maybe using a custom network and specifying container names or aliases for communication. Also, ensure the services are linked properly, maybe using depends_on or network settings.\n\nWait, in Docker Compose, when you define a custom network, services can be added to it. So the example should show two services in the same network. Also, maybe include",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.125,
+      "latencyMs": 12525,
+      "total": 0.6462500000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"GitHub Actions CI workflow matrix\". Let me break down each part.\n\nFirst, for lex: I need keyword variants. The main terms are \"GitHub Actions\", \"CI workflow\", and \"matrix\". Synonyms for CI could be continuous integration. Maybe include terms like \"CI/CD\", \"build matrix\", \"test matrix\". Also, related identifiers like \"workflow.yml\" or \"matrix configuration\".\n\nNext, vec: A natural language rephrase. Instead of \"GitHub Actions CI workflow matrix\", maybe say \"how to configure multiple build environments in GitHub Actions CI\". That's more descriptive and might capture the intent better for semantic search.\n\nHyde: A hypothetical code snippet. The user probably wants a YAML example for GitHub Actions matrix. So, something with jobs using a matrix strategy, including different OS and node versions. Make sure to include the necessary syntax like 'name', 'runs-on', and 'strategy' under matrix.\n\nCheck if all parts are covered. Lex has synonyms and related terms. Vec is a rephrased query. Hyde is a short, relevant code example. Looks good.\n</think>\n\nlex: github actions ci matrix, continuous integration workflow, build matrix configuration, test environment setup, workflow.yml strategy\nvec: how to configure multiple build environments in GitHub Actions CI using matrix strategies\nhyde: jobs:\n  strategy:\n    matrix:\n      os: [ubuntu-latest, windows-latest]\n      node",
+        "lex": "github actions ci matrix, continuous integration workflow, build matrix configuration, test environment setup, workflow.yml strategy",
+        "vec": "how to configure multiple build environments in GitHub Actions CI using matrix strategies",
+        "hyde": "jobs:"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12341,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about finding unused imports and dead code. Let me break down how to approach this.\n\nFirst, for the lex expansion. I need technical terms related to unused imports and dead code. Keywords like \"unused imports\", \"dead code\", \"import analysis\", \"code duplication\", \"static analysis tools\". Maybe include specific tools like \"unused import detection\" and \"dead code elimination\". Also, terms related to code quality, such as \"code refactoring\" and \"technical debt\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"Identify and remove unused imports and unreachable code to improve code quality and reduce technical debt.\" That covers the main points and is more descriptive for vector search.\n\nFor hyde, I need a hypothetical code snippet. Perhaps using Python with a tool like `pylint` or `autopep8`, but more specific. Maybe using `importlib.metadata` to check for unused imports. Alternatively, a script that uses `ast` to parse the code and compare with used symbols. Wait, maybe using a tool like `deadcode` or `unused-import` as a command-line example. But since the user might not have those installed, a simple script using `importlib` to list all imports and check if they're used. But how to determine if an import is unused? Maybe a basic example that lists all imports and marks them as unused, which isn't",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12429,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about detecting circular dependencies between modules. Let me break down how to approach this.\n\nFirst, for the lex expansion. I need technical terms related to circular dependencies and module detection. Terms like \"circular reference,\" \"dependency cycle,\" \"module graph,\" \"import cycles,\" \"graph traversal algorithms,\" \"topological sorting,\" and maybe some specific terms like \"dependency injection\" or \"module resolution.\" Also, identifiers like \"import statements,\" \"require statements,\" and tools like \"ESLint\" or \"Webpack\" might be relevant.\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to identify and resolve loops in module import dependencies?\" or \"Methods for detecting infinite loops in software modules.\" It needs to capture the essence of detecting circular dependencies without using technical jargon.\n\nFor hyde, a hypothetical code snippet. I should think of a simple algorithm. Maybe using a visited set and a recursion stack to track modules as you traverse their dependencies. For example, a function that checks each module's imports and looks for cycles. Pseudocode using depth-first search (DFS) to detect cycles in a graph representation of modules.\n\nWait, should the hyde example be in a specific language? The user didn't specify, so pseudocode is safe. Maybe use a graph traversal approach with a visited array and a recursion stack to detect cycles. That's a common method for cycle detection in graphs,",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.325,
+      "latencyMs": 12609,
+      "total": 0.16425,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"dead code detection unreachable\" into lex, vec, and hyde. Let me break this down.\n\nFirst, for lex: I need to think of technical terms and synonyms related to dead code detection and unreachable code. Dead code is also called unused code, dormant code, or maybe even zombie code. Detection methods might involve static analysis tools like ESLint, Pylint, or SonarQube. Terms like control flow analysis, data flow analysis, and code coverage tools could be relevant. Also, specific terms like unreachable statements, dead branches, or unused functions.\n\nNext, vec: This is a natural language rephrase for semantic search. So I need to think of different ways to phrase the same concept. Maybe \"identifying unused code in programs,\" \"detecting unreachable branches in software,\" or \"methods to find non-executable code segments.\" The goal is to capture the same intent but with different wording.\n\nHyde: A hypothetical code snippet. The user wants a short example that matches the query. Maybe using a tool like Python's ast module to check for unreachable code. For example, using a function that traverses the AST and identifies nodes that aren't reachable. Alternatively, using a tool like PyLint's dead code detection. The code should be simple and demonstrate the concept, maybe with a sample function that has unreachable code.\n\nWait, for hyde, should it be a code example that would actually detect",
+        "lex": null,
+        "vec": null,
+        "hyde": "A hypothetical code snippet. The user wants a short example that matches the query. Maybe using a tool like Python's ast module to check for unreachable code. For example, using a function that traverses the AST and identifies nodes that aren't reachable. Alternatively, using a tool like PyLint's dead code detection. The code should be simple and demonstrate the concept, maybe with a sample function that has unreachable code."
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.2,
+      "latencyMs": 12420,
+      "total": 0.133,
+      "expansion": {
+        "raw": "<think>\nOkay, let's tackle this query expansion for \"security vulnerability SQL injection.\" First, I need to break down the user's request. They want three types of expansions: lex, vec, and hyde.\n\nStarting with lex: keyword variants for BM25. BM25 is a ranking function used in information retrieval, so I need to think about synonyms and related terms. The main terms here are \"security vulnerability\" and \"SQL injection.\" For \"security vulnerability,\" synonyms might include \"security flaw,\" \"vulnerability exploit,\" \"software security issues.\" For SQL injection, related terms could be \"SQLi,\" \"database injection attack,\" \"query injection.\" Also, maybe include related identifiers like CWE-89 (which is for SQL injection) or OWASP's Top Ten vulnerabilities. I should list these as separate terms.\n\nNext, vec: a natural language rephrasing for semantic vector search. This should be a paraphrased version of the query that's more general but still captures the same meaning. Maybe something like \"common database security threats involving malicious SQL queries\" or \"methods to exploit database systems through injected SQL code.\" The goal is to have a version that's semantically similar but phrased differently for vector search.\n\nHyde: a hypothetical code snippet. The user wants a short example that matches the query. Since SQL injection is about malicious input, the code should demonstrate an insecure SQL query. For example, a Python script using raw user input",
+        "lex": null,
+        "vec": null,
+        "hyde": "a hypothetical code snippet. The user wants a short example that matches the query. Since SQL injection is about malicious input, the code should demonstrate an insecure SQL query. For example, a Python script using raw user input"
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12287,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about refactoring code duplication and similar functions. Let me break down each part of their query.\n\nFirst, for the lex expansion: They want keyword variants for BM25. So I need technical terms related to code duplication and refactoring. Terms like \"code duplication\", \"similar functions\", \"refactor\", \"method extraction\", \"DRY principle\", \"code reuse\", \"function duplication\", \"common code patterns\". Also, maybe include terms like \"extract method\" and \"code smell\" since those are related to identifying duplication.\n\nNext, the vec expansion: This is for semantic vector search. I need a natural language rephrase. Maybe something like \"how to identify and refactor duplicated code in similar functions to improve maintainability and reduce redundancy\". That covers the main points of detecting duplicates, refactoring, and the benefits.\n\nFor hyde: A hypothetical code snippet. The user probably wants an example of how to detect or refactor duplicated code. Maybe a Python example using a function to check for duplicate functions by comparing their bodies. Using something like `ast.parse` to get the abstract syntax tree and compare nodes. Also, a refactor example where they extract a common function from duplicates.\n\nWait, should the hyde example be more about detecting or refactoring? The query mentions both duplication and refactor. Maybe the hyde example should show a way to detect duplicates, like comparing function bodies. Alternatively, showing a refactor step. Let me think: the",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "Qwen3-8B",
+      "format": 0.34,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0.2,
+      "latencyMs": 12685,
+      "total": 0.133,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"performance bottleneck N+1 query\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to N+1 queries. The main term is \"N+1 query\", which is a common issue in ORM frameworks where a single query results in multiple database calls. Synonyms might include \"N+1 problem\", \"query nesting\", or terms like \"lazy loading\" which can contribute to this. Also, related identifiers could be things like \"ActiveRecord\", \"SQLAlchemy\", or specific patterns like \"eager loading\". Maybe include terms related to optimization techniques.\n\nNext, vec: This is a natural language rephrase for semantic search. I should think of different ways to phrase the same problem. Instead of \"N+1 query\", maybe \"multiple database calls caused by single query\", or \"inefficient data retrieval pattern\". Also, mention common scenarios like ORM frameworks or specific databases.\n\nHyde: The hypothetical code snippet. Need to show a scenario where N+1 occurs. For example, in Ruby on Rails using ActiveRecord, a loop that fetches each user's posts with a separate query. Then show the corrected version using eager loading. Maybe use Python's SQLAlchemy as well to cover different frameworks.\n\nWait, the user wants three lines: lex, vec, hyde. Let me structure each part concisely.\n\nFor lex, list terms like \"N+",
+        "lex": null,
+        "vec": null,
+        "hyde": "The hypothetical code snippet. Need to show a scenario where N+1 occurs. For example, in Ruby on Rails using ActiveRecord, a loop that fetches each user's posts with a separate query. Then show the corrected version using eager loading. Maybe use Python's SQLAlchemy as well to cover different frameworks."
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12445,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"missing error handling try catch\". Let me break this down.\n\nFirst, for the lex expansion. They want keyword variants for BM25 search. So I need technical terms related to error handling, try-catch, maybe synonyms like exception handling, error propagation. Also, related identifiers like 'try-except' in Python or 'try-catch' in other languages. Maybe include terms like 'exception handling', 'error propagation', 'finally block', and some code examples like 'try-catch in Java' or 'Python try-except'.\n\nNext, the vec expansion. This is for semantic vector search, so a natural language rephrase. The original query is about missing error handling in try-catch blocks. So I should think of different ways to phrase that. Maybe \"how to properly implement error handling in try-catch blocks\", or \"best practices for ensuring error handling is not missing in try-catch structures\". Also, maybe mention common pitfalls like unhandled exceptions or missing finally clauses.\n\nNow the hyde part. A hypothetical code snippet that matches the query. The user's issue is missing error handling in try-catch. So the code should demonstrate a scenario where error handling is absent. For example, a function that uses try-catch but doesn't handle exceptions properly, maybe missing a catch block or not logging errors. Let's think of a Python example where a try block is there but no except, or maybe a catch",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "Qwen3-8B",
+      "format": 0.33,
+      "keyword": 1,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12472,
+      "total": 0.281,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"type safety any assertion unsafe cast\". Let me break this down.\n\nFirst, for lex expansion. They want keyword variants for BM25 search. So I need technical terms related to type safety, assertions, and unsafe casts. Maybe terms like \"type checking\", \"runtime assertion\", \"explicit cast\", \"unchecked conversion\". Also, related identifiers like \"Rust borrow checker\" or \"C++ static_assert\". Synonyms could include \"type coercion\" or \"dynamic typing\".\n\nNext, vec expansion. This is for semantic vector search. I need a natural language rephrase. Maybe something like \"How to ensure type safety during assertions and prevent unsafe casts in programming languages\". That should capture the intent of checking type safety, using assertions, and avoiding unsafe casts.\n\nFor hyde, a hypothetical code snippet. The user probably wants an example that demonstrates the issue. Let's think of a language with explicit type checks, like TypeScript or Rust. In JavaScript, maybe something with type coercion. Wait, but the user mentioned unsafe casts. Maybe a TypeScript example where a variable is cast to a type that's not compatible, leading to an error. Or in Rust, using unsafe code for casting. Let me draft a simple example in JavaScript showing a type coercion issue that could lead to unsafe behavior.\n</think>\n\nlex: type checking, runtime assertion, explicit cast, unchecked conversion, Rust borrow checker, C++ static_assert, type coercion, dynamic typing\n",
+        "lex": "type checking, runtime assertion, explicit cast, unchecked conversion, Rust borrow checker, C++ static_assert, type coercion, dynamic typing",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "Qwen3-8B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 12412,
+      "total": 0.7900000000000001,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about expanding the query \"memory leak event listener cleanup\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to memory leaks and event listeners. Terms like \"memory leak\", \"event listener\", \"cleanup\", \"garbage collection\", \"reference cycle\", \"finalize\", \"dispose\", \"resource leak\". Maybe also include terms like \"callback\", \"observer pattern\", \"object retention\".\n\nNext, vec: This is for semantic search. I should rephrase the query in natural language to capture the same meaning. Maybe something like \"how to prevent memory leaks by properly cleaning up event listeners\" or \"best practices for removing event listeners to avoid memory leaks\".\n\nHyde: A hypothetical code snippet. The user probably wants an example of how to clean up event listeners to prevent memory leaks. So, maybe a JavaScript example using addEventListener and removeEventListener, or in another language like Python with callbacks. But since the original query is about event listeners, JavaScript makes sense. Show a function that adds an event listener and another to remove it, ensuring proper cleanup.\n</think>\n\nlex: memory leak, event listener, garbage collection, reference cycle, finalize, dispose, resource leak, callback, observer pattern, object retention  \nvec: strategies to prevent memory leaks by properly deregistering event listeners in application code  \nhyde: function cleanupListeners() { document.removeEventListener('click', handleEvent); } // prevent memory",
+        "lex": "memory leak, event listener, garbage collection, reference cycle, finalize, dispose, resource leak, callback, observer pattern, object retention",
+        "vec": "strategies to prevent memory leaks by properly deregistering event listeners in application code",
+        "hyde": "function cleanupListeners() { document.removeEventListener('click', handleEvent); } // prevent memory"
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "Qwen3-8B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 12567,
+      "total": 0.015,
+      "expansion": {
+        "raw": "<think>\nOkay, the user is asking about \"race condition async concurrent access.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think of synonyms and related terms. \"Race condition\" could also be called a \"race hazard\" or \"critical section issue.\" For async, maybe \"asynchronous programming\" or \"async/await.\" Concurrent access might involve terms like \"threading,\" \"locking,\" or \"synchronization.\" Also, maybe include specific technologies like \"Python asyncio\" or \"Java concurrency.\"\n\nNext, the vec expansion. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"how to prevent race conditions when multiple asynchronous functions access shared resources concurrently.\" That captures the essence of the problem.\n\nFor hyde, I need a hypothetical code snippet. Let's think of a scenario where two async functions modify a shared variable without synchronization. For example, using Python's asyncio with a counter that's incremented by two coroutines. The race condition would occur because they both read the counter, increment it, and write back without locking. The code should show the issue and maybe a fix with asyncio.Lock.\n\nWait, does that cover all aspects? The original query is about race conditions in async concurrent access. The hyde example should demonstrate the problem. Maybe include a simple example where two async functions access a shared resource without proper synchronization, leading to inconsistent results. Then show how using a lock would fix it",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "<think>\nOkay, the user is asking about \"useEffect cleanup\". Let me break this down.\n\nFirst, for lex expansion. I need to think of related terms and synonyms. \"useEffect\" is a React hook, so maybe terms like \"React cleanup\", \"componentWillUnmount\", or \"effect hooks\". Also, related identifiers could be \"useEffect dependencies\" or \"cleanup functions in React\".\n\nNext, vec expansion. This is for semantic search. I should rephrase the query into a natural language description. Maybe something like \"how to perform cleanup operations in React's useEffect hook\" or \"best practices for cleaning up side effects in React components\".\n\nThen hyde, which is a hypothetical code snippet. The user wants a short example that matches the query. So, a React component using useEffect with a cleanup function, perhaps using return inside useEffect to cancel an interval or fetch request.\n\nWait, I should make sure the hyde example is simple. Like setting up an interval in useEffect and then cleaning it up in the return statement. That's a common use case for cleanup in useEffect.\n\nLet me check if I covered all aspects. Lex has technical terms and synonyms, vec is a rephrased query for semantic search, hyde is a code example. Yeah, that should work.\n</think>\n\nlex: useEffect cleanup, React component unmount, effect hook dependencies, cancelable async requests, componentWillUnmount equivalent\nvec: how to properly clean up side effects in React components using the",
+      "latencyMs": 12913,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"handleSubmit function\". Let me break down each part.\n\nFirst, for lex: I need to think of keyword variants and related terms. \"handleSubmit\" is a common function name in forms, so synonyms might include \"onSubmit\", \"submitHandler\", or \"formSubmit\". Also, related identifiers could be things like \"event handler\", \"React onSubmit\", or \"form submission function\". Maybe include terms related to different frameworks, like \"Angular submit\", \"Vue onSubmit\".\n\nNext, vec: This is for semantic vector search. I need a natural language rephrase. Instead of \"handleSubmit function\", maybe something like \"function that handles form submission\" or \"method for processing user input on submit\". Also, think about related concepts like \"event handling in forms\" or \"submit button click handler\".\n\nHyde: A hypothetical code snippet. The user probably wants an example of a handleSubmit function. Let's think of a simple React example where the function prevents default, validates data, and submits. Maybe include a check for empty fields and a console log. Also, consider other frameworks like vanilla JS or Angular, but React is common so that's a safe example.\n\nWait, should I include multiple frameworks in hyde? The user might want a short snippet, so maybe stick to one. React is a good choice because handleSubmit is commonly used there. Make sure the code is minimal but shows the function's purpose.\n\nCheck if all parts are",
+      "latencyMs": 11818,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"SearchBar component\" into lex, vec, and hyde. Let's start with lex. I need to think of keyword variants for BM25 search. So, synonyms for \"SearchBar\" might be \"search bar\", \"search input\", \"filter component\". Also, related identifiers like \"react searchbar\", \"vue search component\", maybe \"material ui search bar\". \n\nFor vec, it's a natural language rephrasing for semantic search. Maybe something like \"component for implementing a searchable input field\" or \"UI element that allows users to search through data\". Need to make it more descriptive.\n\nHyde is a hypothetical code snippet. Let's think of a simple example. Maybe a React component with a search input and a handler. Or a Vue template with a search box. Keep it short, like a function component with an input and onChange event.\n\nWait, the user might be looking for different frameworks. Should I include multiple examples? But hyde should be a short snippet, maybe one example. Let's go with React since it's common. So something like a functional component with an input and a handleChange function. Make sure to include the necessary imports and structure.\n</think>\n\nlex: search bar, search input, filter component, react searchbar, vue search component, material ui search bar\nvec: UI element for searchable input with filtering functionality\nhyde: const SearchBar = ({ onSearch",
+      "latencyMs": 11489,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "<think>\nOkay, the user's query is \"createEmbeddingsClient\". Let me break this down.\n\nFirst, for lex expansion. I need to think about technical terms related to creating an embeddings client. Maybe synonyms like \"initialize\", \"setup\", or \"configure\". Also, related identifiers could be things like \"embedding model\", \"vector database\", or specific libraries like \"FAISS\", \"Pinecone\", or \"Weaviate\". So the lex expansion would include those terms.\n\nNext, vec expansion. This is for semantic search, so I need a natural language rephrase. The original query is about creating a client for embeddings. So maybe something like \"How to set up a client for generating and managing vector embeddings in a machine learning pipeline?\" That's more descriptive and covers the process of setting up such a client.\n\nFor hyde, I need a hypothetical code snippet. The user might be looking for example code using a library like FAISS or something similar. So I'll write a Python example that initializes an embeddings client, maybe using FAISS's IndexFlatL2 and then creating a client instance. The code should be concise but show the necessary steps.\n</think>\n\nlex: createEmbeddingsClient, initializeEmbeddingModel, setupVectorDatabase, FAISS, Pinecone, Weaviate\nvec: How to set up a client for generating and managing vector embeddings in a machine learning pipeline?\nhyde: import faiss; index = faiss.IndexFlatL2",
+      "latencyMs": 11459,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"parseParameterSize\". Let me break down each part.\n\nFirst, for lex: I need to think of synonyms and related terms. \"Parse\" could be \"interpret\", \"decode\", or \"extract\". \"Parameter\" might have synonyms like \"argument\", \"variable\", or \"option\". \"Size\" could be \"dimension\", \"length\", or \"capacity\". Also, maybe related terms like \"input parsing\" or \"data size analysis\".\n\nNext, vec: This is for semantic search. I should rephrase the query in natural language. Maybe something like \"how to determine the size of a parameter in a parsed input\" or \"methods for evaluating parameter dimensions during parsing\".\n\nHyde: Need a hypothetical code snippet. Perhaps a function that checks the size of a parameter, handling different data types. For example, using isinstance to check if it's a list or string and then getting the length. Also include error handling for unexpected types.\n\nWait, should I consider other data structures? Like dictionaries or objects with a size attribute. Maybe add a check for those as well. Also, make sure the code is concise but covers common cases.\n</think>\n\nlex: parse, interpret, decode, parameter, argument, variable, size, dimension, length, capacity, input parsing, data size analysis\nvec: how to determine the size of a parameter in a parsed input or evaluate parameter dimensions during data processing\nhyde: def",
+      "latencyMs": 11460,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"buildCombinedIndex\" into lex, vec, and hyde. Let me start by understanding each part.\n\nFor lex, I need to think of keyword variants and related terms. The main term is \"buildCombinedIndex\". Maybe break it down into parts like \"build index\", \"combined index\", \"merge indexes\". Also, synonyms for build could be create, construct. For combined, maybe merged, integrated. Technical terms related to indexing: full-text index, composite index, hybrid index. Also, possible identifiers like \"buildCombinedIndex\" might be part of a larger system, so maybe related terms like \"index merging\", \"combined search index\".\n\nNext, vec is a natural language rephrase for semantic search. The original query is about building a combined index. So I need to think of different ways to phrase that. Maybe \"how to create a merged search index\", \"techniques for combining multiple indexes into one\", \"methods to build a composite index system\".\n\nHyde is a hypothetical code snippet. The user wants a short example that matches the query. So, perhaps a function or script that combines multiple indexes. Using Python as an example, maybe using libraries like Whoosh or Elasticsearch. The code could involve loading multiple indexes, merging them, and saving the combined one. For example, using a loop to open each index, add documents to a new index, and then commit.\n\nWait, but the user might be",
+      "latencyMs": 11439,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"cosineSimilarity helper\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms related to cosine similarity and synonyms. Maybe \"cosine similarity function\", \"dot product calculation\", \"vector similarity metric\". Also, related identifiers like \"cosine_sim\" or \"scipy cosine similarity\".\n\nNext, vec: A natural language rephrase. Maybe something like \"how to calculate the cosine similarity between two vectors\" or \"function to measure vector similarity using cosine angle\".\n\nHyde: A hypothetical code snippet. Perhaps a Python function using numpy to compute cosine similarity. Import numpy, define a function with vectors as inputs, compute the dot product and norms, then return the similarity.\n\nCheck if all parts are covered. Lex has keywords and synonyms, vec is a rephrased question, hyde is a code example. Looks good.\n</think>\n\nlex: cosine similarity function, dot product calculation, vector similarity metric, cosine_sim, scipy cosine similarity\nvec: how to calculate the cosine similarity between two vectors using a helper function\nhyde: import numpy as np; def cosine_similarity(v1, v2): return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))",
+      "latencyMs": 10608,
+      "tokenCount": 269
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"QueryGenerator class\". Let me break down each part.\n\nFirst, for lex: I need to think of synonyms and related terms. \"QueryGenerator\" could be broken down into \"query\" and \"generator\". Synonyms for query might include \"search\", \"request\", \"inquiry\". For generator, maybe \"create\", \"produce\", \"generate\". Also, technical terms related to query generation like \"SQL query\", \"natural language processing\", \"template-based\". Maybe include terms like \"parser\", \"formatter\" as related identifiers.\n\nNext, vec: This is a natural language rephrasing. I need to think of different ways to phrase \"QueryGenerator class\". Maybe \"class that creates search queries\", \"tool for generating database queries\", \"framework for building query objects\". Also consider different contexts like \"query builder\", \"dynamic query creation\".\n\nHyde: A hypothetical code snippet. The user wants a short example that matches the query. So, a class named QueryGenerator with methods to generate queries. Maybe using templates or some logic. For example, a method that takes parameters and returns a query string. Use placeholders for different query types like SQL or NoSQL.\n\nWait, should I include more technical terms in lex? Maybe \"query engine\", \"query builder\" as related identifiers. Also, think about other programming terms related to generating queries, like \"query syntax\", \"query optimization\".\n\nFor vec, maybe also consider",
+      "latencyMs": 11899,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"aggregateRetrievalResults\" into lex, vec, and hyde. Let me start by understanding each part.\n\nFor lex, I need to think of keyword variants and related terms. The main term is \"aggregateRetrievalResults\". Maybe synonyms for aggregate could be collect, compile, combine. Retrieval results might relate to search results, data retrieval, or query results. So terms like \"collectSearchResults\", \"compileQueryData\", \"combineRetrievalOutcomes\" could be part of the lex expansion. Also, technical terms like \"resultAggregation\", \"dataConsolidation\" might fit.\n\nNext, vec is a natural language rephrase for semantic search. The original query is about aggregating retrieval results, so maybe something like \"method to combine multiple search result sets into a unified output\" or \"technique for merging retrieval outcomes from different sources\". That should capture the essence for a vector search.\n\nHyde is a hypothetical code snippet. The user probably wants a short example that demonstrates aggregating retrieval results. Maybe using Python with a function that combines results from different sources. For example, a function that takes lists of results and merges them, handling duplicates. Using sets to avoid duplicates and then converting back to a list. That's simple and shows the aggregation process.\n\nWait, should I include error handling or more complex logic? Probably keep it basic as per the example. The code should be concise",
+      "latencyMs": 11804,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"LocalLLMClient constructor\". Let me break down each part.\n\nFirst, for lex: I need to think of keyword variants. The main terms are \"LocalLLMClient\" and \"constructor\". Maybe synonyms for constructor like initializer or factory. Also, related identifiers like LocalLLMClient class, methods, or parameters. Maybe include variations like \"LocalLLMClient::__construct\" if that's a common syntax.\n\nNext, vec: A natural language rephrasing. Instead of \"LocalLLMClient constructor\", maybe \"how to instantiate LocalLLMClient\" or \"creating an instance of LocalLLMClient\". Also, think about related concepts like initialization methods or dependency injection.\n\nHyde: A hypothetical code snippet. Since it's a constructor, maybe show a class definition with a constructor. For example, in Python, using __init__, or in another language like Java with a constructor method. Make sure to include parameters that LocalLLMClient might have, like model path or configuration.\n\nWait, the user might be looking for code examples that demonstrate the constructor. So the hyde example should show how to create an instance, maybe with parameters. Let me make sure the code is simple and matches common practices. Also, check if LocalLLMClient is a specific library's class, but since I don't have that context, keep it generic.\n\nDouble-checking each part: lex covers synonyms and related terms",
+      "latencyMs": 11716,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "<think>\nOkay, the user is asking about fixing a TypeError where they can't read a property of undefined. Let me break this down.\n\nFirst, for the lex expansion. I need to think about related technical terms and synonyms. Terms like \"TypeError\", \"undefined property\", \"property access error\". Maybe include related identifiers like \"JavaScript errors\", \"debugging undefined variables\", \"null checks\".\n\nNext, the vec part. This is for semantic search. I should rephrase the query into a more natural language form. Maybe something like \"How to resolve JavaScript error when accessing a property of an undefined variable?\" or \"Best practices for handling undefined properties in JavaScript to avoid TypeErrors.\"\n\nFor hyde, I need a hypothetical code snippet that demonstrates the issue and a fix. The original error occurs when trying to access a property of an undefined variable. So, the code might have something like obj.property, but if obj is undefined, that causes the error. The fix would involve checking if the variable is defined before accessing its properties. So, maybe using optional chaining (obj?.property) or adding a null check.\n\nWait, the user might be looking for examples of how to prevent this error. Let me make sure the hyde example shows both the problem and the solution. Like, a code snippet that tries to access a property without checking, then another that uses optional chaining or a condition to handle it.\n\nI should also consider common scenarios where this error occurs, like when a function returns",
+      "latencyMs": 11790,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "<think>\nOkay, the user is asking about resolving an ECONNREFUSED error on localhost. Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to ECONNREFUSED. That's a socket error, so maybe synonyms like \"connection refused\", \"localhost connection issue\". Also, related identifiers could be error codes like 111 or 104. Maybe terms like \"bind\", \"listen\", \"socket programming\". Also, possible causes like \"server not running\", \"firewall blocking\".\n\nNext, the vec expansion. This is for semantic search. I should rephrase the query in natural language. Maybe something like \"how to fix connection refused error when connecting to local server\" or \"common causes of ECONNREFUSED on localhost and solutions\".\n\nFor hyde, a hypothetical code snippet. The user might be trying to connect to a local server that's not running. So a code example could be checking if the server is running, handling exceptions, or using a timeout. Like trying to connect with a try-catch block and checking if the server is active.\n\nWait, should hyde be a code example that would match the query? So maybe a Python snippet using socket to connect and handle the error. Or a Node.js example. Let me think of a simple code that attempts a connection and handles ECONNREFUSED.\n\nI need to make sure each expansion is distinct. Lex for BM25, vec for",
+      "latencyMs": 12080,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "<think>\nOkay, the user is facing a \"module not found cannot resolve import\" error. Let me think about how to expand this query.\n\nFirst, for lex expansion: I need technical terms related to module imports. Terms like \"import error\", \"missing module\", \"resolve import path\", \"package not found\". Also, maybe include common package names like \"numpy\" or \"pandas\" as examples. Synonyms for module could be library, package, dependency.\n\nNext, vec expansion: A natural language rephrasing. Maybe something like \"unable to locate imported module in Python environment\" or \"import statement fails due to missing package\". This helps semantic search understand different ways people phrase the same issue.\n\nHyde snippet: A hypothetical code example. Perhaps a Python script trying to import a non-existent module, like 'import nonexistent_module'. Then the error message that appears. This shows a common scenario leading to the error.\n\nWait, should hyde include the error message? The user might want to see how the error looks. So maybe:\n\nhyde: import nonexistent_module\n\nBut maybe add the error output? The user's original query mentions \"cannot resolve import\", so the hyde example should demonstrate that scenario. Maybe include the error message as part of the snippet? Or just the code that would cause it. Since hyde is a hypothetical code snippet that would match the query, showing the import line and the resulting error would help. But the user's example in the initial",
+      "latencyMs": 12221,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "<think>\nOkay, the user is asking about \"CORS origin not allowed headers\". Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms and synonyms related to CORS issues. Keywords like \"CORS\", \"preflight\", \"Access-Control-Allow-Origin\", \"origin header\", \"CORS policy\", and maybe related HTTP methods like \"OPTIONS\". Also, terms like \"CORS error\" or \"CORS configuration\" might be useful. Maybe include some related headers like \"Access-Control-Request-Headers\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to handle CORS origin header restrictions in HTTP responses\" or \"Solving CORS issues with incorrect Access-Control-Allow-Origin headers\". It should capture the problem of the origin not being allowed and the headers involved.\n\nFor hyde, a hypothetical code snippet. The user might be looking for an example of setting the correct headers in a server response to allow a specific origin. So, a Node.js example using Express would work. The code should include setting the Access-Control-Allow-Origin header and possibly other CORS-related headers like Allow-Methods, Allow-Headers, etc. Maybe include a check for the origin and set it accordingly.\n\nWait, should I use a different framework? Maybe Python Flask or Django? But Express is common. Also, need to make sure the code is concise and shows the necessary headers. Let me check if the example covers the main",
+      "latencyMs": 12158,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"out of memory heap allocation failed\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to memory issues. Terms like \"out of memory\", \"heap overflow\", \"memory allocation failure\", maybe \"segmentation fault\" since that's related. Also, identifiers like \"OOM\" (Out of Memory) and error codes like \"ENOMEM\" or \"EXC_BAD_ACCESS\" on macOS. These would help in BM25 search.\n\nNext, vec: This is for semantic vector search. I should rephrase the query in natural language. Maybe \"memory allocation error during heap management\" or \"system unable to allocate memory for heap\". Also, considering related issues like \"memory exhaustion during program execution\" or \"heap corruption leading to allocation failure\". These rephrased versions capture the same problem but in different ways.\n\nHyde: Need a hypothetical code snippet that matches this query. Think of a scenario where heap allocation fails. For example, in C++, trying to allocate a large array without checking for failure. Or in Python, using a list that grows too big. Maybe a C example where malloc returns null, leading to an error. Also, include a try-catch block in Python to handle memory errors. Make sure the code is short and demonstrates the issue.\n\nCheck if all parts are covered. Lex has technical terms, vec rephrases naturally, hyde",
+      "latencyMs": 12065,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "<think>\nOkay, the user is asking about a query related to \"database connection timeout pool exhausted.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms and synonyms related to database connection issues. Keywords like \"connection timeout,\" \"pool exhausted,\" \"database pool,\" \"resource exhaustion,\" \"maximum connections,\" \"wait_timeout,\" \"connect timeout,\" and maybe specific terms like \"JDBC connection pool\" or \"Hibernate session factory.\" Also, related identifiers like \"maxPoolSize\" or \"connectionTimeout.\"\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"how to resolve database connection pool exhaustion and timeout errors\" or \"strategies for preventing database connection timeouts when the pool is exhausted.\" It should capture the problem and possible solutions.\n\nFor hyde, a hypothetical code snippet. The user might be looking for code that handles connection pooling. So, an example using a try-with-resources block to manage connections, setting timeout parameters, and handling exceptions. Maybe using Java's JDBC with a connection pool like HikariCP, including setting maximum pool size and timeout values.\n\nLet me check if I covered all aspects. Lex has technical terms and synonyms, vec is a rephrased problem statement, hyde provides a code example. I think that's it.\n</think>\n\nlex: connection timeout pool exhausted database resource exhaustion maxPoolSize wait_timeout connect timeout JDBC connection pool\nvec: how to",
+      "latencyMs": 12251,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "<think>\nOkay, the user is looking for a query expansion related to \"promise rejected unhandled async error\". Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms and synonyms related to promises and unhandled errors in async code. Terms like \"Promise rejection\", \"Unhandled promise rejection\", \"Async error handling\", \"JavaScript uncaught exception\", \"Error handling in async functions\". Maybe also include related identifiers like \"Node.js unhandled rejection\" or \"UnhandledRejection event\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to handle unhandled promise rejections in asynchronous JavaScript code\" or \"Best practices for catching errors in async promises\". It should capture the intent of managing unhandled rejections in async operations.\n\nFor hyde, I need a hypothetical code snippet that demonstrates the issue. Perhaps an example where an async function throws an error without a try-catch, leading to an unhandled rejection. Like using Promise.reject() without .catch(), or an async function that doesn't handle errors. Maybe include a setTimeout to simulate async behavior and show the error.\n\nWait, should I use .catch() or something else? The example should show the unhandled rejection. So maybe:\n\nPromise.reject('Error occurred').catch(...); // handled\nPromise.reject('Error occurred'); // unhandled\n\nOr an async function that throws and isn't caught. Also, maybe mention using process.on",
+      "latencyMs": 12424,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "<think>\nOkay, the user is asking about a \"circular dependency detected import cycle.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms and synonyms related to circular dependencies in imports. Terms like \"import cycle,\" \"circular reference,\" \"module import loop,\" \"dependency loop,\" \"cyclic import,\" and maybe \"import circularity.\" Also, related identifiers like \"Python import cycle\" since Python is a common context for this issue. Maybe include terms like \"module circular dependency\" and \"circular module import.\"\n\nNext, the vec expansion. This should be a natural language rephrasing for semantic search. So instead of the exact query, phrase it in different ways. Like \"how to resolve import cycles in Python modules,\" or \"error handling for circular dependencies during module imports.\" Also, maybe mention common scenarios like \"modules that depend on each other in a loop\" or \"import statements creating a circular reference.\"\n\nNow the hyde part. Need a hypothetical code snippet that demonstrates the issue. Let's think of two modules, module_a and module_b, each importing the other. For example, module_a imports module_b and uses a function from it, while module_b imports module_a. This creates the circular dependency. The code should show the import statements and maybe a function that causes the cycle. Also, include a comment indicating the error.\n\nWait, should I use Python syntax? Probably, since that's a common scenario",
+      "latencyMs": 12542,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "<think>\nOkay, let's tackle this query expansion. The user is looking for a type error where an argument isn't assignable to a parameter. First, I need to break down the original query: \"type error argument not assignable to parameter\". \n\nFor the lex expansion, I should think about synonyms and related technical terms. \"Type error\" could also be \"type mismatch\" or \"invalid type\". \"Argument not assignable\" might relate to \"parameter assignment\", \"type coercion issues\", or \"type compatibility\". Maybe include terms like \"TypeError\" (the actual exception name), \"type checking\", and \"assignment error\". Also, considering programming languages like Python or JavaScript where such errors are common.\n\nNext, the vec expansion. This is for semantic search, so I need a natural language rephrase. Instead of the technical terms, maybe something like \"error when passing an incorrect type to a function parameter\" or \"issue where a variable's type doesn't match the expected parameter type\". It should be more descriptive and less technical to capture the same meaning.\n\nFor hyde, I need a hypothetical code snippet that would cause this error. Let's think of a simple example. In Python, if you have a function expecting an integer but pass a string. Like def add(a: int): ... and then add(\"5\"). That would raise a TypeError. Alternatively, in JavaScript, a function parameter expecting a number but getting a string. The code should be short and demonstrate the error clearly.\n\n",
+      "latencyMs": 12398,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "<think>\nOkay, the user is asking about a \"permission denied EACCES file access\" error. Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to EACCES and file permissions. EACCES stands for \"Error Access,\" so synonyms might include \"access denied,\" \"permission error,\" or \"file access issues.\" Also, related identifiers could be things like \"chmod\" for changing permissions, \"sudo\" for elevated access, or specific error codes like \"EACCES\" itself. Maybe include terms like \"file permissions,\" \"read/write access,\" and \"user privileges.\"\n\nNext, the vec expansion. This is for semantic vector search, so I need a natural language rephrase. Instead of technical terms, think about how someone might describe the problem in plain language. Maybe \"unable to access file due to permission restrictions\" or \"error when trying to open file without proper permissions.\" Also, consider related scenarios like \"file access denied by system\" or \"application lacks necessary file permissions.\"\n\nNow, the hyde snippet. This should be a hypothetical code example that matches the query. The error occurs when a program tries to access a file but doesn't have the right permissions. So, a Python example using open() might raise an OSError with EACCES. The code could try to open a file, catch the error, and print a message. Maybe include using sudo or checking permissions as solutions in comments.\n\nWait,",
+      "latencyMs": 12348,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"authentication middleware\". Let me break down each part.\n\nFirst, for lex: I need keyword variants. Technical terms related to authentication middleware might include things like OAuth, JWT, SAML, maybe session management. Also, synonyms could be \"authentication layer\", \"security middleware\". Related identifiers might involve specific frameworks or protocols. So I should list terms like OAuth2, JWT, SAML, session management, API gateways, authentication layer, security middleware, token-based auth, OpenID Connect.\n\nNext, vec: a natural language rephrasing for semantic search. I need to think of different ways to phrase the same concept. Maybe \"how to implement secure user authentication using middleware\", or \"middleware solutions for handling user credentials and access control\". Also, terms like \"secure authentication flow\", \"third-party auth integration\".\n\nHyde: a hypothetical code snippet. The user wants a short example that matches the query. Maybe something using OAuth2 with Flask or Express. For example, a middleware function that checks for a token, verifies it, and allows access. Using libraries like 'passport.js' or 'oauthlib'. The code should demonstrate checking a token, validating it against an issuer, and granting access if valid.\n\nWait, I need to make sure the code is hypothetical but relevant. Maybe using a simple middleware in Node.js with Express, checking for a JWT token in the headers. The code would include steps like extracting the token",
+      "latencyMs": 12389,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"rate limiting implementation\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to rate limiting. Terms like \"rate limiting\", \"API throttling\", \"request throttling\", \"token bucket algorithm\", \"sliding window\", \"fixed window\". Also, maybe related identifiers like \"Nginx rate limiting\", \"Redis-based rate limiting\", or \"Express.js rate limiting\". These are specific implementations or tools.\n\nNext, vec: This is for semantic search. I should rephrase the query in natural language. Maybe something like \"how to implement rate limiting in web applications\" or \"techniques for controlling request frequency\". Also, mention different methods like using middleware, in-memory storage, or databases.\n\nHyde: Need a hypothetical code snippet. Let's think of a simple example using a common framework. Maybe in Python with Flask and a token bucket algorithm. Use a dictionary to track request counts, check against a limit, and return appropriate responses. Make sure it's concise but shows the core logic.\n\nCheck if all parts are covered. Lex has technical terms and related identifiers. Vec is a rephrased natural language query. Hyde is a short code example. Avoid markdown, keep each line separate. Make sure the code uses variables and logic to demonstrate rate limiting.\n</think>\n\nlex: rate limiting, API throttling, request throttling, token bucket algorithm, sliding",
+      "latencyMs": 12449,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"caching strategy invalidation\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to caching strategies and invalidation. Terms like cache eviction, cache coherence, stale data, cache expiration, and maybe specific protocols like MSI or MESI. Also, identifiers like LRU, LFU, or cache tags.\n\nNext, vec: This should be a natural language rephrase for semantic search. Maybe something like \"methods to ensure cache data remains up-to-date by removing outdated entries\" or \"techniques for updating cache contents when underlying data changes\".\n\nHyde: A hypothetical code snippet. Perhaps a function that checks if cached data is stale and invalidates it when necessary. Using something like a timestamp comparison or version check. Maybe in Python with a decorator that handles invalidation based on data changes.\n\nWait, should the hyde example be in a specific language? The user didn't specify, but since it's hypothetical, Python is a safe choice. Let me make sure the code example is simple and directly relates to invalidating cache entries when data changes.\n</think>\n\nlex: cache eviction, cache coherence, stale data, cache expiration, MSI protocol, MESI protocol, LRU, LFU, cache tags\nvec: techniques to ensure cached data remains current by removing outdated entries when underlying data changes\nhyde: def invalidate_cache(data_id): if is_stale(data",
+      "latencyMs": 12470,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"retry logic exponential backoff\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to exponential backoff. Terms like \"exponential backoff algorithm\", \"retry mechanisms\", \"network retry strategies\". Also, related identifiers might include specific implementations or frameworks, like \"exponential backoff in Python\", \"retry libraries\", or maybe even specific protocols that use this, like TCP's backoff.\n\nNext, vec: This is for semantic vector search. So I need a natural language rephrase that captures the same meaning. Maybe something like \"strategies for automatically retrying failed requests with increasing delays between attempts\" or \"methods to handle transient failures by escalating retry intervals\".\n\nHyde: A hypothetical code snippet. The user wants a short example that matches the query. So, perhaps a Python function using a library like tenacity. The code would include a retry decorator with exponential backoff, maybe with some parameters like max retries and delay. For example, using @retry decorator with wait_exponential_backoff.\n\nWait, but the user might not be familiar with tenacity. Maybe a more generic example? But since it's hypothetical, using a common library is okay. Also, need to make sure the code snippet is concise and directly relates to exponential backoff.\n\nLet me check if I covered all aspects. Lex has synonyms and related terms, vec is a rephr",
+      "latencyMs": 12439,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "<think>\nOkay, the user is asking about \"connection pooling database.\" Let me break this down.\n\nFirst, for lex expansion. I need to think of technical terms and synonyms related to connection pooling in databases. Keywords like \"connection pooling,\" \"database connection pooling,\" \"pooling connections,\" maybe \"JDBC connection pool\" since that's a common implementation. Also, related terms like \"database pooling,\" \"connection management,\" and maybe specific technologies like \"HikariCP\" or \"Apache DBCP.\" Also, terms like \"resource pooling,\" \"connection reuse,\" and \"database connection pool configuration.\"\n\nNext, the vec expansion. This is for semantic search, so I need a natural language rephrase. Instead of \"connection pooling database,\" maybe something like \"optimizing database connections using connection pools to improve performance and resource management.\" That's more descriptive and covers the purpose of connection pooling.\n\nFor hyde, I need a hypothetical code snippet. Let's think of a simple example using a common library. Maybe Java with HikariCP. The code would show creating a pool, configuring it, and getting a connection. Include parameters like maximum pool size and connection timeout. Make sure it's concise but shows the essential parts of setting up a connection pool.\n\nCheck if all three expansions are distinct and cover different aspects. Lex is about keywords, vec is a rephrased query for semantic search, and hyde is an example code. Make sure the code uses proper syntax and",
+      "latencyMs": 12412,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "<think>\nOkay, the user is asking about \"event driven architecture pub sub.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to event-driven architecture and publish-subscribe patterns. Keywords like \"event sourcing,\" \"message brokers,\" \"Apache Kafka,\" \"RabbitMQ,\" \"callback functions,\" \"event streams,\" \"asynchronous communication,\" and maybe some related patterns like \"observer pattern\" or \"reactive programming.\" Also, identifiers like \"EDA frameworks\" or specific technologies.\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"architecture that uses event propagation for asynchronous communication between services, utilizing publish-subscribe models for decoupled interactions.\" That should capture the essence for vector search.\n\nFor hyde, a hypothetical code snippet. I need to think of a simple example that demonstrates pub-sub in EDA. Using Python with a message broker like Redis or RabbitMQ. Maybe a producer publishing an event and consumers subscribing to it. Using async functions and event loops. Something like setting up a publisher that sends messages to a channel, and subscribers that listen for specific events.\n\nWait, should I use a specific library? Maybe mention a common one like Redis or RabbitMQ. But since it's hypothetical, maybe just pseudocode. Let me structure it with async functions, event loops, and channels. Make sure to include the pub-sub pattern elements.\n</think>\n\nlex: event sourcing,",
+      "latencyMs": 12520,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "<think>\nOkay, the user is asking about \"dependency injection service container.\" Let me break this down.\n\nFirst, for lex expansion. I need to think of technical terms related to dependency injection and service containers. Keywords like \"DI container,\" \"Inversion of Control,\" \"IoC container,\" \"service locator pattern,\" \"constructor injection,\" \"setter injection,\" \"property injection.\" Also, frameworks like Spring (for Java), ASP.NET Core's DI, and others. Maybe include terms like \"resolution,\" \"lifetime management,\" \"scoped services.\"\n\nNext, vec expansion. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"how to manage and resolve dependencies in a service container using inversion of control principles.\" That should capture the essence for vector search.\n\nHyde is a hypothetical code snippet. Let me think of a simple example. Maybe a Python example using a DI container. Using a class-based approach with a registry to store services. The user can register services and retrieve them, handling dependencies automatically. Something like a registry with a get method that checks if the service is already registered, else creates it. That should demonstrate the concept.\n</think>\n\nlex: dependency injection, DI container, inversion of control, IoC container, service locator pattern, constructor injection, setter injection, property injection, Spring framework, ASP.NET Core DI, service resolution, lifetime management, scoped services\nvec: how to manage and resolve dependencies in a service container",
+      "latencyMs": 12336,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "<think>\nOkay, the user's query is about \"pagination cursor offset limit\". Let me break this down.\n\nFirst, for the lex expansion. I need to think of technical terms related to pagination methods. There's \"offset limit\" which is common in SQL, but also terms like \"cursor-based pagination\", \"server-side cursor\", maybe \"limit offset\" as a term. Also, synonyms like \"paging\", \"navigation\", \"scrolling\". Maybe include terms related to databases or APIs, like \"SQL pagination\", \"API pagination techniques\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. So instead of exact terms, think about how someone might describe the concept in different ways. Like \"how to implement efficient pagination using cursor-based methods with offset and limit parameters\", or \"techniques for handling large datasets with pagination using server-side cursors\".\n\nFor hyde, the hypothetical code snippet. The user is looking for a short example that uses cursor, offset, and limit. Maybe in SQL? Like SELECT * FROM table ORDER BY id LIMIT 10 OFFSET 50. But since cursor-based pagination is more modern, perhaps using a cursor value instead of offset. For example, in PostgreSQL, using LIMIT and OFFSET with a WHERE clause on a cursor. Or maybe a Python example with a database query using these parameters.\n\nWait, the user might be referring to both offset-based and cursor-based pagination. But the query mentions \"cursor\", \"offset",
+      "latencyMs": 12367,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "<think>\nOkay, the user is asking about \"graceful shutdown signal handling.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to graceful shutdowns and signal handling. Keywords might include \"signal handling,\" \"graceful shutdown,\" \"SIGTERM,\" \"SIGINT,\" \"shutdown hooks,\" \"application exit,\" \"resource cleanup.\" Also, maybe terms like \"process termination\" or \"shutdown procedures.\" I should list synonyms and related identifiers. For example, \"SIGQUIT\" is another signal, but maybe less common. Also terms like \"shutdown sequence\" or \"termination signals.\"\n\nNext, the vec expansion. This is for semantic search, so a natural language rephrase. Instead of \"graceful shutdown signal handling,\" maybe something like \"how to handle termination signals for a smooth application exit\" or \"methods to ensure proper resource release during process shutdown.\" Need to make it more conversational and cover the same concepts.\n\nFor hyde, a hypothetical code snippet. The user wants a short example. Maybe in Python using signal handlers. For instance, setting up a handler for SIGTERM and SIGINT, then performing cleanup before exiting. Using try-except blocks to catch signals, logging a message, and then calling sys.exit(). Also, maybe using a loop to keep the process running until it receives a shutdown signal. Need to make sure the code is simple and demonstrates the key elements: handling signals, cleanup, and exiting",
+      "latencyMs": 12287,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "<think>\nOkay, the user's query is \"streaming response server sent events\". Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to streaming responses and server-sent events. Keywords like \"server-sent events\", \"SSE\", \"streaming HTTP\", \"event source\", \"real-time data\". Maybe synonyms like \"live updates\" or \"push notifications\". Also, related identifiers like \"EventSource API\", \"SSE protocol\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"real-time data streaming using server-sent events (SSE) for continuous updates\". That captures the essence of the query in a way that's more descriptive for vector search.\n\nNow, the hyde part. Need a hypothetical code snippet that matches the query. The user is probably looking for an example of a server handling SSE connections. So, a simple Node.js or Python server using EventSource. For example, in Node.js with Express and eventsource library. The code would set up a route that streams events, maybe using setInterval to send updates. Make sure to include the necessary headers for SSE, like content-type and event stream.\n\nWait, should I use a specific language? The user didn't specify, so maybe pick a common one like JavaScript. Also, ensure the code includes the correct headers and event formatting. Check for any syntax errors. Alright, that should cover it",
+      "latencyMs": 12203,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "<think>\nOkay, the user is asking about React Context versus Redux for state management. Let me break this down.\n\nFirst, for the lex expansion. I need technical terms and synonyms related to both React Context and Redux. For React Context, keywords might include \"React Context API\", \"context provider\", \"consumer\", \"state lifting\". For Redux, terms like \"Redux store\", \"reducer\", \"action creators\", \"store.subscribe\". Also related identifiers like \"useContext\", \"connect()\", \"Provider\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"Comparing React's Context API for global state management with Redux's centralized store for application state handling.\" That should capture the essence for vector search.\n\nFor hyde, a hypothetical code snippet. Let me think of a simple example that uses both. Maybe a React component using Context and another using Redux. For Context, a Provider with a value, and a Consumer. For Redux, a store setup with createStore, a reducer, and a component using connect(). Need to keep it short but illustrative.\n\nCheck if all parts are covered. Lex has the keywords, vec is a rephrased query, hyde shows code examples. Make sure no markdown and exactly three lines.\n</think>\n\nlex: React Context API, Redux store, useContext, connect(), Provider, Consumer, reducer, action creator, state lifting, global state management\nvec: Comparing centralized state management patterns",
+      "latencyMs": 12413,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "<think>\nOkay, the user is asking about \"Express middleware chain next function.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to Express middleware and the next function. Keywords like \"Express.js middleware chain,\" \"next() function in Express,\" maybe synonyms like \"request lifecycle,\" \"middleware execution order.\" Also, related identifiers could be things like \"app.use()\", \"req.next,\" or maybe error handling terms like \"err next.\"\n\nNext, the vec expansion. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"How does the next() function facilitate the chaining of middleware in Express.js?\" or \"Explanation of the next() method's role in the middleware execution sequence.\"\n\nFor hyde, I need a hypothetical code snippet. The user probably wants an example of middleware using next(). So something like app.use((req, res, next) => { ... }), showing the next() call. Maybe include a simple middleware that logs and then calls next. Also, mention error handling with next(err) to show different cases.\n\nWait, the user might be looking for how the chain works. So the code example should demonstrate multiple middlewares and the next function passing control. Make sure to include both normal flow and error cases. Also, check if the code is syntactically correct for Express.js.\n\nLet me structure each part again. Lex terms should be technical and related. Vec",
+      "latencyMs": 12364,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "<think>\nOkay, the user is asking about Prisma ORM's findMany where. Let me break this down.\n\nFirst, for lex expansion. I need technical terms related to Prisma's findMany with where clauses. Keywords like \"findMany\", \"where\", \"Prisma ORM\", maybe \"filter\", \"query builder\", \"prisma findMany where example\". Also, synonyms like \"filter\", \"search\", \"conditions\". Maybe related identifiers like \"Prisma filter\", \"prisma where clause\".\n\nNext, vec expansion. This is for semantic search. I should rephrase the query into a natural language description. Something like \"How to use the findMany method in Prisma ORM with a where clause to filter records\". Or maybe \"Example of querying multiple records with conditions in Prisma\".\n\nHyde is a hypothetical code snippet. The user wants a short example that matches the query. So, something like:\n\nconst users = await prisma.user.findMany({\n  where: {\n    age: { gt: 25 },\n    isActive: true\n  }\n});\n\nThat should cover the main points. Let me check if I missed anything. The original query is about using findMany with where, so the code example should demonstrate that. Make sure the syntax is correct for Prisma's findMany method with where conditions.\n</think>\n\nlex: prisma findmany where, prisma orm filter, prisma query builder, prisma where clause, prisma findmany example\n",
+      "latencyMs": 12457,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "<think>\nOkay, the user is asking about \"Next.js server component data fetching.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to Next.js server components and data fetching. Keywords like \"server components,\" \"data fetching,\" \"API routes,\" \"fetching in Next.js,\" maybe \"use server\" hook, \"edge functions,\" \"server-side rendering.\" Also synonyms like \"loading data,\" \"server API,\" \"Next.js 13 features.\" Maybe related identifiers like \"app directory,\" \"page.tsx,\" \"fetch API.\"\n\nThen the vec part. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"How to efficiently retrieve and display data within Next.js server components, including best practices for API calls and performance optimization.\"\n\nFor hyde, I need a hypothetical code snippet. The user is probably looking for examples of how to fetch data in server components. So, a code example using the 'fetch' function within a server component, maybe using an API route. Like importing a function from an API route and calling it, handling errors, returning the data. Also, maybe using the 'use server' directive if applicable.\n\nWait, Next.js 13 introduced App Router and Server Components. So the example should use the new app directory structure. The code might look like a server component that fetches data from an API route, handles errors, and passes",
+      "latencyMs": 12565,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "<think>\nOkay, the user is asking about \"Zod schema validation parse transform.\" Let me break this down.\n\nFirst, Zod is a TypeScript library for data validation. The query mentions schema validation, so I need to think about related terms. For lex expansion, keywords like \"schema\", \"validation\", \"parse\", \"transform\" are important. Maybe synonyms for validation could be \"data validation\" or \"schema parsing.\" Also, related identifiers like \"@zod/schema\" or \"zod parse error\" might be useful.\n\nFor the vec expansion, I should rephrase the query into a more natural language search. Maybe something like \"how to perform data validation using Zod schema and transformation techniques\" to capture the semantic meaning.\n\nHyde is a hypothetical code snippet. The user might be looking for an example of using Zod to parse and transform data. So, a code example that defines a schema, parses input, and transforms the output. Using z.parse() and maybe a custom transform function would fit here.\n\nI need to make sure each expansion is distinct and covers different aspects. Lex for BM25, vec for semantic search, hyde as a code example. Let me check if I missed any key terms or possible synonyms. Maybe \"type validation\" instead of \"schema validation\"? Or \"data parsing\" as an alternative to \"parse transform.\" Also, ensuring the hyde example is concise and matches the query's intent.\n</think>\n\nlex: zod schema validation",
+      "latencyMs": 12427,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "<think>\nOkay, the user is asking about \"tRPC router procedure mutation\". Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to tRPC, router procedures, and mutations. Keywords like \"tRPC\", \"router\", \"procedure\", \"mutation\" are obvious. Maybe synonyms for mutation could be \"update\", \"modify\", or \"change\". Also, related identifiers like \"create\", \"delete\" might be useful. So lex terms could include tRPC, router, procedure, mutation, update, modify, create, delete.\n\nNext, the vec expansion. This is for semantic search. I need a natural language rephrasing. Maybe something like \"how to perform mutations in tRPC router procedures\" or \"methods for updating data using tRPC router\". That should capture the intent of modifying data through the router.\n\nFor hyde, a hypothetical code snippet. The user probably wants an example of a mutation in tRPC. So I'll write a simple Next.js API route using tRPC. The code would define a router with a mutation procedure, like updating a user's name. It should include the necessary imports and the router setup with a mutation function.\n</think>\n\nlex: tRPC, router, procedure, mutation, update, modify, create, delete\nvec: how to perform mutations in tRPC router procedures\nhyde: const appRouter = createTRPCRouter({\n  updateName: procedure.input({ name:",
+      "latencyMs": 12363,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "<think>\nOkay, the user is asking about Tailwind's responsive breakpoints utilities. Let me break down what they need.\n\nFirst, for the lex part, I need to think of technical terms and synonyms related to Tailwind's breakpoints. The main keywords are \"breakpoints\" and \"responsive utilities\". Maybe include the actual Tailwind classes like sm, md, lg, xl, 2xl. Also terms like \"media queries\", \"screen sizes\", and \"utility classes\". Maybe add related identifiers like \"Tailwind CSS configuration\" or \"preflight\".\n\nFor the vec part, I should rephrase the query into a natural language search. Instead of \"Tailwind responsive breakpoints utilities\", maybe something like \"How to use Tailwind CSS utility classes for different screen sizes\" or \"Tailwind responsive design breakpoints examples\". That's more conversational and might catch semantic searches.\n\nHyde is a hypothetical code snippet. The user wants to see an example of using Tailwind's responsive utilities. So a simple code block showing classes applied with different breakpoints. Like a container that changes layout at different sizes. Maybe something like:\n\n.container {\n  @apply max-w-6xl mx-auto;\n}\n\n@media (min-width: 640px) {\n  .container {\n    @apply px-6;\n  }\n}\n\nWait, but Tailwind uses utility classes directly in HTML. Maybe a code example using the responsive variants. Like:\n\n<div class=\"container sm:px-6 md:py",
+      "latencyMs": 12585,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "<think>\nOkay, the user is asking about \"Jest mock module spyOn testing.\" Let me break this down.\n\nFirst, for the lex expansion. They want keyword variants for BM25 search. So I need technical terms related to Jest mocking, spyOn, and testing. Maybe synonyms like \"spyOn\" could be \"mock function\" or \"stub\". Also, related identifiers like \"jest.fn()\", \"jest.spyOn()\", and terms like \"module mocking\" or \"test spies\". I should include both the exact terms and their synonyms to cover more search variations.\n\nNext, the vec expansion. This is for semantic vector search, so a natural language rephrase. The original query is about using Jest's spyOn to mock modules during testing. So I can rephrase it as \"how to use Jest's spyOn method to mock module functions in unit tests\" or something similar. Make sure it's a fluent rephrase that captures the intent without jargon.\n\nLastly, the hyde snippet. This should be a short hypothetical code example that matches the query. The user is likely looking for an example of how to use spyOn in Jest to test a module. So, I'll create a simple example where a module's function is spied on, and then assert that the function was called. For instance, mocking a module 'myModule' with a function 'doSomething', then using spyOn to check if it was called. Make sure the code is concise and uses Jest's syntax correctly.\n",
+      "latencyMs": 12256,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "<think>\nOkay, the user is asking about \"Docker compose multi service networking.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think about technical terms related to Docker compose networking. Keywords like \"Docker networks,\" \"service linking,\" \"overlay networks,\" \"bridge network,\" \"custom networks,\" and maybe some synonyms like \"container networking\" or \"multi-container communication.\" Also, related identifiers like Docker's Compose file syntax elements such as \"networks:\" section, \"depends_on,\" or \"links.\" Maybe include terms like \"network aliases\" and \"port mapping.\"\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to configure Docker Compose to enable communication between multiple services using custom networks and networking drivers.\" That covers the main points of multi-service networking in Docker Compose.\n\nFor hyde, I need a hypothetical code snippet. Let's think of a simple Docker Compose example with multiple services using a custom network. Services like a web app and a database, both connected to the same network. Include the networks section in the compose file, maybe using a custom network and specifying container names or aliases for communication. Also, ensure the services are linked properly, maybe using depends_on or network settings.\n\nWait, in Docker Compose, when you define a custom network, services can be added to it. So the example should show two services in the same network. Also, maybe include",
+      "latencyMs": 12537,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"GitHub Actions CI workflow matrix\". Let me break down each part.\n\nFirst, for lex: I need keyword variants. The main terms are \"GitHub Actions\", \"CI workflow\", and \"matrix\". Synonyms for CI could be continuous integration. Maybe include terms like \"CI/CD\", \"build matrix\", \"test matrix\". Also, related identifiers like \"workflow.yml\" or \"matrix configuration\".\n\nNext, vec: A natural language rephrase. Instead of \"GitHub Actions CI workflow matrix\", maybe say \"how to configure multiple build environments in GitHub Actions CI\". That's more descriptive and might capture the intent better for semantic search.\n\nHyde: A hypothetical code snippet. The user probably wants a YAML example for GitHub Actions matrix. So, something with jobs using a matrix strategy, including different OS and node versions. Make sure to include the necessary syntax like 'name', 'runs-on', and 'strategy' under matrix.\n\nCheck if all parts are covered. Lex has synonyms and related terms. Vec is a rephrased query. Hyde is a short, relevant code example. Looks good.\n</think>\n\nlex: github actions ci matrix, continuous integration workflow, build matrix configuration, test environment setup, workflow.yml strategy\nvec: how to configure multiple build environments in GitHub Actions CI using matrix strategies\nhyde: jobs:\n  strategy:\n    matrix:\n      os: [ubuntu-latest, windows-latest]\n      node",
+      "latencyMs": 12525,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "<think>\nOkay, the user is asking about finding unused imports and dead code. Let me break down how to approach this.\n\nFirst, for the lex expansion. I need technical terms related to unused imports and dead code. Keywords like \"unused imports\", \"dead code\", \"import analysis\", \"code duplication\", \"static analysis tools\". Maybe include specific tools like \"unused import detection\" and \"dead code elimination\". Also, terms related to code quality, such as \"code refactoring\" and \"technical debt\".\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"Identify and remove unused imports and unreachable code to improve code quality and reduce technical debt.\" That covers the main points and is more descriptive for vector search.\n\nFor hyde, I need a hypothetical code snippet. Perhaps using Python with a tool like `pylint` or `autopep8`, but more specific. Maybe using `importlib.metadata` to check for unused imports. Alternatively, a script that uses `ast` to parse the code and compare with used symbols. Wait, maybe using a tool like `deadcode` or `unused-import` as a command-line example. But since the user might not have those installed, a simple script using `importlib` to list all imports and check if they're used. But how to determine if an import is unused? Maybe a basic example that lists all imports and marks them as unused, which isn't",
+      "latencyMs": 12341,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "<think>\nOkay, the user is asking about detecting circular dependencies between modules. Let me break down how to approach this.\n\nFirst, for the lex expansion. I need technical terms related to circular dependencies and module detection. Terms like \"circular reference,\" \"dependency cycle,\" \"module graph,\" \"import cycles,\" \"graph traversal algorithms,\" \"topological sorting,\" and maybe some specific terms like \"dependency injection\" or \"module resolution.\" Also, identifiers like \"import statements,\" \"require statements,\" and tools like \"ESLint\" or \"Webpack\" might be relevant.\n\nNext, the vec expansion. This should be a natural language rephrase for semantic search. Maybe something like \"How to identify and resolve loops in module import dependencies?\" or \"Methods for detecting infinite loops in software modules.\" It needs to capture the essence of detecting circular dependencies without using technical jargon.\n\nFor hyde, a hypothetical code snippet. I should think of a simple algorithm. Maybe using a visited set and a recursion stack to track modules as you traverse their dependencies. For example, a function that checks each module's imports and looks for cycles. Pseudocode using depth-first search (DFS) to detect cycles in a graph representation of modules.\n\nWait, should the hyde example be in a specific language? The user didn't specify, so pseudocode is safe. Maybe use a graph traversal approach with a visited array and a recursion stack to detect cycles. That's a common method for cycle detection in graphs,",
+      "latencyMs": 12429,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"dead code detection unreachable\" into lex, vec, and hyde. Let me break this down.\n\nFirst, for lex: I need to think of technical terms and synonyms related to dead code detection and unreachable code. Dead code is also called unused code, dormant code, or maybe even zombie code. Detection methods might involve static analysis tools like ESLint, Pylint, or SonarQube. Terms like control flow analysis, data flow analysis, and code coverage tools could be relevant. Also, specific terms like unreachable statements, dead branches, or unused functions.\n\nNext, vec: This is a natural language rephrase for semantic search. So I need to think of different ways to phrase the same concept. Maybe \"identifying unused code in programs,\" \"detecting unreachable branches in software,\" or \"methods to find non-executable code segments.\" The goal is to capture the same intent but with different wording.\n\nHyde: A hypothetical code snippet. The user wants a short example that matches the query. Maybe using a tool like Python's ast module to check for unreachable code. For example, using a function that traverses the AST and identifies nodes that aren't reachable. Alternatively, using a tool like PyLint's dead code detection. The code should be simple and demonstrate the concept, maybe with a sample function that has unreachable code.\n\nWait, for hyde, should it be a code example that would actually detect",
+      "latencyMs": 12609,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "<think>\nOkay, let's tackle this query expansion for \"security vulnerability SQL injection.\" First, I need to break down the user's request. They want three types of expansions: lex, vec, and hyde.\n\nStarting with lex: keyword variants for BM25. BM25 is a ranking function used in information retrieval, so I need to think about synonyms and related terms. The main terms here are \"security vulnerability\" and \"SQL injection.\" For \"security vulnerability,\" synonyms might include \"security flaw,\" \"vulnerability exploit,\" \"software security issues.\" For SQL injection, related terms could be \"SQLi,\" \"database injection attack,\" \"query injection.\" Also, maybe include related identifiers like CWE-89 (which is for SQL injection) or OWASP's Top Ten vulnerabilities. I should list these as separate terms.\n\nNext, vec: a natural language rephrasing for semantic vector search. This should be a paraphrased version of the query that's more general but still captures the same meaning. Maybe something like \"common database security threats involving malicious SQL queries\" or \"methods to exploit database systems through injected SQL code.\" The goal is to have a version that's semantically similar but phrased differently for vector search.\n\nHyde: a hypothetical code snippet. The user wants a short example that matches the query. Since SQL injection is about malicious input, the code should demonstrate an insecure SQL query. For example, a Python script using raw user input",
+      "latencyMs": 12420,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "<think>\nOkay, the user is asking about refactoring code duplication and similar functions. Let me break down each part of their query.\n\nFirst, for the lex expansion: They want keyword variants for BM25. So I need technical terms related to code duplication and refactoring. Terms like \"code duplication\", \"similar functions\", \"refactor\", \"method extraction\", \"DRY principle\", \"code reuse\", \"function duplication\", \"common code patterns\". Also, maybe include terms like \"extract method\" and \"code smell\" since those are related to identifying duplication.\n\nNext, the vec expansion: This is for semantic vector search. I need a natural language rephrase. Maybe something like \"how to identify and refactor duplicated code in similar functions to improve maintainability and reduce redundancy\". That covers the main points of detecting duplicates, refactoring, and the benefits.\n\nFor hyde: A hypothetical code snippet. The user probably wants an example of how to detect or refactor duplicated code. Maybe a Python example using a function to check for duplicate functions by comparing their bodies. Using something like `ast.parse` to get the abstract syntax tree and compare nodes. Also, a refactor example where they extract a common function from duplicates.\n\nWait, should the hyde example be more about detecting or refactoring? The query mentions both duplication and refactor. Maybe the hyde example should show a way to detect duplicates, like comparing function bodies. Alternatively, showing a refactor step. Let me think: the",
+      "latencyMs": 12287,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"performance bottleneck N+1 query\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to N+1 queries. The main term is \"N+1 query\", which is a common issue in ORM frameworks where a single query results in multiple database calls. Synonyms might include \"N+1 problem\", \"query nesting\", or terms like \"lazy loading\" which can contribute to this. Also, related identifiers could be things like \"ActiveRecord\", \"SQLAlchemy\", or specific patterns like \"eager loading\". Maybe include terms related to optimization techniques.\n\nNext, vec: This is a natural language rephrase for semantic search. I should think of different ways to phrase the same problem. Instead of \"N+1 query\", maybe \"multiple database calls caused by single query\", or \"inefficient data retrieval pattern\". Also, mention common scenarios like ORM frameworks or specific databases.\n\nHyde: The hypothetical code snippet. Need to show a scenario where N+1 occurs. For example, in Ruby on Rails using ActiveRecord, a loop that fetches each user's posts with a separate query. Then show the corrected version using eager loading. Maybe use Python's SQLAlchemy as well to cover different frameworks.\n\nWait, the user wants three lines: lex, vec, hyde. Let me structure each part concisely.\n\nFor lex, list terms like \"N+",
+      "latencyMs": 12685,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "<think>\nOkay, the user is asking about \"missing error handling try catch\". Let me break this down.\n\nFirst, for the lex expansion. They want keyword variants for BM25 search. So I need technical terms related to error handling, try-catch, maybe synonyms like exception handling, error propagation. Also, related identifiers like 'try-except' in Python or 'try-catch' in other languages. Maybe include terms like 'exception handling', 'error propagation', 'finally block', and some code examples like 'try-catch in Java' or 'Python try-except'.\n\nNext, the vec expansion. This is for semantic vector search, so a natural language rephrase. The original query is about missing error handling in try-catch blocks. So I should think of different ways to phrase that. Maybe \"how to properly implement error handling in try-catch blocks\", or \"best practices for ensuring error handling is not missing in try-catch structures\". Also, maybe mention common pitfalls like unhandled exceptions or missing finally clauses.\n\nNow the hyde part. A hypothetical code snippet that matches the query. The user's issue is missing error handling in try-catch. So the code should demonstrate a scenario where error handling is absent. For example, a function that uses try-catch but doesn't handle exceptions properly, maybe missing a catch block or not logging errors. Let's think of a Python example where a try block is there but no except, or maybe a catch",
+      "latencyMs": 12445,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "<think>\nOkay, the user is asking about \"type safety any assertion unsafe cast\". Let me break this down.\n\nFirst, for lex expansion. They want keyword variants for BM25 search. So I need technical terms related to type safety, assertions, and unsafe casts. Maybe terms like \"type checking\", \"runtime assertion\", \"explicit cast\", \"unchecked conversion\". Also, related identifiers like \"Rust borrow checker\" or \"C++ static_assert\". Synonyms could include \"type coercion\" or \"dynamic typing\".\n\nNext, vec expansion. This is for semantic vector search. I need a natural language rephrase. Maybe something like \"How to ensure type safety during assertions and prevent unsafe casts in programming languages\". That should capture the intent of checking type safety, using assertions, and avoiding unsafe casts.\n\nFor hyde, a hypothetical code snippet. The user probably wants an example that demonstrates the issue. Let's think of a language with explicit type checks, like TypeScript or Rust. In JavaScript, maybe something with type coercion. Wait, but the user mentioned unsafe casts. Maybe a TypeScript example where a variable is cast to a type that's not compatible, leading to an error. Or in Rust, using unsafe code for casting. Let me draft a simple example in JavaScript showing a type coercion issue that could lead to unsafe behavior.\n</think>\n\nlex: type checking, runtime assertion, explicit cast, unchecked conversion, Rust borrow checker, C++ static_assert, type coercion, dynamic typing\n",
+      "latencyMs": 12472,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "<think>\nOkay, the user is asking about expanding the query \"memory leak event listener cleanup\". Let me break down each part.\n\nFirst, for lex: I need to think of technical terms and synonyms related to memory leaks and event listeners. Terms like \"memory leak\", \"event listener\", \"cleanup\", \"garbage collection\", \"reference cycle\", \"finalize\", \"dispose\", \"resource leak\". Maybe also include terms like \"callback\", \"observer pattern\", \"object retention\".\n\nNext, vec: This is for semantic search. I should rephrase the query in natural language to capture the same meaning. Maybe something like \"how to prevent memory leaks by properly cleaning up event listeners\" or \"best practices for removing event listeners to avoid memory leaks\".\n\nHyde: A hypothetical code snippet. The user probably wants an example of how to clean up event listeners to prevent memory leaks. So, maybe a JavaScript example using addEventListener and removeEventListener, or in another language like Python with callbacks. But since the original query is about event listeners, JavaScript makes sense. Show a function that adds an event listener and another to remove it, ensuring proper cleanup.\n</think>\n\nlex: memory leak, event listener, garbage collection, reference cycle, finalize, dispose, resource leak, callback, observer pattern, object retention  \nvec: strategies to prevent memory leaks by properly deregistering event listeners in application code  \nhyde: function cleanupListeners() { document.removeEventListener('click', handleEvent); } // prevent memory",
+      "latencyMs": 12412,
+      "tokenCount": 299
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "<think>\nOkay, the user is asking about \"race condition async concurrent access.\" Let me break this down.\n\nFirst, for the lex expansion. I need to think of synonyms and related terms. \"Race condition\" could also be called a \"race hazard\" or \"critical section issue.\" For async, maybe \"asynchronous programming\" or \"async/await.\" Concurrent access might involve terms like \"threading,\" \"locking,\" or \"synchronization.\" Also, maybe include specific technologies like \"Python asyncio\" or \"Java concurrency.\"\n\nNext, the vec expansion. This is for semantic search. I should rephrase the query into a more natural language description. Maybe something like \"how to prevent race conditions when multiple asynchronous functions access shared resources concurrently.\" That captures the essence of the problem.\n\nFor hyde, I need a hypothetical code snippet. Let's think of a scenario where two async functions modify a shared variable without synchronization. For example, using Python's asyncio with a counter that's incremented by two coroutines. The race condition would occur because they both read the counter, increment it, and write back without locking. The code should show the issue and maybe a fix with asyncio.Lock.\n\nWait, does that cover all aspects? The original query is about race conditions in async concurrent access. The hyde example should demonstrate the problem. Maybe include a simple example where two async functions access a shared resource without proper synchronization, leading to inconsistent results. Then show how using a lock would fix it",
+      "latencyMs": 12567,
+      "tokenCount": 299
+    }
+  ]
+}

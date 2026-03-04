@@ -1,0 +1,306 @@
+{
+  "version": "1.0",
+  "description": "50 curated code search queries for query expansion model benchmarking",
+  "queries": [
+    {
+      "id": "sym-01",
+      "category": "symbol",
+      "query": "useEffect cleanup",
+      "description": "React hook cleanup pattern"
+    },
+    {
+      "id": "sym-02",
+      "category": "symbol",
+      "query": "handleSubmit function",
+      "description": "Form submission handler"
+    },
+    {
+      "id": "sym-03",
+      "category": "symbol",
+      "query": "SearchBar component",
+      "description": "Search UI component"
+    },
+    {
+      "id": "sym-04",
+      "category": "symbol",
+      "query": "createEmbeddingsClient",
+      "description": "Embedding client factory"
+    },
+    {
+      "id": "sym-05",
+      "category": "symbol",
+      "query": "parseParameterSize",
+      "description": "Model parameter size parser"
+    },
+    {
+      "id": "sym-06",
+      "category": "symbol",
+      "query": "buildCombinedIndex",
+      "description": "Vector index builder method"
+    },
+    {
+      "id": "sym-07",
+      "category": "symbol",
+      "query": "cosineSimilarity helper",
+      "description": "Vector similarity function"
+    },
+    {
+      "id": "sym-08",
+      "category": "symbol",
+      "query": "QueryGenerator class",
+      "description": "Query generation class"
+    },
+    {
+      "id": "sym-09",
+      "category": "symbol",
+      "query": "aggregateRetrievalResults",
+      "description": "Retrieval metric aggregation"
+    },
+    {
+      "id": "sym-10",
+      "category": "symbol",
+      "query": "LocalLLMClient constructor",
+      "description": "Local LLM client initialization"
+    },
+    {
+      "id": "err-01",
+      "category": "error",
+      "query": "fix TypeError cannot read property of undefined",
+      "description": "Common null/undefined access error"
+    },
+    {
+      "id": "err-02",
+      "category": "error",
+      "query": "resolve ECONNREFUSED localhost",
+      "description": "Connection refused to local service"
+    },
+    {
+      "id": "err-03",
+      "category": "error",
+      "query": "module not found cannot resolve import",
+      "description": "Module resolution failure"
+    },
+    {
+      "id": "err-04",
+      "category": "error",
+      "query": "CORS origin not allowed headers",
+      "description": "Cross-origin request blocked"
+    },
+    {
+      "id": "err-05",
+      "category": "error",
+      "query": "out of memory heap allocation failed",
+      "description": "Memory exhaustion error"
+    },
+    {
+      "id": "err-06",
+      "category": "error",
+      "query": "database connection timeout pool exhausted",
+      "description": "DB connection pool timeout"
+    },
+    {
+      "id": "err-07",
+      "category": "error",
+      "query": "promise rejected unhandled async error",
+      "description": "Unhandled promise rejection"
+    },
+    {
+      "id": "err-08",
+      "category": "error",
+      "query": "circular dependency detected import cycle",
+      "description": "Module circular import"
+    },
+    {
+      "id": "err-09",
+      "category": "error",
+      "query": "type error argument not assignable to parameter",
+      "description": "TypeScript type mismatch"
+    },
+    {
+      "id": "err-10",
+      "category": "error",
+      "query": "permission denied EACCES file access",
+      "description": "File permission error"
+    },
+    {
+      "id": "con-01",
+      "category": "concept",
+      "query": "authentication middleware",
+      "description": "Auth middleware pattern"
+    },
+    {
+      "id": "con-02",
+      "category": "concept",
+      "query": "rate limiting implementation",
+      "description": "API rate limiting"
+    },
+    {
+      "id": "con-03",
+      "category": "concept",
+      "query": "caching strategy invalidation",
+      "description": "Cache invalidation patterns"
+    },
+    {
+      "id": "con-04",
+      "category": "concept",
+      "query": "retry logic exponential backoff",
+      "description": "Retry with backoff"
+    },
+    {
+      "id": "con-05",
+      "category": "concept",
+      "query": "connection pooling database",
+      "description": "DB connection pooling"
+    },
+    {
+      "id": "con-06",
+      "category": "concept",
+      "query": "event driven architecture pub sub",
+      "description": "Event/pubsub patterns"
+    },
+    {
+      "id": "con-07",
+      "category": "concept",
+      "query": "dependency injection service container",
+      "description": "DI/IoC patterns"
+    },
+    {
+      "id": "con-08",
+      "category": "concept",
+      "query": "pagination cursor offset limit",
+      "description": "API pagination strategies"
+    },
+    {
+      "id": "con-09",
+      "category": "concept",
+      "query": "graceful shutdown signal handling",
+      "description": "Process shutdown patterns"
+    },
+    {
+      "id": "con-10",
+      "category": "concept",
+      "query": "streaming response server sent events",
+      "description": "SSE/streaming patterns"
+    },
+    {
+      "id": "fw-01",
+      "category": "framework",
+      "query": "React context vs Redux state management",
+      "description": "State management comparison"
+    },
+    {
+      "id": "fw-02",
+      "category": "framework",
+      "query": "Express middleware chain next function",
+      "description": "Express middleware flow"
+    },
+    {
+      "id": "fw-03",
+      "category": "framework",
+      "query": "Prisma ORM query findMany where",
+      "description": "Prisma query builder"
+    },
+    {
+      "id": "fw-04",
+      "category": "framework",
+      "query": "Next.js server component data fetching",
+      "description": "Next.js RSC patterns"
+    },
+    {
+      "id": "fw-05",
+      "category": "framework",
+      "query": "Zod schema validation parse transform",
+      "description": "Zod validation patterns"
+    },
+    {
+      "id": "fw-06",
+      "category": "framework",
+      "query": "tRPC router procedure mutation",
+      "description": "tRPC API patterns"
+    },
+    {
+      "id": "fw-07",
+      "category": "framework",
+      "query": "Tailwind responsive breakpoints utilities",
+      "description": "Tailwind CSS responsive design"
+    },
+    {
+      "id": "fw-08",
+      "category": "framework",
+      "query": "Jest mock module spyOn testing",
+      "description": "Jest mocking patterns"
+    },
+    {
+      "id": "fw-09",
+      "category": "framework",
+      "query": "Docker compose multi service networking",
+      "description": "Docker compose setup"
+    },
+    {
+      "id": "fw-10",
+      "category": "framework",
+      "query": "GitHub Actions CI workflow matrix",
+      "description": "GH Actions CI config"
+    },
+    {
+      "id": "rev-01",
+      "category": "code_review",
+      "query": "find unused imports dead code",
+      "description": "Unused import detection"
+    },
+    {
+      "id": "rev-02",
+      "category": "code_review",
+      "query": "detect circular dependencies modules",
+      "description": "Circular dependency detection"
+    },
+    {
+      "id": "rev-03",
+      "category": "code_review",
+      "query": "dead code detection unreachable",
+      "description": "Dead code analysis"
+    },
+    {
+      "id": "rev-04",
+      "category": "code_review",
+      "query": "security vulnerability SQL injection",
+      "description": "SQL injection detection"
+    },
+    {
+      "id": "rev-05",
+      "category": "code_review",
+      "query": "code duplication similar functions refactor",
+      "description": "Code duplication analysis"
+    },
+    {
+      "id": "rev-06",
+      "category": "code_review",
+      "query": "performance bottleneck N+1 query",
+      "description": "N+1 query detection"
+    },
+    {
+      "id": "rev-07",
+      "category": "code_review",
+      "query": "missing error handling try catch",
+      "description": "Error handling gaps"
+    },
+    {
+      "id": "rev-08",
+      "category": "code_review",
+      "query": "type safety any assertion unsafe cast",
+      "description": "Type safety issues"
+    },
+    {
+      "id": "rev-09",
+      "category": "code_review",
+      "query": "memory leak event listener cleanup",
+      "description": "Memory leak detection"
+    },
+    {
+      "id": "rev-10",
+      "category": "code_review",
+      "query": "race condition async concurrent access",
+      "description": "Concurrency issues"
+    }
+  ]
+}

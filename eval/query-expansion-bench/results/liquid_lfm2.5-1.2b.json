@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "LFM2.5-1.2B",
+    "lmsKey": "liquid/lfm2.5-1.2b",
+    "family": "lfm2",
+    "paramsB": 1.2
+  },
+  "timestamp": "2026-03-03T16:16:47.696Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 0.9863999999999998,
+    "keyword": 0.6948000000000003,
+    "semantic": 1,
+    "hyde": 0.2719999999999998,
+    "latencyMs": 558.18,
+    "total": 0.7281399999999999
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 598,
+      "total": 0.7070000000000001,
+      "expansion": {
+        "raw": "lex: effect, cleanup, lifecycle, removal  \nvec: semantic search results for \"useEffect\" cleanup  \nhyde: A code example demonstrating effect cleanup in React  ",
+        "lex": "effect, cleanup, lifecycle, removal",
+        "vec": "semantic search results for \"useEffect\" cleanup",
+        "hyde": "A code example demonstrating effect cleanup in React"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 490,
+      "total": 0.8777500000000001,
+      "expansion": {
+        "raw": "lex: handleSubmit function, JavaScript, HTML form submission, event handler  \nvec: semantic variations of \"handleSubmit\" and related form logic  \nhyde: <script>event.preventDefault();</script> submit event listener",
+        "lex": "handleSubmit function, JavaScript, HTML form submission, event handler",
+        "vec": "semantic variations of \"handleSubmit\" and related form logic",
+        "hyde": "<script>event.preventDefault();</script> submit event listener"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 538,
+      "total": 0.7695000000000001,
+      "expansion": {
+        "raw": "lex: BM25, search terms, search identifier  \nvec: semantic search for \"SearchBar component\"  \nhyde: {search: \"SearchBar component\", type: natural language, context: UI/UX}",
+        "lex": "BM25, search terms, search identifier",
+        "vec": "semantic search for \"SearchBar component\"",
+        "hyde": "{search: \"SearchBar component\", type: natural language, context: UI/UX}"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 340,
+      "total": 0.7832500000000001,
+      "expansion": {
+        "raw": "lex: embed, vectorize, semantic search  \nvec: semantic similarity, embedding generation, query matching  \nhyde: method: generate embeddings, model: transformer, task: similarity calculation",
+        "lex": "embed, vectorize, semantic search",
+        "vec": "semantic similarity, embedding generation, query matching",
+        "hyde": "method: generate embeddings, model: transformer, task: similarity calculation"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 324,
+      "total": 0.7520000000000001,
+      "expansion": {
+        "raw": "lex: parseParameterSize, parseQuery, technical terms\nvec: search for synonyms and related concepts in parameter size queries\nhyde: A code snippet to extract relevant parameters from a query string",
+        "lex": "parseParameterSize, parseQuery, technical terms",
+        "vec": "search for synonyms and related concepts in parameter size queries",
+        "hyde": "A code snippet to extract relevant parameters from a query string"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 281,
+      "total": 0.7520000000000001,
+      "expansion": {
+        "raw": "lex: build, combined, index, database  \nvec: semantic search results for \"combined index construction\"  \nhyde: Sample code snippet to create a combined index\n\n",
+        "lex": "build, combined, index, database",
+        "vec": "semantic search results for \"combined index construction\"",
+        "hyde": "Sample code snippet to create a combined index"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 469,
+      "total": 0.7600000000000001,
+      "expansion": {
+        "raw": "lex: cosine similarity, vector comparison, similarity metric  \nvec: semantic search vectors, document similarity, AI similarity  \nhyde: cosine_similarity_function, TF-IDF transformation, dot-product calculation",
+        "lex": "cosine similarity, vector comparison, similarity metric",
+        "vec": "semantic search vectors, document similarity, AI similarity",
+        "hyde": "cosine_similarity_function, TF-IDF transformation, dot-product calculation"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 500,
+      "total": 0.7312500000000001,
+      "expansion": {
+        "raw": "lex: BM25, search terms, keyword variants  \nvec: semantic rephrasing of \"QueryGenerator class\" and related concepts  \nhyde: Sample code snippet for query generation using the QueryGenerator class",
+        "lex": "BM25, search terms, keyword variants",
+        "vec": "semantic rephrasing of \"QueryGenerator class\" and related concepts",
+        "hyde": "Sample code snippet for query generation using the QueryGenerator class"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 310,
+      "total": 0.8072500000000001,
+      "expansion": {
+        "raw": "lex: aggregateRetrievalResults, technical terms, search synonyms, retrieval aggregation  \nvec: semantic search representation of query intent  \nhyde: {aggregateRetrievalResults, results, filtering}",
+        "lex": "aggregateRetrievalResults, technical terms, search synonyms, retrieval aggregation",
+        "vec": "semantic search representation of query intent",
+        "hyde": "{aggregateRetrievalResults, results, filtering}"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 292,
+      "total": 0.7520000000000001,
+      "expansion": {
+        "raw": "lex: LLM, constructor, local configuration  \nvec: semantic search for \"LocalLLMClient\" and its initialization  \nhyde: Sample code snippet matching the query",
+        "lex": "LLM, constructor, local configuration",
+        "vec": "semantic search for \"LocalLLMClient\" and its initialization",
+        "hyde": "Sample code snippet matching the query"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 316,
+      "total": 0.7760000000000001,
+      "expansion": {
+        "raw": "lex: TypeError, Fixing property access, Handling undefined values  \nvec: Identify key phrases like \"TypeError\", \"read property\", \"undefined\" for semantic matching  \nhyde: A code example that catches the error and sets defaults",
+        "lex": "TypeError, Fixing property access, Handling undefined values",
+        "vec": "Identify key phrases like \"TypeError\", \"read property\", \"undefined\" for semantic matching",
+        "hyde": "A code example that catches the error and sets defaults"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 382,
+      "total": 0.7600000000000001,
+      "expansion": {
+        "raw": "lex: ECONNREFUSED, localhost, resolve, server error  \nvec: alternative phrasing for database connection issues  \nhyde: Handling ECONNREFUSED exceptions in localhost setup  \n",
+        "lex": "ECONNREFUSED, localhost, resolve, server error",
+        "vec": "alternative phrasing for database connection issues",
+        "hyde": "Handling ECONNREFUSED exceptions in localhost setup"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 387,
+      "total": 0.8065000000000001,
+      "expansion": {
+        "raw": "lex: module, import, resolution  \nvec: search for technical terms related to missing modules  \nhyde: <code>import module</code> failed: module not found, cannot resolve import</hyde>",
+        "lex": "module, import, resolution",
+        "vec": "search for technical terms related to missing modules",
+        "hyde": "<code>import module</code> failed: module not found, cannot resolve import</hyde>"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 372,
+      "total": 0.7600000000000001,
+      "expansion": {
+        "raw": "lex: cors, origin, headers, CORS, cross-origin issues  \nvec: alternative phrasing for technical context  \nhyde: A code example addressing CORS origin restrictions with headers  ",
+        "lex": "cors, origin, headers, CORS, cross-origin issues",
+        "vec": "alternative phrasing for technical context",
+        "hyde": "A code example addressing CORS origin restrictions with headers"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 270,
+      "total": 0.7520000000000001,
+      "expansion": {
+        "raw": "lex: heap, memory, allocation failure  \nvec: search for technical terms and related identifiers  \nhyde: Example error message interpretation and debugging approach",
+        "lex": "heap, memory, allocation failure",
+        "vec": "search for technical terms and related identifiers",
+        "hyde": "Example error message interpretation and debugging approach"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 328,
+      "total": 0.7000000000000001,
+      "expansion": {
+        "raw": "lex: database, connection, timeout, pool, exhausted  \nvec: database link issues, connection limits, server overload  \nhyde: Handle connection failures, manage pool size, resolve timeout errors",
+        "lex": "database, connection, timeout, pool, exhausted",
+        "vec": "database link issues, connection limits, server overload",
+        "hyde": "Handle connection failures, manage pool size, resolve timeout errors"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1778,
+      "total": 0.6332500000000001,
+      "expansion": {
+        "raw": "lex: promise, rejected, async error  \nvec: alternative phrasing for semantic search  \nhyde: code snippet matching the query for error handling  ",
+        "lex": "promise, rejected, async error",
+        "vec": "alternative phrasing for semantic search",
+        "hyde": "code snippet matching the query for error handling"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 725,
+      "total": 0.7462500000000001,
+      "expansion": {
+        "raw": "lex: import cycle, circular dependency, import issues  \nvec: search \"circular dependency\" or \"import cycle\" for context  \nhyde: A code snippet detecting import loops in Python scripts  \n",
+        "lex": "import cycle, circular dependency, import issues",
+        "vec": "search \"circular dependency\" or \"import cycle\" for context",
+        "hyde": "A code snippet detecting import loops in Python scripts"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 737,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: type error, argument assignment, parameter issue  \nvec: detect semantic issues in code matching  \nhyde: <code>TypeError: argument 'error' not assignable to parameter</code>",
+        "lex": "type error, argument assignment, parameter issue",
+        "vec": "detect semantic issues in code matching",
+        "hyde": "<code>TypeError: argument 'error' not assignable to parameter</code>"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 913,
+      "total": 0.7150000000000001,
+      "expansion": {
+        "raw": "lex: permission, eaccess, file, denial, EACCES  \nvec: what caused the permission error when trying to access a file?  \nhyde: Sample code handling file access with permission checks.",
+        "lex": "permission, eaccess, file, denial, EACCES",
+        "vec": "what caused the permission error when trying to access a file?",
+        "hyde": "Sample code handling file access with permission checks."
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 470,
+      "total": 0.7912500000000001,
+      "expansion": {
+        "raw": "lex: authentication, middleware, security, login verification  \nvec: understanding the role of authentication middleware in web applications  \nhyde: Sample code for implementing authentication middleware in Node.js",
+        "lex": "authentication, middleware, security, login verification",
+        "vec": "understanding the role of authentication middleware in web applications",
+        "hyde": "Sample code for implementing authentication middleware in Node.js"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 528,
+      "total": 0.7150000000000001,
+      "expansion": {
+        "raw": "lex: rate limiting, implementation, API throttling  \nvec: alternative phrasing of the query for semantic search  \nhyde: sample code snippet matching \"rate limiting implementation\"",
+        "lex": "rate limiting, implementation, API throttling",
+        "vec": "alternative phrasing of the query for semantic search",
+        "hyde": "sample code snippet matching \"rate limiting implementation\""
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.42,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 605,
+      "total": 0.67025,
+      "expansion": {
+        "raw": "lex: caching, strategy, invalidation  \nvec: alternative ways to phrase the query semantically  \nhyde: sample code snippet for caching invalidation logic",
+        "lex": "caching, strategy, invalidation",
+        "vec": "alternative ways to phrase the query semantically",
+        "hyde": "sample code snippet for caching invalidation logic"
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 542,
+      "total": 0.647,
+      "expansion": {
+        "raw": "lex: retry, logic, exponential backoff  \nvec: semantic search vectors for retry strategies  \nhyde: try_retry_function_with_delay_algorithm",
+        "lex": "retry, logic, exponential backoff",
+        "vec": "semantic search vectors for retry strategies",
+        "hyde": "try_retry_function_with_delay_algorithm"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 690,
+      "total": 0.7150000000000001,
+      "expansion": {
+        "raw": "lex: connection pooling database optimization strategies  \nvec: pool management techniques, database connection handling, connection reuse  \nhyde: A system that maintains multiple database connections efficiently.  \n",
+        "lex": "connection pooling database optimization strategies",
+        "vec": "pool management techniques, database connection handling, connection reuse",
+        "hyde": "A system that maintains multiple database connections efficiently."
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 638,
+      "total": 0.7462500000000001,
+      "expansion": {
+        "raw": "lex: event-driven architecture, pub-sub patterns, event-driven systems  \nvec: semantic search for \"event-driven architecture\" and \"pub-sub\", matching \"event-driven architecture pub sub\"  \nhyde: {event-driven-architecture, pub-sub, event-driven-system}",
+        "lex": "event-driven architecture, pub-sub patterns, event-driven systems",
+        "vec": "semantic search for \"event-driven architecture\" and \"pub-sub\", matching \"event-driven architecture pub sub\"",
+        "hyde": "{event-driven-architecture, pub-sub, event-driven-system}"
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 436,
+      "total": 0.6920000000000001,
+      "expansion": {
+        "raw": "lex: dependency, injection, service container  \nvec: search for related concepts like dependency resolution, IoC containers  \nhyde: A code example demonstrating DI setup with a service container.  \n",
+        "lex": "dependency, injection, service container",
+        "vec": "search for related concepts like dependency resolution, IoC containers",
+        "hyde": "A code example demonstrating DI setup with a service container."
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 376,
+      "total": 0.7232500000000001,
+      "expansion": {
+        "raw": "lex: pagination, cursor, offset, limit  \nvec: summarizing terms for semantic search  \nhyde: sample query refinement for pagination parameters",
+        "lex": "pagination, cursor, offset, limit",
+        "vec": "summarizing terms for semantic search",
+        "hyde": "sample query refinement for pagination parameters"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 433,
+      "total": 0.7992500000000001,
+      "expansion": {
+        "raw": "lex: graceful shutdown, signal management, process termination  \nvec: alternative phrasing for shutdown communication  \nhyde: sample code snippet for graceful exit handling  \n",
+        "lex": "graceful shutdown, signal management, process termination",
+        "vec": "alternative phrasing for shutdown communication",
+        "hyde": "sample code snippet for graceful exit handling"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 506,
+      "total": 0.7095,
+      "expansion": {
+        "raw": "lex: streaming, response, server, events  \nvec: semantic search vectors for \"streaming response server events\"  \nhyde: `detect_events(query: 'streaming response server events')`",
+        "lex": "streaming, response, server, events",
+        "vec": "semantic search vectors for \"streaming response server events\"",
+        "hyde": "`detect_events(query: 'streaming response server events')`"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 384,
+      "total": 0.6920000000000001,
+      "expansion": {
+        "raw": "lex: context, Redux, state management  \nvec: alternative approaches for app data handling  \nhyde: concise code comparison highlighting key differences",
+        "lex": "context, Redux, state management",
+        "vec": "alternative approaches for app data handling",
+        "hyde": "concise code comparison highlighting key differences"
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 452,
+      "total": 0.6920000000000001,
+      "expansion": {
+        "raw": "lex: middleware, chain, next function  \nvec: semantic search results for \"middleware pipeline\"  \nhyde: Sample code snippet matching the query",
+        "lex": "middleware, chain, next function",
+        "vec": "semantic search results for \"middleware pipeline\"",
+        "hyde": "Sample code snippet matching the query"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "LFM2.5-1.2B",
+      "format": 0.66,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 750,
+      "total": 0.5970000000000001,
+      "expansion": {
+        "raw": "lex: Prisma, ORM, query filtering, findMany\nvec: database operations, model retrieval, semantic search\nhyde: \n```python\nfrom prisma import Prisma\n\nprisma.client.findMany(where={'someField': 'value'})\n```",
+        "lex": "Prisma, ORM, query filtering, findMany",
+        "vec": "database operations, model retrieval, semantic search",
+        "hyde": ""
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 617,
+      "total": 0.647,
+      "expansion": {
+        "raw": "lex: server, component, data fetching  \nvec: understanding how to implement Next.js server components for data retrieval  \nhyde: Match query \"Next.js server component data fetching\" with relevant code patterns and concepts.",
+        "lex": "server, component, data fetching",
+        "vec": "understanding how to implement Next.js server components for data retrieval",
+        "hyde": "Match query \"Next.js server component data fetching\" with relevant code patterns and concepts."
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 523,
+      "total": 0.655,
+      "expansion": {
+        "raw": "lex: zod schema validation parse transform  \nvec: semantic search for schema validation  \nhyde: <code>parse_transform</code> matching schema validation tasks",
+        "lex": "zod schema validation parse transform",
+        "vec": "semantic search for schema validation",
+        "hyde": "<code>parse_transform</code> matching schema validation tasks"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 751,
+      "total": 0.67825,
+      "expansion": {
+        "raw": "lex: tRPC, router, procedure, mutation  \nvec: search for technical terms related to RPC routing and procedure changes  \nhyde: Example code snippet for implementing a procedure mutation in a TRS router",
+        "lex": "tRPC, router, procedure, mutation",
+        "vec": "search for technical terms related to RPC routing and procedure changes",
+        "hyde": "Example code snippet for implementing a procedure mutation in a TRS router"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 693,
+      "total": 0.7622500000000001,
+      "expansion": {
+        "raw": "lex: tailwind responsive breakpoints, utility classes, mobile-first design  \nvec: \"responsive breakpoints\", \"breakpoint utilities\", \"Tailwind grid adaptions\"  \nhyde: <code><defs></defs><style script>@keyframes breakpoint {...}}</style></code>",
+        "lex": "tailwind responsive breakpoints, utility classes, mobile-first design",
+        "vec": "\"responsive breakpoints\", \"breakpoint utilities\", \"Tailwind grid adaptions\"",
+        "hyde": "<code><defs></defs><style script>@keyframes breakpoint {...}}</style></code>"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 511,
+      "total": 0.647,
+      "expansion": {
+        "raw": "lex: testing, mock, module, spyOn  \nvec: search for technical terms related to Jest and module spying  \nhyde: A concise code example demonstrating the query pattern",
+        "lex": "testing, mock, module, spyOn",
+        "vec": "search for technical terms related to Jest and module spying",
+        "hyde": "A concise code example demonstrating the query pattern"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 749,
+      "total": 0.7070000000000001,
+      "expansion": {
+        "raw": "lex: docker compose, multi-service, networking  \nvec: network configuration for Docker Compose multi-service  \nhyde: <code>docker-compose.yml</code> with <code>networks</code> section",
+        "lex": "docker compose, multi-service, networking",
+        "vec": "network configuration for Docker Compose multi-service",
+        "hyde": "<code>docker-compose.yml</code> with <code>networks</code> section"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 634,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: GitHub Actions, CI workflow, matrix configuration  \nvec: workflow automation, pipeline orchestration, dependency-based testing  \nhyde: <code>workflow.yml</code> <code>matrix file</code> <code>action: run</code>",
+        "lex": "GitHub Actions, CI workflow, matrix configuration",
+        "vec": "workflow automation, pipeline orchestration, dependency-based testing",
+        "hyde": "<code>workflow.yml</code> <code>matrix file</code> <code>action: run</code>"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 446,
+      "total": 0.7992500000000001,
+      "expansion": {
+        "raw": "lex: unused imports, dead code detection, code analysis  \nvec: Identify and summarize missing or obsolete import statements  \nhyde: Here’s a concise code example for the task.",
+        "lex": "unused imports, dead code detection, code analysis",
+        "vec": "Identify and summarize missing or obsolete import statements",
+        "hyde": "Here’s a concise code example for the task."
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 802,
+      "total": 0.8247500000000001,
+      "expansion": {
+        "raw": "lex: circular dependency, module interdependencies, code coupling analysis  \nvec: Identify and visualize cyclic relationships among software modules  \nhyde: Here’s a sample snippet for detecting circular dependencies in a project: `detect_cycles(module_list)`",
+        "lex": "circular dependency, module interdependencies, code coupling analysis",
+        "vec": "Identify and visualize cyclic relationships among software modules",
+        "hyde": "Here’s a sample snippet for detecting circular dependencies in a project: `detect_cycles(module_list)`"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 546,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: debug coding, code analysis, unreachable statements  \nvec: identifying semantic gaps in program logic  \nhyde: Here’s a concise code example for your query.",
+        "lex": "debug coding, code analysis, unreachable statements",
+        "vec": "identifying semantic gaps in program logic",
+        "hyde": "Here’s a concise code example for your query."
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 403,
+      "total": 0.6920000000000001,
+      "expansion": {
+        "raw": "lex: security, vulnerability, SQL injection  \nvec: identify risks in database queries  \nhyde: sample code demonstrating the issue",
+        "lex": "security, vulnerability, SQL injection",
+        "vec": "identify risks in database queries",
+        "hyde": "sample code demonstrating the issue"
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 717,
+      "total": 0.7855000000000001,
+      "expansion": {
+        "raw": "lex: code duplication, function refactoring, software optimization  \nvec: refactor repetitive code patterns, eliminate redundancy, improve structure  \nhyde: Refactor duplicate logic into reusable components; simplify main function calls",
+        "lex": "code duplication, function refactoring, software optimization",
+        "vec": "refactor repetitive code patterns, eliminate redundancy, improve structure",
+        "hyde": "Refactor duplicate logic into reusable components; simplify main function calls"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 699,
+      "total": 0.7230000000000001,
+      "expansion": {
+        "raw": "lex: performance bottleneck, N+1 query, database optimization  \nvec: system slowdown, query repetition, data fetching  \nhyde: detect N+1 issues, optimize database calls, improve load times",
+        "lex": "performance bottleneck, N+1 query, database optimization",
+        "vec": "system slowdown, query repetition, data fetching",
+        "hyde": "detect N+1 issues, optimize database calls, improve load times"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "LFM2.5-1.2B",
+      "format": 0.66,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0,
+      "latencyMs": 723,
+      "total": 0.5970000000000001,
+      "expansion": {
+        "raw": "lex: error handling, try-catch, exception management  \nvec: semantic adaptation of \"handle exceptions\" and \"catching errors\"  \nhyde: \n```python\ntry:\n    # code that may fail\nexcept Exception as e:\n    print(f\"Error caught: {e}\")\n```",
+        "lex": "error handling, try-catch, exception management",
+        "vec": "semantic adaptation of \"handle exceptions\" and \"catching errors\"",
+        "hyde": ""
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 501,
+      "total": 0.655,
+      "expansion": {
+        "raw": "lex: type safety, assertion, unsafe cast  \nvec: semantic search refinement, runtime checks, type inference  \nhyde: <code snippet>...</hyde>",
+        "lex": "type safety, assertion, unsafe cast",
+        "vec": "semantic search refinement, runtime checks, type inference",
+        "hyde": "<code snippet>...</hyde>"
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 731,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: memory leak, event listener, cleanup process  \nvec: semantic refinement of \"memory leak event listener\"  \nhyde: Sample code snippet for detecting memory leaks in JS environments",
+        "lex": "memory leak, event listener, cleanup process",
+        "vec": "semantic refinement of \"memory leak event listener\"",
+        "hyde": "Sample code snippet for detecting memory leaks in JS environments"
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "LFM2.5-1.2B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 703,
+      "total": 0.68625,
+      "expansion": {
+        "raw": "lex: race condition, async, concurrent access  \nvec: semantic variations in technical context, parallel processing terms, synchronization issues  \nhyde: sample code for race condition detection in async environments",
+        "lex": "race condition, async, concurrent access",
+        "vec": "semantic variations in technical context, parallel processing terms, synchronization issues",
+        "hyde": "sample code for race condition detection in async environments"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: effect, cleanup, lifecycle, removal  \nvec: semantic search results for \"useEffect\" cleanup  \nhyde: A code example demonstrating effect cleanup in React  ",
+      "latencyMs": 598,
+      "tokenCount": 35
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: handleSubmit function, JavaScript, HTML form submission, event handler  \nvec: semantic variations of \"handleSubmit\" and related form logic  \nhyde: <script>event.preventDefault();</script> submit event listener",
+      "latencyMs": 490,
+      "tokenCount": 48
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: BM25, search terms, search identifier  \nvec: semantic search for \"SearchBar component\"  \nhyde: {search: \"SearchBar component\", type: natural language, context: UI/UX}",
+      "latencyMs": 538,
+      "tokenCount": 44
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: embed, vectorize, semantic search  \nvec: semantic similarity, embedding generation, query matching  \nhyde: method: generate embeddings, model: transformer, task: similarity calculation",
+      "latencyMs": 340,
+      "tokenCount": 39
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parseParameterSize, parseQuery, technical terms\nvec: search for synonyms and related concepts in parameter size queries\nhyde: A code snippet to extract relevant parameters from a query string",
+      "latencyMs": 324,
+      "tokenCount": 42
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: build, combined, index, database  \nvec: semantic search results for \"combined index construction\"  \nhyde: Sample code snippet to create a combined index\n\n",
+      "latencyMs": 281,
+      "tokenCount": 38
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosine similarity, vector comparison, similarity metric  \nvec: semantic search vectors, document similarity, AI similarity  \nhyde: cosine_similarity_function, TF-IDF transformation, dot-product calculation",
+      "latencyMs": 469,
+      "tokenCount": 43
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: BM25, search terms, keyword variants  \nvec: semantic rephrasing of \"QueryGenerator class\" and related concepts  \nhyde: Sample code snippet for query generation using the QueryGenerator class",
+      "latencyMs": 500,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregateRetrievalResults, technical terms, search synonyms, retrieval aggregation  \nvec: semantic search representation of query intent  \nhyde: {aggregateRetrievalResults, results, filtering}",
+      "latencyMs": 310,
+      "tokenCount": 43
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: LLM, constructor, local configuration  \nvec: semantic search for \"LocalLLMClient\" and its initialization  \nhyde: Sample code snippet matching the query",
+      "latencyMs": 292,
+      "tokenCount": 37
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: TypeError, Fixing property access, Handling undefined values  \nvec: Identify key phrases like \"TypeError\", \"read property\", \"undefined\" for semantic matching  \nhyde: A code example that catches the error and sets defaults",
+      "latencyMs": 316,
+      "tokenCount": 49
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: ECONNREFUSED, localhost, resolve, server error  \nvec: alternative phrasing for database connection issues  \nhyde: Handling ECONNREFUSED exceptions in localhost setup  \n",
+      "latencyMs": 382,
+      "tokenCount": 44
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: module, import, resolution  \nvec: search for technical terms related to missing modules  \nhyde: <code>import module</code> failed: module not found, cannot resolve import</hyde>",
+      "latencyMs": 387,
+      "tokenCount": 44
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: cors, origin, headers, CORS, cross-origin issues  \nvec: alternative phrasing for technical context  \nhyde: A code example addressing CORS origin restrictions with headers  ",
+      "latencyMs": 372,
+      "tokenCount": 39
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: heap, memory, allocation failure  \nvec: search for technical terms and related identifiers  \nhyde: Example error message interpretation and debugging approach",
+      "latencyMs": 270,
+      "tokenCount": 31
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database, connection, timeout, pool, exhausted  \nvec: database link issues, connection limits, server overload  \nhyde: Handle connection failures, manage pool size, resolve timeout errors",
+      "latencyMs": 328,
+      "tokenCount": 38
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: promise, rejected, async error  \nvec: alternative phrasing for semantic search  \nhyde: code snippet matching the query for error handling  ",
+      "latencyMs": 1778,
+      "tokenCount": 32
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: import cycle, circular dependency, import issues  \nvec: search \"circular dependency\" or \"import cycle\" for context  \nhyde: A code snippet detecting import loops in Python scripts  \n",
+      "latencyMs": 725,
+      "tokenCount": 42
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type error, argument assignment, parameter issue  \nvec: detect semantic issues in code matching  \nhyde: <code>TypeError: argument 'error' not assignable to parameter</code>",
+      "latencyMs": 737,
+      "tokenCount": 41
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: permission, eaccess, file, denial, EACCES  \nvec: what caused the permission error when trying to access a file?  \nhyde: Sample code handling file access with permission checks.",
+      "latencyMs": 913,
+      "tokenCount": 42
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: authentication, middleware, security, login verification  \nvec: understanding the role of authentication middleware in web applications  \nhyde: Sample code for implementing authentication middleware in Node.js",
+      "latencyMs": 470,
+      "tokenCount": 38
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate limiting, implementation, API throttling  \nvec: alternative phrasing of the query for semantic search  \nhyde: sample code snippet matching \"rate limiting implementation\"",
+      "latencyMs": 528,
+      "tokenCount": 38
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: caching, strategy, invalidation  \nvec: alternative ways to phrase the query semantically  \nhyde: sample code snippet for caching invalidation logic",
+      "latencyMs": 605,
+      "tokenCount": 36
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: retry, logic, exponential backoff  \nvec: semantic search vectors for retry strategies  \nhyde: try_retry_function_with_delay_algorithm",
+      "latencyMs": 542,
+      "tokenCount": 36
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: connection pooling database optimization strategies  \nvec: pool management techniques, database connection handling, connection reuse  \nhyde: A system that maintains multiple database connections efficiently.  \n",
+      "latencyMs": 690,
+      "tokenCount": 36
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event-driven architecture, pub-sub patterns, event-driven systems  \nvec: semantic search for \"event-driven architecture\" and \"pub-sub\", matching \"event-driven architecture pub sub\"  \nhyde: {event-driven-architecture, pub-sub, event-driven-system}",
+      "latencyMs": 638,
+      "tokenCount": 56
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency, injection, service container  \nvec: search for related concepts like dependency resolution, IoC containers  \nhyde: A code example demonstrating DI setup with a service container.  \n",
+      "latencyMs": 436,
+      "tokenCount": 39
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination, cursor, offset, limit  \nvec: summarizing terms for semantic search  \nhyde: sample query refinement for pagination parameters",
+      "latencyMs": 376,
+      "tokenCount": 31
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful shutdown, signal management, process termination  \nvec: alternative phrasing for shutdown communication  \nhyde: sample code snippet for graceful exit handling  \n",
+      "latencyMs": 433,
+      "tokenCount": 35
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: streaming, response, server, events  \nvec: semantic search vectors for \"streaming response server events\"  \nhyde: `detect_events(query: 'streaming response server events')`",
+      "latencyMs": 506,
+      "tokenCount": 43
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: context, Redux, state management  \nvec: alternative approaches for app data handling  \nhyde: concise code comparison highlighting key differences",
+      "latencyMs": 384,
+      "tokenCount": 28
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: middleware, chain, next function  \nvec: semantic search results for \"middleware pipeline\"  \nhyde: Sample code snippet matching the query",
+      "latencyMs": 452,
+      "tokenCount": 34
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: Prisma, ORM, query filtering, findMany\nvec: database operations, model retrieval, semantic search\nhyde: \n```python\nfrom prisma import Prisma\n\nprisma.client.findMany(where={'someField': 'value'})\n```",
+      "latencyMs": 750,
+      "tokenCount": 59
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: server, component, data fetching  \nvec: understanding how to implement Next.js server components for data retrieval  \nhyde: Match query \"Next.js server component data fetching\" with relevant code patterns and concepts.",
+      "latencyMs": 617,
+      "tokenCount": 46
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: zod schema validation parse transform  \nvec: semantic search for schema validation  \nhyde: <code>parse_transform</code> matching schema validation tasks",
+      "latencyMs": 523,
+      "tokenCount": 33
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC, router, procedure, mutation  \nvec: search for technical terms related to RPC routing and procedure changes  \nhyde: Example code snippet for implementing a procedure mutation in a TRS router",
+      "latencyMs": 751,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: tailwind responsive breakpoints, utility classes, mobile-first design  \nvec: \"responsive breakpoints\", \"breakpoint utilities\", \"Tailwind grid adaptions\"  \nhyde: <code><defs></defs><style script>@keyframes breakpoint {...}}</style></code>",
+      "latencyMs": 693,
+      "tokenCount": 65
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: testing, mock, module, spyOn  \nvec: search for technical terms related to Jest and module spying  \nhyde: A concise code example demonstrating the query pattern",
+      "latencyMs": 511,
+      "tokenCount": 36
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker compose, multi-service, networking  \nvec: network configuration for Docker Compose multi-service  \nhyde: <code>docker-compose.yml</code> with <code>networks</code> section",
+      "latencyMs": 749,
+      "tokenCount": 49
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: GitHub Actions, CI workflow, matrix configuration  \nvec: workflow automation, pipeline orchestration, dependency-based testing  \nhyde: <code>workflow.yml</code> <code>matrix file</code> <code>action: run</code>",
+      "latencyMs": 634,
+      "tokenCount": 57
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused imports, dead code detection, code analysis  \nvec: Identify and summarize missing or obsolete import statements  \nhyde: Here’s a concise code example for the task.",
+      "latencyMs": 446,
+      "tokenCount": 36
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: circular dependency, module interdependencies, code coupling analysis  \nvec: Identify and visualize cyclic relationships among software modules  \nhyde: Here’s a sample snippet for detecting circular dependencies in a project: `detect_cycles(module_list)`",
+      "latencyMs": 802,
+      "tokenCount": 53
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: debug coding, code analysis, unreachable statements  \nvec: identifying semantic gaps in program logic  \nhyde: Here’s a concise code example for your query.",
+      "latencyMs": 546,
+      "tokenCount": 35
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: security, vulnerability, SQL injection  \nvec: identify risks in database queries  \nhyde: sample code demonstrating the issue",
+      "latencyMs": 403,
+      "tokenCount": 25
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: code duplication, function refactoring, software optimization  \nvec: refactor repetitive code patterns, eliminate redundancy, improve structure  \nhyde: Refactor duplicate logic into reusable components; simplify main function calls",
+      "latencyMs": 717,
+      "tokenCount": 43
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: performance bottleneck, N+1 query, database optimization  \nvec: system slowdown, query repetition, data fetching  \nhyde: detect N+1 issues, optimize database calls, improve load times",
+      "latencyMs": 699,
+      "tokenCount": 44
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: error handling, try-catch, exception management  \nvec: semantic adaptation of \"handle exceptions\" and \"catching errors\"  \nhyde: \n```python\ntry:\n    # code that may fail\nexcept Exception as e:\n    print(f\"Error caught: {e}\")\n```",
+      "latencyMs": 723,
+      "tokenCount": 61
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: type safety, assertion, unsafe cast  \nvec: semantic search refinement, runtime checks, type inference  \nhyde: <code snippet>...</hyde>",
+      "latencyMs": 501,
+      "tokenCount": 36
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memory leak, event listener, cleanup process  \nvec: semantic refinement of \"memory leak event listener\"  \nhyde: Sample code snippet for detecting memory leaks in JS environments",
+      "latencyMs": 731,
+      "tokenCount": 40
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race condition, async, concurrent access  \nvec: semantic variations in technical context, parallel processing terms, synchronization issues  \nhyde: sample code for race condition detection in async environments",
+      "latencyMs": 703,
+      "tokenCount": 38
+    }
+  ]
+}

@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "SmolLM2-1.7B",
+    "lmsKey": "smollm2-1.7b-instruct",
+    "family": "smollm",
+    "paramsB": 1.7
+  },
+  "timestamp": "2026-03-04T01:48:59.122Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 0.94,
+    "keyword": 0.6644000000000001,
+    "semantic": 0.8710000000000001,
+    "hyde": 0.38849999999999973,
+    "latencyMs": 1240.04,
+    "total": 0.687305
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 786,
+      "total": 0.6990000000000001,
+      "expansion": {
+        "raw": "lex: useEffect, useEffectDispatch, useReducer\nvec: clean up state and side effects in React components\nhyde: Hook that cleans up side effects after a component has rendered.",
+        "lex": "useEffect, useEffectDispatch, useReducer",
+        "vec": "clean up state and side effects in React components",
+        "hyde": "Hook that cleans up side effects after a component has rendered."
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.33999999999999997,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1239,
+      "total": 0.748,
+      "expansion": {
+        "raw": "lex: handleSubmit\nvec: submit the form data to the server after processing\nhyde: def handleSubmit(self): self.formData = request.get_json() # get JSON payload from request response = requests.post('https://api.example.com/submit', json=self.formData)",
+        "lex": "handleSubmit",
+        "vec": "submit the form data to the server after processing",
+        "hyde": "def handleSubmit(self): self.formData = request.get_json() # get JSON payload from request response = requests.post('https://api.example.com/submit', json=self.formData)"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.33999999999999997,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 475,
+      "total": 0.643,
+      "expansion": {
+        "raw": "lex: SearchBar\nvec: A search bar component for a web application.\nhyde: <SearchBar />",
+        "lex": "SearchBar",
+        "vec": "A search bar component for a web application.",
+        "hyde": "<SearchBar />"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 800,
+      "total": 0.7455,
+      "expansion": {
+        "raw": "lex: \"createEmbeddingsClient\"\nvec: \"Create an embeddings client to perform vector-based operations on textual data.\"\nhyde: \"class EmbeddingsClient { /* implementation */ }\"",
+        "lex": "\"createEmbeddingsClient\"",
+        "vec": "\"Create an embeddings client to perform vector-based operations on textual data.\"",
+        "hyde": "\"class EmbeddingsClient { /* implementation */ }\""
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.76,
+      "semantic": 0.75,
+      "hyde": 0.575,
+      "latencyMs": 1198,
+      "total": 0.75075,
+      "expansion": {
+        "raw": "lex: size_t parseParameterSize(const char* param);\nvec: Parse parameter size;\nhyde: #include <stdio.h> int main() { printf(\"size_t parseParameterSize(const char* param) = %zu\\n\", parseParameterSize(\"1024\")); }",
+        "lex": "size_t parseParameterSize(const char* param);",
+        "vec": "Parse parameter size;",
+        "hyde": "#include <stdio.h> int main() { printf(\"size_t parseParameterSize(const char* param) = %zu\\n\", parseParameterSize(\"1024\")); }"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 797,
+      "total": 0.77675,
+      "expansion": {
+        "raw": "lex: \"buildCombinedIndex\"\nvec: \"build combined index for a database or file system.\"\nhyde: \"int main() { struct IndexData *index; // Initialize the index structure... }\"",
+        "lex": "\"buildCombinedIndex\"",
+        "vec": "\"build combined index for a database or file system.\"",
+        "hyde": "\"int main() { struct IndexData *index; // Initialize the index structure... }\""
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 581,
+      "total": 0.77675,
+      "expansion": {
+        "raw": "lex: cos_sim_helper\nvec: cosine similarity helper function\nhyde: def cos_sim_helper(vector1, vector2): pass",
+        "lex": "cos_sim_helper",
+        "vec": "cosine similarity helper function",
+        "hyde": "def cos_sim_helper(vector1, vector2): pass"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.38,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 696,
+      "total": 0.6935,
+      "expansion": {
+        "raw": "lex: QueryGenerator class\nvec: A class used to generate queries for various search purposes.\nhyde: public class QueryGenerator { /* implementation */ }",
+        "lex": "QueryGenerator class",
+        "vec": "A class used to generate queries for various search purposes.",
+        "hyde": "public class QueryGenerator { /* implementation */ }"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1230,
+      "total": 0.8327500000000001,
+      "expansion": {
+        "raw": "lex: keyword variants for BM25 search (aggregate retrieval results)\nvec: a natural language rephrasing for semantic vector search (aggregated retrieval results)\nhyde: a short hypothetical code snippet that would match this query (e.g., \"function aggregateRetrievalResults(results: Array<any>): any { return ... }\")",
+        "lex": "keyword variants for BM25 search (aggregate retrieval results)",
+        "vec": "a natural language rephrasing for semantic vector search (aggregated retrieval results)",
+        "hyde": "a short hypothetical code snippet that would match this query (e.g., \"function aggregateRetrievalResults(results: Array<any>): any { return ... }\")"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "SmolLM2-1.7B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 1003,
+      "total": 0.105,
+      "expansion": {
+        "raw": "1. lex: LLMClient constructor\n2. vec: Constructor for LLMClients\n3. hyde: class LLMClients { public: LLMClients(int _num_layers, int _max_seq_length) {} };",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 666,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: 'TypeError: cannot read property of undefined'\nvec: 'TypeError: Cannot read property of undefined'\nhyde: 'TypeError: Cannot read property of undefined'",
+        "lex": "'TypeError: cannot read property of undefined'",
+        "vec": "'TypeError: Cannot read property of undefined'",
+        "hyde": "'TypeError: Cannot read property of undefined'"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 813,
+      "total": 0.6990000000000001,
+      "expansion": {
+        "raw": "lex: \"resolve ECONNREFUSED localhost\"\nvec: \"local connection refused error on localhost\"\nhyde: \"try connecting to localhost with a different port or IP address\"",
+        "lex": "\"resolve ECONNREFUSED localhost\"",
+        "vec": "\"local connection refused error on localhost\"",
+        "hyde": "\"try connecting to localhost with a different port or IP address\""
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 742,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: \"module not found\", \"cannot resolve import\"\nvec: \"import error\", \"module not found\"\nhyde: \"ModuleNotFoundError: No module named '...'\"",
+        "lex": "\"module not found\", \"cannot resolve import\"",
+        "vec": "\"import error\", \"module not found\"",
+        "hyde": "\"ModuleNotFoundError: No module named '...'\""
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1474,
+      "total": 0.7702500000000001,
+      "expansion": {
+        "raw": "lex: \"CORS (Cross-Origin Resource Sharing) origin not allowed headers\"\nvec: \"origin header in CORS request not allowed, what is it?\"\nhyde: \"To handle CORS origin not allowed headers, you can use a proxy server or add the appropriate headers to your requests. For example, if you're using Node.js and Express.js, you can set `Access-Control-Allow-Origin` header in your response.\"",
+        "lex": "\"CORS (Cross-Origin Resource Sharing) origin not allowed headers\"",
+        "vec": "\"origin header in CORS request not allowed, what is it?\"",
+        "hyde": "\"To handle CORS origin not allowed headers, you can use a proxy server or add the appropriate headers to your requests. For example, if you're using Node.js and Express.js, you can set `Access-Control-Allow-Origin` header in your response.\""
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 818,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: \"out of memory\", \"heap allocation\", \"failed\"\nvec: \"memory management issues\", \"allocation failure\", \"memory leak\"\nhyde: \"Heap size exceeded, unable to allocate sufficient memory for object creation\"",
+        "lex": "\"out of memory\", \"heap allocation\", \"failed\"",
+        "vec": "\"memory management issues\", \"allocation failure\", \"memory leak\"",
+        "hyde": "\"Heap size exceeded, unable to allocate sufficient memory for object creation\""
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 0.75,
+      "hyde": 0.2,
+      "latencyMs": 720,
+      "total": 0.665,
+      "expansion": {
+        "raw": "lex: \"database connection timeout pool exhausted\"\nvec: \"database connection timeout pool exhausted\"\nhyde: \"try increasing the timeout value in your database connection pool settings to avoid this issue\"",
+        "lex": "\"database connection timeout pool exhausted\"",
+        "vec": "\"database connection timeout pool exhausted\"",
+        "hyde": "\"try increasing the timeout value in your database connection pool settings to avoid this issue\""
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1041,
+      "total": 0.8480000000000001,
+      "expansion": {
+        "raw": "lex: \"promise rejection\", \"unhandled promise rejection\", \"async error\"\nvec: \"Promise rejection without handling, async error handling example in JavaScript\"\nhyde: \"function handleUnhandledRejection(rejection) { console.error('Unhandled promise rejection:', rejection); };\"",
+        "lex": "\"promise rejection\", \"unhandled promise rejection\", \"async error\"",
+        "vec": "\"Promise rejection without handling, async error handling example in JavaScript\"",
+        "hyde": "\"function handleUnhandledRejection(rejection) { console.error('Unhandled promise rejection:', rejection); };\""
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 0.8,
+      "hyde": 0.575,
+      "latencyMs": 1714,
+      "total": 0.6917500000000001,
+      "expansion": {
+        "raw": "lex: circular_dependency_detected_import_cycle\nvec: a circular dependency is detected when two or more modules depend on each other, preventing the execution of any module in isolation. this can be resolved by reordering imports or removing redundant dependencies.\nhyde: from importlib._bootstrap_external import _find_loaders; from importlib.machinery import SourceFileLoader; def load_source(name, file_path): ...",
+        "lex": "circular_dependency_detected_import_cycle",
+        "vec": "a circular dependency is detected when two or more modules depend on each other, preventing the execution of any module in isolation. this can be resolved by reordering imports or removing redundant dependencies.",
+        "hyde": "from importlib._bootstrap_external import _find_loaders; from importlib.machinery import SourceFileLoader; def load_source(name, file_path): ..."
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 0.75,
+      "hyde": 0.475,
+      "latencyMs": 1111,
+      "total": 0.70175,
+      "expansion": {
+        "raw": "lex: type_error_argument_not_assignable_to_parameter\nvec: type error: argument not assignable to parameter\nhyde: def func(arg):\n    try:\n        pass\n    except TypeError as e:\n        if 'not assignable' in str(e) or 'type error' in str(e):\n            raise",
+        "lex": "type_error_argument_not_assignable_to_parameter",
+        "vec": "type error: argument not assignable to parameter",
+        "hyde": "def func(arg):"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 802,
+      "total": 0.8247500000000001,
+      "expansion": {
+        "raw": "lex: EACCES, permission denied error in file access\nvec: Permission denied error when accessing the file\nhyde: #include <stdio.h> int main() { printf(\"Permission denied error\\n\"); return 0; }",
+        "lex": "EACCES, permission denied error in file access",
+        "vec": "Permission denied error when accessing the file",
+        "hyde": "#include <stdio.h> int main() { printf(\"Permission denied error\\n\"); return 0; }"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1157,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: auth_middleware, authentication_middleware, authorization_middleware, middleware_auth, middleware_authentication, middleware_authorization\nvec: middleware that handles user authentication, middleware to manage authentication flow, middleware for authorization checks\nhyde: class or function that wraps an existing middleware and adds authentication functionality",
+        "lex": "auth_middleware, authentication_middleware, authorization_middleware, middleware_auth, middleware_authentication, middleware_authorization",
+        "vec": "middleware that handles user authentication, middleware to manage authentication flow, middleware for authorization checks",
+        "hyde": "class or function that wraps an existing middleware and adds authentication functionality"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1851,
+      "total": 0.7797500000000002,
+      "expansion": {
+        "raw": "lex: \"rate limiting\" \"implementation\", \"API throttling\", \"traffic management\".\nvec: \"Implementing rate limits in APIs to manage traffic and prevent abuse.\"; \"Rate limiting techniques for API development\"; \"Traffic management strategies that prioritize resource allocation.\"\nhyde: #include <stdio.h> int main() { int count = 0; while (count <= 10) { printf(\"Request %d\\n\", count); count++; } return 0; }",
+        "lex": "\"rate limiting\" \"implementation\", \"API throttling\", \"traffic management\".",
+        "vec": "\"Implementing rate limits in APIs to manage traffic and prevent abuse.\"; \"Rate limiting techniques for API development\"; \"Traffic management strategies that prioritize resource allocation.\"",
+        "hyde": "#include <stdio.h> int main() { int count = 0; while (count <= 10) { printf(\"Request %d\\n\", count); count++; } return 0; }"
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 0.75,
+      "hyde": 0.325,
+      "latencyMs": 1205,
+      "total": 0.68025,
+      "expansion": {
+        "raw": "lex: \"caching strategy invalidation\"\nvec: \"caching strategy invalidation\"\nhyde: \"In the context of caching strategies, invalidation refers to the process of removing or updating cached data when the underlying resource changes. This ensures that subsequent requests for the same resource do not receive outdated information.\"",
+        "lex": "\"caching strategy invalidation\"",
+        "vec": "\"caching strategy invalidation\"",
+        "hyde": "\"In the context of caching strategies, invalidation refers to the process of removing or updating cached data when the underlying resource changes. This ensures that subsequent requests for the same resource do not receive outdated information.\""
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 0.75,
+      "hyde": 0.575,
+      "latencyMs": 2335,
+      "total": 0.6817500000000001,
+      "expansion": {
+        "raw": "lex: retry_logic_exponential_backoff\nvec: retry logic exponential backoff\nhyde: def retry_logic_exponential_backoff(max_retries=3, initial_delay=1000, factor=2):\n    delay = initial_delay\n    retries = 0\n    while retries < max_retries:\n        try:\n            # code here to execute the operation\n            break\n        except Exception as e:\n            if retries < max_retries - 1:\n                time.sleep(delay)\n                delay *= factor\n                retries += 1\n            else:\n                raise",
+        "lex": "retry_logic_exponential_backoff",
+        "vec": "retry logic exponential backoff",
+        "hyde": "def retry_logic_exponential_backoff(max_retries=3, initial_delay=1000, factor=2):"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 701,
+      "total": 0.7150000000000001,
+      "expansion": {
+        "raw": "lex: \"connection pooling\" or \"database connection pooling\"\nvec: \"connection pooling for databases\"\nhyde: \"How to implement connection pooling in a database system?\"",
+        "lex": "\"connection pooling\" or \"database connection pooling\"",
+        "vec": "\"connection pooling for databases\"",
+        "hyde": "\"How to implement connection pooling in a database system?\""
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 1060,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: event-driven architecture, publish/subscribe, real-time data processing\nvec: event-driven architecture, subscribe to events, publish messages\nhyde: a system that uses multiple processes communicating with each other through events for efficient and scalable data sharing.",
+        "lex": "event-driven architecture, publish/subscribe, real-time data processing",
+        "vec": "event-driven architecture, subscribe to events, publish messages",
+        "hyde": "a system that uses multiple processes communicating with each other through events for efficient and scalable data sharing."
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 0.75,
+      "hyde": 0.2,
+      "latencyMs": 767,
+      "total": 0.5970000000000001,
+      "expansion": {
+        "raw": "lex: dependency injection service container\nvec: dependency injection service container\nhyde: a software design pattern that allows components to be loosely coupled and easily tested by providing services through the use of a service locator or other dependency injection mechanism.",
+        "lex": "dependency injection service container",
+        "vec": "dependency injection service container",
+        "hyde": "a software design pattern that allows components to be loosely coupled and easily tested by providing services through the use of a service locator or other dependency injection mechanism."
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6799999999999999,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 1550,
+      "total": 0.7085000000000001,
+      "expansion": {
+        "raw": "lex: pagination_cursor_offset, pagination_cursor_limit\nvec: \"paginate using a cursor offset and limit\" or \"use a cursor offset and limit for pagination\"\nhyde: #include <stdio.h> int main() { printf(\"Paginating with cursor offset %d and limit %d\\n\", 10, 20); }",
+        "lex": "pagination_cursor_offset, pagination_cursor_limit",
+        "vec": "\"paginate using a cursor offset and limit\" or \"use a cursor offset and limit for pagination\"",
+        "hyde": "#include <stdio.h> int main() { printf(\"Paginating with cursor offset %d and limit %d\\n\", 10, 20); }"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1793,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "lex: graceful_shutdown_signal_handling, graceful_shutdown_signals, signals, signal_handler, signal_handlers, signal_handling\nvec: graceful shutdown signal handling, managing system resources during shutdown, ensuring smooth transitions between processes\nhyde: #include <sys/types.h> #include <unistd.h> int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);",
+        "lex": "graceful_shutdown_signal_handling, graceful_shutdown_signals, signals, signal_handler, signal_handlers, signal_handling",
+        "vec": "graceful shutdown signal handling, managing system resources during shutdown, ensuring smooth transitions between processes",
+        "hyde": "#include <sys/types.h> #include <unistd.h> int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.1,
+      "latencyMs": 1990,
+      "total": 0.677,
+      "expansion": {
+        "raw": "lex: \"streaming response server sent events\", \"server-sent events\", \"event-based web sockets\"\nvec: \"streaming response server sent events\" - related to websockets and event-driven programming.\nhyde: ```python\nimport socket\nclass ServerSentEventsServer(socket.SocketServer):\n    def handle_request(self, request, client_address):\n        self.sendall('{\"event\": \"message\", \"data\": {\"hello\": \"world\"}}')\n```",
+        "lex": "\"streaming response server sent events\", \"server-sent events\", \"event-based web sockets\"",
+        "vec": "\"streaming response server sent events\" - related to websockets and event-driven programming.",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8400000000000001,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 790,
+      "total": 0.7542500000000001,
+      "expansion": {
+        "raw": "lex: \"React Context vs Redux State Management\"\nvec: \"Context API and Redux for managing state in React applications\"\nhyde: \"Use React Context to manage state locally, while Redux is a centralized store that handles all state updates.\"",
+        "lex": "\"React Context vs Redux State Management\"",
+        "vec": "\"Context API and Redux for managing state in React applications\"",
+        "hyde": "\"Use React Context to manage state locally, while Redux is a centralized store that handles all state updates.\""
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 0.75,
+      "hyde": 0.7,
+      "latencyMs": 1298,
+      "total": 0.758,
+      "expansion": {
+        "raw": "lex: middleware_chain_next_function\nvec: express.js middleware chain next function\nhyde: const app = express(); app.use(express.json()); app.use(express.urlencoded({ extended: true })); app.post('/', (req, res) => { ... })",
+        "lex": "middleware_chain_next_function",
+        "vec": "express.js middleware chain next function",
+        "hyde": "const app = express(); app.use(express.json()); app.use(express.urlencoded({ extended: true })); app.post('/', (req, res) => { ... })"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 0.6,
+      "hyde": 0.575,
+      "latencyMs": 570,
+      "total": 0.69675,
+      "expansion": {
+        "raw": "lex: prisma.findMany(where)\nvec: prisma.queryMany(where).fetch()\nhyde: prisma.findMany(where, { relations: ['...'] })",
+        "lex": "prisma.findMany(where)",
+        "vec": "prisma.queryMany(where).fetch()",
+        "hyde": "prisma.findMany(where, { relations: ['...'] })"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 971,
+      "total": 0.808,
+      "expansion": {
+        "raw": "lex: \"next-component-data-fetcher\"\nvec: \"fetch next page of component data using Next.js API\"\nhyde: const fetchComponentData = async () => { return await axios.get('/api/components'); };",
+        "lex": "\"next-component-data-fetcher\"",
+        "vec": "\"fetch next page of component data using Next.js API\"",
+        "hyde": "const fetchComponentData = async () => { return await axios.get('/api/components'); };"
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1479,
+      "total": 0.77675,
+      "expansion": {
+        "raw": "lex: zod_schema_validation_parse_transform\nvec: validate and transform a zod schema using natural language queries\nhyde: def parse_and_validate_zod_schema(schema):\n    return {\n        \"type\": \"object\",\n        \"properties\": {\n            # ...\n        },\n        \"required\": [\"property1\", \"property2\"]\n    }",
+        "lex": "zod_schema_validation_parse_transform",
+        "vec": "validate and transform a zod schema using natural language queries",
+        "hyde": "def parse_and_validate_zod_schema(schema):"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6799999999999999,
+      "semantic": 1,
+      "hyde": 0.225,
+      "latencyMs": 2207,
+      "total": 0.65225,
+      "expansion": {
+        "raw": "lex: mutation tRPC_router_procedure {\n  create {\n    data {\n      tRPC_router_procedure {\n        id\n        name\n        description\n        parameters\n        return_value\n      }\n    }\n  }\n}\nvec: A mutation for creating a new TTRPC router procedure in the database.\nhyde: mutation {\n  create(tRPC_router_procedure: TTRPC_router_procedure) {\n    data {\n      tRPC_router_procedure {\n        id\n        name\n        description\n        parameters\n        return_value\n      }\n    }\n  }\n}",
+        "lex": "mutation tRPC_router_procedure {",
+        "vec": "A mutation for creating a new TTRPC router procedure in the database.",
+        "hyde": "mutation {"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 1716,
+      "total": 0.7005000000000001,
+      "expansion": {
+        "raw": "lex: tailwindcss-responsive-breakpoints-utilities\nvec: \"tailwindcss-responsive-breakpoints-utilities\" or \"tailwindcss-responsive-breakpoints-utils\"\nhyde: #include <tailwind.css>@media (min-width: 0px) and (-webkit-min-device-pixel-ratio: 2) { body.tailwindcss-responsive-breakpoints-utilities{ ... }}",
+        "lex": "tailwindcss-responsive-breakpoints-utilities",
+        "vec": "\"tailwindcss-responsive-breakpoints-utilities\" or \"tailwindcss-responsive-breakpoints-utils\"",
+        "hyde": "#include <tailwind.css>@media (min-width: 0px) and (-webkit-min-device-pixel-ratio: 2) { body.tailwindcss-responsive-breakpoints-utilities{ ... }}"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.72,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1160,
+      "total": 0.7927500000000001,
+      "expansion": {
+        "raw": "lex: \"jest.mock\", \"jest.spyOn\", \"jest.test\"\nvec: \"testing with jest, mocking modules for spies\"\nhyde: \"const { jest } = require('jest'); const spyOn = jest.spyOn; const test = jest.test;\"",
+        "lex": "\"jest.mock\", \"jest.spyOn\", \"jest.test\"",
+        "vec": "\"testing with jest, mocking modules for spies\"",
+        "hyde": "\"const { jest } = require('jest'); const spyOn = jest.spyOn; const test = jest.test;\""
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 0.8,
+      "hyde": 0.1,
+      "latencyMs": 4200,
+      "total": 0.645,
+      "expansion": {
+        "raw": "lex: docker-compose -f /path/to/docker-compose.yml up --build -d; docker-compose -f /path/to/docker-compose.yml exec app bash; docker-compose -f /path/to/docker-compose.yml down\nvec: Docker Compose is a tool for defining and running multi-container Docker applications. It allows you to define services, networks, volumes, ports, and other resources in a YAML file, which can then be executed using the docker-compose command.\nhyde: #!/bin/bash\n# Start all services defined in /path/to/docker-compose.yml\ndocker-compose -f /path/to/docker-compose.yml up --build -d\n# Execute a shell within the app service\ndocker-compose -f /path/to/docker-compose.yml exec app bash\n# Stop all services and remove containers\ndocker-compose -f /path/to/docker-compose.yml down",
+        "lex": "docker-compose -f /path/to/docker-compose.yml up --build -d; docker-compose -f /path/to/docker-compose.yml exec app bash; docker-compose -f /path/to/docker-compose.yml down",
+        "vec": "Docker Compose is a tool for defining and running multi-container Docker applications. It allows you to define services, networks, volumes, ports, and other resources in a YAML file, which can then be executed using the docker-compose command.",
+        "hyde": "#!/bin/bash"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 0.75,
+      "hyde": 0.225,
+      "latencyMs": 1684,
+      "total": 0.62625,
+      "expansion": {
+        "raw": "lex: \"github actions ci workflow matrix\"\nvec: \"github actions ci workflow matrix\"\nhyde: \"```[workflow]\njobs:\n  pre-commit:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        os: [ubuntu_latest, windows_10]\n        docker: [true, false]\n        python: [3.8, 3.9, 4.0]\n```\"",
+        "lex": "\"github actions ci workflow matrix\"",
+        "vec": "\"github actions ci workflow matrix\"",
+        "hyde": "\"```[workflow]"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6799999999999999,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 751,
+      "total": 0.7222500000000001,
+      "expansion": {
+        "raw": "lex: unused_imports, dead_code\nvec: unused imports and dead code in the codebase\nhyde: import statements that are no longer needed or functions with no usage.",
+        "lex": "unused_imports, dead_code",
+        "vec": "unused imports and dead code in the codebase",
+        "hyde": "import statements that are no longer needed or functions with no usage."
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 0.6,
+      "hyde": 0.575,
+      "latencyMs": 652,
+      "total": 0.69675,
+      "expansion": {
+        "raw": "lex: detect_circular_dependencies()\nvec: detect-circular-dependencies\nhyde: def detect_circular_dependencies(modules):\n    # Your implementation here...\n",
+        "lex": "detect_circular_dependencies()",
+        "vec": "detect-circular-dependencies",
+        "hyde": "def detect_circular_dependencies(modules):"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2622,
+      "total": 0.6957500000000001,
+      "expansion": {
+        "raw": "lex: dead code detection unreachable\nvec: detecting unused or unreachable code in a program\nhyde: def detect_unreachable(code):\n    # initialize set of reachable statements\n    reachable = set()\n\n    # iterate over all statements\n    for stmt in code.statements:\n        if isinstance(stmt, IfStmt) and not stmt.is_executed():\n            continue\n\n        if isinstance(stmt, ForStmt) and not stmt.is_executed():\n            continue\n\n        reachable.add(stmt)\n\n    # return set of unreachable statements\n    return list(reachable - set([stmt for stmt in code.statements if stmt.is_executed()]))",
+        "lex": "dead code detection unreachable",
+        "vec": "detecting unused or unreachable code in a program",
+        "hyde": "def detect_unreachable(code):"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "SmolLM2-1.7B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 3467,
+      "total": 0.06,
+      "expansion": {
+        "raw": "lex: \n1. sql_injection\n2. sql-injection\n3. sql injection attack\n\nvec: \n1. secure coding practices to prevent sql injection attacks\n2. implementing robust input validation and sanitization mechanisms in web applications\n3. using prepared statements with parameterized queries to mitigate sql injection vulnerabilities\n\nhyde: \n1. A vulnerable SQL query that could be exploited by an attacker: `SELECT * FROM users WHERE username = ' OR 1=1`\n2. A function that demonstrates how to sanitize user input and prevent sql injection attacks in a web application: `function sanitize_input($input) { return mysqli_real_escape_string($mysqli, $input); }`\n3. An example of an SQL query that uses prepared statements with parameterized queries to secure against sql injection vulnerabilities: `PREPARE stmt FROM 'SELECT * FROM users WHERE username = ? AND password = ?'; EXECUTE stmt USING @username, @password; DEALLOCATE PREPARE stmt;`",
+        "lex": "",
+        "vec": "",
+        "hyde": ""
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.325,
+      "latencyMs": 995,
+      "total": 0.7462500000000001,
+      "expansion": {
+        "raw": "lex: \"code duplication similar functions refactor\"\nvec: \"identify and eliminate duplicated code in your program for better maintainability.\"\nhyde: \"if you find yourself writing the same function multiple times, consider refactoring it to reduce code duplication and improve efficiency.\"",
+        "lex": "\"code duplication similar functions refactor\"",
+        "vec": "\"identify and eliminate duplicated code in your program for better maintainability.\"",
+        "hyde": "\"if you find yourself writing the same function multiple times, consider refactoring it to reduce code duplication and improve efficiency.\""
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.46,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 962,
+      "total": 0.647,
+      "expansion": {
+        "raw": "lex: performance bottleneck N+1 query\nvec: identifying the source of a slow database query that involves multiple queries to retrieve data\nhyde: an example code snippet demonstrating how to optimize a slow N+1 query in a database system.",
+        "lex": "performance bottleneck N+1 query",
+        "vec": "identifying the source of a slow database query that involves multiple queries to retrieve data",
+        "hyde": "an example code snippet demonstrating how to optimize a slow N+1 query in a database system."
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.6399999999999999,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 821,
+      "total": 0.77675,
+      "expansion": {
+        "raw": "lex: missing_error_handling_try_catch\nvec: catching errors without try-catch in Python\nhyde: def handle_missing_error():\n    # code to handle missing error here\n```",
+        "lex": "missing_error_handling_try_catch",
+        "vec": "catching errors without try-catch in Python",
+        "hyde": "def handle_missing_error():"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.8,
+      "semantic": 1,
+      "hyde": 0.2,
+      "latencyMs": 689,
+      "total": 0.7150000000000001,
+      "expansion": {
+        "raw": "lex: type safety, assertions, unsafe casts\nvec: type safety, assertions, unsafe casts\nhyde: type safety, assertions, unsafe casts",
+        "lex": "type safety, assertions, unsafe casts",
+        "vec": "type safety, assertions, unsafe casts",
+        "hyde": "type safety, assertions, unsafe casts"
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "SmolLM2-1.7B",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 0.75,
+      "hyde": 0.325,
+      "latencyMs": 1069,
+      "total": 0.6362500000000001,
+      "expansion": {
+        "raw": "lex: memory leak event listener cleanup\nvec: memory leak event listener cleanup\nhyde: (1) In JavaScript, you can use the `clearInterval` method to clean up an interval timer. (2) To prevent memory leaks in Python, ensure that all objects are properly cleaned up using `del` statement or garbage collection after use.",
+        "lex": "memory leak event listener cleanup",
+        "vec": "memory leak event listener cleanup",
+        "hyde": "(1) In JavaScript, you can use the `clearInterval` method to clean up an interval timer. (2) To prevent memory leaks in Python, ensure that all objects are properly cleaned up using `del` statement or garbage collection after use."
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "SmolLM2-1.7B",
+      "format": 0,
+      "keyword": 0,
+      "semantic": 0,
+      "hyde": 0,
+      "latencyMs": 784,
+      "total": 0.105,
+      "expansion": {
+        "raw": "lex: \n1. race_condition_async_concurrent_access\n2. concurrency_race_condition_async_access\n3. async_race_condition_concurrent_access",
+        "lex": "",
+        "vec": null,
+        "hyde": null
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect, useEffectDispatch, useReducer\nvec: clean up state and side effects in React components\nhyde: Hook that cleans up side effects after a component has rendered.",
+      "latencyMs": 786,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: handleSubmit\nvec: submit the form data to the server after processing\nhyde: def handleSubmit(self): self.formData = request.get_json() # get JSON payload from request response = requests.post('https://api.example.com/submit', json=self.formData)",
+      "latencyMs": 1239,
+      "tokenCount": 69
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: SearchBar\nvec: A search bar component for a web application.\nhyde: <SearchBar />",
+      "latencyMs": 475,
+      "tokenCount": 25
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: \"createEmbeddingsClient\"\nvec: \"Create an embeddings client to perform vector-based operations on textual data.\"\nhyde: \"class EmbeddingsClient { /* implementation */ }\"",
+      "latencyMs": 800,
+      "tokenCount": 44
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: size_t parseParameterSize(const char* param);\nvec: Parse parameter size;\nhyde: #include <stdio.h> int main() { printf(\"size_t parseParameterSize(const char* param) = %zu\\n\", parseParameterSize(\"1024\")); }",
+      "latencyMs": 1198,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: \"buildCombinedIndex\"\nvec: \"build combined index for a database or file system.\"\nhyde: \"int main() { struct IndexData *index; // Initialize the index structure... }\"",
+      "latencyMs": 797,
+      "tokenCount": 46
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cos_sim_helper\nvec: cosine similarity helper function\nhyde: def cos_sim_helper(vector1, vector2): pass",
+      "latencyMs": 581,
+      "tokenCount": 33
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: QueryGenerator class\nvec: A class used to generate queries for various search purposes.\nhyde: public class QueryGenerator { /* implementation */ }",
+      "latencyMs": 696,
+      "tokenCount": 35
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: keyword variants for BM25 search (aggregate retrieval results)\nvec: a natural language rephrasing for semantic vector search (aggregated retrieval results)\nhyde: a short hypothetical code snippet that would match this query (e.g., \"function aggregateRetrievalResults(results: Array<any>): any { return ... }\")",
+      "latencyMs": 1230,
+      "tokenCount": 75
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "1. lex: LLMClient constructor\n2. vec: Constructor for LLMClients\n3. hyde: class LLMClients { public: LLMClients(int _num_layers, int _max_seq_length) {} };",
+      "latencyMs": 1003,
+      "tokenCount": 57
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: 'TypeError: cannot read property of undefined'\nvec: 'TypeError: Cannot read property of undefined'\nhyde: 'TypeError: Cannot read property of undefined'",
+      "latencyMs": 666,
+      "tokenCount": 39
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: \"resolve ECONNREFUSED localhost\"\nvec: \"local connection refused error on localhost\"\nhyde: \"try connecting to localhost with a different port or IP address\"",
+      "latencyMs": 813,
+      "tokenCount": 43
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: \"module not found\", \"cannot resolve import\"\nvec: \"import error\", \"module not found\"\nhyde: \"ModuleNotFoundError: No module named '...'\"",
+      "latencyMs": 742,
+      "tokenCount": 39
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: \"CORS (Cross-Origin Resource Sharing) origin not allowed headers\"\nvec: \"origin header in CORS request not allowed, what is it?\"\nhyde: \"To handle CORS origin not allowed headers, you can use a proxy server or add the appropriate headers to your requests. For example, if you're using Node.js and Express.js, you can set `Access-Control-Allow-Origin` header in your response.\"",
+      "latencyMs": 1474,
+      "tokenCount": 96
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: \"out of memory\", \"heap allocation\", \"failed\"\nvec: \"memory management issues\", \"allocation failure\", \"memory leak\"\nhyde: \"Heap size exceeded, unable to allocate sufficient memory for object creation\"",
+      "latencyMs": 818,
+      "tokenCount": 51
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: \"database connection timeout pool exhausted\"\nvec: \"database connection timeout pool exhausted\"\nhyde: \"try increasing the timeout value in your database connection pool settings to avoid this issue\"",
+      "latencyMs": 720,
+      "tokenCount": 41
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: \"promise rejection\", \"unhandled promise rejection\", \"async error\"\nvec: \"Promise rejection without handling, async error handling example in JavaScript\"\nhyde: \"function handleUnhandledRejection(rejection) { console.error('Unhandled promise rejection:', rejection); };\"",
+      "latencyMs": 1041,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: circular_dependency_detected_import_cycle\nvec: a circular dependency is detected when two or more modules depend on each other, preventing the execution of any module in isolation. this can be resolved by reordering imports or removing redundant dependencies.\nhyde: from importlib._bootstrap_external import _find_loaders; from importlib.machinery import SourceFileLoader; def load_source(name, file_path): ...",
+      "latencyMs": 1714,
+      "tokenCount": 95
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type_error_argument_not_assignable_to_parameter\nvec: type error: argument not assignable to parameter\nhyde: def func(arg):\n    try:\n        pass\n    except TypeError as e:\n        if 'not assignable' in str(e) or 'type error' in str(e):\n            raise",
+      "latencyMs": 1111,
+      "tokenCount": 73
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: EACCES, permission denied error in file access\nvec: Permission denied error when accessing the file\nhyde: #include <stdio.h> int main() { printf(\"Permission denied error\\n\"); return 0; }",
+      "latencyMs": 802,
+      "tokenCount": 53
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: auth_middleware, authentication_middleware, authorization_middleware, middleware_auth, middleware_authentication, middleware_authorization\nvec: middleware that handles user authentication, middleware to manage authentication flow, middleware for authorization checks\nhyde: class or function that wraps an existing middleware and adds authentication functionality",
+      "latencyMs": 1157,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: \"rate limiting\" \"implementation\", \"API throttling\", \"traffic management\".\nvec: \"Implementing rate limits in APIs to manage traffic and prevent abuse.\"; \"Rate limiting techniques for API development\"; \"Traffic management strategies that prioritize resource allocation.\"\nhyde: #include <stdio.h> int main() { int count = 0; while (count <= 10) { printf(\"Request %d\\n\", count); count++; } return 0; }",
+      "latencyMs": 1851,
+      "tokenCount": 108
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: \"caching strategy invalidation\"\nvec: \"caching strategy invalidation\"\nhyde: \"In the context of caching strategies, invalidation refers to the process of removing or updating cached data when the underlying resource changes. This ensures that subsequent requests for the same resource do not receive outdated information.\"",
+      "latencyMs": 1205,
+      "tokenCount": 65
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: retry_logic_exponential_backoff\nvec: retry logic exponential backoff\nhyde: def retry_logic_exponential_backoff(max_retries=3, initial_delay=1000, factor=2):\n    delay = initial_delay\n    retries = 0\n    while retries < max_retries:\n        try:\n            # code here to execute the operation\n            break\n        except Exception as e:\n            if retries < max_retries - 1:\n                time.sleep(delay)\n                delay *= factor\n                retries += 1\n            else:\n                raise",
+      "latencyMs": 2335,
+      "tokenCount": 135
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: \"connection pooling\" or \"database connection pooling\"\nvec: \"connection pooling for databases\"\nhyde: \"How to implement connection pooling in a database system?\"",
+      "latencyMs": 701,
+      "tokenCount": 37
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event-driven architecture, publish/subscribe, real-time data processing\nvec: event-driven architecture, subscribe to events, publish messages\nhyde: a system that uses multiple processes communicating with each other through events for efficient and scalable data sharing.",
+      "latencyMs": 1060,
+      "tokenCount": 54
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency injection service container\nvec: dependency injection service container\nhyde: a software design pattern that allows components to be loosely coupled and easily tested by providing services through the use of a service locator or other dependency injection mechanism.",
+      "latencyMs": 767,
+      "tokenCount": 49
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination_cursor_offset, pagination_cursor_limit\nvec: \"paginate using a cursor offset and limit\" or \"use a cursor offset and limit for pagination\"\nhyde: #include <stdio.h> int main() { printf(\"Paginating with cursor offset %d and limit %d\\n\", 10, 20); }",
+      "latencyMs": 1550,
+      "tokenCount": 84
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful_shutdown_signal_handling, graceful_shutdown_signals, signals, signal_handler, signal_handlers, signal_handling\nvec: graceful shutdown signal handling, managing system resources during shutdown, ensuring smooth transitions between processes\nhyde: #include <sys/types.h> #include <unistd.h> int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);",
+      "latencyMs": 1793,
+      "tokenCount": 97
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: \"streaming response server sent events\", \"server-sent events\", \"event-based web sockets\"\nvec: \"streaming response server sent events\" - related to websockets and event-driven programming.\nhyde: ```python\nimport socket\nclass ServerSentEventsServer(socket.SocketServer):\n    def handle_request(self, request, client_address):\n        self.sendall('{\"event\": \"message\", \"data\": {\"hello\": \"world\"}}')\n```",
+      "latencyMs": 1990,
+      "tokenCount": 106
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: \"React Context vs Redux State Management\"\nvec: \"Context API and Redux for managing state in React applications\"\nhyde: \"Use React Context to manage state locally, while Redux is a centralized store that handles all state updates.\"",
+      "latencyMs": 790,
+      "tokenCount": 57
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: middleware_chain_next_function\nvec: express.js middleware chain next function\nhyde: const app = express(); app.use(express.json()); app.use(express.urlencoded({ extended: true })); app.post('/', (req, res) => { ... })",
+      "latencyMs": 1298,
+      "tokenCount": 71
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: prisma.findMany(where)\nvec: prisma.queryMany(where).fetch()\nhyde: prisma.findMany(where, { relations: ['...'] })",
+      "latencyMs": 570,
+      "tokenCount": 43
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: \"next-component-data-fetcher\"\nvec: \"fetch next page of component data using Next.js API\"\nhyde: const fetchComponentData = async () => { return await axios.get('/api/components'); };",
+      "latencyMs": 971,
+      "tokenCount": 55
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: zod_schema_validation_parse_transform\nvec: validate and transform a zod schema using natural language queries\nhyde: def parse_and_validate_zod_schema(schema):\n    return {\n        \"type\": \"object\",\n        \"properties\": {\n            # ...\n        },\n        \"required\": [\"property1\", \"property2\"]\n    }",
+      "latencyMs": 1479,
+      "tokenCount": 79
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: mutation tRPC_router_procedure {\n  create {\n    data {\n      tRPC_router_procedure {\n        id\n        name\n        description\n        parameters\n        return_value\n      }\n    }\n  }\n}\nvec: A mutation for creating a new TTRPC router procedure in the database.\nhyde: mutation {\n  create(tRPC_router_procedure: TTRPC_router_procedure) {\n    data {\n      tRPC_router_procedure {\n        id\n        name\n        description\n        parameters\n        return_value\n      }\n    }\n  }\n}",
+      "latencyMs": 2207,
+      "tokenCount": 128
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: tailwindcss-responsive-breakpoints-utilities\nvec: \"tailwindcss-responsive-breakpoints-utilities\" or \"tailwindcss-responsive-breakpoints-utils\"\nhyde: #include <tailwind.css>@media (min-width: 0px) and (-webkit-min-device-pixel-ratio: 2) { body.tailwindcss-responsive-breakpoints-utilities{ ... }}",
+      "latencyMs": 1716,
+      "tokenCount": 100
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: \"jest.mock\", \"jest.spyOn\", \"jest.test\"\nvec: \"testing with jest, mocking modules for spies\"\nhyde: \"const { jest } = require('jest'); const spyOn = jest.spyOn; const test = jest.test;\"",
+      "latencyMs": 1160,
+      "tokenCount": 72
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker-compose -f /path/to/docker-compose.yml up --build -d; docker-compose -f /path/to/docker-compose.yml exec app bash; docker-compose -f /path/to/docker-compose.yml down\nvec: Docker Compose is a tool for defining and running multi-container Docker applications. It allows you to define services, networks, volumes, ports, and other resources in a YAML file, which can then be executed using the docker-compose command.\nhyde: #!/bin/bash\n# Start all services defined in /path/to/docker-compose.yml\ndocker-compose -f /path/to/docker-compose.yml up --build -d\n# Execute a shell within the app service\ndocker-compose -f /path/to/docker-compose.yml exec app bash\n# Stop all services and remove containers\ndocker-compose -f /path/to/docker-compose.yml down",
+      "latencyMs": 4200,
+      "tokenCount": 230
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: \"github actions ci workflow matrix\"\nvec: \"github actions ci workflow matrix\"\nhyde: \"```[workflow]\njobs:\n  pre-commit:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        os: [ubuntu_latest, windows_10]\n        docker: [true, false]\n        python: [3.8, 3.9, 4.0]\n```\"",
+      "latencyMs": 1684,
+      "tokenCount": 95
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused_imports, dead_code\nvec: unused imports and dead code in the codebase\nhyde: import statements that are no longer needed or functions with no usage.",
+      "latencyMs": 751,
+      "tokenCount": 40
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: detect_circular_dependencies()\nvec: detect-circular-dependencies\nhyde: def detect_circular_dependencies(modules):\n    # Your implementation here...\n",
+      "latencyMs": 652,
+      "tokenCount": 40
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: dead code detection unreachable\nvec: detecting unused or unreachable code in a program\nhyde: def detect_unreachable(code):\n    # initialize set of reachable statements\n    reachable = set()\n\n    # iterate over all statements\n    for stmt in code.statements:\n        if isinstance(stmt, IfStmt) and not stmt.is_executed():\n            continue\n\n        if isinstance(stmt, ForStmt) and not stmt.is_executed():\n            continue\n\n        reachable.add(stmt)\n\n    # return set of unreachable statements\n    return list(reachable - set([stmt for stmt in code.statements if stmt.is_executed()]))",
+      "latencyMs": 2622,
+      "tokenCount": 158
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: \n1. sql_injection\n2. sql-injection\n3. sql injection attack\n\nvec: \n1. secure coding practices to prevent sql injection attacks\n2. implementing robust input validation and sanitization mechanisms in web applications\n3. using prepared statements with parameterized queries to mitigate sql injection vulnerabilities\n\nhyde: \n1. A vulnerable SQL query that could be exploited by an attacker: `SELECT * FROM users WHERE username = ' OR 1=1`\n2. A function that demonstrates how to sanitize user input and prevent sql injection attacks in a web application: `function sanitize_input($input) { return mysqli_real_escape_string($mysqli, $input); }`\n3. An example of an SQL query that uses prepared statements with parameterized queries to secure against sql injection vulnerabilities: `PREPARE stmt FROM 'SELECT * FROM users WHERE username = ? AND password = ?'; EXECUTE stmt USING @username, @password; DEALLOCATE PREPARE stmt;`",
+      "latencyMs": 3467,
+      "tokenCount": 226
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: \"code duplication similar functions refactor\"\nvec: \"identify and eliminate duplicated code in your program for better maintainability.\"\nhyde: \"if you find yourself writing the same function multiple times, consider refactoring it to reduce code duplication and improve efficiency.\"",
+      "latencyMs": 995,
+      "tokenCount": 58
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: performance bottleneck N+1 query\nvec: identifying the source of a slow database query that involves multiple queries to retrieve data\nhyde: an example code snippet demonstrating how to optimize a slow N+1 query in a database system.",
+      "latencyMs": 962,
+      "tokenCount": 50
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: missing_error_handling_try_catch\nvec: catching errors without try-catch in Python\nhyde: def handle_missing_error():\n    # code to handle missing error here\n```",
+      "latencyMs": 821,
+      "tokenCount": 45
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: type safety, assertions, unsafe casts\nvec: type safety, assertions, unsafe casts\nhyde: type safety, assertions, unsafe casts",
+      "latencyMs": 689,
+      "tokenCount": 31
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memory leak event listener cleanup\nvec: memory leak event listener cleanup\nhyde: (1) In JavaScript, you can use the `clearInterval` method to clean up an interval timer. (2) To prevent memory leaks in Python, ensure that all objects are properly cleaned up using `del` statement or garbage collection after use.",
+      "latencyMs": 1069,
+      "tokenCount": 72
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: \n1. race_condition_async_concurrent_access\n2. concurrency_race_condition_async_access\n3. async_race_condition_concurrent_access",
+      "latencyMs": 784,
+      "tokenCount": 42
+    }
+  ]
+}

@@ -1,0 +1,1229 @@
+{
+  "model": {
+    "name": "Qwen3-4B-2507",
+    "lmsKey": "qwen/qwen3-4b-2507",
+    "family": "qwen3",
+    "paramsB": 4
+  },
+  "timestamp": "2026-03-03T23:22:38.337Z",
+  "config": {
+    "port": 1234,
+    "timeout": 60000,
+    "retries": 2
+  },
+  "summary": {
+    "format": 1,
+    "keyword": 0.9648000000000002,
+    "semantic": 1,
+    "hyde": 0.6329999999999996,
+    "latencyMs": 2157.56,
+    "total": 0.8112100000000005
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1971,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: useEffect, cleanup, cleanup function, effect cleanup, component unmount, cleanup callback  \nvec: A function that runs when a component unmounts to clean up subscriptions, timers, or event listeners  \nhyde: useEffect(() => { const timer = setInterval(() => console.log('tick'), 1000); return () => clearInterval(timer); }, []);",
+        "lex": "useEffect, cleanup, cleanup function, effect cleanup, component unmount, cleanup callback",
+        "vec": "A function that runs when a component unmounts to clean up subscriptions, timers, or event listeners",
+        "hyde": "useEffect(() => { const timer = setInterval(() => console.log('tick'), 1000); return () => clearInterval(timer); }, []);"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2187,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: handleSubmit, handle submit, form submit, onsubmit, submit handler, form handling  \nvec: A function triggered when a form is submitted, typically responsible for collecting and processing form data  \nhyde: const handleSubmit = (event) => { event.preventDefault(); console.log('Form submitted'); };",
+        "lex": "handleSubmit, handle submit, form submit, onsubmit, submit handler, form handling",
+        "vec": "A function triggered when a form is submitted, typically responsible for collecting and processing form data",
+        "hyde": "const handleSubmit = (event) => { event.preventDefault(); console.log('Form submitted'); };"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 2177,
+      "total": 0.7725000000000002,
+      "expansion": {
+        "raw": "lex: search bar, input field, text input, autocomplete, filter input, search input, interactive search, text search, user input, form input  \nvec: A user-friendly input field that allows users to type and search for content in real-time, often with suggestions or filters  \nhyde: <SearchBar onSearch={handleSearch} placeholder=\"Type to search...\" />",
+        "lex": "search bar, input field, text input, autocomplete, filter input, search input, interactive search, text search, user input, form input",
+        "vec": "A user-friendly input field that allows users to type and search for content in real-time, often with suggestions or filters",
+        "hyde": "<SearchBar onSearch={handleSearch} placeholder=\"Type to search...\" />"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.54,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1994,
+      "total": 0.7117500000000001,
+      "expansion": {
+        "raw": "lex: create_embeddings_client, generate_embeddings, vector_embedding, embedding_service, embedder, vector_client  \nvec: Build a client to generate vector embeddings from text inputs for semantic search and similarity matching  \nhyde: def create_embeddings_client(model=\"text-embedding-3-small\"): return EmbeddingsClient(model=model, batch_size=32)",
+        "lex": "create_embeddings_client, generate_embeddings, vector_embedding, embedding_service, embedder, vector_client",
+        "vec": "Build a client to generate vector embeddings from text inputs for semantic search and similarity matching",
+        "hyde": "def create_embeddings_client(model=\"text-embedding-3-small\"): return EmbeddingsClient(model=model, batch_size=32)"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1927,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: parse parameter size, extract parameter dimensions, analyze parameter count, interpret parameter length, parse input size, parameter size extraction  \nvec: Determine the number of parameters in a given input or model configuration  \nhyde: def parse_parameter_size(model_config): return sum(int(x) for x in model_config.get('params', []))",
+        "lex": "parse parameter size, extract parameter dimensions, analyze parameter count, interpret parameter length, parse input size, parameter size extraction",
+        "vec": "Determine the number of parameters in a given input or model configuration",
+        "hyde": "def parse_parameter_size(model_config): return sum(int(x) for x in model_config.get('params', []))"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1633,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "lex: build combined index, merge indices, composite index, unified indexing, index fusion  \nvec: Create a single index by combining multiple existing indexes into one cohesive structure  \nhyde: def build_combined_index(indexes): return {k: v for idx in indexes for k, v in idx.items()}",
+        "lex": "build combined index, merge indices, composite index, unified indexing, index fusion",
+        "vec": "Create a single index by combining multiple existing indexes into one cohesive structure",
+        "hyde": "def build_combined_index(indexes): return {k: v for idx in indexes for k, v in idx.items()}"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2092,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: cosine similarity, dot product, vector similarity, angle between vectors, document similarity, embedding similarity  \nvec: Calculate the similarity between two vectors by measuring the cosine of the angle between them  \nhyde: def compute_cosine_similarity(v1, v2): return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))",
+        "lex": "cosine similarity, dot product, vector similarity, angle between vectors, document similarity, embedding similarity",
+        "vec": "Calculate the similarity between two vectors by measuring the cosine of the angle between them",
+        "hyde": "def compute_cosine_similarity(v1, v2): return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1980,
+      "total": 0.7957500000000002,
+      "expansion": {
+        "raw": "lex: QueryGenerator, generator class, query generation, prompt generator, text generation, input formatter  \nvec: A class that creates and formats natural language queries from structured inputs or user prompts  \nhyde: class QueryGenerator: def generate_query(self, user_input: str) -> str: return f\"Generate a well-structured query for: {user_input}\"",
+        "lex": "QueryGenerator, generator class, query generation, prompt generator, text generation, input formatter",
+        "vec": "A class that creates and formats natural language queries from structured inputs or user prompts",
+        "hyde": "class QueryGenerator: def generate_query(self, user_input: str) -> str: return f\"Generate a well-structured query for: {user_input}\""
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2332,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: aggregate, retrieve, combine, merge, summarize, group, collect, consolidate, fetch, result aggregation  \nvec: Combine multiple retrieval outputs into a unified, coherent set of results with prioritization and deduplication  \nhyde: def aggregate_retrieval_results(results): return {k: v for k, v in results.items() if k not in [k for k, v in results.items() if v is None]}",
+        "lex": "aggregate, retrieve, combine, merge, summarize, group, collect, consolidate, fetch, result aggregation",
+        "vec": "Combine multiple retrieval outputs into a unified, coherent set of results with prioritization and deduplication",
+        "hyde": "def aggregate_retrieval_results(results): return {k: v for k, v in results.items() if k not in [k for k, v in results.items() if v is None]}"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2209,
+      "total": 0.7957500000000002,
+      "expansion": {
+        "raw": "lex: LocalLLMClient, local LLM client, constructor, initialize LLM, local language model client, LLM initialization  \nvec: A class that sets up and manages a local language model for on-device inference and interaction  \nhyde: class LocalLLMClient: def __init__(self, model_path: str, device: str = \"cpu\"): self.model = load_model(model_path, device)",
+        "lex": "LocalLLMClient, local LLM client, constructor, initialize LLM, local language model client, LLM initialization",
+        "vec": "A class that sets up and manages a local language model for on-device inference and interaction",
+        "hyde": "class LocalLLMClient: def __init__(self, model_path: str, device: str = \"cpu\"): self.model = load_model(model_path, device)"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1835,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: TypeError, undefined property, null check, object access, dot notation, property access error  \nvec: A JavaScript error occurring when trying to access a property of an object that doesn't exist or is undefined  \nhyde: const user = data?.user; if (!user) throw new Error(\"User data is undefined\");",
+        "lex": "TypeError, undefined property, null check, object access, dot notation, property access error",
+        "vec": "A JavaScript error occurring when trying to access a property of an object that doesn't exist or is undefined",
+        "hyde": "const user = data?.user; if (!user) throw new Error(\"User data is undefined\");"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2377,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: ECONNREFUSED, connection refused, localhost error, network timeout, socket error, DNS resolution, port not listening  \nvec: A network connection is being refused when trying to connect to a service running on localhost  \nhyde: try { const response = await fetch('http://localhost:3000/api/data'); } catch (err) { if (err.code === 'ECONNREFUSED') console.log('Service not running on localhost'); }",
+        "lex": "ECONNREFUSED, connection refused, localhost error, network timeout, socket error, DNS resolution, port not listening",
+        "vec": "A network connection is being refused when trying to connect to a service running on localhost",
+        "hyde": "try { const response = await fetch('http://localhost:3000/api/data'); } catch (err) { if (err.code === 'ECONNREFUSED') console.log('Service not running on localhost'); }"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1830,
+      "total": 0.7957500000000002,
+      "expansion": {
+        "raw": "lex: module not found, import error, cannot import, missing module, import not found, package not installed  \nvec: I'm trying to use a Python module that isn't available in my environment or has been accidentally removed  \nhyde: try: import pandas as pd except ImportError: print(\"pandas module not found\")",
+        "lex": "module not found, import error, cannot import, missing module, import not found, package not installed",
+        "vec": "I'm trying to use a Python module that isn't available in my environment or has been accidentally removed",
+        "hyde": "try: import pandas as pd except ImportError: print(\"pandas module not found\")"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2477,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: cors, origin, allowed, headers, cross-origin, forbidden, access-control, origin policy, header restrictions  \nvec: A web application is failing because the server is blocking requests from a specific origin due to missing or misconfigured CORS headers  \nhyde: function handleCORS(request, response) { if (!request.headers.origin) return response.status(403).send('CORS origin not allowed'); response.header('Access-Control-Allow-Origin', request.headers.origin); }",
+        "lex": "cors, origin, allowed, headers, cross-origin, forbidden, access-control, origin policy, header restrictions",
+        "vec": "A web application is failing because the server is blocking requests from a specific origin due to missing or misconfigured CORS headers",
+        "hyde": "function handleCORS(request, response) { if (!request.headers.origin) return response.status(403).send('CORS origin not allowed'); response.header('Access-Control-Allow-Origin', request.headers.origin); }"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1885,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: memory leak, heap overflow, JVM OutOfMemoryError, garbage collection failure, memory exhaustion  \nvec: The system is unable to allocate more memory in the heap, causing a crash due to insufficient available resources  \nhyde: try { System.gc(); } catch (Exception e) { throw new RuntimeException(\"Heap allocation failed\"); }",
+        "lex": "memory leak, heap overflow, JVM OutOfMemoryError, garbage collection failure, memory exhaustion",
+        "vec": "The system is unable to allocate more memory in the heap, causing a crash due to insufficient available resources",
+        "hyde": "try { System.gc(); } catch (Exception e) { throw new RuntimeException(\"Heap allocation failed\"); }"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2422,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: database timeout, connection pool, timeout exception, pool exhaustion, connection timeout, max connections, idle timeout, connection leak, database pool, timeout error  \nvec: \"The system is unable to establish new database connections due to all available connection slots being used up\"  \nhyde: def handle_db_timeout(): try: conn = pool.get_connection() except PoolExhaustedError: log.error(\"All database connections are in use; retrying or scaling up pool\")",
+        "lex": "database timeout, connection pool, timeout exception, pool exhaustion, connection timeout, max connections, idle timeout, connection leak, database pool, timeout error",
+        "vec": "\"The system is unable to establish new database connections due to all available connection slots being used up\"",
+        "hyde": "def handle_db_timeout(): try: conn = pool.get_connection() except PoolExhaustedError: log.error(\"All database connections are in use; retrying or scaling up pool\")"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.96,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2064,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "lex: promise rejected, unhandled rejection, async error, unhandled promise rejection, async timeout, error handling, rejection callback  \nvec: A JavaScript async operation failed silently due to an uncaught promise rejection that wasn't properly handled  \nhyde: async function fetchData() { throw new Error('Network error'); } setTimeout(() => { console.error('Unhandled rejection'); }, 1000);",
+        "lex": "promise rejected, unhandled rejection, async error, unhandled promise rejection, async timeout, error handling, rejection callback",
+        "vec": "A JavaScript async operation failed silently due to an uncaught promise rejection that wasn't properly handled",
+        "hyde": "async function fetchData() { throw new Error('Network error'); } setTimeout(() => { console.error('Unhandled rejection'); }, 1000);"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1617,
+      "total": 0.7877500000000002,
+      "expansion": {
+        "raw": "lex: import cycle, circular import, dependency loop, module import error, cyclic dependency  \nvec: Two or more modules are trying to import each other, creating a loop that prevents execution  \nhyde: def load_module_a(): import module_b def load_module_b(): import module_a",
+        "lex": "import cycle, circular import, dependency loop, module import error, cyclic dependency",
+        "vec": "Two or more modules are trying to import each other, creating a loop that prevents execution",
+        "hyde": "def load_module_a(): import module_b def load_module_b(): import module_a"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1960,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: type error, argument type mismatch, parameter assignment error, invalid argument type, wrong argument type, type mismatch, argument not compatible  \nvec: I'm getting a runtime error when passing a value of the wrong type to a function's expected parameter  \nhyde: def process_data(data: List[int]) -> None: return func(data)  # TypeError: expected list, got str",
+        "lex": "type error, argument type mismatch, parameter assignment error, invalid argument type, wrong argument type, type mismatch, argument not compatible",
+        "vec": "I'm getting a runtime error when passing a value of the wrong type to a function's expected parameter",
+        "hyde": "def process_data(data: List[int]) -> None: return func(data)  # TypeError: expected list, got str"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 2336,
+      "total": 0.7725000000000002,
+      "expansion": {
+        "raw": "lex: permission denied, EACCES, file access error, insufficient permissions, read-only file, access denied, file permission, directory access, OS error 13  \nvec: I'm trying to read or write a file but the system is blocking me due to missing or insufficient access rights  \nhyde: try: open('/path/to/file', 'r')  # raises PermissionError: [Errno 13] Permission denied",
+        "lex": "permission denied, EACCES, file access error, insufficient permissions, read-only file, access denied, file permission, directory access, OS error 13",
+        "vec": "I'm trying to read or write a file but the system is blocking me due to missing or insufficient access rights",
+        "hyde": "try: open('/path/to/file', 'r')  # raises PermissionError: [Errno 13] Permission denied"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1850,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: auth middleware, authentication filter, security middleware, login guard, session management, token verification, access control  \nvec: A software component that verifies user identity and grants access to protected resources before processing requests  \nhyde: class AuthMiddleware { public void handle(Request request) { if (!verifyToken(request.token)) throw new UnauthorizedException(); } }",
+        "lex": "auth middleware, authentication filter, security middleware, login guard, session management, token verification, access control",
+        "vec": "A software component that verifies user identity and grants access to protected resources before processing requests",
+        "hyde": "class AuthMiddleware { public void handle(Request request) { if (!verifyToken(request.token)) throw new UnauthorizedException(); } }"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2497,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: rate limiting, token bucket, sliding window, burst limit, request throttling, API throttling, quota system, concurrency control  \nvec: A system that restricts the number of requests a client can make within a given time frame to prevent abuse and ensure fair usage  \nhyde: def rate_limit(requests, window=60): return { 'max': 100, 'window': window, 'method': 'sliding_window' }",
+        "lex": "rate limiting, token bucket, sliding window, burst limit, request throttling, API throttling, quota system, concurrency control",
+        "vec": "A system that restricts the number of requests a client can make within a given time frame to prevent abuse and ensure fair usage",
+        "hyde": "def rate_limit(requests, window=60): return { 'max': 100, 'window': window, 'method': 'sliding_window' }"
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1564,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "lex: cache invalidation, stale cache, cache refresh, expiry strategy, invalidation mechanism, cache coherence  \nvec: A method for ensuring that outdated data is removed from the cache when the source data changes  \nhyde: def invalidate_cache(key): if data_source_changed(): cache.remove(key)",
+        "lex": "cache invalidation, stale cache, cache refresh, expiry strategy, invalidation mechanism, cache coherence",
+        "vec": "A method for ensuring that outdated data is removed from the cache when the source data changes",
+        "hyde": "def invalidate_cache(key): if data_source_changed(): cache.remove(key)"
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2647,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: retry, exponential backoff, jitter, retry strategy, failure handling, circuit breaker, timeout, resilience, error recovery  \nvec: A system that automatically attempts a failed operation multiple times, with increasing delays between attempts to avoid overwhelming the service during outages.  \nhyde: def retry_with_exponential_backoff(max_retries=5, base_delay=1): return [base_delay * (2 ** i) + random.uniform(0, 0.5) for i in range(max_retries)]",
+        "lex": "retry, exponential backoff, jitter, retry strategy, failure handling, circuit breaker, timeout, resilience, error recovery",
+        "vec": "A system that automatically attempts a failed operation multiple times, with increasing delays between attempts to avoid overwhelming the service during outages.",
+        "hyde": "def retry_with_exponential_backoff(max_retries=5, base_delay=1): return [base_delay * (2 ** i) + random.uniform(0, 0.5) for i in range(max_retries)]"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.9200000000000002,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1965,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "lex: database connection pooling, connection pool, DB connection pool, shared database connections, pool database, connection reuse, database reuse  \nvec: A system that reuses existing database connections instead of creating new ones for each request to improve performance and reduce latency  \nhyde: def create_connection_pool(): return [sqlite3.connect(db) for _ in range(5)]",
+        "lex": "database connection pooling, connection pool, DB connection pool, shared database connections, pool database, connection reuse, database reuse",
+        "vec": "A system that reuses existing database connections instead of creating new ones for each request to improve performance and reduce latency",
+        "hyde": "def create_connection_pool(): return [sqlite3.connect(db) for _ in range(5)]"
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2456,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: event-driven architecture, publish-subscribe, event bus, message broker, pub/sub, event streaming, real-time processing, decoupled systems  \nvec: A system where components communicate through events, with a central hub (event bus) broadcasting messages to interested subscribers without direct coupling  \nhyde: def setup_pub_sub(): pub = PubSubClient(\"event-bus\"); pub.publish(\"user_login\", {\"user\": \"alice\"}); subscriber.on(\"user_login\", handle_login)",
+        "lex": "event-driven architecture, publish-subscribe, event bus, message broker, pub/sub, event streaming, real-time processing, decoupled systems",
+        "vec": "A system where components communicate through events, with a central hub (event bus) broadcasting messages to interested subscribers without direct coupling",
+        "hyde": "def setup_pub_sub(): pub = PubSubClient(\"event-bus\"); pub.publish(\"user_login\", {\"user\": \"alice\"}); subscriber.on(\"user_login\", handle_login)"
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2347,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: dependency injection, service container, inversion of control, DI container, service locator, dependency injection framework  \nvec: A system that automatically provides dependencies to objects at runtime, enabling loose coupling and easier testing  \nhyde: class Container { public function register($service, $factory) { $this->services[$service] = $factory; } public function get($service) { return $this->services[$service](); } }",
+        "lex": "dependency injection, service container, inversion of control, DI container, service locator, dependency injection framework",
+        "vec": "A system that automatically provides dependencies to objects at runtime, enabling loose coupling and easier testing",
+        "hyde": "class Container { public function register($service, $factory) { $this->services[$service] = $factory; } public function get($service) { return $this->services[$service](); } }"
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2569,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: pagination, cursor, offset, limit, next_cursor, before_cursor, after_cursor, page_size, batch_size, skip, fetch_next, infinite_scroll  \nvec: A method to navigate through large datasets efficiently by fetching only the next or previous batch of items using a cursor instead of fixed offset and limit.  \nhyde: def fetch_items(cursor=None, limit=10): return db.query(\"SELECT * FROM items ORDER BY id DESC LIMIT %s OFFSET %s\" % (limit, cursor))",
+        "lex": "pagination, cursor, offset, limit, next_cursor, before_cursor, after_cursor, page_size, batch_size, skip, fetch_next, infinite_scroll",
+        "vec": "A method to navigate through large datasets efficiently by fetching only the next or previous batch of items using a cursor instead of fixed offset and limit.",
+        "hyde": "def fetch_items(cursor=None, limit=10): return db.query(\"SELECT * FROM items ORDER BY id DESC LIMIT %s OFFSET %s\" % (limit, cursor))"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2240,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: graceful shutdown, signal handling, SIGTERM, SIGINT, cleanup, process termination, exit handler, systemd, daemon, stop gracefully  \nvec: A system that safely terminates a running process by allowing it to finish ongoing operations and release resources before exiting.  \nhyde: def signal_handler(signum, frame): global shutdown; shutdown = True; print(\"Shutting down gracefully...\"); cleanup_resources(); os._exit(0)",
+        "lex": "graceful shutdown, signal handling, SIGTERM, SIGINT, cleanup, process termination, exit handler, systemd, daemon, stop gracefully",
+        "vec": "A system that safely terminates a running process by allowing it to finish ongoing operations and release resources before exiting.",
+        "hyde": "def signal_handler(signum, frame): global shutdown; shutdown = True; print(\"Shutting down gracefully...\"); cleanup_resources(); os._exit(0)"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1814,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: server-sent events, SSE, streaming response, real-time updates, event stream, bidirectional communication  \nvec: A server that continuously pushes real-time updates to a client via a streaming connection using event-based data transmission  \nhyde: def stream_events(): while True: yield {\"data\": \"update\", \"event\": \"sync\"}",
+        "lex": "server-sent events, SSE, streaming response, real-time updates, event stream, bidirectional communication",
+        "vec": "A server that continuously pushes real-time updates to a client via a streaming connection using event-based data transmission",
+        "hyde": "def stream_events(): while True: yield {\"data\": \"update\", \"event\": \"sync\"}"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2570,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: react context, redux, state management, global state, react hooks, useContext, useSelector, store, action, dispatch, reducer, state updates, performance, re-rendering, data flow  \nvec: Compare the mechanisms and use cases of React Context for managing local component state versus Redux for handling global application state and complex data flows  \nhyde: const [count, setCount] = useState(0); const [state, dispatch] = useReducer(reducer, initialState); const value = useContext(MyContext);",
+        "lex": "react context, redux, state management, global state, react hooks, useContext, useSelector, store, action, dispatch, reducer, state updates, performance, re-rendering, data flow",
+        "vec": "Compare the mechanisms and use cases of React Context for managing local component state versus Redux for handling global application state and complex data flows",
+        "hyde": "const [count, setCount] = useState(0); const [state, dispatch] = useReducer(reducer, initialState); const value = useContext(MyContext);"
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2225,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: next function, middleware chain, express middleware, next(), express app middleware, execution flow, request handling, middleware execution, Express.js, next() callback  \nvec: A function that continues the execution of a middleware chain in Express.js after current middleware has processed the request  \nhyde: const next = (req, res, nextFn) => { if (req.next) req.next(); else res.send('Chain continues'); };",
+        "lex": "next function, middleware chain, express middleware, next(), express app middleware, execution flow, request handling, middleware execution, Express.js, next() callback",
+        "vec": "A function that continues the execution of a middleware chain in Express.js after current middleware has processed the request",
+        "hyde": "const next = (req, res, nextFn) => { if (req.next) req.next(); else res.send('Chain continues'); };"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1982,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: prisma, find many, where clause, query, orm, prisma find many, filter, database query, find multiple, conditions  \nvec: Retrieve multiple records from a database using Prisma with specific filtering criteria  \nhyde: const users = await prisma.user.findMany({ where: { age: { gt: 25 } } });",
+        "lex": "prisma, find many, where clause, query, orm, prisma find many, filter, database query, find multiple, conditions",
+        "vec": "Retrieve multiple records from a database using Prisma with specific filtering criteria",
+        "hyde": "const users = await prisma.user.findMany({ where: { age: { gt: 25 } } });"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2049,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: Next.js, server component, data fetching, fetch, getServerSideProps, SSR, server-side rendering, API route, fetch data, server action  \nvec: A method to retrieve and display data on the server side within a Next.js component without requiring client-side hydration  \nhyde: const fetchData = async () => { const res = await fetch('/api/data'); return res.json(); };",
+        "lex": "Next.js, server component, data fetching, fetch, getServerSideProps, SSR, server-side rendering, API route, fetch data, server action",
+        "vec": "A method to retrieve and display data on the server side within a Next.js component without requiring client-side hydration",
+        "hyde": "const fetchData = async () => { const res = await fetch('/api/data'); return res.json(); };"
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.5,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2208,
+      "total": 0.7350000000000001,
+      "expansion": {
+        "raw": "lex: zod, schema, validation, parse, transform, parse transform, schema validation, zod parse, zod transform  \nvec: A function that takes a JSON object and validates its structure using Zod, then converts it into a typed JavaScript object with proper error handling  \nhyde: const result = zodSchema.parse(inputData); if (result.success) return result.data; else throw new Error(result.error.message);",
+        "lex": "zod, schema, validation, parse, transform, parse transform, schema validation, zod parse, zod transform",
+        "vec": "A function that takes a JSON object and validates its structure using Zod, then converts it into a typed JavaScript object with proper error handling",
+        "hyde": "const result = zodSchema.parse(inputData); if (result.success) return result.data; else throw new Error(result.error.message);"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2260,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: tRPC, router, procedure, mutation, update, action, handler, endpoint, function, API, server, mutation, request, operation  \nvec: A function that defines a server-side operation to update data, triggered by a client request and executed on the server side  \nhyde: const mutation = async (input: { id: string, data: any }) => { return await updateRecord(input.id, input.data); };",
+        "lex": "tRPC, router, procedure, mutation, update, action, handler, endpoint, function, API, server, mutation, request, operation",
+        "vec": "A function that defines a server-side operation to update data, triggered by a client request and executed on the server side",
+        "hyde": "const mutation = async (input: { id: string, data: any }) => { return await updateRecord(input.id, input.data); };"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2751,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: tailwind, responsive, breakpoints, utility classes, responsive design, Tailwind CSS, breakpoints utilities, mobile, tablet, desktop, screen sizes  \nvec: A set of CSS utility classes that adjust styling based on screen size, such as mobile, tablet, and desktop views  \nhyde: const breakpoints = ['sm', 'md', 'lg', 'xl']; return `@media (min-width: 640px) { ${breakpoints.map(b => `.${b} { padding: 1rem; }`)} }`;",
+        "lex": "tailwind, responsive, breakpoints, utility classes, responsive design, Tailwind CSS, breakpoints utilities, mobile, tablet, desktop, screen sizes",
+        "vec": "A set of CSS utility classes that adjust styling based on screen size, such as mobile, tablet, and desktop views",
+        "hyde": "const breakpoints = ['sm', 'md', 'lg', 'xl']; return `@media (min-width: 640px) { ${breakpoints.map(b => `.${b} { padding: 1rem; }`)} }`;"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2338,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: jest, mock, spyOn, testing, module, mock module, spyOn function, jest spy, unit testing, test mocking  \nvec: How to effectively use Jest's spyOn to mock a module's functions during unit testing for better control over dependencies  \nhyde: const mockModule = jest.spyOn(require('some-module'), 'someFunction').mockReturnValue('mocked'); jest.spyOn(mockModule, 'anotherFunc').mockImplementation(() => 'test');",
+        "lex": "jest, mock, spyOn, testing, module, mock module, spyOn function, jest spy, unit testing, test mocking",
+        "vec": "How to effectively use Jest's spyOn to mock a module's functions during unit testing for better control over dependencies",
+        "hyde": "const mockModule = jest.spyOn(require('some-module'), 'someFunction').mockReturnValue('mocked'); jest.spyOn(mockModule, 'anotherFunc').mockImplementation(() => 'test');"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 0.8799999999999999,
+      "semantic": 1,
+      "hyde": 0.35,
+      "latencyMs": 3149,
+      "total": 0.7235,
+      "expansion": {
+        "raw": "lex: docker compose, multi-service network, service networking, compose networking, docker network, docker-compose networking  \nvec: A setup where multiple Docker services communicate securely through a shared, custom network defined in docker-compose  \nhyde: services = [  \n  { \"name\": \"web\", \"image\": \"nginx:alpine\", \"depends_on\": [\"db\"] },  \n  { \"name\": \"db\", \"image\": \"postgres:13\", \"networks\": [\"app-network\"] },  \n  { \"name\": \"redis\", \"image\": \"redis:alpine\", \"networks\": [\"app-network\"] }  \n]",
+        "lex": "docker compose, multi-service network, service networking, compose networking, docker network, docker-compose networking",
+        "vec": "A setup where multiple Docker services communicate securely through a shared, custom network defined in docker-compose",
+        "hyde": "services = ["
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2627,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: GitHub Actions, CI workflow, matrix strategy, workflow matrix, CI/CD, parallel testing, environment matrix, platform testing, build matrix  \nvec: A configuration that runs the same workflow across multiple operating systems, programming languages, or environments to ensure compatibility and stability  \nhyde: def workflow_matrix(): return {\"os\": [\"ubuntu-20.04\", \"windows-latest\", \"macos-latest\"], \"python\": [\"3.8\", \"3.9\", \"3.10\"]}",
+        "lex": "GitHub Actions, CI workflow, matrix strategy, workflow matrix, CI/CD, parallel testing, environment matrix, platform testing, build matrix",
+        "vec": "A configuration that runs the same workflow across multiple operating systems, programming languages, or environments to ensure compatibility and stability",
+        "hyde": "def workflow_matrix(): return {\"os\": [\"ubuntu-20.04\", \"windows-latest\", \"macos-latest\"], \"python\": [\"3.8\", \"3.9\", \"3.10\"]}"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2061,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: unused imports, dead code, redundant imports, unused variables, code cleanup, static analysis, import optimization  \nvec: Identify and remove redundant imports and unreachable code that no longer affect program behavior  \nhyde: def detect_unused_imports(code: str) -> list: return [imp for imp in code.split('import') if not any(imp in line for line in code.split('\\n'))]",
+        "lex": "unused imports, dead code, redundant imports, unused variables, code cleanup, static analysis, import optimization",
+        "vec": "Identify and remove redundant imports and unreachable code that no longer affect program behavior",
+        "hyde": "def detect_unused_imports(code: str) -> list: return [imp for imp in code.split('import') if not any(imp in line for line in code.split('\\n'))]"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2266,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: circular dependency, module dependency, cyclic import, import loop, module graph, dependency cycle, forward reference, import cycle detection  \nvec: Identify when modules depend on each other in a way that creates a loop, such as when module A imports module B, and module B imports module A  \nhyde: def detect_circular_dependencies(modules): for a in modules: if a.imports(b) and b.imports(a): return True return False",
+        "lex": "circular dependency, module dependency, cyclic import, import loop, module graph, dependency cycle, forward reference, import cycle detection",
+        "vec": "Identify when modules depend on each other in a way that creates a loop, such as when module A imports module B, and module B imports module A",
+        "hyde": "def detect_circular_dependencies(modules): for a in modules: if a.imports(b) and b.imports(a): return True return False"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1783,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: dead code, unreachable code, code elimination, static analysis, program optimization, control flow, branch pruning  \nvec: Identify sections of a program that are never executed and can be safely removed without affecting functionality  \nhyde: def detect_dead_code(self, ast): return [node for node in ast if not self.is_reachable(node)]",
+        "lex": "dead code, unreachable code, code elimination, static analysis, program optimization, control flow, branch pruning",
+        "vec": "Identify sections of a program that are never executed and can be safely removed without affecting functionality",
+        "hyde": "def detect_dead_code(self, ast): return [node for node in ast if not self.is_reachable(node)]"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1970,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: sql injection, sqli, database injection, malicious query, insecure database input, code injection, vulnerability scanning  \nvec: A flaw in an application that allows attackers to insert malicious SQL code to access or manipulate backend databases  \nhyde: def detect_sql_injection(input): return 'SELECT * FROM users WHERE id = ' + input + ';' if input.startswith('DROP') else False",
+        "lex": "sql injection, sqli, database injection, malicious query, insecure database input, code injection, vulnerability scanning",
+        "vec": "A flaw in an application that allows attackers to insert malicious SQL code to access or manipulate backend databases",
+        "hyde": "def detect_sql_injection(input): return 'SELECT * FROM users WHERE id = ' + input + ';' if input.startswith('DROP') else False"
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 1979,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: code duplication, duplicate functions, refactoring, similar functions, function extraction, code reuse, duplicate code, improve code quality  \nvec: Identify and merge identical or highly similar function implementations across a codebase to improve maintainability and reduce technical debt  \nhyde: def refactor_duplicate_functions(codebase): for func in find_similar_functions(): merge(func, similar_func) return optimized_codebase",
+        "lex": "code duplication, duplicate functions, refactoring, similar functions, function extraction, code reuse, duplicate code, improve code quality",
+        "vec": "Identify and merge identical or highly similar function implementations across a codebase to improve maintainability and reduce technical debt",
+        "hyde": "def refactor_duplicate_functions(codebase): for func in find_similar_functions(): merge(func, similar_func) return optimized_codebase"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 2488,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: performance bottleneck, n+1 query, slow query, database performance, query optimization, inefficient query, over-fetching, N+1 problem  \nvec: A common database issue where each object fetch triggers additional database calls, leading to excessive latency and poor performance  \nhyde: def optimize_queries(): for user in users: posts = db.session.query(Post).filter(Post.user_id == user.id).all()  # This causes N+1 and should be fixed with eager loading",
+        "lex": "performance bottleneck, n+1 query, slow query, database performance, query optimization, inefficient query, over-fetching, N+1 problem",
+        "vec": "A common database issue where each object fetch triggers additional database calls, leading to excessive latency and poor performance",
+        "hyde": "def optimize_queries(): for user in users: posts = db.session.query(Post).filter(Post.user_id == user.id).all()  # This causes N+1 and should be fixed with eager loading"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.45,
+      "latencyMs": 1875,
+      "total": 0.7725000000000002,
+      "expansion": {
+        "raw": "lex: error handling, try-catch, exception handling, exception management, error management, catch block, try block, exception handling in code  \nvec: A robust system that anticipates and responds to errors during execution by gracefully handling exceptions and preventing program crashes  \nhyde: try: process_user_input() except ValueError: print(\"Invalid input provided\")",
+        "lex": "error handling, try-catch, exception handling, exception management, error management, catch block, try block, exception handling in code",
+        "vec": "A robust system that anticipates and responds to errors during execution by gracefully handling exceptions and preventing program crashes",
+        "hyde": "try: process_user_input() except ValueError: print(\"Invalid input provided\")"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2242,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: type safety, type assertion, unsafe cast, cast error, type checking, runtime error, static typing, compile-time safety  \nvec: Detecting and preventing runtime errors caused by incorrect type casting in dynamic environments  \nhyde: def safe_cast(value: Any, expected_type: Type) -> Union[expected_type, None]: if not isinstance(value, expected_type): raise TypeError(f\"Cannot cast {value} to {expected_type}\") return value",
+        "lex": "type safety, type assertion, unsafe cast, cast error, type checking, runtime error, static typing, compile-time safety",
+        "vec": "Detecting and preventing runtime errors caused by incorrect type casting in dynamic environments",
+        "hyde": "def safe_cast(value: Any, expected_type: Type) -> Union[expected_type, None]: if not isinstance(value, expected_type): raise TypeError(f\"Cannot cast {value} to {expected_type}\") return value"
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.7,
+      "latencyMs": 1720,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "lex: memory leak, event listener, cleanup, resource leak, unsubscribe, DOM cleanup, garbage collection, event handler, memory management  \nvec: A script that detects and removes unused event listeners to prevent memory leaks in JavaScript applications  \nhyde: function cleanupEventListeners() { document.removeEventListener('click', handleEvent); }",
+        "lex": "memory leak, event listener, cleanup, resource leak, unsubscribe, DOM cleanup, garbage collection, event handler, memory management",
+        "vec": "A script that detects and removes unused event listeners to prevent memory leaks in JavaScript applications",
+        "hyde": "function cleanupEventListeners() { document.removeEventListener('click', handleEvent); }"
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "Qwen3-4B-2507",
+      "format": 1,
+      "keyword": 1,
+      "semantic": 1,
+      "hyde": 0.575,
+      "latencyMs": 2081,
+      "total": 0.8037500000000002,
+      "expansion": {
+        "raw": "lex: race condition, concurrent access, async race, thread safety, locking, synchronization, async conflict, data race, shared state, concurrency issue  \nvec: A situation where multiple threads or asynchronous processes access and modify shared data simultaneously, leading to unpredictable or inconsistent outcomes due to timing dependencies  \nhyde: async def fetch_data(): global counter; counter += 1; return counter # Risk of data inconsistency without proper locking",
+        "lex": "race condition, concurrent access, async race, thread safety, locking, synchronization, async conflict, data race, shared state, concurrency issue",
+        "vec": "A situation where multiple threads or asynchronous processes access and modify shared data simultaneously, leading to unpredictable or inconsistent outcomes due to timing dependencies",
+        "hyde": "async def fetch_data(): global counter; counter += 1; return counter # Risk of data inconsistency without proper locking"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect, cleanup, cleanup function, effect cleanup, component unmount, cleanup callback  \nvec: A function that runs when a component unmounts to clean up subscriptions, timers, or event listeners  \nhyde: useEffect(() => { const timer = setInterval(() => console.log('tick'), 1000); return () => clearInterval(timer); }, []);",
+      "latencyMs": 1971,
+      "tokenCount": 76
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: handleSubmit, handle submit, form submit, onsubmit, submit handler, form handling  \nvec: A function triggered when a form is submitted, typically responsible for collecting and processing form data  \nhyde: const handleSubmit = (event) => { event.preventDefault(); console.log('Form submitted'); };",
+      "latencyMs": 2187,
+      "tokenCount": 61
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: search bar, input field, text input, autocomplete, filter input, search input, interactive search, text search, user input, form input  \nvec: A user-friendly input field that allows users to type and search for content in real-time, often with suggestions or filters  \nhyde: <SearchBar onSearch={handleSearch} placeholder=\"Type to search...\" />",
+      "latencyMs": 2177,
+      "tokenCount": 77
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: create_embeddings_client, generate_embeddings, vector_embedding, embedding_service, embedder, vector_client  \nvec: Build a client to generate vector embeddings from text inputs for semantic search and similarity matching  \nhyde: def create_embeddings_client(model=\"text-embedding-3-small\"): return EmbeddingsClient(model=model, batch_size=32)",
+      "latencyMs": 1994,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parse parameter size, extract parameter dimensions, analyze parameter count, interpret parameter length, parse input size, parameter size extraction  \nvec: Determine the number of parameters in a given input or model configuration  \nhyde: def parse_parameter_size(model_config): return sum(int(x) for x in model_config.get('params', []))",
+      "latencyMs": 1927,
+      "tokenCount": 68
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: build combined index, merge indices, composite index, unified indexing, index fusion  \nvec: Create a single index by combining multiple existing indexes into one cohesive structure  \nhyde: def build_combined_index(indexes): return {k: v for idx in indexes for k, v in idx.items()}",
+      "latencyMs": 1633,
+      "tokenCount": 62
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosine similarity, dot product, vector similarity, angle between vectors, document similarity, embedding similarity  \nvec: Calculate the similarity between two vectors by measuring the cosine of the angle between them  \nhyde: def compute_cosine_similarity(v1, v2): return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))",
+      "latencyMs": 2092,
+      "tokenCount": 78
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: QueryGenerator, generator class, query generation, prompt generator, text generation, input formatter  \nvec: A class that creates and formats natural language queries from structured inputs or user prompts  \nhyde: class QueryGenerator: def generate_query(self, user_input: str) -> str: return f\"Generate a well-structured query for: {user_input}\"",
+      "latencyMs": 1980,
+      "tokenCount": 74
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregate, retrieve, combine, merge, summarize, group, collect, consolidate, fetch, result aggregation  \nvec: Combine multiple retrieval outputs into a unified, coherent set of results with prioritization and deduplication  \nhyde: def aggregate_retrieval_results(results): return {k: v for k, v in results.items() if k not in [k for k, v in results.items() if v is None]}",
+      "latencyMs": 2332,
+      "tokenCount": 89
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: LocalLLMClient, local LLM client, constructor, initialize LLM, local language model client, LLM initialization  \nvec: A class that sets up and manages a local language model for on-device inference and interaction  \nhyde: class LocalLLMClient: def __init__(self, model_path: str, device: str = \"cpu\"): self.model = load_model(model_path, device)",
+      "latencyMs": 2209,
+      "tokenCount": 85
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: TypeError, undefined property, null check, object access, dot notation, property access error  \nvec: A JavaScript error occurring when trying to access a property of an object that doesn't exist or is undefined  \nhyde: const user = data?.user; if (!user) throw new Error(\"User data is undefined\");",
+      "latencyMs": 1835,
+      "tokenCount": 67
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: ECONNREFUSED, connection refused, localhost error, network timeout, socket error, DNS resolution, port not listening  \nvec: A network connection is being refused when trying to connect to a service running on localhost  \nhyde: try { const response = await fetch('http://localhost:3000/api/data'); } catch (err) { if (err.code === 'ECONNREFUSED') console.log('Service not running on localhost'); }",
+      "latencyMs": 2377,
+      "tokenCount": 95
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: module not found, import error, cannot import, missing module, import not found, package not installed  \nvec: I'm trying to use a Python module that isn't available in my environment or has been accidentally removed  \nhyde: try: import pandas as pd except ImportError: print(\"pandas module not found\")",
+      "latencyMs": 1830,
+      "tokenCount": 67
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: cors, origin, allowed, headers, cross-origin, forbidden, access-control, origin policy, header restrictions  \nvec: A web application is failing because the server is blocking requests from a specific origin due to missing or misconfigured CORS headers  \nhyde: function handleCORS(request, response) { if (!request.headers.origin) return response.status(403).send('CORS origin not allowed'); response.header('Access-Control-Allow-Origin', request.headers.origin); }",
+      "latencyMs": 2477,
+      "tokenCount": 98
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: memory leak, heap overflow, JVM OutOfMemoryError, garbage collection failure, memory exhaustion  \nvec: The system is unable to allocate more memory in the heap, causing a crash due to insufficient available resources  \nhyde: try { System.gc(); } catch (Exception e) { throw new RuntimeException(\"Heap allocation failed\"); }",
+      "latencyMs": 1885,
+      "tokenCount": 69
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database timeout, connection pool, timeout exception, pool exhaustion, connection timeout, max connections, idle timeout, connection leak, database pool, timeout error  \nvec: \"The system is unable to establish new database connections due to all available connection slots being used up\"  \nhyde: def handle_db_timeout(): try: conn = pool.get_connection() except PoolExhaustedError: log.error(\"All database connections are in use; retrying or scaling up pool\")",
+      "latencyMs": 2422,
+      "tokenCount": 96
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: promise rejected, unhandled rejection, async error, unhandled promise rejection, async timeout, error handling, rejection callback  \nvec: A JavaScript async operation failed silently due to an uncaught promise rejection that wasn't properly handled  \nhyde: async function fetchData() { throw new Error('Network error'); } setTimeout(() => { console.error('Unhandled rejection'); }, 1000);",
+      "latencyMs": 2064,
+      "tokenCount": 81
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: import cycle, circular import, dependency loop, module import error, cyclic dependency  \nvec: Two or more modules are trying to import each other, creating a loop that prevents execution  \nhyde: def load_module_a(): import module_b def load_module_b(): import module_a",
+      "latencyMs": 1617,
+      "tokenCount": 58
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type error, argument type mismatch, parameter assignment error, invalid argument type, wrong argument type, type mismatch, argument not compatible  \nvec: I'm getting a runtime error when passing a value of the wrong type to a function's expected parameter  \nhyde: def process_data(data: List[int]) -> None: return func(data)  # TypeError: expected list, got str",
+      "latencyMs": 1960,
+      "tokenCount": 79
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: permission denied, EACCES, file access error, insufficient permissions, read-only file, access denied, file permission, directory access, OS error 13  \nvec: I'm trying to read or write a file but the system is blocking me due to missing or insufficient access rights  \nhyde: try: open('/path/to/file', 'r')  # raises PermissionError: [Errno 13] Permission denied",
+      "latencyMs": 2336,
+      "tokenCount": 90
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: auth middleware, authentication filter, security middleware, login guard, session management, token verification, access control  \nvec: A software component that verifies user identity and grants access to protected resources before processing requests  \nhyde: class AuthMiddleware { public void handle(Request request) { if (!verifyToken(request.token)) throw new UnauthorizedException(); } }",
+      "latencyMs": 1850,
+      "tokenCount": 71
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate limiting, token bucket, sliding window, burst limit, request throttling, API throttling, quota system, concurrency control  \nvec: A system that restricts the number of requests a client can make within a given time frame to prevent abuse and ensure fair usage  \nhyde: def rate_limit(requests, window=60): return { 'max': 100, 'window': window, 'method': 'sliding_window' }",
+      "latencyMs": 2497,
+      "tokenCount": 95
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: cache invalidation, stale cache, cache refresh, expiry strategy, invalidation mechanism, cache coherence  \nvec: A method for ensuring that outdated data is removed from the cache when the source data changes  \nhyde: def invalidate_cache(key): if data_source_changed(): cache.remove(key)",
+      "latencyMs": 1564,
+      "tokenCount": 60
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: retry, exponential backoff, jitter, retry strategy, failure handling, circuit breaker, timeout, resilience, error recovery  \nvec: A system that automatically attempts a failed operation multiple times, with increasing delays between attempts to avoid overwhelming the service during outages.  \nhyde: def retry_with_exponential_backoff(max_retries=5, base_delay=1): return [base_delay * (2 ** i) + random.uniform(0, 0.5) for i in range(max_retries)]",
+      "latencyMs": 2647,
+      "tokenCount": 105
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: database connection pooling, connection pool, DB connection pool, shared database connections, pool database, connection reuse, database reuse  \nvec: A system that reuses existing database connections instead of creating new ones for each request to improve performance and reduce latency  \nhyde: def create_connection_pool(): return [sqlite3.connect(db) for _ in range(5)]",
+      "latencyMs": 1965,
+      "tokenCount": 74
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event-driven architecture, publish-subscribe, event bus, message broker, pub/sub, event streaming, real-time processing, decoupled systems  \nvec: A system where components communicate through events, with a central hub (event bus) broadcasting messages to interested subscribers without direct coupling  \nhyde: def setup_pub_sub(): pub = PubSubClient(\"event-bus\"); pub.publish(\"user_login\", {\"user\": \"alice\"}); subscriber.on(\"user_login\", handle_login)",
+      "latencyMs": 2456,
+      "tokenCount": 99
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency injection, service container, inversion of control, DI container, service locator, dependency injection framework  \nvec: A system that automatically provides dependencies to objects at runtime, enabling loose coupling and easier testing  \nhyde: class Container { public function register($service, $factory) { $this->services[$service] = $factory; } public function get($service) { return $this->services[$service](); } }",
+      "latencyMs": 2347,
+      "tokenCount": 89
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination, cursor, offset, limit, next_cursor, before_cursor, after_cursor, page_size, batch_size, skip, fetch_next, infinite_scroll  \nvec: A method to navigate through large datasets efficiently by fetching only the next or previous batch of items using a cursor instead of fixed offset and limit.  \nhyde: def fetch_items(cursor=None, limit=10): return db.query(\"SELECT * FROM items ORDER BY id DESC LIMIT %s OFFSET %s\" % (limit, cursor))",
+      "latencyMs": 2569,
+      "tokenCount": 104
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful shutdown, signal handling, SIGTERM, SIGINT, cleanup, process termination, exit handler, systemd, daemon, stop gracefully  \nvec: A system that safely terminates a running process by allowing it to finish ongoing operations and release resources before exiting.  \nhyde: def signal_handler(signum, frame): global shutdown; shutdown = True; print(\"Shutting down gracefully...\"); cleanup_resources(); os._exit(0)",
+      "latencyMs": 2240,
+      "tokenCount": 89
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: server-sent events, SSE, streaming response, real-time updates, event stream, bidirectional communication  \nvec: A server that continuously pushes real-time updates to a client via a streaming connection using event-based data transmission  \nhyde: def stream_events(): while True: yield {\"data\": \"update\", \"event\": \"sync\"}",
+      "latencyMs": 1814,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: react context, redux, state management, global state, react hooks, useContext, useSelector, store, action, dispatch, reducer, state updates, performance, re-rendering, data flow  \nvec: Compare the mechanisms and use cases of React Context for managing local component state versus Redux for handling global application state and complex data flows  \nhyde: const [count, setCount] = useState(0); const [state, dispatch] = useReducer(reducer, initialState); const value = useContext(MyContext);",
+      "latencyMs": 2570,
+      "tokenCount": 105
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: next function, middleware chain, express middleware, next(), express app middleware, execution flow, request handling, middleware execution, Express.js, next() callback  \nvec: A function that continues the execution of a middleware chain in Express.js after current middleware has processed the request  \nhyde: const next = (req, res, nextFn) => { if (req.next) req.next(); else res.send('Chain continues'); };",
+      "latencyMs": 2225,
+      "tokenCount": 89
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: prisma, find many, where clause, query, orm, prisma find many, filter, database query, find multiple, conditions  \nvec: Retrieve multiple records from a database using Prisma with specific filtering criteria  \nhyde: const users = await prisma.user.findMany({ where: { age: { gt: 25 } } });",
+      "latencyMs": 1982,
+      "tokenCount": 74
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: Next.js, server component, data fetching, fetch, getServerSideProps, SSR, server-side rendering, API route, fetch data, server action  \nvec: A method to retrieve and display data on the server side within a Next.js component without requiring client-side hydration  \nhyde: const fetchData = async () => { const res = await fetch('/api/data'); return res.json(); };",
+      "latencyMs": 2049,
+      "tokenCount": 82
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: zod, schema, validation, parse, transform, parse transform, schema validation, zod parse, zod transform  \nvec: A function that takes a JSON object and validates its structure using Zod, then converts it into a typed JavaScript object with proper error handling  \nhyde: const result = zodSchema.parse(inputData); if (result.success) return result.data; else throw new Error(result.error.message);",
+      "latencyMs": 2208,
+      "tokenCount": 88
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC, router, procedure, mutation, update, action, handler, endpoint, function, API, server, mutation, request, operation  \nvec: A function that defines a server-side operation to update data, triggered by a client request and executed on the server side  \nhyde: const mutation = async (input: { id: string, data: any }) => { return await updateRecord(input.id, input.data); };",
+      "latencyMs": 2260,
+      "tokenCount": 90
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: tailwind, responsive, breakpoints, utility classes, responsive design, Tailwind CSS, breakpoints utilities, mobile, tablet, desktop, screen sizes  \nvec: A set of CSS utility classes that adjust styling based on screen size, such as mobile, tablet, and desktop views  \nhyde: const breakpoints = ['sm', 'md', 'lg', 'xl']; return `@media (min-width: 640px) { ${breakpoints.map(b => `.${b} { padding: 1rem; }`)} }`;",
+      "latencyMs": 2751,
+      "tokenCount": 113
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: jest, mock, spyOn, testing, module, mock module, spyOn function, jest spy, unit testing, test mocking  \nvec: How to effectively use Jest's spyOn to mock a module's functions during unit testing for better control over dependencies  \nhyde: const mockModule = jest.spyOn(require('some-module'), 'someFunction').mockReturnValue('mocked'); jest.spyOn(mockModule, 'anotherFunc').mockImplementation(() => 'test');",
+      "latencyMs": 2338,
+      "tokenCount": 94
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker compose, multi-service network, service networking, compose networking, docker network, docker-compose networking  \nvec: A setup where multiple Docker services communicate securely through a shared, custom network defined in docker-compose  \nhyde: services = [  \n  { \"name\": \"web\", \"image\": \"nginx:alpine\", \"depends_on\": [\"db\"] },  \n  { \"name\": \"db\", \"image\": \"postgres:13\", \"networks\": [\"app-network\"] },  \n  { \"name\": \"redis\", \"image\": \"redis:alpine\", \"networks\": [\"app-network\"] }  \n]",
+      "latencyMs": 3149,
+      "tokenCount": 132
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: GitHub Actions, CI workflow, matrix strategy, workflow matrix, CI/CD, parallel testing, environment matrix, platform testing, build matrix  \nvec: A configuration that runs the same workflow across multiple operating systems, programming languages, or environments to ensure compatibility and stability  \nhyde: def workflow_matrix(): return {\"os\": [\"ubuntu-20.04\", \"windows-latest\", \"macos-latest\"], \"python\": [\"3.8\", \"3.9\", \"3.10\"]}",
+      "latencyMs": 2627,
+      "tokenCount": 106
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused imports, dead code, redundant imports, unused variables, code cleanup, static analysis, import optimization  \nvec: Identify and remove redundant imports and unreachable code that no longer affect program behavior  \nhyde: def detect_unused_imports(code: str) -> list: return [imp for imp in code.split('import') if not any(imp in line for line in code.split('\\n'))]",
+      "latencyMs": 2061,
+      "tokenCount": 83
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: circular dependency, module dependency, cyclic import, import loop, module graph, dependency cycle, forward reference, import cycle detection  \nvec: Identify when modules depend on each other in a way that creates a loop, such as when module A imports module B, and module B imports module A  \nhyde: def detect_circular_dependencies(modules): for a in modules: if a.imports(b) and b.imports(a): return True return False",
+      "latencyMs": 2266,
+      "tokenCount": 93
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: dead code, unreachable code, code elimination, static analysis, program optimization, control flow, branch pruning  \nvec: Identify sections of a program that are never executed and can be safely removed without affecting functionality  \nhyde: def detect_dead_code(self, ast): return [node for node in ast if not self.is_reachable(node)]",
+      "latencyMs": 1783,
+      "tokenCount": 70
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: sql injection, sqli, database injection, malicious query, insecure database input, code injection, vulnerability scanning  \nvec: A flaw in an application that allows attackers to insert malicious SQL code to access or manipulate backend databases  \nhyde: def detect_sql_injection(input): return 'SELECT * FROM users WHERE id = ' + input + ';' if input.startswith('DROP') else False",
+      "latencyMs": 1970,
+      "tokenCount": 80
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: code duplication, duplicate functions, refactoring, similar functions, function extraction, code reuse, duplicate code, improve code quality  \nvec: Identify and merge identical or highly similar function implementations across a codebase to improve maintainability and reduce technical debt  \nhyde: def refactor_duplicate_functions(codebase): for func in find_similar_functions(): merge(func, similar_func) return optimized_codebase",
+      "latencyMs": 1979,
+      "tokenCount": 80
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: performance bottleneck, n+1 query, slow query, database performance, query optimization, inefficient query, over-fetching, N+1 problem  \nvec: A common database issue where each object fetch triggers additional database calls, leading to excessive latency and poor performance  \nhyde: def optimize_queries(): for user in users: posts = db.session.query(Post).filter(Post.user_id == user.id).all()  # This causes N+1 and should be fixed with eager loading",
+      "latencyMs": 2488,
+      "tokenCount": 98
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: error handling, try-catch, exception handling, exception management, error management, catch block, try block, exception handling in code  \nvec: A robust system that anticipates and responds to errors during execution by gracefully handling exceptions and preventing program crashes  \nhyde: try: process_user_input() except ValueError: print(\"Invalid input provided\")",
+      "latencyMs": 1875,
+      "tokenCount": 71
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: type safety, type assertion, unsafe cast, cast error, type checking, runtime error, static typing, compile-time safety  \nvec: Detecting and preventing runtime errors caused by incorrect type casting in dynamic environments  \nhyde: def safe_cast(value: Any, expected_type: Type) -> Union[expected_type, None]: if not isinstance(value, expected_type): raise TypeError(f\"Cannot cast {value} to {expected_type}\") return value",
+      "latencyMs": 2242,
+      "tokenCount": 92
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memory leak, event listener, cleanup, resource leak, unsubscribe, DOM cleanup, garbage collection, event handler, memory management  \nvec: A script that detects and removes unused event listeners to prevent memory leaks in JavaScript applications  \nhyde: function cleanupEventListeners() { document.removeEventListener('click', handleEvent); }",
+      "latencyMs": 1720,
+      "tokenCount": 65
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race condition, concurrent access, async race, thread safety, locking, synchronization, async conflict, data race, shared state, concurrency issue  \nvec: A situation where multiple threads or asynchronous processes access and modify shared data simultaneously, leading to unpredictable or inconsistent outcomes due to timing dependencies  \nhyde: async def fetch_data(): global counter; counter += 1; return counter # Risk of data inconsistency without proper locking",
+      "latencyMs": 2081,
+      "tokenCount": 85
+    }
+  ]
+}
