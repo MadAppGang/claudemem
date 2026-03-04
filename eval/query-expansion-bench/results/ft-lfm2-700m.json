@@ -1,0 +1,1180 @@
+{
+  "model": {
+    "name": "lfm2-700m-FT",
+    "lmsKey": "jackrudenko/claudemem-expansion-lfm2-700m",
+    "family": "lfm2-ft",
+    "paramsB": 0.7
+  },
+  "timestamp": "2026-03-04T08:52:06.000Z",
+  "config": {
+    "port": 0,
+    "timeout": 60000,
+    "retries": 0,
+    "note": "Local inference via transformers+peft, not LM Studio"
+  },
+  "summary": {
+    "format": 0.9728,
+    "keyword": 0.7076,
+    "semantic": 0.956,
+    "hyde": 0.27449999999999997,
+    "latencyMs": 2613.6525233404245,
+    "total": 0.6577050000000001
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 3005.0276669790037,
+      "total": 0.7325000000000002,
+      "expansion": {
+        "raw": "lex: useEffect cleanup, useEffect cleanup function, useEffect cleanup with cleanupFunction\nvec: UseEffect cleanup is a function passed toEffect() to clean up resources after a component is rendered.\nhyde: useEffect cleanup is a function passed toEffect() to clean up resources after a component is rendered.",
+        "lex": "useEffect cleanup, useEffect cleanup function, useEffect cleanup with cleanupFunction",
+        "vec": "UseEffect cleanup is a function passed toEffect() to clean up resources after a component is rendered.",
+        "hyde": "useEffect cleanup is a function passed toEffect() to clean up resources after a component is rendered."
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.38,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3218.270958052017,
+      "total": 0.6172500000000001,
+      "expansion": {
+        "raw": "lex: handleSubmit function\nvec: handleSubmit is a function that processes form submissions, validates inputs, and sends data to a server.\nhyde: Example implementation: \n```javascript\nfunction handleSubmit(event) {\n  event.preventDefault();\n  const formData = new FormData(event.target);\n  // Process form data\n}\n```",
+        "lex": "handleSubmit function",
+        "vec": "handleSubmit is a function that processes form submissions, validates inputs, and sends data to a server.",
+        "hyde": "Example implementation:"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2555.057791993022,
+      "total": 0.6620000000000001,
+      "expansion": {
+        "raw": "lex: SearchBar component (React, Material-UI)\nvec: What is a SearchBar component? It's a React element for user input in search forms.\nhyde: What are the key properties of a SearchBar component? It typically includes a textarea, autocomplete, and search functionality.",
+        "lex": "SearchBar component (React, Material-UI)",
+        "vec": "What is a SearchBar component? It's a React element for user input in search forms.",
+        "hyde": "What are the key properties of a SearchBar component? It typically includes a textarea, autocomplete, and search functionality."
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 1925.0654999632388,
+      "total": 0.7245000000000001,
+      "expansion": {
+        "raw": "lex: createEmbeddingsClient (Python, Flask, FastAPI)\nvec: Import embeddings client library and create an instance\nhyde: client = createEmbeddingsClient(api_key='YOUR_API_KEY')",
+        "lex": "createEmbeddingsClient (Python, Flask, FastAPI)",
+        "vec": "Import embeddings client library and create an instance",
+        "hyde": "client = createEmbeddingsClient(api_key='YOUR_API_KEY')"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.33999999999999997,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2281.886457989458,
+      "total": 0.6092500000000001,
+      "expansion": {
+        "raw": "lex: parseParameterSize\nvec: parseParameterSize() returns the number of parameters in a parameter object.\nhyde: parseParameterSize(1) returns 1, parseParameterSize(2) returns 3, parseParameterSize(3) returns 5.",
+        "lex": "parseParameterSize",
+        "vec": "parseParameterSize() returns the number of parameters in a parameter object.",
+        "hyde": "parseParameterSize(1) returns 1, parseParameterSize(2) returns 3, parseParameterSize(3) returns 5."
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 2087.6834169612266,
+      "total": 0.7405000000000002,
+      "expansion": {
+        "raw": "lex: buildCombinedIndex (function definition, type, and parameters)\nvec: buildCombinedIndex (a utility function that combines multiple indexing methods)\nhyde: buildCombinedIndex (a utility function that combines multiple indexing methods)",
+        "lex": "buildCombinedIndex (function definition, type, and parameters)",
+        "vec": "buildCombinedIndex (a utility function that combines multiple indexing methods)",
+        "hyde": "buildCombinedIndex (a utility function that combines multiple indexing methods)"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2779.9652089597657,
+      "total": 0.6620000000000001,
+      "expansion": {
+        "raw": "lex: cosineSimilarity helper, cosineSimilarity helper function, cosineSimilarity helper method\nvec: cosineSimilarity is a function that computes the cosine similarity between two vectors.\nhyde: cosineSimilarity takes two vectors as input and returns a scalar value between -1 and 1.",
+        "lex": "cosineSimilarity helper, cosineSimilarity helper function, cosineSimilarity helper method",
+        "vec": "cosineSimilarity is a function that computes the cosine similarity between two vectors.",
+        "hyde": "cosineSimilarity takes two vectors as input and returns a scalar value between -1 and 1."
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.38,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 1481.587791990023,
+      "total": 0.66225,
+      "expansion": {
+        "raw": "lex: QueryGenerator class\nvec: What is the purpose of a QueryGenerator class?\nhyde: A QueryGenerator class is used to generate search queries from user input.",
+        "lex": "QueryGenerator class",
+        "vec": "What is the purpose of a QueryGenerator class?",
+        "hyde": "A QueryGenerator class is used to generate search queries from user input."
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 2234.5497499918565,
+      "total": 0.7245000000000001,
+      "expansion": {
+        "raw": "lex: aggregateRetrievalResults (function, method, library)\nvec: aggregateRetrievalResults = { (query, params) => {... } }\nhyde: aggregateRetrievalResults = { (query, params) => {... } }",
+        "lex": "aggregateRetrievalResults (function, method, library)",
+        "vec": "aggregateRetrievalResults = { (query, params) => {... } }",
+        "hyde": "aggregateRetrievalResults = { (query, params) => {... } }"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 1714.0015410259366,
+      "total": 0.6932500000000001,
+      "expansion": {
+        "raw": "lex: LocalLLMClient constructor parameters, parameters, constructor arguments\nvec: local llm client constructor\nhyde: local llm client constructor takes three arguments: name, description, and model.",
+        "lex": "LocalLLMClient constructor parameters, parameters, constructor arguments",
+        "vec": "local llm client constructor",
+        "hyde": "local llm client constructor takes three arguments: name, description, and model."
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2762.015916989185,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "lex: TypeError: cannot read property of undefined, syntax error, undefined\nvec: Use optional chaining: getProperty().then(property => property).catch(...) instead of direct property access.\nhyde: TypeError: cannot read property of undefined, handle undefined with try-catch or optional chaining.",
+        "lex": "TypeError: cannot read property of undefined, syntax error, undefined",
+        "vec": "Use optional chaining: getProperty().then(property => property).catch(...) instead of direct property access.",
+        "hyde": "TypeError: cannot read property of undefined, handle undefined with try-catch or optional chaining."
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "lfm2-700m-FT",
+      "format": 0.66,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.0,
+      "latencyMs": 2696.9939169939607,
+      "total": 0.56,
+      "expansion": {
+        "raw": "lex: ECONNREFUSED, localhost, TCP, port, connection, failover\nvec: Check if the localhost port is open using `netstat -an`. If closed, restart the service with `systemctl restart mysql.service` or `service mysql restart`.",
+        "lex": "ECONNREFUSED, localhost, TCP, port, connection, failover",
+        "vec": "Check if the localhost port is open using `netstat -an`. If closed, restart the service with `systemctl restart mysql.service` or `service mysql restart`.",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "lfm2-700m-FT",
+      "format": 0.66,
+      "keyword": 0.54,
+      "semantic": 1.0,
+      "hyde": 0.0,
+      "latencyMs": 1678.7283750018105,
+      "total": 0.5,
+      "expansion": {
+        "raw": "lex: module not found cannot resolve import\nvec: 'import' is a common error when trying to import a module. Check if the module is installed and add it to your environment.",
+        "lex": "module not found cannot resolve import",
+        "vec": "'import' is a common error when trying to import a module. Check if the module is installed and add it to your environment.",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "lfm2-700m-FT",
+      "format": 0.66,
+      "keyword": 0.8400000000000001,
+      "semantic": 0.8,
+      "hyde": 0.0,
+      "latencyMs": 2947.719458024949,
+      "total": 0.52,
+      "expansion": {
+        "raw": "lex: CORS origin not allowed headers, CORS policy, CORS headers\nvec: CORS (Cross-Origin Resource Sharing) is a security mechanism that restricts web pages from making requests to a different domain than the one which served the web page. Origin not allowed headers are specific to CORS and prevent cross-origin requests.",
+        "lex": "CORS origin not allowed headers, CORS policy, CORS headers",
+        "vec": "CORS (Cross-Origin Resource Sharing) is a security mechanism that restricts web pages from making requests to a different domain than the one which served the web page. Origin not allowed headers are specific to CORS and prevent cross-origin requests.",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 1863.3235419983976,
+      "total": 0.7485000000000002,
+      "expansion": {
+        "raw": "lex: out of memory heap allocation error, memory allocation failure, heap allocation failure\nvec: out of memory heap allocation error\nhyde: Check memory allocation using heap.dump() to identify the exact allocation failure.",
+        "lex": "out of memory heap allocation error, memory allocation failure, heap allocation failure",
+        "vec": "out of memory heap allocation error",
+        "hyde": "Check memory allocation using heap.dump() to identify the exact allocation failure."
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2154.2129169683903,
+      "total": 0.6940000000000002,
+      "expansion": {
+        "raw": "lex: database connection timeout pool exhausted, retry failed connection attempts\nvec: What are the steps to handle a database connection timeout pool exhausted error?\nhyde: Use a retry mechanism with exponential backoff, and check connection pool size before making a request.",
+        "lex": "database connection timeout pool exhausted, retry failed connection attempts",
+        "vec": "What are the steps to handle a database connection timeout pool exhausted error?",
+        "hyde": "Use a retry mechanism with exponential backoff, and check connection pool size before making a request."
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 0.6,
+      "hyde": 0.45,
+      "latencyMs": 1903.0309589579701,
+      "total": 0.6685000000000001,
+      "expansion": {
+        "raw": "lex: promise rejected unhandled async error, promise, async error handling, unhandled promise rejection\nvec: promise.rejectingUnhandledError()\nhyde: promise.rejectingUnhandledError()",
+        "lex": "promise rejected unhandled async error, promise, async error handling, unhandled promise rejection",
+        "vec": "promise.rejectingUnhandledError()",
+        "hyde": "promise.rejectingUnhandledError()"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 0.8,
+      "hyde": 0.1,
+      "latencyMs": 2302.5486250407994,
+      "total": 0.605,
+      "expansion": {
+        "raw": "lex: circular dependency, import cycle, dependency resolution\nvec: Detecting a circular dependency occurs when two or more modules import each other directly or indirectly. This can cause runtime errors and is typically resolved by refactoring or restructuring the code.\nhyde: circular dependency",
+        "lex": "circular dependency, import cycle, dependency resolution",
+        "vec": "Detecting a circular dependency occurs when two or more modules import each other directly or indirectly. This can cause runtime errors and is typically resolved by refactoring or restructuring the code.",
+        "hyde": "circular dependency"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.58,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 1765.5055419891141,
+      "total": 0.6572500000000001,
+      "expansion": {
+        "raw": "lex: type error argument not assignable to parameter\nvec: type error:'str' is not assignable to parameter\nhyde: type error:'str' is not assignable to parameter",
+        "lex": "type error argument not assignable to parameter",
+        "vec": "type error:'str' is not assignable to parameter",
+        "hyde": "type error:'str' is not assignable to parameter"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2156.3299170229584,
+      "total": 0.6940000000000002,
+      "expansion": {
+        "raw": "lex: permission denied EACCES file access, file system permissions, file access control\nvec: Permission denied access to EACCES file due to insufficient permissions.\nhyde: File permissions are typically managed by the file owner, group, and others.",
+        "lex": "permission denied EACCES file access, file system permissions, file access control",
+        "vec": "Permission denied access to EACCES file due to insufficient permissions.",
+        "hyde": "File permissions are typically managed by the file owner, group, and others."
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 1980.5380410398357,
+      "total": 0.6620000000000001,
+      "expansion": {
+        "raw": "lex: authentication middleware, OAuth, JWT\nvec: What is authentication middleware? How does it work?\nhyde: Authentication middleware verifies user credentials and authorizes access to protected resources.",
+        "lex": "authentication middleware, OAuth, JWT",
+        "vec": "What is authentication middleware? How does it work?",
+        "hyde": "Authentication middleware verifies user credentials and authorizes access to protected resources."
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2369.5520420442335,
+      "total": 0.6620000000000001,
+      "expansion": {
+        "raw": "lex: rate limiting, throttling, request rate\nvec: rate limiting is a technique to control the number of requests a client can make within a given time frame.\nhyde: Rate limiting is commonly used in web APIs to prevent abuse and ensure fair usage.",
+        "lex": "rate limiting, throttling, request rate",
+        "vec": "rate limiting is a technique to control the number of requests a client can make within a given time frame.",
+        "hyde": "Rate limiting is commonly used in web APIs to prevent abuse and ensure fair usage."
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2358.5800420260057,
+      "total": 0.6620000000000001,
+      "expansion": {
+        "raw": "lex: caching invalidation, cache invalidation, cache invalidation strategy\nvec: caching invalidation is the process of removing stale data from caches to ensure data consistency.\nhyde: caching invalidation is a common practice to prevent serving outdated data.",
+        "lex": "caching invalidation, cache invalidation, cache invalidation strategy",
+        "vec": "caching invalidation is the process of removing stale data from caches to ensure data consistency.",
+        "hyde": "caching invalidation is a common practice to prevent serving outdated data."
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 3063.3279170142487,
+      "total": 0.6700000000000002,
+      "expansion": {
+        "raw": "lex: retry logic exponential backoff, retry policy, exponential backoff\nvec: Implement a retry mechanism with exponential backoff using a decorator that retries a function with increasing delays (e.g., 1s, 2s, 4s, etc.) after each attempt.\nhyde: retry-exponential-backoff",
+        "lex": "retry logic exponential backoff, retry policy, exponential backoff",
+        "vec": "Implement a retry mechanism with exponential backoff using a decorator that retries a function with increasing delays (e.g., 1s, 2s, 4s, etc.) after each attempt.",
+        "hyde": "retry-exponential-backoff"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 0.75,
+      "hyde": 0.2,
+      "latencyMs": 1385.5231250054203,
+      "total": 0.657,
+      "expansion": {
+        "raw": "lex: connection pooling database, connection pooling, connection pooling database management\nvec: connection pooling database\nhyde: connection pooling database configuration",
+        "lex": "connection pooling database, connection pooling, connection pooling database management",
+        "vec": "connection pooling database",
+        "hyde": "connection pooling database configuration"
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 0.75,
+      "hyde": 0.2,
+      "latencyMs": 1930.809167039115,
+      "total": 0.56,
+      "expansion": {
+        "raw": "lex: event driven architecture pub sub\nvec: event driven architecture pub sub\nhyde: Event driven architecture pub sub is a design pattern where services publish events to a central event bus, and other services subscribe to those events.",
+        "lex": "event driven architecture pub sub",
+        "vec": "event driven architecture pub sub",
+        "hyde": "Event driven architecture pub sub is a design pattern where services publish events to a central event bus, and other services subscribe to those events."
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.46,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 1787.6699159969576,
+      "total": 0.6020000000000001,
+      "expansion": {
+        "raw": "lex: dependency injection service container\nvec: Create a service container using Spring or.NET's built-in DI framework.\nhyde: Use constructor injection to define and inject services, ensuring loose coupling and testability.",
+        "lex": "dependency injection service container",
+        "vec": "Create a service container using Spring or.NET's built-in DI framework.",
+        "hyde": "Use constructor injection to define and inject services, ensuring loose coupling and testability."
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2511.2166660255753,
+      "total": 0.7012500000000002,
+      "expansion": {
+        "raw": "lex: pagination cursor offset limit, pagination, cursor, offset, limit, offset by\nvec: What is the difference between pagination cursor offset limit and offset by?\nhyde: Pagination uses a cursor and offset to navigate through pages, while offset by directly uses the page number.",
+        "lex": "pagination cursor offset limit, pagination, cursor, offset, limit, offset by",
+        "vec": "What is the difference between pagination cursor offset limit and offset by?",
+        "hyde": "Pagination uses a cursor and offset to navigate through pages, while offset by directly uses the page number."
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.46,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 3078.899582964368,
+      "total": 0.6020000000000001,
+      "expansion": {
+        "raw": "lex: graceful shutdown signal handling, graceful shutdown signal, graceful shutdown signal handling\nvec: Graceful shutdown signal handling involves gracefully shutting down a system or application using signals like SIGINT or SIGTERM.\nhyde: Graceful shutdown signal handling ensures system stability and data integrity during termination.",
+        "lex": "graceful shutdown signal handling, graceful shutdown signal, graceful shutdown signal handling",
+        "vec": "Graceful shutdown signal handling involves gracefully shutting down a system or application using signals like SIGINT or SIGTERM.",
+        "hyde": "Graceful shutdown signal handling ensures system stability and data integrity during termination."
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2513.842833985109,
+      "total": 0.6932500000000001,
+      "expansion": {
+        "raw": "lex: streaming response server, event streaming, server response\nvec: What is the difference between streaming response server and event streaming?\nhyde: Streaming response server is a technology that allows applications to send and receive data in real-time, while event streaming focuses on processing and analyzing data streams as they occur.",
+        "lex": "streaming response server, event streaming, server response",
+        "vec": "What is the difference between streaming response server and event streaming?",
+        "hyde": "Streaming response server is a technology that allows applications to send and receive data in real-time, while event streaming focuses on processing and analyzing data streams as they occur."
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3443.505958013702,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "lex: React context vs Redux state management, React context vs Redux state management (React context vs Redux)\nvec: React context uses a singletons to share data between components, while Redux uses a centralized store with actions and reducers for predictable state changes.\nhyde: React context is simpler for small apps, while Redux is better for large apps needing predictable state management and middleware support.",
+        "lex": "React context vs Redux state management, React context vs Redux state management (React context vs Redux)",
+        "vec": "React context uses a singletons to share data between components, while Redux uses a centralized store with actions and reducers for predictable state changes.",
+        "hyde": "React context is simpler for small apps, while Redux is better for large apps needing predictable state management and middleware support."
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 1635.9808329725638,
+      "total": 0.6725000000000001,
+      "expansion": {
+        "raw": "lex: express middleware chain next function\nvec: use.use(next, handler) chain middleware functions\nhyde: use.use(next, handler) to chain middleware functions",
+        "lex": "express middleware chain next function",
+        "vec": "use.use(next, handler) chain middleware functions",
+        "hyde": "use.use(next, handler) to chain middleware functions"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2376.478458987549,
+      "total": 0.6100000000000001,
+      "expansion": {
+        "raw": "lex: Prisma ORM query findMany where\nvec: Prisma ORM's findMany method returns all records from a table where a specific condition is met.\nhyde: Prisma ORM's findMany finds all records in a table matching the specified criteria.",
+        "lex": "Prisma ORM query findMany where",
+        "vec": "Prisma ORM's findMany method returns all records from a table where a specific condition is met.",
+        "hyde": "Prisma ORM's findMany finds all records in a table matching the specified criteria."
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 0.75,
+      "hyde": 0.325,
+      "latencyMs": 2245.3095409437083,
+      "total": 0.59125,
+      "expansion": {
+        "raw": "lex: Next.js server component data fetching, Next.js server component data fetching, Next.js server component data fetching\nvec: Next.js server component data fetching\nhyde: Next.js server component data fetching (using useEffect and fetch)",
+        "lex": "Next.js server component data fetching, Next.js server component data fetching, Next.js server component data fetching",
+        "vec": "Next.js server component data fetching",
+        "hyde": "Next.js server component data fetching (using useEffect and fetch)"
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3246.8106250162236,
+      "total": 0.6412500000000001,
+      "expansion": {
+        "raw": "lex: Zod schema validation, parse transform, schema validation\nvec: Zod schema validation is a library for defining and validating data structures in TypeScript. Parse transform is a method for converting data from a schema into a usable format.\nhyde: Zod schema validation uses a declarative syntax to define data structures, while parse transform converts those structures into a usable format.",
+        "lex": "Zod schema validation, parse transform, schema validation",
+        "vec": "Zod schema validation is a library for defining and validating data structures in TypeScript. Parse transform is a method for converting data from a schema into a usable format.",
+        "hyde": "Zod schema validation uses a declarative syntax to define data structures, while parse transform converts those structures into a usable format."
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "lfm2-700m-FT",
+      "format": 0.66,
+      "keyword": 0.46,
+      "semantic": 0.8,
+      "hyde": 0.0,
+      "latencyMs": 13238.756832957733,
+      "total": 0.3990000000000001,
+      "expansion": {
+        "raw": "lex: tRPC router procedure mutation\nvec: tRPC router procedure mutation (RPC, RPC client, RPC server, RPC client, RPC server, RPC client, RPC procedure, RPC procedure mutation, RPC procedure, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, R",
+        "lex": "tRPC router procedure mutation",
+        "vec": "tRPC router procedure mutation (RPC, RPC client, RPC server, RPC client, RPC server, RPC client, RPC procedure, RPC procedure mutation, RPC procedure, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, R",
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3287.8170000039972,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "lex: Tailwind responsive breakpoints utilities, utility-first CSS framework, responsive design, responsive design utilities\nvec: Tailwind CSS provides utility-first classes for responsive design, including grid, flex, and media queries.\nhyde: Tailwind's responsive breakpoints (sm, md, lg, xl) allow you to apply different styles based on screen size.",
+        "lex": "Tailwind responsive breakpoints utilities, utility-first CSS framework, responsive design, responsive design utilities",
+        "vec": "Tailwind CSS provides utility-first classes for responsive design, including grid, flex, and media queries.",
+        "hyde": "Tailwind's responsive breakpoints (sm, md, lg, xl) allow you to apply different styles based on screen size."
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 1955.5669170222245,
+      "total": 0.6780000000000002,
+      "expansion": {
+        "raw": "lex: Jest mock module spyOn testing, Jest mock module spyOn, Jest mock module spyOn test\nvec: useSpy function from jest.mock\nhyde: useSpy before mocking spyOn in Jest test",
+        "lex": "Jest mock module spyOn testing, Jest mock module spyOn, Jest mock module spyOn test",
+        "vec": "useSpy function from jest.mock",
+        "hyde": "useSpy before mocking spyOn in Jest test"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3095.5188329680823,
+      "total": 0.7092500000000002,
+      "expansion": {
+        "raw": "lex: Docker Compose multi service networking, Docker Compose multi service networking configuration\nvec: Create a multi-service Docker Compose file with services like web, database, and cache.\nhyde: Use the docker-compose.yml file to define services, networks, and volumes for multi-service networking.",
+        "lex": "Docker Compose multi service networking, Docker Compose multi service networking configuration",
+        "vec": "Create a multi-service Docker Compose file with services like web, database, and cache.",
+        "hyde": "Use the docker-compose.yml file to define services, networks, and volumes for multi-service networking."
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2938.3450410095975,
+      "total": 0.7037500000000001,
+      "expansion": {
+        "raw": "lex: GitHub Actions CI workflow matrix\nvec: Define workflows for different environments (dev, test, prod) with steps like build, test, deploy.\nhyde: Use.github/workflows/yml for configuration, with steps: 'jobs': { 'test': ['push', 'run'] }.",
+        "lex": "GitHub Actions CI workflow matrix",
+        "vec": "Define workflows for different environments (dev, test, prod) with steps like build, test, deploy.",
+        "hyde": "Use.github/workflows/yml for configuration, with steps: 'jobs': { 'test': ['push', 'run'] }."
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.46,
+      "semantic": 0.75,
+      "hyde": 0.325,
+      "latencyMs": 1377.1962080500089,
+      "total": 0.6282500000000001,
+      "expansion": {
+        "raw": "lex: unused imports dead code\nvec: find unused imports dead code\nhyde: find unused imports dead code (using static analysis tools)",
+        "lex": "unused imports dead code",
+        "vec": "find unused imports dead code",
+        "hyde": "find unused imports dead code (using static analysis tools)"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 1954.5698749716394,
+      "total": 0.6860000000000002,
+      "expansion": {
+        "raw": "lex: circular dependencies modules detect, dependency resolution, module dependencies\nvec: detect circular dependencies modules using dependency graph analysis\nhyde: Use tools like npm audit or dependency-check to identify circular dependencies in your modules.",
+        "lex": "circular dependencies modules detect, dependency resolution, module dependencies",
+        "vec": "detect circular dependencies modules using dependency graph analysis",
+        "hyde": "Use tools like npm audit or dependency-check to identify circular dependencies in your modules."
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2293.3506660046987,
+      "total": 0.6860000000000002,
+      "expansion": {
+        "raw": "lex: dead code detection unreachable, unreachable code, unreachable code in unused functions\nvec: detect unreachable code using static analysis tools\nhyde: Use static code analysis libraries like SonarQube to identify dead code.",
+        "lex": "dead code detection unreachable, unreachable code, unreachable code in unused functions",
+        "vec": "detect unreachable code using static analysis tools",
+        "hyde": "Use static code analysis libraries like SonarQube to identify dead code."
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2553.5384170361795,
+      "total": 0.6620000000000001,
+      "expansion": {
+        "raw": "lex: SQL injection vulnerability, SQL injection, SQL injection attack\nvec: SQL injection is a security vulnerability where an attacker injects malicious SQL code via user input.\nhyde: SQL injection occurs when user input is not properly sanitized, allowing attackers to execute arbitrary commands on a database.",
+        "lex": "SQL injection vulnerability, SQL injection, SQL injection attack",
+        "vec": "SQL injection is a security vulnerability where an attacker injects malicious SQL code via user input.",
+        "hyde": "SQL injection occurs when user input is not properly sanitized, allowing attackers to execute arbitrary commands on a database."
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2488.123084011022,
+      "total": 0.6860000000000002,
+      "expansion": {
+        "raw": "lex: code duplication similar functions refactor, code duplication, refactoring duplicated code\nvec: Identify duplicated functions in your codebase and refactor them using DRY principles.\nhyde: Use static analysis tools to detect duplicated functions and refactor them into reusable methods.",
+        "lex": "code duplication similar functions refactor, code duplication, refactoring duplicated code",
+        "vec": "Identify duplicated functions in your codebase and refactor them using DRY principles.",
+        "hyde": "Use static analysis tools to detect duplicated functions and refactor them into reusable methods."
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3984.4989589764737,
+      "total": 0.6932500000000001,
+      "expansion": {
+        "raw": "lex: N+1 query performance, N+1 query optimization, N+1 query query\nvec: N+1 query occurs when fetching a list of items and then fetching a related item for each item in the list.\nhyde: N+1 query occurs when fetching a list of items and then fetching a related item for each item in the list. Use eager loading or a single query with joins to avoid it.",
+        "lex": "N+1 query performance, N+1 query optimization, N+1 query query",
+        "vec": "N+1 query occurs when fetching a list of items and then fetching a related item for each item in the list.",
+        "hyde": "N+1 query occurs when fetching a list of items and then fetching a related item for each item in the list. Use eager loading or a single query with joins to avoid it."
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.46,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 1708.4866249933839,
+      "total": 0.6645000000000001,
+      "expansion": {
+        "raw": "lex: error handling try catch\nvec: Implementing try-catch blocks to handle exceptions and ensure robust code.\nhyde: Example: try {... } catch {... } finally {... }",
+        "lex": "error handling try catch",
+        "vec": "Implementing try-catch blocks to handle exceptions and ensure robust code.",
+        "hyde": "Example: try {... } catch {... } finally {... }"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2531.9667080184445,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "lex: type safety, assertion, unsafe cast, type checker, compile-time error\nvec: type casts are unsafe in C++, but type checkers can catch them at compile time.\nhyde: type safety ensures that only valid types are used in a function, preventing runtime errors.",
+        "lex": "type safety, assertion, unsafe cast, type checker, compile-time error",
+        "vec": "type casts are unsafe in C++, but type checkers can catch them at compile time.",
+        "hyde": "type safety ensures that only valid types are used in a function, preventing runtime errors."
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 2242.080916010309,
+      "total": 0.6725000000000001,
+      "expansion": {
+        "raw": "lex: memory leak event listener cleanup, memory leak event listener cleanup, memory leak event listener cleanup\nvec: memory leak event listener cleanup (remove event listeners to prevent memory leaks)\nhyde: event listener cleanup function (remove event listeners to prevent memory leaks)",
+        "lex": "memory leak event listener cleanup, memory leak event listener cleanup, memory leak event listener cleanup",
+        "vec": "memory leak event listener cleanup (remove event listeners to prevent memory leaks)",
+        "hyde": "event listener cleanup function (remove event listeners to prevent memory leaks)"
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "lfm2-700m-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 0.8,
+      "hyde": 0.2,
+      "latencyMs": 3591.2600830197334,
+      "total": 0.6540000000000001,
+      "expansion": {
+        "raw": "lex: race condition, concurrent access, async programming, thread safety\nvec: race condition occurs when multiple threads access shared data simultaneously, leading to unpredictable results. Use synchronization mechanisms like locks or atomic operations to ensure data integrity.\nhyde: race condition in concurrent programming is when multiple threads access shared data without proper synchronization, leading to unpredictable results. Use synchronization mechanisms like locks or atomic operations to ensure data integrity.",
+        "lex": "race condition, concurrent access, async programming, thread safety",
+        "vec": "race condition occurs when multiple threads access shared data simultaneously, leading to unpredictable results. Use synchronization mechanisms like locks or atomic operations to ensure data integrity.",
+        "hyde": "race condition in concurrent programming is when multiple threads access shared data without proper synchronization, leading to unpredictable results. Use synchronization mechanisms like locks or atomic operations to ensure data integrity."
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect cleanup, useEffect cleanup function, useEffect cleanup with cleanupFunction\nvec: UseEffect cleanup is a function passed toEffect() to clean up resources after a component is rendered.\nhyde: useEffect cleanup is a function passed toEffect() to clean up resources after a component is rendered.",
+      "latencyMs": 3005.0276669790037
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: handleSubmit function\nvec: handleSubmit is a function that processes form submissions, validates inputs, and sends data to a server.\nhyde: Example implementation: \n```javascript\nfunction handleSubmit(event) {\n  event.preventDefault();\n  const formData = new FormData(event.target);\n  // Process form data\n}\n```",
+      "latencyMs": 3218.270958052017
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: SearchBar component (React, Material-UI)\nvec: What is a SearchBar component? It's a React element for user input in search forms.\nhyde: What are the key properties of a SearchBar component? It typically includes a textarea, autocomplete, and search functionality.",
+      "latencyMs": 2555.057791993022
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: createEmbeddingsClient (Python, Flask, FastAPI)\nvec: Import embeddings client library and create an instance\nhyde: client = createEmbeddingsClient(api_key='YOUR_API_KEY')",
+      "latencyMs": 1925.0654999632388
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parseParameterSize\nvec: parseParameterSize() returns the number of parameters in a parameter object.\nhyde: parseParameterSize(1) returns 1, parseParameterSize(2) returns 3, parseParameterSize(3) returns 5.",
+      "latencyMs": 2281.886457989458
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: buildCombinedIndex (function definition, type, and parameters)\nvec: buildCombinedIndex (a utility function that combines multiple indexing methods)\nhyde: buildCombinedIndex (a utility function that combines multiple indexing methods)",
+      "latencyMs": 2087.6834169612266
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosineSimilarity helper, cosineSimilarity helper function, cosineSimilarity helper method\nvec: cosineSimilarity is a function that computes the cosine similarity between two vectors.\nhyde: cosineSimilarity takes two vectors as input and returns a scalar value between -1 and 1.",
+      "latencyMs": 2779.9652089597657
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: QueryGenerator class\nvec: What is the purpose of a QueryGenerator class?\nhyde: A QueryGenerator class is used to generate search queries from user input.",
+      "latencyMs": 1481.587791990023
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregateRetrievalResults (function, method, library)\nvec: aggregateRetrievalResults = { (query, params) => {... } }\nhyde: aggregateRetrievalResults = { (query, params) => {... } }",
+      "latencyMs": 2234.5497499918565
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: LocalLLMClient constructor parameters, parameters, constructor arguments\nvec: local llm client constructor\nhyde: local llm client constructor takes three arguments: name, description, and model.",
+      "latencyMs": 1714.0015410259366
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: TypeError: cannot read property of undefined, syntax error, undefined\nvec: Use optional chaining: getProperty().then(property => property).catch(...) instead of direct property access.\nhyde: TypeError: cannot read property of undefined, handle undefined with try-catch or optional chaining.",
+      "latencyMs": 2762.015916989185
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: ECONNREFUSED, localhost, TCP, port, connection, failover\nvec: Check if the localhost port is open using `netstat -an`. If closed, restart the service with `systemctl restart mysql.service` or `service mysql restart`.",
+      "latencyMs": 2696.9939169939607
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: module not found cannot resolve import\nvec: 'import' is a common error when trying to import a module. Check if the module is installed and add it to your environment.",
+      "latencyMs": 1678.7283750018105
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: CORS origin not allowed headers, CORS policy, CORS headers\nvec: CORS (Cross-Origin Resource Sharing) is a security mechanism that restricts web pages from making requests to a different domain than the one which served the web page. Origin not allowed headers are specific to CORS and prevent cross-origin requests.",
+      "latencyMs": 2947.719458024949
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: out of memory heap allocation error, memory allocation failure, heap allocation failure\nvec: out of memory heap allocation error\nhyde: Check memory allocation using heap.dump() to identify the exact allocation failure.",
+      "latencyMs": 1863.3235419983976
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database connection timeout pool exhausted, retry failed connection attempts\nvec: What are the steps to handle a database connection timeout pool exhausted error?\nhyde: Use a retry mechanism with exponential backoff, and check connection pool size before making a request.",
+      "latencyMs": 2154.2129169683903
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: promise rejected unhandled async error, promise, async error handling, unhandled promise rejection\nvec: promise.rejectingUnhandledError()\nhyde: promise.rejectingUnhandledError()",
+      "latencyMs": 1903.0309589579701
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: circular dependency, import cycle, dependency resolution\nvec: Detecting a circular dependency occurs when two or more modules import each other directly or indirectly. This can cause runtime errors and is typically resolved by refactoring or restructuring the code.\nhyde: circular dependency",
+      "latencyMs": 2302.5486250407994
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: type error argument not assignable to parameter\nvec: type error:'str' is not assignable to parameter\nhyde: type error:'str' is not assignable to parameter",
+      "latencyMs": 1765.5055419891141
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: permission denied EACCES file access, file system permissions, file access control\nvec: Permission denied access to EACCES file due to insufficient permissions.\nhyde: File permissions are typically managed by the file owner, group, and others.",
+      "latencyMs": 2156.3299170229584
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: authentication middleware, OAuth, JWT\nvec: What is authentication middleware? How does it work?\nhyde: Authentication middleware verifies user credentials and authorizes access to protected resources.",
+      "latencyMs": 1980.5380410398357
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate limiting, throttling, request rate\nvec: rate limiting is a technique to control the number of requests a client can make within a given time frame.\nhyde: Rate limiting is commonly used in web APIs to prevent abuse and ensure fair usage.",
+      "latencyMs": 2369.5520420442335
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: caching invalidation, cache invalidation, cache invalidation strategy\nvec: caching invalidation is the process of removing stale data from caches to ensure data consistency.\nhyde: caching invalidation is a common practice to prevent serving outdated data.",
+      "latencyMs": 2358.5800420260057
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: retry logic exponential backoff, retry policy, exponential backoff\nvec: Implement a retry mechanism with exponential backoff using a decorator that retries a function with increasing delays (e.g., 1s, 2s, 4s, etc.) after each attempt.\nhyde: retry-exponential-backoff",
+      "latencyMs": 3063.3279170142487
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: connection pooling database, connection pooling, connection pooling database management\nvec: connection pooling database\nhyde: connection pooling database configuration",
+      "latencyMs": 1385.5231250054203
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event driven architecture pub sub\nvec: event driven architecture pub sub\nhyde: Event driven architecture pub sub is a design pattern where services publish events to a central event bus, and other services subscribe to those events.",
+      "latencyMs": 1930.809167039115
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: dependency injection service container\nvec: Create a service container using Spring or.NET's built-in DI framework.\nhyde: Use constructor injection to define and inject services, ensuring loose coupling and testability.",
+      "latencyMs": 1787.6699159969576
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination cursor offset limit, pagination, cursor, offset, limit, offset by\nvec: What is the difference between pagination cursor offset limit and offset by?\nhyde: Pagination uses a cursor and offset to navigate through pages, while offset by directly uses the page number.",
+      "latencyMs": 2511.2166660255753
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful shutdown signal handling, graceful shutdown signal, graceful shutdown signal handling\nvec: Graceful shutdown signal handling involves gracefully shutting down a system or application using signals like SIGINT or SIGTERM.\nhyde: Graceful shutdown signal handling ensures system stability and data integrity during termination.",
+      "latencyMs": 3078.899582964368
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: streaming response server, event streaming, server response\nvec: What is the difference between streaming response server and event streaming?\nhyde: Streaming response server is a technology that allows applications to send and receive data in real-time, while event streaming focuses on processing and analyzing data streams as they occur.",
+      "latencyMs": 2513.842833985109
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: React context vs Redux state management, React context vs Redux state management (React context vs Redux)\nvec: React context uses a singletons to share data between components, while Redux uses a centralized store with actions and reducers for predictable state changes.\nhyde: React context is simpler for small apps, while Redux is better for large apps needing predictable state management and middleware support.",
+      "latencyMs": 3443.505958013702
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: express middleware chain next function\nvec: use.use(next, handler) chain middleware functions\nhyde: use.use(next, handler) to chain middleware functions",
+      "latencyMs": 1635.9808329725638
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: Prisma ORM query findMany where\nvec: Prisma ORM's findMany method returns all records from a table where a specific condition is met.\nhyde: Prisma ORM's findMany finds all records in a table matching the specified criteria.",
+      "latencyMs": 2376.478458987549
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: Next.js server component data fetching, Next.js server component data fetching, Next.js server component data fetching\nvec: Next.js server component data fetching\nhyde: Next.js server component data fetching (using useEffect and fetch)",
+      "latencyMs": 2245.3095409437083
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: Zod schema validation, parse transform, schema validation\nvec: Zod schema validation is a library for defining and validating data structures in TypeScript. Parse transform is a method for converting data from a schema into a usable format.\nhyde: Zod schema validation uses a declarative syntax to define data structures, while parse transform converts those structures into a usable format.",
+      "latencyMs": 3246.8106250162236
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC router procedure mutation\nvec: tRPC router procedure mutation (RPC, RPC client, RPC server, RPC client, RPC server, RPC client, RPC procedure, RPC procedure mutation, RPC procedure, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, RPC procedure call, R",
+      "latencyMs": 13238.756832957733
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: Tailwind responsive breakpoints utilities, utility-first CSS framework, responsive design, responsive design utilities\nvec: Tailwind CSS provides utility-first classes for responsive design, including grid, flex, and media queries.\nhyde: Tailwind's responsive breakpoints (sm, md, lg, xl) allow you to apply different styles based on screen size.",
+      "latencyMs": 3287.8170000039972
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: Jest mock module spyOn testing, Jest mock module spyOn, Jest mock module spyOn test\nvec: useSpy function from jest.mock\nhyde: useSpy before mocking spyOn in Jest test",
+      "latencyMs": 1955.5669170222245
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: Docker Compose multi service networking, Docker Compose multi service networking configuration\nvec: Create a multi-service Docker Compose file with services like web, database, and cache.\nhyde: Use the docker-compose.yml file to define services, networks, and volumes for multi-service networking.",
+      "latencyMs": 3095.5188329680823
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: GitHub Actions CI workflow matrix\nvec: Define workflows for different environments (dev, test, prod) with steps like build, test, deploy.\nhyde: Use.github/workflows/yml for configuration, with steps: 'jobs': { 'test': ['push', 'run'] }.",
+      "latencyMs": 2938.3450410095975
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused imports dead code\nvec: find unused imports dead code\nhyde: find unused imports dead code (using static analysis tools)",
+      "latencyMs": 1377.1962080500089
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: circular dependencies modules detect, dependency resolution, module dependencies\nvec: detect circular dependencies modules using dependency graph analysis\nhyde: Use tools like npm audit or dependency-check to identify circular dependencies in your modules.",
+      "latencyMs": 1954.5698749716394
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: dead code detection unreachable, unreachable code, unreachable code in unused functions\nvec: detect unreachable code using static analysis tools\nhyde: Use static code analysis libraries like SonarQube to identify dead code.",
+      "latencyMs": 2293.3506660046987
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: SQL injection vulnerability, SQL injection, SQL injection attack\nvec: SQL injection is a security vulnerability where an attacker injects malicious SQL code via user input.\nhyde: SQL injection occurs when user input is not properly sanitized, allowing attackers to execute arbitrary commands on a database.",
+      "latencyMs": 2553.5384170361795
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: code duplication similar functions refactor, code duplication, refactoring duplicated code\nvec: Identify duplicated functions in your codebase and refactor them using DRY principles.\nhyde: Use static analysis tools to detect duplicated functions and refactor them into reusable methods.",
+      "latencyMs": 2488.123084011022
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: N+1 query performance, N+1 query optimization, N+1 query query\nvec: N+1 query occurs when fetching a list of items and then fetching a related item for each item in the list.\nhyde: N+1 query occurs when fetching a list of items and then fetching a related item for each item in the list. Use eager loading or a single query with joins to avoid it.",
+      "latencyMs": 3984.4989589764737
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: error handling try catch\nvec: Implementing try-catch blocks to handle exceptions and ensure robust code.\nhyde: Example: try {... } catch {... } finally {... }",
+      "latencyMs": 1708.4866249933839
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: type safety, assertion, unsafe cast, type checker, compile-time error\nvec: type casts are unsafe in C++, but type checkers can catch them at compile time.\nhyde: type safety ensures that only valid types are used in a function, preventing runtime errors.",
+      "latencyMs": 2531.9667080184445
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memory leak event listener cleanup, memory leak event listener cleanup, memory leak event listener cleanup\nvec: memory leak event listener cleanup (remove event listeners to prevent memory leaks)\nhyde: event listener cleanup function (remove event listeners to prevent memory leaks)",
+      "latencyMs": 2242.080916010309
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race condition, concurrent access, async programming, thread safety\nvec: race condition occurs when multiple threads access shared data simultaneously, leading to unpredictable results. Use synchronization mechanisms like locks or atomic operations to ensure data integrity.\nhyde: race condition in concurrent programming is when multiple threads access shared data without proper synchronization, leading to unpredictable results. Use synchronization mechanisms like locks or atomic operations to ensure data integrity.",
+      "latencyMs": 3591.2600830197334
+    }
+  ]
+}

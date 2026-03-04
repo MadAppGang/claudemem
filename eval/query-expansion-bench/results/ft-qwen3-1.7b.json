@@ -1,0 +1,1180 @@
+{
+  "model": {
+    "name": "qwen3-1.7b-FT",
+    "lmsKey": "jackrudenko/claudemem-expansion-qwen3-1.7b",
+    "family": "qwen3-ft",
+    "paramsB": 1.7
+  },
+  "timestamp": "2026-03-04T09:03:04.000Z",
+  "config": {
+    "port": 0,
+    "timeout": 60000,
+    "retries": 0,
+    "note": "Local inference via transformers+peft, not LM Studio"
+  },
+  "summary": {
+    "format": 1.0,
+    "keyword": 0.8692,
+    "semantic": 1.0,
+    "hyde": 0.5875,
+    "latencyMs": 3472.5309583416674,
+    "total": 0.7771150000000001
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4775.774292007554,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: useEffect, dependency array, cleanup function, unmount, componentWillUnmount\nvec: Hook-based lifecycle management for dependency tracking and resource cleanup in functional components\nhyde: const App = () => { useEffect(() => { console.log('mounted'); return () => console.log('unmounted'); }, []); return <div>App</div>; };",
+        "lex": "useEffect, dependency array, cleanup function, unmount, componentWillUnmount",
+        "vec": "Hook-based lifecycle management for dependency tracking and resource cleanup in functional components",
+        "hyde": "const App = () => { useEffect(() => { console.log('mounted'); return () => console.log('unmounted'); }, []); return <div>App</div>; };"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2489.704332954716,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: handleSubmit function event handler, form submission, onSubmit, preventDefault\nvec: How to create a handleSubmit function that processes form data and prevents default behavior on form submission.\nhyde: const handleSubmit = (e) => { e.preventDefault(); console.log(\"Form submitted:\", e.target); };",
+        "lex": "handleSubmit function event handler, form submission, onSubmit, preventDefault",
+        "vec": "How to create a handleSubmit function that processes form data and prevents default behavior on form submission.",
+        "hyde": "const handleSubmit = (e) => { e.preventDefault(); console.log(\"Form submitted:\", e.target); };"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 6310.934917011764,
+      "total": 0.7420000000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: SearchBar overview, SearchBar usage, SearchBar examples\nvec: how to create a search bar component for user input and filtering\nhyde: import React from 'react';\\nconst SearchBar = ({ onSearch }) => {\\n  const [query, setQuery] = React.useState('');\\n  const handleChange = (e) => setQuery(e.target.value);\\n  const handleSubmit = (e) => {\\n    e.preventDefault();\\n    onSearch(query);\\n  };\\n  return (\\n    <form onSubmit={handleSubmit} className=\"search-bar\">\\n      <input type=\"text\" value={query} onChange={handleChange} placeholder=\"Search...\" />\\n    </form>\\n  );\\n};",
+        "lex": "SearchBar overview, SearchBar usage, SearchBar examples",
+        "vec": "how to create a search bar component for user input and filtering",
+        "hyde": "import React from 'react';\\nconst SearchBar = ({ onSearch }) => {\\n  const [query, setQuery] = React.useState('');\\n  const handleChange = (e) => setQuery(e.target.value);\\n  const handleSubmit = (e) => {\\n    e.preventDefault();\\n    onSearch(query);\\n  };\\n  return (\\n    <form onSubmit={handleSubmit} className=\"search-bar\">\\n      <input type=\"text\" value={query} onChange={handleChange} placeholder=\"Search...\" />\\n    </form>\\n  );\\n};"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2678.8889579474926,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: createEmbeddingsClient function, create_embeddings_client, embedding client setup\nvec: how to create an embeddings client for vector search\nhyde: const client = new EmbeddingsClient({ baseUrl: 'http://localhost:8000', headers: { 'Authorization': 'Bearer your_token' } });",
+        "lex": "createEmbeddingsClient function, create_embeddings_client, embedding client setup",
+        "vec": "how to create an embeddings client for vector search",
+        "hyde": "const client = new EmbeddingsClient({ baseUrl: 'http://localhost:8000', headers: { 'Authorization': 'Bearer your_token' } });"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3209.433750016615,
+      "total": 0.7870000000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: parseParameterSize function, parseParameterSize syntax, parseParameterSize examples\nvec: how to parse and extract the size of a parameter in programming\nhyde: def parseParameterSize(s):\\n    return int(s) if s.isdigit() else s\\nparseParameterSize(\"100\") \u2794 100\\nparseParameterSize(\"abc\") \u2794 \"abc\"",
+        "lex": "parseParameterSize function, parseParameterSize syntax, parseParameterSize examples",
+        "vec": "how to parse and extract the size of a parameter in programming",
+        "hyde": "def parseParameterSize(s):\\n    return int(s) if s.isdigit() else s\\nparseParameterSize(\"100\") \u2794 100\\nparseParameterSize(\"abc\") \u2794 \"abc\""
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2637.486500025261,
+      "total": 0.7637500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: buildCombinedIndex, index, search, combine, vector search\nvec: Create a combined index from multiple sources for efficient semantic vector search.\nhyde: const combinedIndex = combineIndex({ docs: [doc1, doc2], meta: { title: 'Test', author: 'Alice' } });",
+        "lex": "buildCombinedIndex, index, search, combine, vector search",
+        "vec": "Create a combined index from multiple sources for efficient semantic vector search.",
+        "hyde": "const combinedIndex = combineIndex({ docs: [doc1, doc2], meta: { title: 'Test', author: 'Alice' } });"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2567.3624590272084,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: cosine similarity helper function, dot product vector comparison, Euclidean distance\nvec: how to implement a cosine similarity helper function for comparing document vectors\nhyde: def cosine_similarity(a, b):\\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))",
+        "lex": "cosine similarity helper function, dot product vector comparison, Euclidean distance",
+        "vec": "how to implement a cosine similarity helper function for comparing document vectors",
+        "hyde": "def cosine_similarity(a, b):\\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2827.0334170083515,
+      "total": 0.7950000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: QueryGenerator class overview, QueryGenerator class examples, QueryGenerator class documentation\nvec: how to create a QueryGenerator class for generating search queries\nhyde: class QueryGenerator:\\n    def __init__(self, keywords):\\n        self.keywords = keywords\\n    def generate(self):\\n        return ' '.join(self.keywords)",
+        "lex": "QueryGenerator class overview, QueryGenerator class examples, QueryGenerator class documentation",
+        "vec": "how to create a QueryGenerator class for generating search queries",
+        "hyde": "class QueryGenerator:\\n    def __init__(self, keywords):\\n        self.keywords = keywords\\n    def generate(self):\\n        return ' '.join(self.keywords)"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.72,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3059.225749981124,
+      "total": 0.7790000000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: aggregateRetrievalResults, summarizeSearchResults, mergeQueryResults\nvec: Combine search results into a coherent overview for user display\nhyde: const results = await searchQuery('climate change');\\nconst aggregated = results.map(r => ({id: r.id, title: r.title, snippet: r.summary}));\\nreturn aggregated;",
+        "lex": "aggregateRetrievalResults, summarizeSearchResults, mergeQueryResults",
+        "vec": "Combine search results into a coherent overview for user display",
+        "hyde": "const results = await searchQuery('climate change');\\nconst aggregated = results.map(r => ({id: r.id, title: r.title, snippet: r.summary}));\\nreturn aggregated;"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2615.190459007863,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: LocalLLMClient constructor overview, LocalLLMClient constructor examples, LocalLLMClient constructor best practices\nvec: understand how to use LocalLLMClient constructor in code\nhyde: const client = new LocalLLMClient({ model: 'llama3', temperature: 0.7 });",
+        "lex": "LocalLLMClient constructor overview, LocalLLMClient constructor examples, LocalLLMClient constructor best practices",
+        "vec": "understand how to use LocalLLMClient constructor in code",
+        "hyde": "const client = new LocalLLMClient({ model: 'llama3', temperature: 0.7 });"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2416.056165995542,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: TypeError, undefined, read, property, value, undefinedError\nvec: Handle undefined values before accessing properties to prevent runtime errors.\nhyde: const user = { name: 'Alice' }; console.log(user.email); // TypeError: Cannot read property 'email' of undefined",
+        "lex": "TypeError, undefined, read, property, value, undefinedError",
+        "vec": "Handle undefined values before accessing properties to prevent runtime errors.",
+        "hyde": "const user = { name: 'Alice' }; console.log(user.email); // TypeError: Cannot read property 'email' of undefined"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 6120.639458007645,
+      "total": 0.7500000000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: resolve ECONNREFUSED localhost error, resolve ECONNREFUSED localhost troubleshooting\nvec: How to fix \"resolve ECONNREFUSED localhost\" error on Linux or macOS\nhyde: const fs = require('fs');\\nconst path = require('path');\\nconst os = require('os');\\nconst { resolve } = require('path');\\nconst { execSync } = require('child_process');\\nconst host = 'localhost';\\nconst port = 3000;\\nconst ip = execSync(`hostname -i`).toString();\\nconsole.log(`Resolving ${ip}:${port}...`);\\nconst result = execSync(`ncat -uv ${ip}:${port}`);\\nconsole.log(result);",
+        "lex": "resolve ECONNREFUSED localhost error, resolve ECONNREFUSED localhost troubleshooting",
+        "vec": "How to fix \"resolve ECONNREFUSED localhost\" error on Linux or macOS",
+        "hyde": "const fs = require('fs');\\nconst path = require('path');\\nconst os = require('os');\\nconst { resolve } = require('path');\\nconst { execSync } = require('child_process');\\nconst host = 'localhost';\\nconst port = 3000;\\nconst ip = execSync(`hostname -i`).toString();\\nconsole.log(`Resolving ${ip}:${port}...`);\\nconst result = execSync(`ncat -uv ${ip}:${port}`);\\nconsole.log(result);"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2400.268249970395,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: module not found, import error, cannot resolve, missing module, import not found\nvec: error: module not found cannot resolve import, missing required module in project\nhyde: import os\\nos.listdir()\\nTraceback: ModuleNotFoundError: No module named 'os'",
+        "lex": "module not found, import error, cannot resolve, missing module, import not found",
+        "vec": "error: module not found cannot resolve import, missing required module in project",
+        "hyde": "import os\\nos.listdir()\\nTraceback: ModuleNotFoundError: No module named 'os'"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2989.633541961666,
+      "total": 0.7870000000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: CORS, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods\nvec: How to configure CORS to allow specific origins, headers, and methods in a web application.\nhyde: const corsOptions = { origin: 'https://example.com', methods: ['GET', 'POST'], headers: ['Content-Type', 'Authorization'] };",
+        "lex": "CORS, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods",
+        "vec": "How to configure CORS to allow specific origins, headers, and methods in a web application.",
+        "hyde": "const corsOptions = { origin: 'https://example.com', methods: ['GET', 'POST'], headers: ['Content-Type', 'Authorization'] };"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2133.9717500377446,
+      "total": 0.8350000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: out of memory heap allocation failed, memory exhausted, malloc failure, OOM\nvec: Error occurs when the system runs out of memory and cannot allocate new memory blocks for processes.\nhyde: import sys; print(sys.getsizeof(1))",
+        "lex": "out of memory heap allocation failed, memory exhausted, malloc failure, OOM",
+        "vec": "Error occurs when the system runs out of memory and cannot allocate new memory blocks for processes.",
+        "hyde": "import sys; print(sys.getsizeof(1))"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2960.906292020809,
+      "total": 0.7350000000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: database connection timeout pool exhausted, database connection pool exhausted, connection timeout database pool\nvec: How to handle database connection timeout and pool exhaustion in application code\nhyde: import psycopg2\\nconn = psycopg2.connect(\"dbname=test user=postgres\")\\nwith conn: cursor = conn.cursor()\\n    cursor.execute(\"SELECT * FROM table\")",
+        "lex": "database connection timeout pool exhausted, database connection pool exhausted, connection timeout database pool",
+        "vec": "How to handle database connection timeout and pool exhaustion in application code",
+        "hyde": "import psycopg2\\nconn = psycopg2.connect(\"dbname=test user=postgres\")\\nwith conn: cursor = conn.cursor()\\n    cursor.execute(\"SELECT * FROM table\")"
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2603.6026669899,
+      "total": 0.7950000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: Promise.reject, unhandledRejection, catch, onRejected, Promise.allSettled\nvec: How to catch unhandled async errors in JavaScript\nhyde: try { const res = await fetch('https://api.example.com'); } catch (e) { console.error('Error:', e); }",
+        "lex": "Promise.reject, unhandledRejection, catch, onRejected, Promise.allSettled",
+        "vec": "How to catch unhandled async errors in JavaScript",
+        "hyde": "try { const res = await fetch('https://api.example.com'); } catch (e) { console.error('Error:', e); }"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 4584.741499973461,
+      "total": 0.7485000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: circular import dependency, cyclic import, circular reference, import cycle, circular dependency error\nvec: how to detect and resolve import cycle errors in a codebase\nhyde: import A; import B; import C; import D; import E; import F; import G; import H; import I; import J; import K; import L; import M; import N; import O; import P; import Q; import R; import S; import T; import U; import V; import W; import X; import Y; import Z;",
+        "lex": "circular import dependency, cyclic import, circular reference, import cycle, circular dependency error",
+        "vec": "how to detect and resolve import cycle errors in a codebase",
+        "hyde": "import A; import B; import C; import D; import E; import F; import G; import H; import I; import J; import K; import L; import M; import N; import O; import P; import Q; import R; import S; import T; import U; import V; import W; import X; import Y; import Z;"
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3873.3918750076555,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: type error argument not assignable to parameter, TypeScript, JavaScript\nvec: TypeScript encountered an error where the provided value doesn't match the expected type for a function parameter.\nhyde: function add(a: number, b: number) { return a + b; } // no error. function add(a: string, b: number) { return a + b; } // error: Type 'string' is not assignable to type 'number'.",
+        "lex": "type error argument not assignable to parameter, TypeScript, JavaScript",
+        "vec": "TypeScript encountered an error where the provided value doesn't match the expected type for a function parameter.",
+        "hyde": "function add(a: number, b: number) { return a + b; } // no error. function add(a: string, b: number) { return a + b; } // error: Type 'string' is not assignable to type 'number'."
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3120.453915966209,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: permission denied EACCES file access, file access error, access denied, permission denied error\nvec: Error encountered while trying to access a file or directory with insufficient permissions, resulting in EACCES.\nhyde: const fs = require('fs');\\nfs.writeFileSync('test.txt', 'Hello world');\\nconsole.error(fs.existsSync('test.txt'));",
+        "lex": "permission denied EACCES file access, file access error, access denied, permission denied error",
+        "vec": "Error encountered while trying to access a file or directory with insufficient permissions, resulting in EACCES.",
+        "hyde": "const fs = require('fs');\\nfs.writeFileSync('test.txt', 'Hello world');\\nconsole.error(fs.existsSync('test.txt'));"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4971.612582972739,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: authentication middleware implementation, OAuth2 bearer token, JWT middleware\nvec: how to create a middleware that authenticates incoming requests and authorizes access to protected endpoints\nhyde: const auth = (req, res, next) => { if (!req.headers.authorization) return res.status(401).json({ error: 'Missing token' }); const token = req.headers.authorization.split(' ')[1]; try { const decoded = jwt.verify(token, 'secret'); req.user = decoded; next(); } catch (err) { res.status(403).json({ error: 'Invalid token' }); } };",
+        "lex": "authentication middleware implementation, OAuth2 bearer token, JWT middleware",
+        "vec": "how to create a middleware that authenticates incoming requests and authorizes access to protected endpoints",
+        "hyde": "const auth = (req, res, next) => { if (!req.headers.authorization) return res.status(401).json({ error: 'Missing token' }); const token = req.headers.authorization.split(' ')[1]; try { const decoded = jwt.verify(token, 'secret'); req.user = decoded; next(); } catch (err) { res.status(403).json({ error: 'Invalid token' }); } };"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4535.277540970128,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: rate limiting, token bucket algorithm, sliding window, LRU cache\nvec: how to implement a system that restricts the number of requests per time window\nhyde: class RateLimiter: def __init__(self, max_requests, period): self.max_requests = max_requests self.period = period self.tokens = 0 self.last = 0 def get_token(self): if self.tokens <= 0: self.tokens = self._get_tokens() self.last = time.time() return self.tokens def _get_tokens(self): return int(self.tokens / self.period)",
+        "lex": "rate limiting, token bucket algorithm, sliding window, LRU cache",
+        "vec": "how to implement a system that restricts the number of requests per time window",
+        "hyde": "class RateLimiter: def __init__(self, max_requests, period): self.max_requests = max_requests self.period = period self.tokens = 0 self.last = 0 def get_token(self): if self.tokens <= 0: self.tokens = self._get_tokens() self.last = time.time() return self.tokens def _get_tokens(self): return int(self.tokens / self.period)"
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 3103.181125014089,
+      "total": 0.6700000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: cache invalidation policy, cache eviction policy, stale-while-revalidate\nvec: how to implement cache invalidation strategies to manage expired or outdated data\nhyde: Use a cache invalidation policy that marks entries as stale after a certain time. When an entry becomes stale, evict it from the cache. Implement a refresh mechanism that revalidates cached items periodically.",
+        "lex": "cache invalidation policy, cache eviction policy, stale-while-revalidate",
+        "vec": "how to implement cache invalidation strategies to manage expired or outdated data",
+        "hyde": "Use a cache invalidation policy that marks entries as stale after a certain time. When an entry becomes stale, evict it from the cache. Implement a refresh mechanism that revalidates cached items periodically."
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4331.407000019681,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: retry logic exponential backoff implementation, retry logic exponential backoff best practices, retry logic exponential backoff examples\nvec: how to implement retry logic with exponential backoff in code to handle transient failures\nhyde: import time\\ntry:\\n    for i in range(3):\\n        response = requests.get(url)\\n        if response.status_code == 200:\\n            return response.json()\\n        time.sleep(2**i)\\nexcept Exception as e:\\n    print(f\"Error: {e}\")",
+        "lex": "retry logic exponential backoff implementation, retry logic exponential backoff best practices, retry logic exponential backoff examples",
+        "vec": "how to implement retry logic with exponential backoff in code to handle transient failures",
+        "hyde": "import time\\ntry:\\n    for i in range(3):\\n        response = requests.get(url)\\n        if response.status_code == 200:\\n            return response.json()\\n        time.sleep(2**i)\\nexcept Exception as e:\\n    print(f\"Error: {e}\")"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 3060.0442500435747,
+      "total": 0.6780000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: connection pool database configuration, database connection pool size, db connection pool\nvec: how to configure a database connection pool to manage multiple simultaneous database connections efficiently\nhyde: Use a connection pool like HikariCP or PgBouncer to manage database connections. Configure pool size, idle timeout, and maximum pool size. Set pool size to match expected concurrent requests.",
+        "lex": "connection pool database configuration, database connection pool size, db connection pool",
+        "vec": "how to configure a database connection pool to manage multiple simultaneous database connections efficiently",
+        "hyde": "Use a connection pool like HikariCP or PgBouncer to manage database connections. Configure pool size, idle timeout, and maximum pool size. Set pool size to match expected concurrent requests."
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2946.714250021614,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: event-driven architecture pub sub best practices, event-driven pub sub design patterns\nvec: how to design an event-driven architecture using pub/sub pattern for scalable and asynchronous communication\nhyde: Use message brokers like Kafka or RabbitMQ for pub/sub. Emit events with payload, subscribe to topics, and process them in parallel. Ensure message durability and order preservation.",
+        "lex": "event-driven architecture pub sub best practices, event-driven pub sub design patterns",
+        "vec": "how to design an event-driven architecture using pub/sub pattern for scalable and asynchronous communication",
+        "hyde": "Use message brokers like Kafka or RabbitMQ for pub/sub. Emit events with payload, subscribe to topics, and process them in parallel. Ensure message durability and order preservation."
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2676.803833048325,
+      "total": 0.6780000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: dependency injection, service container, IoC container, dependency injection pattern\nvec: what is a dependency injection service container and how does it work in software development\nhyde: A service container manages the creation and configuration of objects and their dependencies. It provides a way to inject dependencies into objects rather than hardcoding them.",
+        "lex": "dependency injection, service container, IoC container, dependency injection pattern",
+        "vec": "what is a dependency injection service container and how does it work in software development",
+        "hyde": "A service container manages the creation and configuration of objects and their dependencies. It provides a way to inject dependencies into objects rather than hardcoding them."
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2672.9639580007643,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: pagination, cursor, offset, limit, page, per_page\nvec: how to implement pagination with a cursor and offset for efficient data retrieval\nhyde: const pageSize = 10; const currentPage = 2; const offset = pageSize * (currentPage - 1); const cursor = 'next';",
+        "lex": "pagination, cursor, offset, limit, page, per_page",
+        "vec": "how to implement pagination with a cursor and offset for efficient data retrieval",
+        "hyde": "const pageSize = 10; const currentPage = 2; const offset = pageSize * (currentPage - 1); const cursor = 'next';"
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4094.9518340057693,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: graceful shutdown signal handler, SIGTERM SIGINT handler, exit code\nvec: how to implement a graceful shutdown in a server application that waits for ongoing requests before exiting\nhyde: import signal import sys import time def graceful_shutdown(signum, frame): print(f\"Received shutdown signal {signum}.\") try: while True: time.sleep(0.1) except KeyboardInterrupt: pass sys.exit(0) signal.signal(signal.SIGTERM, graceful_shutdown) signal.signal(signal.SIGINT, graceful_shutdown)",
+        "lex": "graceful shutdown signal handler, SIGTERM SIGINT handler, exit code",
+        "vec": "how to implement a graceful shutdown in a server application that waits for ongoing requests before exiting",
+        "hyde": "import signal import sys import time def graceful_shutdown(signum, frame): print(f\"Received shutdown signal {signum}.\") try: while True: time.sleep(0.1) except KeyboardInterrupt: pass sys.exit(0) signal.signal(signal.SIGTERM, graceful_shutdown) signal.signal(signal.SIGINT, graceful_shutdown)"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3876.3227910385467,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: streaming, response, server-sent-events, SSE, push, WebSocket, HTTP\nvec: how to implement a server that sends data to clients over HTTP in real-time\nhyde: const stream = new Readable();\\nstream.on('data', (chunk) => console.log(chunk));\\nstream.pipe(process.stdout);\\napp.get('/stream', (req, res) => res.setHeader('Content-Type', 'text/event-stream');\\nstream.pipe(res));",
+        "lex": "streaming, response, server-sent-events, SSE, push, WebSocket, HTTP",
+        "vec": "how to implement a server that sends data to clients over HTTP in real-time",
+        "hyde": "const stream = new Readable();\\nstream.on('data', (chunk) => console.log(chunk));\\nstream.pipe(process.stdout);\\napp.get('/stream', (req, res) => res.setHeader('Content-Type', 'text/event-stream');\\nstream.pipe(res));"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3125.7632080232725,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: React context Redux state management comparison, React context Redux comparison, React context Redux state management best practices\nvec: how to compare React context vs Redux state management for managing application state\nhyde: React Context provides a simple way to manage state across multiple components without prop drilling. Redux is a more robust, opinionated solution for complex applications with multiple reducers and middleware.",
+        "lex": "React context Redux state management comparison, React context Redux comparison, React context Redux state management best practices",
+        "vec": "how to compare React context vs Redux state management for managing application state",
+        "hyde": "React Context provides a simple way to manage state across multiple components without prop drilling. Redux is a more robust, opinionated solution for complex applications with multiple reducers and middleware."
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4434.945332992356,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: express middleware next function chain, express middleware next function order, express middleware next function callback\nvec: how does express middleware chain work and what is the role of next function in the middleware stack\nhyde: const app = express();\\napp.use((req, res, next) => {\\n  console.log('Middleware 1');\\n  next();\\n});\\napp.use((req, res, next) => {\\n  console.log('Middleware 2');\\n  next();\\n});",
+        "lex": "express middleware next function chain, express middleware next function order, express middleware next function callback",
+        "vec": "how does express middleware chain work and what is the role of next function in the middleware stack",
+        "hyde": "const app = express();\\napp.use((req, res, next) => {\\n  console.log('Middleware 1');\\n  next();\\n});\\napp.use((req, res, next) => {\\n  console.log('Middleware 2');\\n  next();\\n});"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3135.531792009715,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: Prisma findMany where clause, Prisma query where conditions, Prisma findMany with filter\nvec: How to use Prisma ORM's findMany where clause to query records based on multiple conditions.\nhyde: const users = await prisma.user.findMany({ where: { email: 'user@example.com', age: { gt: 18 } } });",
+        "lex": "Prisma findMany where clause, Prisma query where conditions, Prisma findMany with filter",
+        "vec": "How to use Prisma ORM's findMany where clause to query records based on multiple conditions.",
+        "hyde": "const users = await prisma.user.findMany({ where: { email: 'user@example.com', age: { gt: 18 } } });"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3515.6116249854676,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: nextjs server component data fetching best practices, nextjs server component data fetching examples, nextjs server component data fetching documentation\nvec: how to fetch data in next.js server components and what are the best practices\nhyde: import { fetch } from 'next/server'; export default function Home() { const data = await fetch('https://api.example.com/data'); return <div>{data.json()}</div>; }",
+        "lex": "nextjs server component data fetching best practices, nextjs server component data fetching examples, nextjs server component data fetching documentation",
+        "vec": "how to fetch data in next.js server components and what are the best practices",
+        "hyde": "import { fetch } from 'next/server'; export default function Home() { const data = await fetch('https://api.example.com/data'); return <div>{data.json()}</div>; }"
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3189.7792919771746,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: zod, schema, validate, parse, transform, infer\nvec: Validate and transform data against a schema using Zod for type safety and error handling.\nhyde: import { z } from 'zod'; const schema = z.object({ name: z.string().min(3) }); const result = schema.parse({ name: 'Alice' }); console.log(result);",
+        "lex": "zod, schema, validate, parse, transform, infer",
+        "vec": "Validate and transform data against a schema using Zod for type safety and error handling.",
+        "hyde": "import { z } from 'zod'; const schema = z.object({ name: z.string().min(3) }); const result = schema.parse({ name: 'Alice' }); console.log(result);"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 5254.031583026517,
+      "total": 0.7347500000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: trpc router procedure mutation, trpc middleware, trpc handler function\nvec: how to create a trpc router with procedures for mutations, queries, and subscriptions\nhyde: import { createTRPCHealth, createTRPCRouter, procedure, mutation, query } from '@trpc/server';\\nexport const router = createTRPCRouter({\\n  hello: mutation(({ ctx }) => ({ message: 'Hello, world!' })),\\n  get: query(({ ctx }) => ({ name: ctx.user.name })),\\n  update: mutation(({ ctx, input }) => ({ name: input.name })),\\n});",
+        "lex": "trpc router procedure mutation, trpc middleware, trpc handler function",
+        "vec": "how to create a trpc router with procedures for mutations, queries, and subscriptions",
+        "hyde": "import { createTRPCHealth, createTRPCRouter, procedure, mutation, query } from '@trpc/server';\\nexport const router = createTRPCRouter({\\n  hello: mutation(({ ctx }) => ({ message: 'Hello, world!' })),\\n  get: query(({ ctx }) => ({ name: ctx.user.name })),\\n  update: mutation(({ ctx, input }) => ({ name: input.name })),\\n});"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 2652.5081250001676,
+      "total": 0.7405000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: Tailwind responsive breakpoints flex, Tailwind responsive breakpoints md, Tailwind responsive breakpoints lg\nvec: how to use Tailwind's responsive breakpoints for different screen sizes\nhyde: @media (min-width: 640px) { .container { width: 100%; } }",
+        "lex": "Tailwind responsive breakpoints flex, Tailwind responsive breakpoints md, Tailwind responsive breakpoints lg",
+        "vec": "how to use Tailwind's responsive breakpoints for different screen sizes",
+        "hyde": "@media (min-width: 640px) { .container { width: 100%; } }"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4165.634375007357,
+      "total": 0.8270000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: Jest mock module spyOn testing best practices, Jest mock module spyOn testing examples, Jest mock module spyOn testing documentation\nvec: how to mock modules and use spyOn in Jest tests for controlled function calls\nhyde: import { expect } from 'jest';\\nconst user = require('./user');\\nconst mockUser = { name: 'John Doe' };\\njest.mock('./user', () => mockUser);\\nconst result = user.getUser();\\nexpect(result.name).toBe('John Doe');",
+        "lex": "Jest mock module spyOn testing best practices, Jest mock module spyOn testing examples, Jest mock module spyOn testing documentation",
+        "vec": "how to mock modules and use spyOn in Jest tests for controlled function calls",
+        "hyde": "import { expect } from 'jest';\\nconst user = require('./user');\\nconst mockUser = { name: 'John Doe' };\\njest.mock('./user', () => mockUser);\\nconst result = user.getUser();\\nexpect(result.name).toBe('John Doe');"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 4811.705750005785,
+      "total": 0.7645000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: Docker compose multi service networking best practices, Docker compose multi service networking tutorial, Docker multi container networking\nvec: how to set up a multi-container Docker network for services in a compose file\nhyde: version: '3.8'\\nservices:\\n  web:\\n    image: nginx\\n    ports: 80:80\\n  db:\\n    image: postgres\\n    ports: 5432\\nnetworks:\\n  backend: {}\\n  frontend: {}\\n  db: {}\\n  backend: networks:\\n    frontend: {}\\n    db: {}",
+        "lex": "Docker compose multi service networking best practices, Docker compose multi service networking tutorial, Docker multi container networking",
+        "vec": "how to set up a multi-container Docker network for services in a compose file",
+        "hyde": "version: '3.8'\\nservices:\\n  web:\\n    image: nginx\\n    ports: 80:80\\n  db:\\n    image: postgres\\n    ports: 5432\\nnetworks:\\n  backend: {}\\n  frontend: {}\\n  db: {}\\n  backend: networks:\\n    frontend: {}\\n    db: {}"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 6052.194999996573,
+      "total": 0.6882500000000001,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: GitHub Actions CI workflow matrix best practices, GitHub Actions CI workflow matrix examples, GitHub Actions CI workflow matrix documentation\nvec: how to use GitHub Actions CI workflow matrix for automated testing and deployment\nhyde: name: test-and-deploy\\ntrigger:\\n  schedule:\\n    - cron: 0 0 * * *\\njobs:\\n  - name: test\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v3\\n      - name: run tests\\n        run: npm test\\n  - name: deploy\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v3\\n      - name: deploy\\n        run: npm run deploy",
+        "lex": "GitHub Actions CI workflow matrix best practices, GitHub Actions CI workflow matrix examples, GitHub Actions CI workflow matrix documentation",
+        "vec": "how to use GitHub Actions CI workflow matrix for automated testing and deployment",
+        "hyde": "name: test-and-deploy\\ntrigger:\\n  schedule:\\n    - cron: 0 0 * * *\\njobs:\\n  - name: test\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v3\\n      - name: run tests\\n        run: npm test\\n  - name: deploy\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v3\\n      - name: deploy\\n        run: npm run deploy"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2626.074166968465,
+      "total": 0.7877500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: unused imports dead code, find unused imports dead code best practices, find unused imports dead code tools\nvec: how to find and remove unused imports and dead code in a project\nhyde: import sys\\nimport os\\nprint(sys.argv[0])\\n# unused imports: sys, os, print",
+        "lex": "unused imports dead code, find unused imports dead code best practices, find unused imports dead code tools",
+        "vec": "how to find and remove unused imports and dead code in a project",
+        "hyde": "import sys\\nimport os\\nprint(sys.argv[0])\\n# unused imports: sys, os, print"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 4777.870916994289,
+      "total": 0.7877500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: detect circular dependencies modules syntax, detect circular dependencies modules best practices, detect circular dependencies modules examples\nvec: how to detect circular dependencies in modules and identify problematic code patterns\nhyde: import A from 'moduleA'; import B from 'moduleB'; import C from 'moduleC';\\nexport default { A, B, C };\\nconst { A, B, C } = require('moduleA');\\nconst { A, B, C } = require('moduleB');\\nconst { A, B, C } = require('moduleC');",
+        "lex": "detect circular dependencies modules syntax, detect circular dependencies modules best practices, detect circular dependencies modules examples",
+        "vec": "how to detect circular dependencies in modules and identify problematic code patterns",
+        "hyde": "import A from 'moduleA'; import B from 'moduleB'; import C from 'moduleC';\\nexport default { A, B, C };\\nconst { A, B, C } = require('moduleA');\\nconst { A, B, C } = require('moduleB');\\nconst { A, B, C } = require('moduleC');"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2092.788958980236,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: dead code detection unreachable, unreachable code analysis, code coverage unreachable\nvec: how to identify and remove unreachable code in programming\nhyde: const func unreachable() { return 0; } // unreachable code is not executed in normal execution flow",
+        "lex": "dead code detection unreachable, unreachable code analysis, code coverage unreachable",
+        "vec": "how to identify and remove unreachable code in programming",
+        "hyde": "const func unreachable() { return 0; } // unreachable code is not executed in normal execution flow"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2519.688916974701,
+      "total": 0.6860000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: security, vulnerability, SQL injection, injection attack, parameterized query\nvec: how to prevent and detect SQL injection vulnerabilities in web applications\nhyde: Use parameterized queries or prepared statements to separate SQL logic from user input. Avoid string concatenation and always escape user input before executing queries.",
+        "lex": "security, vulnerability, SQL injection, injection attack, parameterized query",
+        "vec": "how to prevent and detect SQL injection vulnerabilities in web applications",
+        "hyde": "Use parameterized queries or prepared statements to separate SQL logic from user input. Avoid string concatenation and always escape user input before executing queries."
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 3256.558708031662,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: code duplication, similar functions, refactor duplicate code\nvec: how to identify and eliminate duplicate code in a program\nhyde: const add = (a, b) => a + b; const subtract = (a, b) => a - b; refactor into a utility function: const arithmetic = (op, a, b) => op(a, b);",
+        "lex": "code duplication, similar functions, refactor duplicate code",
+        "vec": "how to identify and eliminate duplicate code in a program",
+        "hyde": "const add = (a, b) => a + b; const subtract = (a, b) => a - b; refactor into a utility function: const arithmetic = (op, a, b) => op(a, b);"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3407.636000018101,
+      "total": 0.7092500000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: performance, bottleneck, N+1 query, query expansion, ORM\nvec: how to identify and resolve database performance issues caused by repeated N+1 queries\nhyde: Use a query profiler to catch repeated N+1 queries. For example, if you fetch a list of users and then fetch their posts one by one, that's N+1. Optimize by fetching all related data in one query.",
+        "lex": "performance, bottleneck, N+1 query, query expansion, ORM",
+        "vec": "how to identify and resolve database performance issues caused by repeated N+1 queries",
+        "hyde": "Use a query profiler to catch repeated N+1 queries. For example, if you fetch a list of users and then fetch their posts one by one, that's N+1. Optimize by fetching all related data in one query."
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2539.1211670357734,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: try catch syntax error handling, try catch exception handling best practices\nvec: how to implement try catch blocks for error handling in JavaScript\nhyde: try { const result = await fetch('https://api.example.com'); } catch (error) { console.error('Error:', error.message); }",
+        "lex": "try catch syntax error handling, try catch exception handling best practices",
+        "vec": "how to implement try catch blocks for error handling in JavaScript",
+        "hyde": "try { const result = await fetch('https://api.example.com'); } catch (error) { console.error('Error:', error.message); }"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2543.772916018497,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: type safety any assertion unsafe cast TypeScript, type assertion TypeScript unsafe cast\nvec: How to safely convert types in TypeScript using type assertions, null, or explicit casts.\nhyde: const str: string = \"hello\"; const num = Number(str); // type assertion: string to number.",
+        "lex": "type safety any assertion unsafe cast TypeScript, type assertion TypeScript unsafe cast",
+        "vec": "How to safely convert types in TypeScript using type assertions, null, or explicit casts.",
+        "hyde": "const str: string = \"hello\"; const num = Number(str); // type assertion: string to number."
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 4001.777541998308,
+      "total": 0.7100000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: memory leak event listener cleanup best practices, memory leak event listener garbage collection, memory leak event listener memory management\nvec: how to prevent memory leaks in event listeners to avoid memory exhaustion and performance degradation\nhyde: Use `WeakReference` or `Map` to track listeners. Set listeners to `null` when not needed. Implement `onbeforeunload` to clean up before page unload. Use `setInterval` and `setTimeout` with `clearInterval`/`clearTimeout`.",
+        "lex": "memory leak event listener cleanup best practices, memory leak event listener garbage collection, memory leak event listener memory management",
+        "vec": "how to prevent memory leaks in event listeners to avoid memory exhaustion and performance degradation",
+        "hyde": "Use `WeakReference` or `Map` to track listeners. Set listeners to `null` when not needed. Implement `onbeforeunload` to clean up before page unload. Use `setInterval` and `setTimeout` with `clearInterval`/`clearTimeout`."
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "qwen3-1.7b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2879.573124984745,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "<think>\n\n</think>\n\nlex: race condition concurrent access synchronization, async race condition concurrency, concurrent access race condition\nvec: how to prevent race conditions when multiple threads or processes access shared resources simultaneously\nhyde: In Python, use threading.Lock or asyncio.Lock for concurrent access. For example:\\nlock = threading.Lock()\\nwith lock:\\n    shared_resource += 1",
+        "lex": "race condition concurrent access synchronization, async race condition concurrency, concurrent access race condition",
+        "vec": "how to prevent race conditions when multiple threads or processes access shared resources simultaneously",
+        "hyde": "In Python, use threading.Lock or asyncio.Lock for concurrent access. For example:\\nlock = threading.Lock()\\nwith lock:\\n    shared_resource += 1"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "<think>\n\n</think>\n\nlex: useEffect, dependency array, cleanup function, unmount, componentWillUnmount\nvec: Hook-based lifecycle management for dependency tracking and resource cleanup in functional components\nhyde: const App = () => { useEffect(() => { console.log('mounted'); return () => console.log('unmounted'); }, []); return <div>App</div>; };",
+      "latencyMs": 4775.774292007554
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "<think>\n\n</think>\n\nlex: handleSubmit function event handler, form submission, onSubmit, preventDefault\nvec: How to create a handleSubmit function that processes form data and prevents default behavior on form submission.\nhyde: const handleSubmit = (e) => { e.preventDefault(); console.log(\"Form submitted:\", e.target); };",
+      "latencyMs": 2489.704332954716
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "<think>\n\n</think>\n\nlex: SearchBar overview, SearchBar usage, SearchBar examples\nvec: how to create a search bar component for user input and filtering\nhyde: import React from 'react';\\nconst SearchBar = ({ onSearch }) => {\\n  const [query, setQuery] = React.useState('');\\n  const handleChange = (e) => setQuery(e.target.value);\\n  const handleSubmit = (e) => {\\n    e.preventDefault();\\n    onSearch(query);\\n  };\\n  return (\\n    <form onSubmit={handleSubmit} className=\"search-bar\">\\n      <input type=\"text\" value={query} onChange={handleChange} placeholder=\"Search...\" />\\n    </form>\\n  );\\n};",
+      "latencyMs": 6310.934917011764
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "<think>\n\n</think>\n\nlex: createEmbeddingsClient function, create_embeddings_client, embedding client setup\nvec: how to create an embeddings client for vector search\nhyde: const client = new EmbeddingsClient({ baseUrl: 'http://localhost:8000', headers: { 'Authorization': 'Bearer your_token' } });",
+      "latencyMs": 2678.8889579474926
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "<think>\n\n</think>\n\nlex: parseParameterSize function, parseParameterSize syntax, parseParameterSize examples\nvec: how to parse and extract the size of a parameter in programming\nhyde: def parseParameterSize(s):\\n    return int(s) if s.isdigit() else s\\nparseParameterSize(\"100\") \u2794 100\\nparseParameterSize(\"abc\") \u2794 \"abc\"",
+      "latencyMs": 3209.433750016615
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "<think>\n\n</think>\n\nlex: buildCombinedIndex, index, search, combine, vector search\nvec: Create a combined index from multiple sources for efficient semantic vector search.\nhyde: const combinedIndex = combineIndex({ docs: [doc1, doc2], meta: { title: 'Test', author: 'Alice' } });",
+      "latencyMs": 2637.486500025261
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "<think>\n\n</think>\n\nlex: cosine similarity helper function, dot product vector comparison, Euclidean distance\nvec: how to implement a cosine similarity helper function for comparing document vectors\nhyde: def cosine_similarity(a, b):\\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))",
+      "latencyMs": 2567.3624590272084
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "<think>\n\n</think>\n\nlex: QueryGenerator class overview, QueryGenerator class examples, QueryGenerator class documentation\nvec: how to create a QueryGenerator class for generating search queries\nhyde: class QueryGenerator:\\n    def __init__(self, keywords):\\n        self.keywords = keywords\\n    def generate(self):\\n        return ' '.join(self.keywords)",
+      "latencyMs": 2827.0334170083515
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "<think>\n\n</think>\n\nlex: aggregateRetrievalResults, summarizeSearchResults, mergeQueryResults\nvec: Combine search results into a coherent overview for user display\nhyde: const results = await searchQuery('climate change');\\nconst aggregated = results.map(r => ({id: r.id, title: r.title, snippet: r.summary}));\\nreturn aggregated;",
+      "latencyMs": 3059.225749981124
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "<think>\n\n</think>\n\nlex: LocalLLMClient constructor overview, LocalLLMClient constructor examples, LocalLLMClient constructor best practices\nvec: understand how to use LocalLLMClient constructor in code\nhyde: const client = new LocalLLMClient({ model: 'llama3', temperature: 0.7 });",
+      "latencyMs": 2615.190459007863
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "<think>\n\n</think>\n\nlex: TypeError, undefined, read, property, value, undefinedError\nvec: Handle undefined values before accessing properties to prevent runtime errors.\nhyde: const user = { name: 'Alice' }; console.log(user.email); // TypeError: Cannot read property 'email' of undefined",
+      "latencyMs": 2416.056165995542
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "<think>\n\n</think>\n\nlex: resolve ECONNREFUSED localhost error, resolve ECONNREFUSED localhost troubleshooting\nvec: How to fix \"resolve ECONNREFUSED localhost\" error on Linux or macOS\nhyde: const fs = require('fs');\\nconst path = require('path');\\nconst os = require('os');\\nconst { resolve } = require('path');\\nconst { execSync } = require('child_process');\\nconst host = 'localhost';\\nconst port = 3000;\\nconst ip = execSync(`hostname -i`).toString();\\nconsole.log(`Resolving ${ip}:${port}...`);\\nconst result = execSync(`ncat -uv ${ip}:${port}`);\\nconsole.log(result);",
+      "latencyMs": 6120.639458007645
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "<think>\n\n</think>\n\nlex: module not found, import error, cannot resolve, missing module, import not found\nvec: error: module not found cannot resolve import, missing required module in project\nhyde: import os\\nos.listdir()\\nTraceback: ModuleNotFoundError: No module named 'os'",
+      "latencyMs": 2400.268249970395
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "<think>\n\n</think>\n\nlex: CORS, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods\nvec: How to configure CORS to allow specific origins, headers, and methods in a web application.\nhyde: const corsOptions = { origin: 'https://example.com', methods: ['GET', 'POST'], headers: ['Content-Type', 'Authorization'] };",
+      "latencyMs": 2989.633541961666
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "<think>\n\n</think>\n\nlex: out of memory heap allocation failed, memory exhausted, malloc failure, OOM\nvec: Error occurs when the system runs out of memory and cannot allocate new memory blocks for processes.\nhyde: import sys; print(sys.getsizeof(1))",
+      "latencyMs": 2133.9717500377446
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "<think>\n\n</think>\n\nlex: database connection timeout pool exhausted, database connection pool exhausted, connection timeout database pool\nvec: How to handle database connection timeout and pool exhaustion in application code\nhyde: import psycopg2\\nconn = psycopg2.connect(\"dbname=test user=postgres\")\\nwith conn: cursor = conn.cursor()\\n    cursor.execute(\"SELECT * FROM table\")",
+      "latencyMs": 2960.906292020809
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "<think>\n\n</think>\n\nlex: Promise.reject, unhandledRejection, catch, onRejected, Promise.allSettled\nvec: How to catch unhandled async errors in JavaScript\nhyde: try { const res = await fetch('https://api.example.com'); } catch (e) { console.error('Error:', e); }",
+      "latencyMs": 2603.6026669899
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "<think>\n\n</think>\n\nlex: circular import dependency, cyclic import, circular reference, import cycle, circular dependency error\nvec: how to detect and resolve import cycle errors in a codebase\nhyde: import A; import B; import C; import D; import E; import F; import G; import H; import I; import J; import K; import L; import M; import N; import O; import P; import Q; import R; import S; import T; import U; import V; import W; import X; import Y; import Z;",
+      "latencyMs": 4584.741499973461
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "<think>\n\n</think>\n\nlex: type error argument not assignable to parameter, TypeScript, JavaScript\nvec: TypeScript encountered an error where the provided value doesn't match the expected type for a function parameter.\nhyde: function add(a: number, b: number) { return a + b; } // no error. function add(a: string, b: number) { return a + b; } // error: Type 'string' is not assignable to type 'number'.",
+      "latencyMs": 3873.3918750076555
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "<think>\n\n</think>\n\nlex: permission denied EACCES file access, file access error, access denied, permission denied error\nvec: Error encountered while trying to access a file or directory with insufficient permissions, resulting in EACCES.\nhyde: const fs = require('fs');\\nfs.writeFileSync('test.txt', 'Hello world');\\nconsole.error(fs.existsSync('test.txt'));",
+      "latencyMs": 3120.453915966209
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "<think>\n\n</think>\n\nlex: authentication middleware implementation, OAuth2 bearer token, JWT middleware\nvec: how to create a middleware that authenticates incoming requests and authorizes access to protected endpoints\nhyde: const auth = (req, res, next) => { if (!req.headers.authorization) return res.status(401).json({ error: 'Missing token' }); const token = req.headers.authorization.split(' ')[1]; try { const decoded = jwt.verify(token, 'secret'); req.user = decoded; next(); } catch (err) { res.status(403).json({ error: 'Invalid token' }); } };",
+      "latencyMs": 4971.612582972739
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "<think>\n\n</think>\n\nlex: rate limiting, token bucket algorithm, sliding window, LRU cache\nvec: how to implement a system that restricts the number of requests per time window\nhyde: class RateLimiter: def __init__(self, max_requests, period): self.max_requests = max_requests self.period = period self.tokens = 0 self.last = 0 def get_token(self): if self.tokens <= 0: self.tokens = self._get_tokens() self.last = time.time() return self.tokens def _get_tokens(self): return int(self.tokens / self.period)",
+      "latencyMs": 4535.277540970128
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "<think>\n\n</think>\n\nlex: cache invalidation policy, cache eviction policy, stale-while-revalidate\nvec: how to implement cache invalidation strategies to manage expired or outdated data\nhyde: Use a cache invalidation policy that marks entries as stale after a certain time. When an entry becomes stale, evict it from the cache. Implement a refresh mechanism that revalidates cached items periodically.",
+      "latencyMs": 3103.181125014089
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "<think>\n\n</think>\n\nlex: retry logic exponential backoff implementation, retry logic exponential backoff best practices, retry logic exponential backoff examples\nvec: how to implement retry logic with exponential backoff in code to handle transient failures\nhyde: import time\\ntry:\\n    for i in range(3):\\n        response = requests.get(url)\\n        if response.status_code == 200:\\n            return response.json()\\n        time.sleep(2**i)\\nexcept Exception as e:\\n    print(f\"Error: {e}\")",
+      "latencyMs": 4331.407000019681
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "<think>\n\n</think>\n\nlex: connection pool database configuration, database connection pool size, db connection pool\nvec: how to configure a database connection pool to manage multiple simultaneous database connections efficiently\nhyde: Use a connection pool like HikariCP or PgBouncer to manage database connections. Configure pool size, idle timeout, and maximum pool size. Set pool size to match expected concurrent requests.",
+      "latencyMs": 3060.0442500435747
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "<think>\n\n</think>\n\nlex: event-driven architecture pub sub best practices, event-driven pub sub design patterns\nvec: how to design an event-driven architecture using pub/sub pattern for scalable and asynchronous communication\nhyde: Use message brokers like Kafka or RabbitMQ for pub/sub. Emit events with payload, subscribe to topics, and process them in parallel. Ensure message durability and order preservation.",
+      "latencyMs": 2946.714250021614
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "<think>\n\n</think>\n\nlex: dependency injection, service container, IoC container, dependency injection pattern\nvec: what is a dependency injection service container and how does it work in software development\nhyde: A service container manages the creation and configuration of objects and their dependencies. It provides a way to inject dependencies into objects rather than hardcoding them.",
+      "latencyMs": 2676.803833048325
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "<think>\n\n</think>\n\nlex: pagination, cursor, offset, limit, page, per_page\nvec: how to implement pagination with a cursor and offset for efficient data retrieval\nhyde: const pageSize = 10; const currentPage = 2; const offset = pageSize * (currentPage - 1); const cursor = 'next';",
+      "latencyMs": 2672.9639580007643
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "<think>\n\n</think>\n\nlex: graceful shutdown signal handler, SIGTERM SIGINT handler, exit code\nvec: how to implement a graceful shutdown in a server application that waits for ongoing requests before exiting\nhyde: import signal import sys import time def graceful_shutdown(signum, frame): print(f\"Received shutdown signal {signum}.\") try: while True: time.sleep(0.1) except KeyboardInterrupt: pass sys.exit(0) signal.signal(signal.SIGTERM, graceful_shutdown) signal.signal(signal.SIGINT, graceful_shutdown)",
+      "latencyMs": 4094.9518340057693
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "<think>\n\n</think>\n\nlex: streaming, response, server-sent-events, SSE, push, WebSocket, HTTP\nvec: how to implement a server that sends data to clients over HTTP in real-time\nhyde: const stream = new Readable();\\nstream.on('data', (chunk) => console.log(chunk));\\nstream.pipe(process.stdout);\\napp.get('/stream', (req, res) => res.setHeader('Content-Type', 'text/event-stream');\\nstream.pipe(res));",
+      "latencyMs": 3876.3227910385467
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "<think>\n\n</think>\n\nlex: React context Redux state management comparison, React context Redux comparison, React context Redux state management best practices\nvec: how to compare React context vs Redux state management for managing application state\nhyde: React Context provides a simple way to manage state across multiple components without prop drilling. Redux is a more robust, opinionated solution for complex applications with multiple reducers and middleware.",
+      "latencyMs": 3125.7632080232725
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "<think>\n\n</think>\n\nlex: express middleware next function chain, express middleware next function order, express middleware next function callback\nvec: how does express middleware chain work and what is the role of next function in the middleware stack\nhyde: const app = express();\\napp.use((req, res, next) => {\\n  console.log('Middleware 1');\\n  next();\\n});\\napp.use((req, res, next) => {\\n  console.log('Middleware 2');\\n  next();\\n});",
+      "latencyMs": 4434.945332992356
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "<think>\n\n</think>\n\nlex: Prisma findMany where clause, Prisma query where conditions, Prisma findMany with filter\nvec: How to use Prisma ORM's findMany where clause to query records based on multiple conditions.\nhyde: const users = await prisma.user.findMany({ where: { email: 'user@example.com', age: { gt: 18 } } });",
+      "latencyMs": 3135.531792009715
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "<think>\n\n</think>\n\nlex: nextjs server component data fetching best practices, nextjs server component data fetching examples, nextjs server component data fetching documentation\nvec: how to fetch data in next.js server components and what are the best practices\nhyde: import { fetch } from 'next/server'; export default function Home() { const data = await fetch('https://api.example.com/data'); return <div>{data.json()}</div>; }",
+      "latencyMs": 3515.6116249854676
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "<think>\n\n</think>\n\nlex: zod, schema, validate, parse, transform, infer\nvec: Validate and transform data against a schema using Zod for type safety and error handling.\nhyde: import { z } from 'zod'; const schema = z.object({ name: z.string().min(3) }); const result = schema.parse({ name: 'Alice' }); console.log(result);",
+      "latencyMs": 3189.7792919771746
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "<think>\n\n</think>\n\nlex: trpc router procedure mutation, trpc middleware, trpc handler function\nvec: how to create a trpc router with procedures for mutations, queries, and subscriptions\nhyde: import { createTRPCHealth, createTRPCRouter, procedure, mutation, query } from '@trpc/server';\\nexport const router = createTRPCRouter({\\n  hello: mutation(({ ctx }) => ({ message: 'Hello, world!' })),\\n  get: query(({ ctx }) => ({ name: ctx.user.name })),\\n  update: mutation(({ ctx, input }) => ({ name: input.name })),\\n});",
+      "latencyMs": 5254.031583026517
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "<think>\n\n</think>\n\nlex: Tailwind responsive breakpoints flex, Tailwind responsive breakpoints md, Tailwind responsive breakpoints lg\nvec: how to use Tailwind's responsive breakpoints for different screen sizes\nhyde: @media (min-width: 640px) { .container { width: 100%; } }",
+      "latencyMs": 2652.5081250001676
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "<think>\n\n</think>\n\nlex: Jest mock module spyOn testing best practices, Jest mock module spyOn testing examples, Jest mock module spyOn testing documentation\nvec: how to mock modules and use spyOn in Jest tests for controlled function calls\nhyde: import { expect } from 'jest';\\nconst user = require('./user');\\nconst mockUser = { name: 'John Doe' };\\njest.mock('./user', () => mockUser);\\nconst result = user.getUser();\\nexpect(result.name).toBe('John Doe');",
+      "latencyMs": 4165.634375007357
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "<think>\n\n</think>\n\nlex: Docker compose multi service networking best practices, Docker compose multi service networking tutorial, Docker multi container networking\nvec: how to set up a multi-container Docker network for services in a compose file\nhyde: version: '3.8'\\nservices:\\n  web:\\n    image: nginx\\n    ports: 80:80\\n  db:\\n    image: postgres\\n    ports: 5432\\nnetworks:\\n  backend: {}\\n  frontend: {}\\n  db: {}\\n  backend: networks:\\n    frontend: {}\\n    db: {}",
+      "latencyMs": 4811.705750005785
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "<think>\n\n</think>\n\nlex: GitHub Actions CI workflow matrix best practices, GitHub Actions CI workflow matrix examples, GitHub Actions CI workflow matrix documentation\nvec: how to use GitHub Actions CI workflow matrix for automated testing and deployment\nhyde: name: test-and-deploy\\ntrigger:\\n  schedule:\\n    - cron: 0 0 * * *\\njobs:\\n  - name: test\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v3\\n      - name: run tests\\n        run: npm test\\n  - name: deploy\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v3\\n      - name: deploy\\n        run: npm run deploy",
+      "latencyMs": 6052.194999996573
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "<think>\n\n</think>\n\nlex: unused imports dead code, find unused imports dead code best practices, find unused imports dead code tools\nvec: how to find and remove unused imports and dead code in a project\nhyde: import sys\\nimport os\\nprint(sys.argv[0])\\n# unused imports: sys, os, print",
+      "latencyMs": 2626.074166968465
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "<think>\n\n</think>\n\nlex: detect circular dependencies modules syntax, detect circular dependencies modules best practices, detect circular dependencies modules examples\nvec: how to detect circular dependencies in modules and identify problematic code patterns\nhyde: import A from 'moduleA'; import B from 'moduleB'; import C from 'moduleC';\\nexport default { A, B, C };\\nconst { A, B, C } = require('moduleA');\\nconst { A, B, C } = require('moduleB');\\nconst { A, B, C } = require('moduleC');",
+      "latencyMs": 4777.870916994289
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "<think>\n\n</think>\n\nlex: dead code detection unreachable, unreachable code analysis, code coverage unreachable\nvec: how to identify and remove unreachable code in programming\nhyde: const func unreachable() { return 0; } // unreachable code is not executed in normal execution flow",
+      "latencyMs": 2092.788958980236
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "<think>\n\n</think>\n\nlex: security, vulnerability, SQL injection, injection attack, parameterized query\nvec: how to prevent and detect SQL injection vulnerabilities in web applications\nhyde: Use parameterized queries or prepared statements to separate SQL logic from user input. Avoid string concatenation and always escape user input before executing queries.",
+      "latencyMs": 2519.688916974701
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "<think>\n\n</think>\n\nlex: code duplication, similar functions, refactor duplicate code\nvec: how to identify and eliminate duplicate code in a program\nhyde: const add = (a, b) => a + b; const subtract = (a, b) => a - b; refactor into a utility function: const arithmetic = (op, a, b) => op(a, b);",
+      "latencyMs": 3256.558708031662
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "<think>\n\n</think>\n\nlex: performance, bottleneck, N+1 query, query expansion, ORM\nvec: how to identify and resolve database performance issues caused by repeated N+1 queries\nhyde: Use a query profiler to catch repeated N+1 queries. For example, if you fetch a list of users and then fetch their posts one by one, that's N+1. Optimize by fetching all related data in one query.",
+      "latencyMs": 3407.636000018101
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "<think>\n\n</think>\n\nlex: try catch syntax error handling, try catch exception handling best practices\nvec: how to implement try catch blocks for error handling in JavaScript\nhyde: try { const result = await fetch('https://api.example.com'); } catch (error) { console.error('Error:', error.message); }",
+      "latencyMs": 2539.1211670357734
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "<think>\n\n</think>\n\nlex: type safety any assertion unsafe cast TypeScript, type assertion TypeScript unsafe cast\nvec: How to safely convert types in TypeScript using type assertions, null, or explicit casts.\nhyde: const str: string = \"hello\"; const num = Number(str); // type assertion: string to number.",
+      "latencyMs": 2543.772916018497
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "<think>\n\n</think>\n\nlex: memory leak event listener cleanup best practices, memory leak event listener garbage collection, memory leak event listener memory management\nvec: how to prevent memory leaks in event listeners to avoid memory exhaustion and performance degradation\nhyde: Use `WeakReference` or `Map` to track listeners. Set listeners to `null` when not needed. Implement `onbeforeunload` to clean up before page unload. Use `setInterval` and `setTimeout` with `clearInterval`/`clearTimeout`.",
+      "latencyMs": 4001.777541998308
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "<think>\n\n</think>\n\nlex: race condition concurrent access synchronization, async race condition concurrency, concurrent access race condition\nvec: how to prevent race conditions when multiple threads or processes access shared resources simultaneously\nhyde: In Python, use threading.Lock or asyncio.Lock for concurrent access. For example:\\nlock = threading.Lock()\\nwith lock:\\n    shared_resource += 1",
+      "latencyMs": 2879.573124984745
+    }
+  ]
+}
