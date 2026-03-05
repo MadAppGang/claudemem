@@ -3,12 +3,14 @@
 # dependencies = [
 #     "trl>=0.15",
 #     "peft>=0.7.0",
-#     "transformers>=4.45.0",
+#     "transformers>=5.0.0",
 #     "accelerate>=0.24.0",
 #     "huggingface_hub>=0.25",
 #     "datasets",
 #     "bitsandbytes",
 #     "torch",
+#     "pillow",
+#     "torchvision",
 # ]
 # ///
 """
@@ -80,6 +82,65 @@ MODELS = {
         "grad_accum": 4,
         "lr": 2e-4,
         "load_in_4bit": False,
+    },
+    # ── Round 2 ──────────────────────────────────────────────
+    "qwen3.5-9b": {
+        "base": "Qwen/Qwen3.5-9B",
+        "hub_name": "claudemem-expansion-qwen3.5-9b",
+        "lora_rank": 16,
+        "lora_alpha": 32,
+        "epochs": 5,
+        "batch_size": 1,
+        "grad_accum": 16,
+        "lr": 2e-4,
+        "load_in_4bit": True,
+        "gradient_checkpointing": True,
+    },
+    "qwen3.5-4b": {
+        "base": "Qwen/Qwen3.5-4B",
+        "hub_name": "claudemem-expansion-qwen3.5-4b",
+        "lora_rank": 16,
+        "lora_alpha": 32,
+        "epochs": 5,
+        "batch_size": 1,
+        "grad_accum": 16,
+        "lr": 2e-4,
+        "load_in_4bit": True,
+        "gradient_checkpointing": True,
+    },
+    "qwen3.5-2b": {
+        "base": "Qwen/Qwen3.5-2B",
+        "hub_name": "claudemem-expansion-qwen3.5-2b",
+        "lora_rank": 16,
+        "lora_alpha": 32,
+        "epochs": 5,
+        "batch_size": 2,
+        "grad_accum": 8,
+        "lr": 2e-4,
+        "load_in_4bit": True,
+        "gradient_checkpointing": True,
+    },
+    "phi4-mini": {
+        "base": "microsoft/Phi-4-mini-instruct",
+        "hub_name": "claudemem-expansion-phi4-mini",
+        "lora_rank": 16,
+        "lora_alpha": 32,
+        "epochs": 5,
+        "batch_size": 4,
+        "grad_accum": 4,
+        "lr": 2e-4,
+        "load_in_4bit": True,
+    },
+    "qwen3-8b": {
+        "base": "Qwen/Qwen3-8B",
+        "hub_name": "claudemem-expansion-qwen3-8b",
+        "lora_rank": 16,
+        "lora_alpha": 32,
+        "epochs": 5,
+        "batch_size": 2,
+        "grad_accum": 8,
+        "lr": 2e-4,
+        "load_in_4bit": True,
     },
 }
 
@@ -198,6 +259,7 @@ sft_config = SFTConfig(
     warmup_ratio=0.03,
     lr_scheduler_type="cosine",
     bf16=True,
+    gradient_checkpointing=cfg.get("gradient_checkpointing", False),
 
     report_to="none",
 )
@@ -218,36 +280,33 @@ peft_config = LoraConfig(
 
 print("Initializing SFT trainer...")
 
-trainer_kwargs = {
-    "model": cfg["base"],
-    "train_dataset": train_ds,
-    "eval_dataset": eval_ds,
-    "args": sft_config,
-    "peft_config": peft_config,
+import torch
+from transformers import AutoModelForCausalLM
+
+model_kwargs = {
+    "device_map": "auto",
+    "torch_dtype": torch.bfloat16,
 }
 
-# For 4-bit quantized loading (Qwen models)
 if cfg["load_in_4bit"]:
     from transformers import BitsAndBytesConfig
-    import torch
-
-    bnb_config = BitsAndBytesConfig(
+    model_kwargs["quantization_config"] = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16,
         bnb_4bit_use_double_quant=True,
     )
 
-    from transformers import AutoModelForCausalLM
+model = AutoModelForCausalLM.from_pretrained(cfg["base"], **model_kwargs)
+model.config.use_cache = False
 
-    model = AutoModelForCausalLM.from_pretrained(
-        cfg["base"],
-        quantization_config=bnb_config,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,
-    )
-    model.config.use_cache = False
-    trainer_kwargs["model"] = model
+trainer_kwargs = {
+    "model": model,
+    "train_dataset": train_ds,
+    "eval_dataset": eval_ds,
+    "args": sft_config,
+    "peft_config": peft_config,
+}
 
 trainer = SFTTrainer(**trainer_kwargs)
 

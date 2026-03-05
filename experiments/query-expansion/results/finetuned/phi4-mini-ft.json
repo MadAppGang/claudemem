@@ -1,0 +1,1180 @@
+{
+  "model": {
+    "name": "phi4-mini-FT",
+    "lmsKey": "jackrudenko/claudemem-expansion-phi4-mini",
+    "family": "phi4-ft",
+    "paramsB": 3.8
+  },
+  "timestamp": "2026-03-04T23:56:56.000Z",
+  "config": {
+    "port": 0,
+    "timeout": 60000,
+    "retries": 0,
+    "note": "Local inference via transformers+peft, not LM Studio"
+  },
+  "summary": {
+    "format": 0.9732,
+    "keyword": 0.8228,
+    "semantic": 0.96,
+    "hyde": 0.47350000000000003,
+    "latencyMs": 4136.251566679566,
+    "total": 0.7241750000000002
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3676.2877919973107,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: useEffect cleanup dependency array, useEffect cleanup function, cleanup on unmount\nvec: Function that runs when a component unmounts or before the effect runs again\nhyde: useEffect(() => console.log('mounted'), [deps]); // runs once on mount, cleanup runs on unmount",
+        "lex": "useEffect cleanup dependency array, useEffect cleanup function, cleanup on unmount",
+        "vec": "Function that runs when a component unmounts or before the effect runs again",
+        "hyde": "useEffect(() => console.log('mounted'), [deps]); // runs once on mount, cleanup runs on unmount"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3434.6466659990256,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "lex: handleSubmit form submit event, handleSubmit onSubmit onClick\nvec: what is the handleSubmit function and how is it used in forms and buttons?\nhyde: const handleSubmit = (event) => { event.preventDefault(); console.log('Form submitted'); }; const form = document.querySelector('form'); form.addEventListener('submit', handleSubmit);",
+        "lex": "handleSubmit form submit event, handleSubmit onSubmit onClick",
+        "vec": "what is the handleSubmit function and how is it used in forms and buttons?",
+        "hyde": "const handleSubmit = (event) => { event.preventDefault(); console.log('Form submitted'); }; const form = document.querySelector('form'); form.addEventListener('submit', handleSubmit);"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 3571.577457994863,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "lex: SearchBar input field search form, search input search field, search box search form\nvec: A searchBar component is a user interface element that allows users to enter search queries and submit them for processing.\nhyde: <SearchBar onSubmit={handleSearch} /> // SearchBar is a controlled component that captures user input and calls handleSearch when the Enter key is pressed.",
+        "lex": "SearchBar input field search form, search input search field, search box search form",
+        "vec": "A searchBar component is a user interface element that allows users to enter search queries and submit them for processing.",
+        "hyde": "<SearchBar onSubmit={handleSearch} /> // SearchBar is a controlled component that captures user input and calls handleSearch when the Enter key is pressed."
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 2960.8125840022694,
+      "total": 0.7485000000000002,
+      "expansion": {
+        "raw": "lex: createEmbeddingsClient overview documentation, createEmbeddingsClient usage examples, createEmbeddingsClient best practices\nvec: how to create and configure an embeddings client for natural language processing\nhyde: client = createEmbeddingsClient(apiKey='your-api-key', model='text-embedding-ada-002')",
+        "lex": "createEmbeddingsClient overview documentation, createEmbeddingsClient usage examples, createEmbeddingsClient best practices",
+        "vec": "how to create and configure an embeddings client for natural language processing",
+        "hyde": "client = createEmbeddingsClient(apiKey='your-api-key', model='text-embedding-ada-002')"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2914.2879999999423,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "lex: parseParameterSize function parameter size parsing validation\nvec: how to parse and validate the size of a parameter in a function or API request\nhyde: function parseParameterSize(param) { if (typeof param !== 'number' || param <= 0) throw new Error('Invalid parameter size'); }",
+        "lex": "parseParameterSize function parameter size parsing validation",
+        "vec": "how to parse and validate the size of a parameter in a function or API request",
+        "hyde": "function parseParameterSize(param) { if (typeof param !== 'number' || param <= 0) throw new Error('Invalid parameter size'); }"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 3979.333499999484,
+      "total": 0.7485000000000002,
+      "expansion": {
+        "raw": "lex: buildCombinedIndex overview documentation, buildCombinedIndex examples tutorial, buildCombinedIndex best practices\nvec: how to build a combined index for search queries\nhyde: Build a combined index by merging keyword and vector search results. Use BM25 for keyword matching and cosine similarity for semantic search. Combine scores with a weighted average: final_score = 0.7 * BM25 + 0.3 * cosine_similarity.",
+        "lex": "buildCombinedIndex overview documentation, buildCombinedIndex examples tutorial, buildCombinedIndex best practices",
+        "vec": "how to build a combined index for search queries",
+        "hyde": "Build a combined index by merging keyword and vector search results. Use BM25 for keyword matching and cosine similarity for semantic search. Combine scores with a weighted average: final_score = 0.7 * BM25 + 0.3 * cosine_similarity."
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 4972.404167005152,
+      "total": 0.7645000000000002,
+      "expansion": {
+        "raw": "lex: cosineSimilarity vector dot product, cosineSimilarity math similarity metric, cosineSimilarity tfidf cosine\nvec: how does cosine similarity measure the similarity between two vectors in machine learning?\nhyde: cosineSimilarity(a, b) = dot(a, b) / (norm(a) * norm(b)) = (a[0]*b[0] + a[1]*b[1]) / (sqrt(a[0]^2 + a[1]^2) * sqrt(b[0]^2 + b[1]^2))",
+        "lex": "cosineSimilarity vector dot product, cosineSimilarity math similarity metric, cosineSimilarity tfidf cosine",
+        "vec": "how does cosine similarity measure the similarity between two vectors in machine learning?",
+        "hyde": "cosineSimilarity(a, b) = dot(a, b) / (norm(a) * norm(b)) = (a[0]*b[0] + a[1]*b[1]) / (sqrt(a[0]^2 + a[1]^2) * sqrt(b[0]^2 + b[1]^2))"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2848.180916000274,
+      "total": 0.7797500000000002,
+      "expansion": {
+        "raw": "lex: querygenerator overview documentation, querygenerator examples tutorial, querygenerator best practices\nvec: how to build a query generator for search applications\nhyde: class QueryGenerator: def build_query(keywords): return f\"{keywords} OR {keywords[0]} AND {keywords[-1]} NOT irrelevant\"",
+        "lex": "querygenerator overview documentation, querygenerator examples tutorial, querygenerator best practices",
+        "vec": "how to build a query generator for search applications",
+        "hyde": "class QueryGenerator: def build_query(keywords): return f\"{keywords} OR {keywords[0]} AND {keywords[-1]} NOT irrelevant\""
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2348.105917000794,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "lex: aggregate search results, search query expansion, keyword matching aggregation\nvec: Combine multiple search queries into a single search request to match related documents.\nhyde: aggregate('python overview', 'python syntax') -> returns both Python overview and syntax documentation.",
+        "lex": "aggregate search results, search query expansion, keyword matching aggregation",
+        "vec": "Combine multiple search queries into a single search request to match related documents.",
+        "hyde": "aggregate('python overview', 'python syntax') -> returns both Python overview and syntax documentation."
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 2531.6969999985304,
+      "total": 0.7245000000000001,
+      "expansion": {
+        "raw": "lex: LocalLLMClient constructor overview examples\nvec: how to instantiate and use the LocalLLMClient constructor in code\nhyde: LocalLLMClient('my-llm-model', {temperature: 0.5, max_tokens: 100})",
+        "lex": "LocalLLMClient constructor overview examples",
+        "vec": "how to instantiate and use the LocalLLMClient constructor in code",
+        "hyde": "LocalLLMClient('my-llm-model', {temperature: 0.5, max_tokens: 100})"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3066.8206659975112,
+      "total": 0.7092500000000002,
+      "expansion": {
+        "raw": "lex: TypeError undefined property, TypeError property not found, TypeError undefined reference\nvec: An error occurs when trying to access a property on an object that is not defined.\nhyde: TypeError: Cannot read property 'length' of undefined. Check that the variable is not null or undefined before accessing its properties.",
+        "lex": "TypeError undefined property, TypeError property not found, TypeError undefined reference",
+        "vec": "An error occurs when trying to access a property on an object that is not defined.",
+        "hyde": "TypeError: Cannot read property 'length' of undefined. Check that the variable is not null or undefined before accessing its properties."
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3410.6062919963733,
+      "total": 0.7950000000000002,
+      "expansion": {
+        "raw": "lex: ECONNREFUSED localhost connection refused error\nvec: Unable to connect to localhost on port 80, 443, or 8080\nhyde: const { execSync } = require('child_process'); execSync('curl -v http://localhost:3000'); // Output: curl: (6) ECONNREFUSED localhost:3000",
+        "lex": "ECONNREFUSED localhost connection refused error",
+        "vec": "Unable to connect to localhost on port 80, 443, or 8080",
+        "hyde": "const { execSync } = require('child_process'); execSync('curl -v http://localhost:3000'); // Output: curl: (6) ECONNREFUSED localhost:3000"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.72,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2699.655750002421,
+      "total": 0.7790000000000001,
+      "expansion": {
+        "raw": "lex: moduleNotFoundImportError, unresolvedModuleReference, missingDependency\nvec: JavaScript or TypeScript file references a module that cannot be found or loaded.\nhyde: const missingModule = require('nonexistent-module'); // TypeScript: import missingModule from 'nonexistent-module';",
+        "lex": "moduleNotFoundImportError, unresolvedModuleReference, missingDependency",
+        "vec": "JavaScript or TypeScript file references a module that cannot be found or loaded.",
+        "hyde": "const missingModule = require('nonexistent-module'); // TypeScript: import missingModule from 'nonexistent-module';"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.72,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 14576.47558300232,
+      "total": 0.6715000000000001,
+      "expansion": {
+        "raw": "lex: corsOriginNotAllowedAccess, corsOriginNotAllowedHeaders, corsOriginNotAllowedAccessError\nvec: When a request is made to a resource on a different domain, the server rejects it because the origin header is missing or not allowed.\nhyde: Access-Control-Allow-Origin: * is not allowed. Origin: http://example.com is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed.",
+        "lex": "corsOriginNotAllowedAccess, corsOriginNotAllowedHeaders, corsOriginNotAllowedAccessError",
+        "vec": "When a request is made to a resource on a different domain, the server rejects it because the origin header is missing or not allowed.",
+        "hyde": "Access-Control-Allow-Origin: * is not allowed. Origin: http://example.com is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed."
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2792.9906670033233,
+      "total": 0.7172500000000002,
+      "expansion": {
+        "raw": "lex: OOMKilled, OutOfMemoryError, heap allocation failure, memory allocation failed\nvec: The program ran out of memory while trying to allocate space for a new object.\nhyde: Process 12345 killed by SIGSEGV: Killed process was partially allocated memory beyond the limit.",
+        "lex": "OOMKilled, OutOfMemoryError, heap allocation failure, memory allocation failed",
+        "vec": "The program ran out of memory while trying to allocate space for a new object.",
+        "hyde": "Process 12345 killed by SIGSEGV: Killed process was partially allocated memory beyond the limit."
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.5,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 3252.764874996501,
+      "total": 0.6100000000000001,
+      "expansion": {
+        "raw": "lex: database connection timeout pool exhausted connection pool exhausted connection pool exhausted\nvec: How do you handle a database connection pool timeout when all connections are exhausted?\nhyde: pool exhaustion occurs when all connections are in use and new requests cannot be queued. Implement a retry with exponential backoff, increase pool size, or add a connection pool monitoring system.",
+        "lex": "database connection timeout pool exhausted connection pool exhausted connection pool exhausted",
+        "vec": "How do you handle a database connection pool timeout when all connections are exhausted?",
+        "hyde": "pool exhaustion occurs when all connections are in use and new requests cannot be queued. Implement a retry with exponential backoff, increase pool size, or add a connection pool monitoring system."
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2943.6365000001388,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: promise rejected unhandled async error catch block\nvec: Handle promise rejections to prevent unhandled async errors in JavaScript\nhyde: const fetchData = async () => { const data = await fetch('api/data'); return data; }; fetchData().catch(e => console.error('Unhandled error:', e));",
+        "lex": "promise rejected unhandled async error catch block",
+        "vec": "Handle promise rejections to prevent unhandled async errors in JavaScript",
+        "hyde": "const fetchData = async () => { const data = await fetch('api/data'); return data; }; fetchData().catch(e => console.error('Unhandled error:', e));"
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2748.8100419941475,
+      "total": 0.6780000000000002,
+      "expansion": {
+        "raw": "lex: circular dependency import cycle module dependency graph\nvec: A circular dependency occurs when two or more modules depend on each other directly or indirectly, causing a loop.\nhyde: module A imports module B, module B imports module A. This creates a cycle that cannot be resolved without breaking the dependency.",
+        "lex": "circular dependency import cycle module dependency graph",
+        "vec": "A circular dependency occurs when two or more modules depend on each other directly or indirectly, causing a loop.",
+        "hyde": "module A imports module B, module B imports module A. This creates a cycle that cannot be resolved without breaking the dependency."
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3297.977499998524,
+      "total": 0.7870000000000001,
+      "expansion": {
+        "raw": "lex: TypeError, ArgumentError, TypeMismatchError, NotAssignableError\nvec: A runtime error that occurs when a value passed to a function or method does not match the expected type.\nhyde: const result = await fetch('https://api.example.com/data').then(res => res.json()); // TypeError: response.json() is not a function.",
+        "lex": "TypeError, ArgumentError, TypeMismatchError, NotAssignableError",
+        "vec": "A runtime error that occurs when a value passed to a function or method does not match the expected type.",
+        "hyde": "const result = await fetch('https://api.example.com/data').then(res => res.json()); // TypeError: response.json() is not a function."
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3864.0268749950337,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "lex: permission denied EACCES file access error\nvec: what happens when you try to access a file without sufficient permissions and receive a permission denied error\nhyde: const fs = require('fs').promises; const file = '/path/to/file'; await fs.access(file, 'r', (err) => { if (err.code === 'EACCES') console.error('Permission denied:', err); });",
+        "lex": "permission denied EACCES file access error",
+        "vec": "what happens when you try to access a file without sufficient permissions and receive a permission denied error",
+        "hyde": "const fs = require('fs').promises; const file = '/path/to/file'; await fs.access(file, 'r', (err) => { if (err.code === 'EACCES') console.error('Permission denied:', err); });"
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 5582.837374997325,
+      "total": 0.7500000000000001,
+      "expansion": {
+        "raw": "lex: auth middleware jwt token verification\nvec: middleware that checks user credentials before allowing access to protected routes\nhyde: const jwt = require('jsonwebtoken'); const authMiddleware = (req, res, next) => { const token = req.headers.authorization; if (!token) return res.status(401).send('No token provided'); jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => { if (err) return res.status(403).send('Unauthorized'); req.user = decoded; next(); }); };",
+        "lex": "auth middleware jwt token verification",
+        "vec": "middleware that checks user credentials before allowing access to protected routes",
+        "hyde": "const jwt = require('jsonwebtoken'); const authMiddleware = (req, res, next) => { const token = req.headers.authorization; if (!token) return res.status(401).send('No token provided'); jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => { if (err) return res.status(403).send('Unauthorized'); req.user = decoded; next(); }); };"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2727.955166999891,
+      "total": 0.7020000000000002,
+      "expansion": {
+        "raw": "lex: rate_limit, throttle, api gateway, ip blocking, token bucket algorithm\nvec: how to implement rate limiting to prevent abuse of web services\nhyde: Use a token bucket algorithm to limit requests per second per IP. Allow 100 requests per minute per IP, dropping excess requests.",
+        "lex": "rate_limit, throttle, api gateway, ip blocking, token bucket algorithm",
+        "vec": "how to implement rate limiting to prevent abuse of web services",
+        "hyde": "Use a token bucket algorithm to limit requests per second per IP. Allow 100 requests per minute per IP, dropping excess requests."
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "phi4-mini-FT",
+      "format": 0.33,
+      "keyword": 0.8,
+      "semantic": 0.0,
+      "hyde": 0.0,
+      "latencyMs": 13931.861791999836,
+      "total": 0.24100000000000005,
+      "expansion": {
+        "raw": "lex: cache invalidation strategy cache invalidation pattern cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalid",
+        "lex": "cache invalidation strategy cache invalidation pattern cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalid",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4426.710457999434,
+      "total": 0.7950000000000002,
+      "expansion": {
+        "raw": "lex: retry exponential backoff circuit breaker\nvec: how to implement retry logic with exponential backoff for transient errors\nhyde: def fetch_with_retry(url, retries=5, backoff_factor=0.5):\\n    for i in range(retries):\\n        try:\\n            return requests.get(url)\\n        except requests.RequestException:\\n            time.sleep(backoff_factor * (2 ** i))\\n    raise Exception(\"Request failed after retries\")",
+        "lex": "retry exponential backoff circuit breaker",
+        "vec": "how to implement retry logic with exponential backoff for transient errors",
+        "hyde": "def fetch_with_retry(url, retries=5, backoff_factor=0.5):\\n    for i in range(retries):\\n        try:\\n            return requests.get(url)\\n        except requests.RequestException:\\n            time.sleep(backoff_factor * (2 ** i))\\n    raise Exception(\"Request failed after retries\")"
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 3259.9883750008303,
+      "total": 0.6780000000000002,
+      "expansion": {
+        "raw": "lex: connection pooling database pool jdbc pool hibernate\nvec: how does connection pooling work in databases and what are best practices\nhyde: Connection pooling maintains a cache of database connections that can be reused, reducing overhead. In Java, HikariCP is a popular connection pool library. Configure pool size, idle timeout, and max lifetime to optimize performance.",
+        "lex": "connection pooling database pool jdbc pool hibernate",
+        "vec": "how does connection pooling work in databases and what are best practices",
+        "hyde": "Connection pooling maintains a cache of database connections that can be reused, reducing overhead. In Java, HikariCP is a popular connection pool library. Configure pool size, idle timeout, and max lifetime to optimize performance."
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 2879.0412500020466,
+      "total": 0.6700000000000002,
+      "expansion": {
+        "raw": "lex: event-driven architecture pubsub kafka rabbitmq\nvec: what is event driven architecture and how does pubsub work\nhyde: Event-driven architecture decouples components using events. A producer publishes events to a topic, and consumers subscribe to receive notifications. Kafka and RabbitMQ are common message brokers.",
+        "lex": "event-driven architecture pubsub kafka rabbitmq",
+        "vec": "what is event driven architecture and how does pubsub work",
+        "hyde": "Event-driven architecture decouples components using events. A producer publishes events to a topic, and consumers subscribe to receive notifications. Kafka and RabbitMQ are common message brokers."
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3246.1404999994556,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: DI, DIContainer, DIContainerBuilder, DIProvider, IServiceProvider, DIScope, DIScopeLifetime\nvec: how to configure and use dependency injection in a .NET application\nhyde: var container = new ServiceCollection().AddTransient<IMyService, MyService>().Build(); var service = container.GetRequiredService<IMyService>();",
+        "lex": "DI, DIContainer, DIContainerBuilder, DIProvider, IServiceProvider, DIScope, DIScopeLifetime",
+        "vec": "how to configure and use dependency injection in a .NET application",
+        "hyde": "var container = new ServiceCollection().AddTransient<IMyService, MyService>().Build(); var service = container.GetRequiredService<IMyService>();"
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 3570.358999997552,
+      "total": 0.7485000000000002,
+      "expansion": {
+        "raw": "lex: pagination, cursor, offset, limit, page, next, previous\nvec: Retrieve a subset of records from a database or API response using pagination with a cursor for the current position and a limit for the number of records per page.\nhyde: GET /items?cursor=abc&limit=10 \u2192 returns items 11-20, cursor=def for next page.",
+        "lex": "pagination, cursor, offset, limit, page, next, previous",
+        "vec": "Retrieve a subset of records from a database or API response using pagination with a cursor for the current position and a limit for the number of records per page.",
+        "hyde": "GET /items?cursor=abc&limit=10 \u2192 returns items 11-20, cursor=def for next page."
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.225,
+      "latencyMs": 3936.628625000594,
+      "total": 0.68425,
+      "expansion": {
+        "raw": "lex: graceful shutdown signal handling exit code 0\nvec: how to handle SIGTERM and SIGINT signals in a program to exit cleanly\nhyde: import signal\ndef signal_handler(signum, frame):\n    print(f'Received signal: {signum}')\n    sys.exit(0)\nsignal.signal(signal.SIGTERM, signal_handler)\nsignal.signal(signal.SIGINT, signal_handler)\nwhile True:\n    pass",
+        "lex": "graceful shutdown signal handling exit code 0",
+        "vec": "how to handle SIGTERM and SIGINT signals in a program to exit cleanly",
+        "hyde": "import signal"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 4216.718750001746,
+      "total": 0.7172500000000002,
+      "expansion": {
+        "raw": "lex: streaming response serverSentEvents, SSE, SSE client server, SSE onload\nvec: How do server sent events work for streaming responses from the server to the client in real-time?\nhyde: Server sends events over a single long-lived HTTP connection. Client listens for events using EventSource. Server writes events as they occur. Client handles events with onmessage. No need to poll. Use for real-time updates like notifications, stock prices.",
+        "lex": "streaming response serverSentEvents, SSE, SSE client server, SSE onload",
+        "vec": "How do server sent events work for streaming responses from the server to the client in real-time?",
+        "hyde": "Server sends events over a single long-lived HTTP connection. Client listens for events using EventSource. Server writes events as they occur. Client handles events with onmessage. No need to poll. Use for real-time updates like notifications, stock prices."
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 4848.212999997486,
+      "total": 0.7252500000000002,
+      "expansion": {
+        "raw": "lex: ReactContextProvider, ReduxStoreProvider, useContext, useSelector, useDispatch, ContextAPI, Redux, Flux\nvec: When should you use React Context API instead of Redux for state management in a React application?\nhyde: Use React Context API for simple state sharing across components without external dependencies. Use Redux for more complex state logic, middleware, and dev tools. Context API is lighter and easier to set up for small to medium apps. Redux is more scalable and better for large applications with complex state management needs.",
+        "lex": "ReactContextProvider, ReduxStoreProvider, useContext, useSelector, useDispatch, ContextAPI, Redux, Flux",
+        "vec": "When should you use React Context API instead of Redux for state management in a React application?",
+        "hyde": "Use React Context API for simple state sharing across components without external dependencies. Use Redux for more complex state logic, middleware, and dev tools. Context API is lighter and easier to set up for small to medium apps. Redux is more scalable and better for large applications with complex state management needs."
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 2564.5905830024276,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "lex: express nextFunction, middleware nextHandler, app.use nextMiddleware\nvec: Middleware functions in Express.js that pass control to the next middleware in the chain.\nhyde: app.use((req, res, next) => { console.log('Request received'); next(); });",
+        "lex": "express nextFunction, middleware nextHandler, app.use nextMiddleware",
+        "vec": "Middleware functions in Express.js that pass control to the next middleware in the chain.",
+        "hyde": "app.use((req, res, next) => { console.log('Request received'); next(); });"
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2495.0965000025462,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "lex: prisma findMany where, prisma query findMany filter, prisma findMany whereClause\nvec: how to use Prisma to query multiple records with a where clause\nhyde: const users = await prisma.user.findMany({ where: { active: true } });",
+        "lex": "prisma findMany where, prisma query findMany filter, prisma findMany whereClause",
+        "vec": "how to use Prisma to query multiple records with a where clause",
+        "hyde": "const users = await prisma.user.findMany({ where: { active: true } });"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2507.568708002509,
+      "total": 0.8190000000000002,
+      "expansion": {
+        "raw": "lex: Next.js server component data fetching SSR, getServerSideProps, fetchData\nvec: How does Next.js handle data fetching for server components during server-side rendering?\nhyde: const data = await fetchData(); // Runs on the server before rendering the page.",
+        "lex": "Next.js server component data fetching SSR, getServerSideProps, fetchData",
+        "vec": "How does Next.js handle data fetching for server components during server-side rendering?",
+        "hyde": "const data = await fetchData(); // Runs on the server before rendering the page."
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4274.997833999805,
+      "total": 0.8030000000000002,
+      "expansion": {
+        "raw": "lex: Zod schema validation parse transform schema validation schema coercion\nvec: Validate and transform data structures using Zod for runtime type checking and error handling.\nhyde: const userSchema = z.object({ name: z.string(), age: z.number() }).nonempty(); const user = await z.infer<typeof userSchema>({ name: \"Alice\", age: 30 }); // Valid, user: { name: \"Alice\", age: 30 }",
+        "lex": "Zod schema validation parse transform schema validation schema coercion",
+        "vec": "Validate and transform data structures using Zod for runtime type checking and error handling.",
+        "hyde": "const userSchema = z.object({ name: z.string(), age: z.number() }).nonempty(); const user = await z.infer<typeof userSchema>({ name: \"Alice\", age: 30 }); // Valid, user: { name: \"Alice\", age: 30 }"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2440.1818339974852,
+      "total": 0.8110000000000002,
+      "expansion": {
+        "raw": "lex: tRPC router procedure mutation create update delete\nvec: how to define tRPC router procedures for creating, updating, and deleting data\nhyde: const router = t.router().mutation('createUser', async ({ payload }) => { /* logic */ });",
+        "lex": "tRPC router procedure mutation create update delete",
+        "vec": "how to define tRPC router procedures for creating, updating, and deleting data",
+        "hyde": "const router = t.router().mutation('createUser', async ({ payload }) => { /* logic */ });"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 2260.3360419961973,
+      "total": 0.7012500000000002,
+      "expansion": {
+        "raw": "lex: Tailwind breakpoints responsive utility classes\nvec: CSS classes for responsive design in Tailwind CSS\nhyde: @screen sm sm:breakpoint-sm sm:layout xl:layout-xl lg:layout-lg md:layout-md;",
+        "lex": "Tailwind breakpoints responsive utility classes",
+        "vec": "CSS classes for responsive design in Tailwind CSS",
+        "hyde": "@screen sm sm:breakpoint-sm sm:layout xl:layout-xl lg:layout-lg md:layout-md;"
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 3261.4509999984875,
+      "total": 0.7870000000000001,
+      "expansion": {
+        "raw": "lex: jest.mock, jest.spyOn, jest.spyOnModule, jest.spyOnModule.mockName\nvec: how to spy on a module in Jest tests\nhyde: const mockModule = jest.requireActual('moduleName').default; jest.mock('moduleName', () => mockModule); const spy = jest.spyOn(moduleName, 'method');",
+        "lex": "jest.mock, jest.spyOn, jest.spyOnModule, jest.spyOnModule.mockName",
+        "vec": "how to spy on a module in Jest tests",
+        "hyde": "const mockModule = jest.requireActual('moduleName').default; jest.mock('moduleName', () => mockModule); const spy = jest.spyOn(moduleName, 'method');"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.225,
+      "latencyMs": 5011.093583998445,
+      "total": 0.6392500000000001,
+      "expansion": {
+        "raw": "lex: docker-compose networking service discovery overlay network\nvec: how to configure Docker Compose to enable multiple services to communicate on the same network\nhyde: docker-compose.yml:\n\n  version: '3.8'\n\n  services:\n    web:\n      build: ./web\n      ports:\n        - \"80:80\"\n      networks:\n        - mynet\n\n    db:\n      image: postgres:latest\n      environment:\n        POSTGRES_PASSWORD: example\n      networks:\n        - mynet\n\n  networks:\n    mynet:\n      driver: overlay",
+        "lex": "docker-compose networking service discovery overlay network",
+        "vec": "how to configure Docker Compose to enable multiple services to communicate on the same network",
+        "hyde": "docker-compose.yml:"
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 6805.325375004031,
+      "total": 0.6962500000000001,
+      "expansion": {
+        "raw": "lex: GitHub Actions CI workflow matrix matrix strategy, GitHub Actions build matrix strategy matrix, GitHub Actions matrix build os linux macos windows\nvec: Configure a GitHub Actions CI workflow that runs tests across multiple operating systems and architectures.\nhyde: name: Build and Test Matrix\non: [push, pull_request]\njobs:\n  build:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ubuntu-latest, macos-latest, windows-latest]\n        architecture: [x64, arm64]\n    steps:\n      - uses: actions/checkout@v2\n      - name: Build\n        run: make build\n      - name: Test\n        run: make test",
+        "lex": "GitHub Actions CI workflow matrix matrix strategy, GitHub Actions build matrix strategy matrix, GitHub Actions matrix build os linux macos windows",
+        "vec": "Configure a GitHub Actions CI workflow that runs tests across multiple operating systems and architectures.",
+        "hyde": "name: Build and Test Matrix"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2407.6704589970177,
+      "total": 0.7870000000000001,
+      "expansion": {
+        "raw": "lex: unused_imports, dead_code, unused_variables, unused_function\nvec: locate and remove code that is declared but never used or referenced.\nhyde: import unused_module; unused_module.do_nothing(); // dead code, unused_imports: unused_module",
+        "lex": "unused_imports, dead_code, unused_variables, unused_function",
+        "vec": "locate and remove code that is declared but never used or referenced.",
+        "hyde": "import unused_module; unused_module.do_nothing(); // dead code, unused_imports: unused_module"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.2,
+      "latencyMs": 3336.42908299953,
+      "total": 0.6940000000000002,
+      "expansion": {
+        "raw": "lex: circular dependency module import, circular reference module dependency graph, cyclic import module error\nvec: Identifying and resolving circular dependencies between modules where one module imports another that imports it back.\nhyde: module A imports module B. module B imports module A. This creates a loop that causes a runtime error. Use dependency injection or lazy loading to break the cycle.",
+        "lex": "circular dependency module import, circular reference module dependency graph, cyclic import module error",
+        "vec": "Identifying and resolving circular dependencies between modules where one module imports another that imports it back.",
+        "hyde": "module A imports module B. module B imports module A. This creates a loop that causes a runtime error. Use dependency injection or lazy loading to break the cycle."
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.46,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 2206.3229999985197,
+      "total": 0.7270000000000001,
+      "expansion": {
+        "raw": "lex: dead code unreachable unreachable code unreachable code detection\nvec: identifying and removing code that is never executed during runtime\nhyde: class Foo { static final int X = 42; } // X is never used, can be removed",
+        "lex": "dead code unreachable unreachable code unreachable code detection",
+        "vec": "identifying and removing code that is never executed during runtime",
+        "hyde": "class Foo { static final int X = 42; } // X is never used, can be removed"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.76,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 3496.7357909990824,
+      "total": 0.6932500000000001,
+      "expansion": {
+        "raw": "lex: sql injection sql injection vulnerability sql injection attack\nvec: how to prevent SQL injection attacks in web applications\nhyde: SQL injection occurs when user input is directly included in SQL queries without proper escaping. Use parameterized queries or prepared statements. Example: `SELECT * FROM users WHERE id = ?` instead of `SELECT * FROM users WHERE id = 'user_input'`.",
+        "lex": "sql injection sql injection vulnerability sql injection attack",
+        "vec": "how to prevent SQL injection attacks in web applications",
+        "hyde": "SQL injection occurs when user input is directly included in SQL queries without proper escaping. Use parameterized queries or prepared statements. Example: `SELECT * FROM users WHERE id = ?` instead of `SELECT * FROM users WHERE id = 'user_input'`."
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 3969.2747079971014,
+      "total": 0.7717500000000002,
+      "expansion": {
+        "raw": "lex: code duplication refactor similar functions refactor examples\nvec: how to identify and refactor duplicated code in a codebase\nhyde: Identifying duplicated code can be done with tools like SonarQQL or CodeClimate. Refactor by extracting common logic into a shared function or utility class. Example: Instead of having multiple functions that calculate tax in different places, create a single `calculateTax(amount, rate)` function.",
+        "lex": "code duplication refactor similar functions refactor examples",
+        "vec": "how to identify and refactor duplicated code in a codebase",
+        "hyde": "Identifying duplicated code can be done with tools like SonarQQL or CodeClimate. Refactor by extracting common logic into a shared function or utility class. Example: Instead of having multiple functions that calculate tax in different places, create a single `calculateTax(amount, rate)` function."
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.1,
+      "latencyMs": 4330.1695410045795,
+      "total": 0.677,
+      "expansion": {
+        "raw": "lex: N+1 query, query optimization, database indexing, eager loading, lazy loading, ORM\nvec: Identify and fix performance issues caused by executing multiple database queries instead of batching requests.\nhyde: ```python\n# Before: queryset = User.objects.all() for user in queryset: print(user.address) # 1000 queries\n# After: queryset = User.objects.select_related('address').all() for user in queryset: print(user.address) # 1 query",
+        "lex": "N+1 query, query optimization, database indexing, eager loading, lazy loading, ORM",
+        "vec": "Identify and fix performance issues caused by executing multiple database queries instead of batching requests.",
+        "hyde": "```python"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "phi4-mini-FT",
+      "format": 0.33,
+      "keyword": 0.5,
+      "semantic": 0.0,
+      "hyde": 0.0,
+      "latencyMs": 13939.18887500331,
+      "total": 0.181,
+      "expansion": {
+        "raw": "lex: missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling",
+        "lex": "missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling",
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4019.380124998861,
+      "total": 0.7950000000000002,
+      "expansion": {
+        "raw": "lex: TypeScript any assert cast unsafe\nvec: TypeScript checks for type safety at compile time, but runtime checks are not enforced. Unsafe casts can bypass these checks.\nhyde: const obj: { name: string } = { name: \"Alice\" }; const str: string = (obj.name); // TypeScript error, runtime OK. const num: number = (obj.age); // TypeScript error, runtime OK.",
+        "lex": "TypeScript any assert cast unsafe",
+        "vec": "TypeScript checks for type safety at compile time, but runtime checks are not enforced. Unsafe casts can bypass these checks.",
+        "hyde": "const obj: { name: string } = { name: \"Alice\" }; const str: string = (obj.name); // TypeScript error, runtime OK. const num: number = (obj.age); // TypeScript error, runtime OK."
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.72,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 4684.6912920009345,
+      "total": 0.7790000000000001,
+      "expansion": {
+        "raw": "lex: memoryLeakEventListenerCleanup, eventListenerMemoryLeakCleanup, memoryLeakEventListenerCleanupBestPractices\nvec: How to prevent memory leaks caused by event listeners that are not removed when DOM elements are destroyed.\nhyde: Event listeners attached to DOM elements can cause memory leaks if not removed when the element is removed. Use `element.removeEventListener` before removing the element from the DOM. For example: `element.removeEventListener('click', handler); element.parentNode.removeChild(element);`.",
+        "lex": "memoryLeakEventListenerCleanup, eventListenerMemoryLeakCleanup, memoryLeakEventListenerCleanupBestPractices",
+        "vec": "How to prevent memory leaks caused by event listeners that are not removed when DOM elements are destroyed.",
+        "hyde": "Event listeners attached to DOM elements can cause memory leaks if not removed when the element is removed. Use `element.removeEventListener` before removing the element from the DOM. For example: `element.removeEventListener('click', handler); element.parentNode.removeChild(element);`."
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "phi4-mini-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 4284.520957997302,
+      "total": 0.7405000000000002,
+      "expansion": {
+        "raw": "lex: race condition concurrency mutex lock barrier\nvec: What is a race condition in concurrent programming and how can it be prevented?\nhyde: A race condition occurs when two threads access shared data concurrently and the outcome depends on the order of execution. Use mutex locks to synchronize access: `std::lock_guard` in C++ or `synchronized` blocks in Java. Use atomic operations for simple shared variables. Barrier synchronization ensures all threads reach a point before proceeding.",
+        "lex": "race condition concurrency mutex lock barrier",
+        "vec": "What is a race condition in concurrent programming and how can it be prevented?",
+        "hyde": "A race condition occurs when two threads access shared data concurrently and the outcome depends on the order of execution. Use mutex locks to synchronize access: `std::lock_guard` in C++ or `synchronized` blocks in Java. Use atomic operations for simple shared variables. Barrier synchronization ensures all threads reach a point before proceeding."
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "lex: useEffect cleanup dependency array, useEffect cleanup function, cleanup on unmount\nvec: Function that runs when a component unmounts or before the effect runs again\nhyde: useEffect(() => console.log('mounted'), [deps]); // runs once on mount, cleanup runs on unmount",
+      "latencyMs": 3676.2877919973107
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "lex: handleSubmit form submit event, handleSubmit onSubmit onClick\nvec: what is the handleSubmit function and how is it used in forms and buttons?\nhyde: const handleSubmit = (event) => { event.preventDefault(); console.log('Form submitted'); }; const form = document.querySelector('form'); form.addEventListener('submit', handleSubmit);",
+      "latencyMs": 3434.6466659990256
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "lex: SearchBar input field search form, search input search field, search box search form\nvec: A searchBar component is a user interface element that allows users to enter search queries and submit them for processing.\nhyde: <SearchBar onSubmit={handleSearch} /> // SearchBar is a controlled component that captures user input and calls handleSearch when the Enter key is pressed.",
+      "latencyMs": 3571.577457994863
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "lex: createEmbeddingsClient overview documentation, createEmbeddingsClient usage examples, createEmbeddingsClient best practices\nvec: how to create and configure an embeddings client for natural language processing\nhyde: client = createEmbeddingsClient(apiKey='your-api-key', model='text-embedding-ada-002')",
+      "latencyMs": 2960.8125840022694
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "lex: parseParameterSize function parameter size parsing validation\nvec: how to parse and validate the size of a parameter in a function or API request\nhyde: function parseParameterSize(param) { if (typeof param !== 'number' || param <= 0) throw new Error('Invalid parameter size'); }",
+      "latencyMs": 2914.2879999999423
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "lex: buildCombinedIndex overview documentation, buildCombinedIndex examples tutorial, buildCombinedIndex best practices\nvec: how to build a combined index for search queries\nhyde: Build a combined index by merging keyword and vector search results. Use BM25 for keyword matching and cosine similarity for semantic search. Combine scores with a weighted average: final_score = 0.7 * BM25 + 0.3 * cosine_similarity.",
+      "latencyMs": 3979.333499999484
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "lex: cosineSimilarity vector dot product, cosineSimilarity math similarity metric, cosineSimilarity tfidf cosine\nvec: how does cosine similarity measure the similarity between two vectors in machine learning?\nhyde: cosineSimilarity(a, b) = dot(a, b) / (norm(a) * norm(b)) = (a[0]*b[0] + a[1]*b[1]) / (sqrt(a[0]^2 + a[1]^2) * sqrt(b[0]^2 + b[1]^2))",
+      "latencyMs": 4972.404167005152
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "lex: querygenerator overview documentation, querygenerator examples tutorial, querygenerator best practices\nvec: how to build a query generator for search applications\nhyde: class QueryGenerator: def build_query(keywords): return f\"{keywords} OR {keywords[0]} AND {keywords[-1]} NOT irrelevant\"",
+      "latencyMs": 2848.180916000274
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "lex: aggregate search results, search query expansion, keyword matching aggregation\nvec: Combine multiple search queries into a single search request to match related documents.\nhyde: aggregate('python overview', 'python syntax') -> returns both Python overview and syntax documentation.",
+      "latencyMs": 2348.105917000794
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "lex: LocalLLMClient constructor overview examples\nvec: how to instantiate and use the LocalLLMClient constructor in code\nhyde: LocalLLMClient('my-llm-model', {temperature: 0.5, max_tokens: 100})",
+      "latencyMs": 2531.6969999985304
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "lex: TypeError undefined property, TypeError property not found, TypeError undefined reference\nvec: An error occurs when trying to access a property on an object that is not defined.\nhyde: TypeError: Cannot read property 'length' of undefined. Check that the variable is not null or undefined before accessing its properties.",
+      "latencyMs": 3066.8206659975112
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "lex: ECONNREFUSED localhost connection refused error\nvec: Unable to connect to localhost on port 80, 443, or 8080\nhyde: const { execSync } = require('child_process'); execSync('curl -v http://localhost:3000'); // Output: curl: (6) ECONNREFUSED localhost:3000",
+      "latencyMs": 3410.6062919963733
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "lex: moduleNotFoundImportError, unresolvedModuleReference, missingDependency\nvec: JavaScript or TypeScript file references a module that cannot be found or loaded.\nhyde: const missingModule = require('nonexistent-module'); // TypeScript: import missingModule from 'nonexistent-module';",
+      "latencyMs": 2699.655750002421
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "lex: corsOriginNotAllowedAccess, corsOriginNotAllowedHeaders, corsOriginNotAllowedAccessError\nvec: When a request is made to a resource on a different domain, the server rejects it because the origin header is missing or not allowed.\nhyde: Access-Control-Allow-Origin: * is not allowed. Origin: http://example.com is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed. Origin: http://localhost:3000 is not allowed.",
+      "latencyMs": 14576.47558300232
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "lex: OOMKilled, OutOfMemoryError, heap allocation failure, memory allocation failed\nvec: The program ran out of memory while trying to allocate space for a new object.\nhyde: Process 12345 killed by SIGSEGV: Killed process was partially allocated memory beyond the limit.",
+      "latencyMs": 2792.9906670033233
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "lex: database connection timeout pool exhausted connection pool exhausted connection pool exhausted\nvec: How do you handle a database connection pool timeout when all connections are exhausted?\nhyde: pool exhaustion occurs when all connections are in use and new requests cannot be queued. Implement a retry with exponential backoff, increase pool size, or add a connection pool monitoring system.",
+      "latencyMs": 3252.764874996501
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "lex: promise rejected unhandled async error catch block\nvec: Handle promise rejections to prevent unhandled async errors in JavaScript\nhyde: const fetchData = async () => { const data = await fetch('api/data'); return data; }; fetchData().catch(e => console.error('Unhandled error:', e));",
+      "latencyMs": 2943.6365000001388
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "lex: circular dependency import cycle module dependency graph\nvec: A circular dependency occurs when two or more modules depend on each other directly or indirectly, causing a loop.\nhyde: module A imports module B, module B imports module A. This creates a cycle that cannot be resolved without breaking the dependency.",
+      "latencyMs": 2748.8100419941475
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "lex: TypeError, ArgumentError, TypeMismatchError, NotAssignableError\nvec: A runtime error that occurs when a value passed to a function or method does not match the expected type.\nhyde: const result = await fetch('https://api.example.com/data').then(res => res.json()); // TypeError: response.json() is not a function.",
+      "latencyMs": 3297.977499998524
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "lex: permission denied EACCES file access error\nvec: what happens when you try to access a file without sufficient permissions and receive a permission denied error\nhyde: const fs = require('fs').promises; const file = '/path/to/file'; await fs.access(file, 'r', (err) => { if (err.code === 'EACCES') console.error('Permission denied:', err); });",
+      "latencyMs": 3864.0268749950337
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "lex: auth middleware jwt token verification\nvec: middleware that checks user credentials before allowing access to protected routes\nhyde: const jwt = require('jsonwebtoken'); const authMiddleware = (req, res, next) => { const token = req.headers.authorization; if (!token) return res.status(401).send('No token provided'); jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => { if (err) return res.status(403).send('Unauthorized'); req.user = decoded; next(); }); };",
+      "latencyMs": 5582.837374997325
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "lex: rate_limit, throttle, api gateway, ip blocking, token bucket algorithm\nvec: how to implement rate limiting to prevent abuse of web services\nhyde: Use a token bucket algorithm to limit requests per second per IP. Allow 100 requests per minute per IP, dropping excess requests.",
+      "latencyMs": 2727.955166999891
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "lex: cache invalidation strategy cache invalidation pattern cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalidation strategy invalidation cache invalid",
+      "latencyMs": 13931.861791999836
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "lex: retry exponential backoff circuit breaker\nvec: how to implement retry logic with exponential backoff for transient errors\nhyde: def fetch_with_retry(url, retries=5, backoff_factor=0.5):\\n    for i in range(retries):\\n        try:\\n            return requests.get(url)\\n        except requests.RequestException:\\n            time.sleep(backoff_factor * (2 ** i))\\n    raise Exception(\"Request failed after retries\")",
+      "latencyMs": 4426.710457999434
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "lex: connection pooling database pool jdbc pool hibernate\nvec: how does connection pooling work in databases and what are best practices\nhyde: Connection pooling maintains a cache of database connections that can be reused, reducing overhead. In Java, HikariCP is a popular connection pool library. Configure pool size, idle timeout, and max lifetime to optimize performance.",
+      "latencyMs": 3259.9883750008303
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "lex: event-driven architecture pubsub kafka rabbitmq\nvec: what is event driven architecture and how does pubsub work\nhyde: Event-driven architecture decouples components using events. A producer publishes events to a topic, and consumers subscribe to receive notifications. Kafka and RabbitMQ are common message brokers.",
+      "latencyMs": 2879.0412500020466
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "lex: DI, DIContainer, DIContainerBuilder, DIProvider, IServiceProvider, DIScope, DIScopeLifetime\nvec: how to configure and use dependency injection in a .NET application\nhyde: var container = new ServiceCollection().AddTransient<IMyService, MyService>().Build(); var service = container.GetRequiredService<IMyService>();",
+      "latencyMs": 3246.1404999994556
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "lex: pagination, cursor, offset, limit, page, next, previous\nvec: Retrieve a subset of records from a database or API response using pagination with a cursor for the current position and a limit for the number of records per page.\nhyde: GET /items?cursor=abc&limit=10 \u2192 returns items 11-20, cursor=def for next page.",
+      "latencyMs": 3570.358999997552
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "lex: graceful shutdown signal handling exit code 0\nvec: how to handle SIGTERM and SIGINT signals in a program to exit cleanly\nhyde: import signal\ndef signal_handler(signum, frame):\n    print(f'Received signal: {signum}')\n    sys.exit(0)\nsignal.signal(signal.SIGTERM, signal_handler)\nsignal.signal(signal.SIGINT, signal_handler)\nwhile True:\n    pass",
+      "latencyMs": 3936.628625000594
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "lex: streaming response serverSentEvents, SSE, SSE client server, SSE onload\nvec: How do server sent events work for streaming responses from the server to the client in real-time?\nhyde: Server sends events over a single long-lived HTTP connection. Client listens for events using EventSource. Server writes events as they occur. Client handles events with onmessage. No need to poll. Use for real-time updates like notifications, stock prices.",
+      "latencyMs": 4216.718750001746
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "lex: ReactContextProvider, ReduxStoreProvider, useContext, useSelector, useDispatch, ContextAPI, Redux, Flux\nvec: When should you use React Context API instead of Redux for state management in a React application?\nhyde: Use React Context API for simple state sharing across components without external dependencies. Use Redux for more complex state logic, middleware, and dev tools. Context API is lighter and easier to set up for small to medium apps. Redux is more scalable and better for large applications with complex state management needs.",
+      "latencyMs": 4848.212999997486
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "lex: express nextFunction, middleware nextHandler, app.use nextMiddleware\nvec: Middleware functions in Express.js that pass control to the next middleware in the chain.\nhyde: app.use((req, res, next) => { console.log('Request received'); next(); });",
+      "latencyMs": 2564.5905830024276
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "lex: prisma findMany where, prisma query findMany filter, prisma findMany whereClause\nvec: how to use Prisma to query multiple records with a where clause\nhyde: const users = await prisma.user.findMany({ where: { active: true } });",
+      "latencyMs": 2495.0965000025462
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "lex: Next.js server component data fetching SSR, getServerSideProps, fetchData\nvec: How does Next.js handle data fetching for server components during server-side rendering?\nhyde: const data = await fetchData(); // Runs on the server before rendering the page.",
+      "latencyMs": 2507.568708002509
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "lex: Zod schema validation parse transform schema validation schema coercion\nvec: Validate and transform data structures using Zod for runtime type checking and error handling.\nhyde: const userSchema = z.object({ name: z.string(), age: z.number() }).nonempty(); const user = await z.infer<typeof userSchema>({ name: \"Alice\", age: 30 }); // Valid, user: { name: \"Alice\", age: 30 }",
+      "latencyMs": 4274.997833999805
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "lex: tRPC router procedure mutation create update delete\nvec: how to define tRPC router procedures for creating, updating, and deleting data\nhyde: const router = t.router().mutation('createUser', async ({ payload }) => { /* logic */ });",
+      "latencyMs": 2440.1818339974852
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "lex: Tailwind breakpoints responsive utility classes\nvec: CSS classes for responsive design in Tailwind CSS\nhyde: @screen sm sm:breakpoint-sm sm:layout xl:layout-xl lg:layout-lg md:layout-md;",
+      "latencyMs": 2260.3360419961973
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "lex: jest.mock, jest.spyOn, jest.spyOnModule, jest.spyOnModule.mockName\nvec: how to spy on a module in Jest tests\nhyde: const mockModule = jest.requireActual('moduleName').default; jest.mock('moduleName', () => mockModule); const spy = jest.spyOn(moduleName, 'method');",
+      "latencyMs": 3261.4509999984875
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "lex: docker-compose networking service discovery overlay network\nvec: how to configure Docker Compose to enable multiple services to communicate on the same network\nhyde: docker-compose.yml:\n\n  version: '3.8'\n\n  services:\n    web:\n      build: ./web\n      ports:\n        - \"80:80\"\n      networks:\n        - mynet\n\n    db:\n      image: postgres:latest\n      environment:\n        POSTGRES_PASSWORD: example\n      networks:\n        - mynet\n\n  networks:\n    mynet:\n      driver: overlay",
+      "latencyMs": 5011.093583998445
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "lex: GitHub Actions CI workflow matrix matrix strategy, GitHub Actions build matrix strategy matrix, GitHub Actions matrix build os linux macos windows\nvec: Configure a GitHub Actions CI workflow that runs tests across multiple operating systems and architectures.\nhyde: name: Build and Test Matrix\non: [push, pull_request]\njobs:\n  build:\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ubuntu-latest, macos-latest, windows-latest]\n        architecture: [x64, arm64]\n    steps:\n      - uses: actions/checkout@v2\n      - name: Build\n        run: make build\n      - name: Test\n        run: make test",
+      "latencyMs": 6805.325375004031
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "lex: unused_imports, dead_code, unused_variables, unused_function\nvec: locate and remove code that is declared but never used or referenced.\nhyde: import unused_module; unused_module.do_nothing(); // dead code, unused_imports: unused_module",
+      "latencyMs": 2407.6704589970177
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "lex: circular dependency module import, circular reference module dependency graph, cyclic import module error\nvec: Identifying and resolving circular dependencies between modules where one module imports another that imports it back.\nhyde: module A imports module B. module B imports module A. This creates a loop that causes a runtime error. Use dependency injection or lazy loading to break the cycle.",
+      "latencyMs": 3336.42908299953
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "lex: dead code unreachable unreachable code unreachable code detection\nvec: identifying and removing code that is never executed during runtime\nhyde: class Foo { static final int X = 42; } // X is never used, can be removed",
+      "latencyMs": 2206.3229999985197
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "lex: sql injection sql injection vulnerability sql injection attack\nvec: how to prevent SQL injection attacks in web applications\nhyde: SQL injection occurs when user input is directly included in SQL queries without proper escaping. Use parameterized queries or prepared statements. Example: `SELECT * FROM users WHERE id = ?` instead of `SELECT * FROM users WHERE id = 'user_input'`.",
+      "latencyMs": 3496.7357909990824
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "lex: code duplication refactor similar functions refactor examples\nvec: how to identify and refactor duplicated code in a codebase\nhyde: Identifying duplicated code can be done with tools like SonarQQL or CodeClimate. Refactor by extracting common logic into a shared function or utility class. Example: Instead of having multiple functions that calculate tax in different places, create a single `calculateTax(amount, rate)` function.",
+      "latencyMs": 3969.2747079971014
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "lex: N+1 query, query optimization, database indexing, eager loading, lazy loading, ORM\nvec: Identify and fix performance issues caused by executing multiple database queries instead of batching requests.\nhyde: ```python\n# Before: queryset = User.objects.all() for user in queryset: print(user.address) # 1000 queries\n# After: queryset = User.objects.select_related('address').all() for user in queryset: print(user.address) # 1 query",
+      "latencyMs": 4330.1695410045795
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "lex: missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling try catch missing error handling",
+      "latencyMs": 13939.18887500331
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "lex: TypeScript any assert cast unsafe\nvec: TypeScript checks for type safety at compile time, but runtime checks are not enforced. Unsafe casts can bypass these checks.\nhyde: const obj: { name: string } = { name: \"Alice\" }; const str: string = (obj.name); // TypeScript error, runtime OK. const num: number = (obj.age); // TypeScript error, runtime OK.",
+      "latencyMs": 4019.380124998861
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "lex: memoryLeakEventListenerCleanup, eventListenerMemoryLeakCleanup, memoryLeakEventListenerCleanupBestPractices\nvec: How to prevent memory leaks caused by event listeners that are not removed when DOM elements are destroyed.\nhyde: Event listeners attached to DOM elements can cause memory leaks if not removed when the element is removed. Use `element.removeEventListener` before removing the element from the DOM. For example: `element.removeEventListener('click', handler); element.parentNode.removeChild(element);`.",
+      "latencyMs": 4684.6912920009345
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "lex: race condition concurrency mutex lock barrier\nvec: What is a race condition in concurrent programming and how can it be prevented?\nhyde: A race condition occurs when two threads access shared data concurrently and the outcome depends on the order of execution. Use mutex locks to synchronize access: `std::lock_guard` in C++ or `synchronized` blocks in Java. Use atomic operations for simple shared variables. Barrier synchronization ensures all threads reach a point before proceeding.",
+      "latencyMs": 4284.520957997302
+    }
+  ]
+}

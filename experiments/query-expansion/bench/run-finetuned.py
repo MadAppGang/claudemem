@@ -2,11 +2,13 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "transformers>=4.45.0",
+#     "transformers>=5.0.0",
 #     "peft>=0.7.0",
 #     "accelerate>=0.24.0",
 #     "torch",
 #     "huggingface_hub>=0.25",
+#     "pillow",
+#     "torchvision",
 # ]
 # ///
 """
@@ -19,11 +21,18 @@ Usage:
     uv run experiments/query-expansion/bench/run-finetuned.py [--model <name>]
     uv run experiments/query-expansion/bench/run-finetuned.py --all
 
-Models:
+Models (Round 1):
     qwen3-1.7b    jackrudenko/claudemem-expansion-qwen3-1.7b
     qwen3-4b      jackrudenko/claudemem-expansion-qwen3-4b
     lfm2-1.2b     jackrudenko/claudemem-expansion-lfm2-1.2b
     lfm2-700m     jackrudenko/claudemem-expansion-lfm2-700m
+
+Models (Round 2):
+    qwen3-8b      jackrudenko/claudemem-expansion-qwen3-8b
+    phi4-mini     jackrudenko/claudemem-expansion-phi4-mini
+    qwen3.5-2b    jackrudenko/claudemem-expansion-qwen3.5-2b
+    qwen3.5-4b    jackrudenko/claudemem-expansion-qwen3.5-4b
+    qwen3.5-9b    jackrudenko/claudemem-expansion-qwen3.5-9b
 """
 
 import argparse
@@ -61,6 +70,37 @@ MODELS = {
         "adapter": f"{HF_USER}/claudemem-expansion-lfm2-700m",
         "family": "lfm2-ft",
         "paramsB": 0.7,
+    },
+    # ── Round 2 ──────────────────────────────────────────────
+    "qwen3-8b": {
+        "base": "Qwen/Qwen3-8B",
+        "adapter": f"{HF_USER}/claudemem-expansion-qwen3-8b",
+        "family": "qwen3-ft",
+        "paramsB": 8,
+    },
+    "phi4-mini": {
+        "base": "microsoft/Phi-4-mini-instruct",
+        "adapter": f"{HF_USER}/claudemem-expansion-phi4-mini",
+        "family": "phi4-ft",
+        "paramsB": 3.8,
+    },
+    "qwen3.5-2b": {
+        "base": "Qwen/Qwen3.5-2B",
+        "adapter": f"{HF_USER}/claudemem-expansion-qwen3.5-2b",
+        "family": "qwen3.5-ft",
+        "paramsB": 2,
+    },
+    "qwen3.5-4b": {
+        "base": "Qwen/Qwen3.5-4B",
+        "adapter": f"{HF_USER}/claudemem-expansion-qwen3.5-4b",
+        "family": "qwen3.5-ft",
+        "paramsB": 4,
+    },
+    "qwen3.5-9b": {
+        "base": "Qwen/Qwen3.5-9B",
+        "adapter": f"{HF_USER}/claudemem-expansion-qwen3.5-9b",
+        "family": "qwen3.5-ft",
+        "paramsB": 9,
     },
 }
 
@@ -358,8 +398,7 @@ def benchmark_model(model_key: str, queries: list[dict]) -> dict:
 
     # Save results
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    safe_name = f"ft-{model_key}"
-    result_file = RESULTS_DIR / f"{safe_name}.json"
+    result_file = RESULTS_DIR / f"{model_key}-ft.json"
 
     result_data = {
         "model": {

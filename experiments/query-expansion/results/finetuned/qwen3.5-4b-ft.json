@@ -1,0 +1,1180 @@
+{
+  "model": {
+    "name": "qwen3.5-4b-FT",
+    "lmsKey": "jackrudenko/claudemem-expansion-qwen3.5-4b",
+    "family": "qwen3.5-ft",
+    "paramsB": 4
+  },
+  "timestamp": "2026-03-05T00:46:52.000Z",
+  "config": {
+    "port": 0,
+    "timeout": 60000,
+    "retries": 0,
+    "note": "Local inference via transformers+peft, not LM Studio"
+  },
+  "summary": {
+    "format": 0.96,
+    "keyword": 0.912,
+    "semantic": 0.96,
+    "hyde": 0.577,
+    "latencyMs": 26656.6135650393,
+    "total": 0.7112500000000002
+  },
+  "queryCount": 50,
+  "successCount": 50,
+  "failCount": 0,
+  "scores": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 34217.122166999616,
+      "total": 0.7357500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about useEffect cleanup in React. This is a common React hook pattern where you need to clean up event listeners, timers, or other resources when a component unmounts.\n\nLet me create:\n- lex: keywords for BM25 search\n- vec: a natural language rephrasing\n- hyde: a realistic short code snippet\n\nI need to make sure the hyde is syntactically valid and not pseudocode.\n</think>\n\nlex: useEffect cleanup function, React cleanup callback, component unmount event listener\nvec: How to properly clean up resources in a React useEffect hook when a component unmounts\nhyde: useEffect(() => {\\n  const intervalId = setInterval(() => {}, 1000);\\n  return () => clearInterval(intervalId);\\n}, []);",
+        "lex": "useEffect cleanup function, React cleanup callback, component unmount event listener",
+        "vec": "How to properly clean up resources in a React useEffect hook when a component unmounts",
+        "hyde": "useEffect(() => {\\n  const intervalId = setInterval(() => {}, 1000);\\n  return () => clearInterval(intervalId);\\n}, []);"
+      }
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 27211.531291999563,
+      "total": 0.7590000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about \"handleSubmit function\" into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: handleSubmit, onSubmit, form submission, React hook, controlled input\nvec: How to implement a handleSubmit function in a React form for handling user input and submission\nhyde: function handleSubmit(e) { e.preventDefault(); console.log(e.target); const formData = new FormData(e.target); return { name: formData.get('name'), email: formData.get('email') }; }",
+        "lex": "handleSubmit, onSubmit, form submission, React hook, controlled input",
+        "vec": "How to implement a handleSubmit function in a React form for handling user input and submission",
+        "hyde": "function handleSubmit(e) { e.preventDefault(); console.log(e.target); const formData = new FormData(e.target); return { name: formData.get('name'), email: formData.get('email') }; }"
+      }
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 23263.441374998365,
+      "total": 0.7277500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand the search query \"SearchBar component\" into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions.\n</think>\n\nlex: SearchBar component React, SearchBar input field form, search component UI\nvec: how to create a SearchBar component for user input with search functionality\nhyde: const SearchBar = ({ onSearch }) => (\\n  <input type=\"text\" placeholder=\"Search...\" onChange={(e) => onSearch(e.target.value)} />\\n);",
+        "lex": "SearchBar component React, SearchBar input field form, search component UI",
+        "vec": "how to create a SearchBar component for user input with search functionality",
+        "hyde": "const SearchBar = ({ onSearch }) => (\\n  <input type=\"text\" placeholder=\"Search...\" onChange={(e) => onSearch(e.target.value)} />\\n);"
+      }
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 20276.736749998236,
+      "total": 0.7430000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet\n\nLet me create a meaningful expansion.\n</think>\n\nlex: createEmbeddingsClient AWS, createEmbeddingsClient OpenAI, embeddings client API\nvec: how to create an embeddings client for semantic vector search\nhyde: const { createEmbeddingsClient } = require('@aws-sdk/credential-providers'); const client = createEmbeddingsClient({ region: 'us-east-1' }); const vectors = await client.embedText({ text: 'machine learning query' });",
+        "lex": "createEmbeddingsClient AWS, createEmbeddingsClient OpenAI, embeddings client API",
+        "vec": "how to create an embeddings client for semantic vector search",
+        "hyde": "const { createEmbeddingsClient } = require('@aws-sdk/credential-providers'); const client = createEmbeddingsClient({ region: 'us-east-1' }); const vectors = await client.embedText({ text: 'machine learning query' });"
+      }
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 19466.61837499414,
+      "total": 0.7277500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"parseParameterSize\".\n</think>\n\nlex: parseParameterSize function, parse parameter size validation, parseParamSize input\nvec: how to parse and validate the size of a function or API parameter\nhyde: function parseParameterSize(param, maxSize) { if (typeof param === 'string' && param.length > maxSize) throw new Error('Parameter too large'); return param.length; }",
+        "lex": "parseParameterSize function, parse parameter size validation, parseParamSize input",
+        "vec": "how to parse and validate the size of a function or API parameter",
+        "hyde": "function parseParameterSize(param, maxSize) { if (typeof param === 'string' && param.length > maxSize) throw new Error('Parameter too large'); return param.length; }"
+      }
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 20393.97412499966,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"buildCombinedIndex\".\n</think>\n\nlex: buildCombinedIndex function, combined index search full-text vector, index combining multiple search sources\nvec: how to build a combined search index that matches across multiple types of data sources\nhyde: function buildCombinedIndex(sources) { const index = new InvertedIndex(); sources.forEach(s => s.forEach(doc => index.add(doc))); return index; }",
+        "lex": "buildCombinedIndex function, combined index search full-text vector, index combining multiple search sources",
+        "vec": "how to build a combined search index that matches across multiple types of data sources",
+        "hyde": "function buildCombinedIndex(sources) { const index = new InvertedIndex(); sources.forEach(s => s.forEach(doc => index.add(doc))); return index; }"
+      }
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 32493.779500000528,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about cosineSimilarity helper into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: cosineSimilarity helper function, cosine similarity vector comparison, dot product normalized cosine\nvec: how to implement a cosine similarity helper function for comparing vectors\nhyde: function cosineSimilarity(vec1, vec2) { const dot = vec1.reduce((sum, v, i) => sum + v * vec2[i], 0); const mag1 = Math.sqrt(vec1.reduce((s, v) => s + v * v, 0)); const mag2 = Math.sqrt(vec2.reduce((s, v) => s + v * v, 0)); return mag1 > 0 && mag2 > 0 ? dot / (mag1 * mag2) : 0; }",
+        "lex": "cosineSimilarity helper function, cosine similarity vector comparison, dot product normalized cosine",
+        "vec": "how to implement a cosine similarity helper function for comparing vectors",
+        "hyde": "function cosineSimilarity(vec1, vec2) { const dot = vec1.reduce((sum, v, i) => sum + v * vec2[i], 0); const mag1 = Math.sqrt(vec1.reduce((s, v) => s + v * v, 0)); const mag2 = Math.sqrt(vec2.reduce((s, v) => s + v * v, 0)); return mag1 > 0 && mag2 > 0 ? dot / (mag1 * mag2) : 0; }"
+      }
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 20085.141915995337,
+      "total": 0.7590000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about a QueryGenerator class into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: QueryGenerator class implementation, query parameterization, SQL injection prevention\nvec: how to implement a QueryGenerator class for safely building database queries\nhyde: class QueryGenerator { static buildWhere(params) { return 'SELECT * FROM users WHERE ' + params.map(p => `${p.key} = ?`).join(' AND '); } }",
+        "lex": "QueryGenerator class implementation, query parameterization, SQL injection prevention",
+        "vec": "how to implement a QueryGenerator class for safely building database queries",
+        "hyde": "class QueryGenerator { static buildWhere(params) { return 'SELECT * FROM users WHERE ' + params.map(p => `${p.key} = ?`).join(' AND '); } }"
+      }
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 21952.242166997166,
+      "total": 0.7670000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"aggregateRetrievalResults\".\n</think>\n\nlex: aggregateRetrievalResults function, aggregate retrieval results search, retrieval aggregation query expansion\nvec: how do you aggregate and retrieve search results from multiple sources\nhyde: function aggregateRetrievalResults(results) { const byType = results.reduce((acc, r) => { acc[r.type] = (acc[r.type] || 0) + 1; return acc; }, {}); return byType; }",
+        "lex": "aggregateRetrievalResults function, aggregate retrieval results search, retrieval aggregation query expansion",
+        "vec": "how do you aggregate and retrieve search results from multiple sources",
+        "hyde": "function aggregateRetrievalResults(results) { const byType = results.reduce((acc, r) => { acc[r.type] = (acc[r.type] || 0) + 1; return acc; }, {}); return byType; }"
+      }
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 26620.08458300261,
+      "total": 0.7590000000000001,
+      "expansion": {
+        "raw": "The user is asking about the LocalLLMClient constructor, which appears to be from a library for running local LLMs (Large Language Models). I need to expand this into three types:\n\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me write three concise lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: LocalLLMClient constructor local llm client, LocalLLMClient initialize model, local llm inference client\nvec: How do you create and initialize a LocalLLMClient to run local large language models?\nhyde: const client = new LocalLLMClient({ model: 'llama3', maxTokens: 256, temperature: 0.7 }); await client.generate('Explain quantum computing');",
+        "lex": "LocalLLMClient constructor local llm client, LocalLLMClient initialize model, local llm inference client",
+        "vec": "How do you create and initialize a LocalLLMClient to run local large language models?",
+        "hyde": "const client = new LocalLLMClient({ model: 'llama3', maxTokens: 256, temperature: 0.7 }); await client.generate('Explain quantum computing');"
+      }
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 32713.23449999909,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: TypeError cannot read property of undefined fix, undefined property access JavaScript, optional chaining null check\nvec: How do I fix a JavaScript error where I'm trying to access a property on an undefined or null object?\nhyde: const user = null;\\nconsole.log(user.name); // TypeError: Cannot read properties of null (reading 'name')\\n// Fix 1: Optional chaining - console.log(user?.name)\\n// Fix 2: Null check - if (user) console.log(user.name)\\n// Fix 3: Default value - console.log((user || {}).name)",
+        "lex": "TypeError cannot read property of undefined fix, undefined property access JavaScript, optional chaining null check",
+        "vec": "How do I fix a JavaScript error where I'm trying to access a property on an undefined or null object?",
+        "hyde": "const user = null;\\nconsole.log(user.name); // TypeError: Cannot read properties of null (reading 'name')\\n// Fix 1: Optional chaining - console.log(user?.name)\\n// Fix 2: Null check - if (user) console.log(user.name)\\n// Fix 3: Default value - console.log((user || {}).name)"
+      }
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 33675.06654200406,
+      "total": 0.7670000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about ECONNREFUSED localhost errors into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet that would match this query\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: ECONNREFUSED localhost connection refused, localhost port not listening, network error connection refused\nvec: How do I fix a localhost ECONNREFUSED error when trying to connect to a local server?\nhyde: const server = require('http').createServer((req, res) => res.end('OK')); server.listen(3000, 'localhost');\\ntry {\\n  const http = require('http');\\n  http.get('http://localhost:3000', (res) => console.log(res));\\n} catch (err) {\\n  if (err.code === 'ECONNREFUSED') console.error('Server not running on localhost:3000');\\n}",
+        "lex": "ECONNREFUSED localhost connection refused, localhost port not listening, network error connection refused",
+        "vec": "How do I fix a localhost ECONNREFUSED error when trying to connect to a local server?",
+        "hyde": "const server = require('http').createServer((req, res) => res.end('OK')); server.listen(3000, 'localhost');\\ntry {\\n  const http = require('http');\\n  http.get('http://localhost:3000', (res) => console.log(res));\\n} catch (err) {\\n  if (err.code === 'ECONNREFUSED') console.error('Server not running on localhost:3000');\\n}"
+      }
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 23515.831083001103,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "This is a common JavaScript/TypeScript error where an import statement can't find the module it's trying to import. Let me expand this into three types:\n\n- lex: technical keywords for search\n- vec: a natural language rephrasing\n- hyde: a realistic short code snippet that would cause this error\n</think>\n\nlex: module not found, cannot resolve import, import error, unresolved dependency, ESM import path\nvec: How do I fix a module not found error when an import statement can't resolve a dependency?\nhyde: import { useState } from 'react';\\nconst App = () => { return <div>Hello</div>; };\\nexport default App;\\n// Error: Cannot find module 'react' or its corresponding type declarations",
+        "lex": "module not found, cannot resolve import, import error, unresolved dependency, ESM import path",
+        "vec": "How do I fix a module not found error when an import statement can't resolve a dependency?",
+        "hyde": "import { useState } from 'react';\\nconst App = () => { return <div>Hello</div>; };\\nexport default App;\\n// Error: Cannot find module 'react' or its corresponding type declarations"
+      }
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 26198.897333997593,
+      "total": 0.7670000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: CORS origin not allowed headers fix, CORS preflight OPTIONS, Access-Control-Allow-Origin\nvec: How to fix CORS errors when a browser blocks requests between different origins\nhyde: const options = { method: 'POST', headers: { 'Access-Control-Allow-Origin': '*' } }; fetch('/api', { headers: { 'Origin': 'https://example.com' } });",
+        "lex": "CORS origin not allowed headers fix, CORS preflight OPTIONS, Access-Control-Allow-Origin",
+        "vec": "How to fix CORS errors when a browser blocks requests between different origins",
+        "hyde": "const options = { method: 'POST', headers: { 'Access-Control-Allow-Origin': '*' } }; fetch('/api', { headers: { 'Origin': 'https://example.com' } });"
+      }
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 35283.805582999776,
+      "total": 0.7510000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: OutOfMemoryError heap allocation, heap overflow memory allocation, memory exhausted allocation failure\nvec: Application running out of memory when trying to allocate heap memory, causing allocation failure\nhyde: try { var data = new byte[1024 * 1024 * 1024]; } catch (OutOfMemoryException e) { Console.WriteLine(\"Heap allocation failed: \" + e.Message); }",
+        "lex": "OutOfMemoryError heap allocation, heap overflow memory allocation, memory exhausted allocation failure",
+        "vec": "Application running out of memory when trying to allocate heap memory, causing allocation failure",
+        "hyde": "try { var data = new byte[1024 * 1024 * 1024]; } catch (OutOfMemoryException e) { Console.WriteLine(\"Heap allocation failed: \" + e.Message); }"
+      }
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 27042.220332994475,
+      "total": 0.7357500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: database connection timeout pool exhausted, db connection pool max connections, database query timeout connection\nvec: how to fix database connection timeout errors when the connection pool is exhausted\nhyde: ConnectionPool.get(timeout=5) raised TimeoutError after 120 connections were in use. Increase max_pool_size from 10 to 50, add connection health checks, and implement retry logic with exponential backoff.",
+        "lex": "database connection timeout pool exhausted, db connection pool max connections, database query timeout connection",
+        "vec": "how to fix database connection timeout errors when the connection pool is exhausted",
+        "hyde": "ConnectionPool.get(timeout=5) raised TimeoutError after 120 connections were in use. Increase max_pool_size from 10 to 50, add connection health checks, and implement retry logic with exponential backoff."
+      }
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 0.0,
+      "keyword": 0.0,
+      "semantic": 0.0,
+      "hyde": 0.0,
+      "latencyMs": 14018.620875001943,
+      "total": 0.015,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order\nNo explanations, preamble, markdown fences, or trailing text",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 22649.408166995272,
+      "total": 0.6572500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about circular dependencies in code. I need to provide:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet that would match this query\n\nLet me write three concise lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: circular dependency import cycle, cyclic import module, circular dependency detection\nvec: how to detect and resolve circular dependencies between modules in software\nhyde: Module A imports module B, and module B imports back to module A. This creates a circular dependency that can cause import errors, infinite loops, or runtime failures. Break cycles by extracting shared code into a separate module or using dependency injection.",
+        "lex": "circular dependency import cycle, cyclic import module, circular dependency detection",
+        "vec": "how to detect and resolve circular dependencies between modules in software",
+        "hyde": "Module A imports module B, and module B imports back to module A. This creates a circular dependency that can cause import errors, infinite loops, or runtime failures. Break cycles by extracting shared code into a separate module or using dependency injection."
+      }
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 27439.588624998578,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "This is a TypeScript error about type mismatch between an argument and a parameter. Let me expand this into three types:\n\n- lex: keyword variants for search - type error argument not assignable, type mismatch parameter, TypeScript incompatible types\n- vec: natural language rephrasing - how to fix a TypeScript error where an argument type doesn't match the expected parameter type\n- hyde: a realistic short code snippet that would trigger this error\n</think>\n\nlex: type error argument not assignable to parameter, TypeScript incompatible types, argument type mismatch\nvec: How do I fix a TypeScript error where an argument type is not assignable to a function parameter type?\nhyde: function add(a: number, b: number): number { return a + b; }\\nconst result = add(5, \"10\"); // Error: argument of type 'string' is not assignable to parameter of type 'number'",
+        "lex": "type error argument not assignable to parameter, TypeScript incompatible types, argument type mismatch",
+        "vec": "How do I fix a TypeScript error where an argument type is not assignable to a function parameter type?",
+        "hyde": "function add(a: number, b: number): number { return a + b; }\\nconst result = add(5, \"10\"); // Error: argument of type 'string' is not assignable to parameter of type 'number'"
+      }
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 28525.64474999963,
+      "total": 0.7437500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: EACCES, errno 13, chmod, chown, file permissions, access denied, Unix permissions\nvec: How to fix permission denied EACCES errors when trying to access files on Unix/Linux\nhyde: File not readable: EACCES (13). Check file permissions with ls -l. Use chmod 644 to make readable, or chown to change ownership. Run as root with sudo if needed.",
+        "lex": "EACCES, errno 13, chmod, chown, file permissions, access denied, Unix permissions",
+        "vec": "How to fix permission denied EACCES errors when trying to access files on Unix/Linux",
+        "hyde": "File not readable: EACCES (13). Check file permissions with ls -l. Use chmod 644 to make readable, or chown to change ownership. Run as root with sudo if needed."
+      }
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 24518.940916001156,
+      "total": 0.7510000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand the search query \"authentication middleware\" into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions.\n</think>\n\nlex: auth middleware express, jwt middleware authentication, authorization middleware route\nvec: how to implement authentication middleware in a web framework\nhyde: const authMiddleware = (req, res, next) => {\\n  const token = req.headers.authorization?.split(' ')[1];\\n  if (!token) return res.status(401).json({ error: 'Unauthorized' });\\n  req.user = jwt.verify(token, process.env.JWT_SECRET);\\n  next();\\n};",
+        "lex": "auth middleware express, jwt middleware authentication, authorization middleware route",
+        "vec": "how to implement authentication middleware in a web framework",
+        "hyde": "const authMiddleware = (req, res, next) => {\\n  const token = req.headers.authorization?.split(' ')[1];\\n  if (!token) return res.status(401).json({ error: 'Unauthorized' });\\n  req.user = jwt.verify(token, process.env.JWT_SECRET);\\n  next();\\n};"
+      }
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 21983.80483299843,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions for \"rate limiting implementation\".\n</think>\n\nlex: rate limiting api token bucket, rate limiter algorithm token bucket leaky bucket, http rate limiting middleware\nvec: how to implement rate limiting in an api using token bucket or leaky bucket algorithm\nhyde: import rate_limit from 'express-rate-limit'; app.use('/api', rate_limit({ windowCount: 60, windowMs: 15000, message: 'Too many requests' }));",
+        "lex": "rate limiting api token bucket, rate limiter algorithm token bucket leaky bucket, http rate limiting middleware",
+        "vec": "how to implement rate limiting in an api using token bucket or leaky bucket algorithm",
+        "hyde": "import rate_limit from 'express-rate-limit'; app.use('/api', rate_limit({ windowCount: 60, windowMs: 15000, message: 'Too many requests' }));"
+      }
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 29523.719958000584,
+      "total": 0.7125000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: cache invalidation strategy, caching stale data, cache key expiration, write-through cache, cache busting\nvec: what are the different caching strategies and how does cache invalidation work\nhyde: Cache invalidation strategies include: time-based (TTL), key-based (invalidate related keys on write), event-driven (pub/sub signals), and versioned keys. Write-through ensures data is fresh but slower. Cache busting adds version params to URLs.",
+        "lex": "cache invalidation strategy, caching stale data, cache key expiration, write-through cache, cache busting",
+        "vec": "what are the different caching strategies and how does cache invalidation work",
+        "hyde": "Cache invalidation strategies include: time-based (TTL), key-based (invalidate related keys on write), event-driven (pub/sub signals), and versioned keys. Write-through ensures data is fresh but slower. Cache busting adds version params to URLs."
+      }
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 28827.004499995383,
+      "total": 0.7277500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"retry logic exponential backoff\".\n</think>\n\nlex: retry exponential backoff, retry logic backoff algorithm, retry delay exponential, circuit breaker retry\nvec: how to implement retry logic with exponential backoff for resilient APIs\nhyde: Exponential backoff: retry with delays of 1s, 2s, 4s, 8s... capped at max. Add jitter to avoid thundering herd. Formula: delay = min(2^attempt * base, max_delay) + random(0, jitter). Use for transient failures, not permanent errors.",
+        "lex": "retry exponential backoff, retry logic backoff algorithm, retry delay exponential, circuit breaker retry",
+        "vec": "how to implement retry logic with exponential backoff for resilient APIs",
+        "hyde": "Exponential backoff: retry with delays of 1s, 2s, 4s, 8s... capped at max. Add jitter to avoid thundering herd. Formula: delay = min(2^attempt * base, max_delay) + random(0, jitter). Use for transient failures, not permanent errors."
+      }
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8400000000000001,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 32156.558374997985,
+      "total": 0.6805000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: connection_pool database, database_pooling connection, connection_pooling sql\nvec: how does database connection pooling work and why is it important for performance\nhyde: Connection pooling reuses database connections instead of creating new ones for each request. For MySQL, use HikariCP in Java or psycopg2.pool in Python. Typical pool size: 10-20 connections. Creates overhead when creating connections, wastes resources.",
+        "lex": "connection_pool database, database_pooling connection, connection_pooling sql",
+        "vec": "how does database connection pooling work and why is it important for performance",
+        "hyde": "Connection pooling reuses database connections instead of creating new ones for each request. For MySQL, use HikariCP in Java or psycopg2.pool in Python. Typical pool size: 10-20 connections. Creates overhead when creating connections, wastes resources."
+      }
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 27844.096500004525,
+      "total": 0.6572500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: event-driven-architecture pub-sub, event-driven-architecture message-queue, pubsub event emitter async\nvec: what is event-driven architecture and how do pub-sub patterns work\nhyde: Event-driven architecture uses pub-sub to decouple components. Publishers emit events, subscribers receive them asynchronously. Popular systems: Kafka, RabbitMQ, AWS SNS/SQS. Benefits: loose coupling, scalability, resilience.",
+        "lex": "event-driven-architecture pub-sub, event-driven-architecture message-queue, pubsub event emitter async",
+        "vec": "what is event-driven architecture and how do pub-sub patterns work",
+        "hyde": "Event-driven architecture uses pub-sub to decouple components. Publishers emit events, subscribers receive them asynchronously. Popular systems: Kafka, RabbitMQ, AWS SNS/SQS. Benefits: loose coupling, scalability, resilience."
+      }
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 29461.77549999993,
+      "total": 0.6732500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: dependency injection di, service container ioc, inject dependencies, dependency injection framework\nvec: what is dependency injection and how does a service container work\nhyde: Dependency injection (DI) separates object creation from usage. A service container (like Unity, Autofac, or Microsoft's built-in DI) registers services and resolves dependencies at runtime, promoting loose coupling and testability.",
+        "lex": "dependency injection di, service container ioc, inject dependencies, dependency injection framework",
+        "vec": "what is dependency injection and how does a service container work",
+        "hyde": "Dependency injection (DI) separates object creation from usage. A service container (like Unity, Autofac, or Microsoft's built-in DI) registers services and resolves dependencies at runtime, promoting loose coupling and testability."
+      }
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 23365.847916997154,
+      "total": 0.6572500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for pagination cursor offset limit.\n</think>\n\nlex: pagination cursor offset limit, pagination cursor based offset limit, infinite scroll pagination cursor\nvec: how to implement pagination using cursor-based approach instead of offset for better performance\nhyde: Offset pagination loads N rows starting from row N, causing performance issues as N grows. Cursor pagination uses unique identifiers from previous results. Use 'next_cursor' parameter to fetch next page. Cursor is O(1) per page, offset is O(N).",
+        "lex": "pagination cursor offset limit, pagination cursor based offset limit, infinite scroll pagination cursor",
+        "vec": "how to implement pagination using cursor-based approach instead of offset for better performance",
+        "hyde": "Offset pagination loads N rows starting from row N, causing performance issues as N grows. Cursor pagination uses unique identifiers from previous results. Use 'next_cursor' parameter to fetch next page. Cursor is O(1) per page, offset is O(N)."
+      }
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 31092.149832998984,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: graceful shutdown signal handler, SIGTERM SIGINT cleanup, process termination\u4f18\u96c5, shutdown callback handlers\nvec: how to implement graceful shutdown in an application to handle termination signals cleanly\nhyde: import signal, os\\ndef signal_handler(signum, frame):\\n    print(\"Shutting down gracefully...\")\\n    save_state()\\n    close_connections()\\n    os.exit(0)\\nsignal.signal(signal.SIGTERM, signal_handler)\\nsignal.signal(signal.SIGINT, signal_handler)",
+        "lex": "graceful shutdown signal handler, SIGTERM SIGINT cleanup, process termination\u4f18\u96c5, shutdown callback handlers",
+        "vec": "how to implement graceful shutdown in an application to handle termination signals cleanly",
+        "hyde": "import signal, os\\ndef signal_handler(signum, frame):\\n    print(\"Shutting down gracefully...\")\\n    save_state()\\n    close_connections()\\n    os.exit(0)\\nsignal.signal(signal.SIGTERM, signal_handler)\\nsignal.signal(signal.SIGINT, signal_handler)"
+      }
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 26728.24054100056,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: streaming response server-sent events sse, stream server sent events api, sse event source stream\nvec: how to implement a streaming response using server-sent events in a web API\nhyde: const eventSource = new EventSource('/api/stream'); eventSource.addEventListener('message', (e) => console.log(e.data)); eventSource.onerror(handleError);",
+        "lex": "streaming response server-sent events sse, stream server sent events api, sse event source stream",
+        "vec": "how to implement a streaming response using server-sent events in a web API",
+        "hyde": "const eventSource = new EventSource('/api/stream'); eventSource.addEventListener('message', (e) => console.log(e.data)); eventSource.onerror(handleError);"
+      }
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 0.0,
+      "keyword": 0.0,
+      "semantic": 0.0,
+      "hyde": 0.0,
+      "latencyMs": 13980.449624999892,
+      "total": 0.015,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order\nNo explanations, preamble, markdown fences, or trailing text",
+        "lex": null,
+        "vec": null,
+        "hyde": null
+      }
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 31921.136917000695,
+      "total": 0.7357500000000001,
+      "expansion": {
+        "raw": "The user is asking about Express.js middleware and specifically about the `next()` function in the middleware chain. This is a fundamental concept in Express.js routing.\n\nLet me expand this into:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nI need to make sure the response is EXACTLY 3 lines starting with lex:, vec:, hyde: in that order, with no explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: express middleware chain next, express app use middleware next(), express handler next function\nvec: how does the next() function work in Express.js middleware and what happens when it's called\nhyde: app.use((req, res, next) => { console.log('before'); next(); }); app.use((req, res, next) => { console.log('after'); next(); }); next() passes control to the next middleware in the chain. Call it to proceed, omit it to stop and respond immediately.",
+        "lex": "express middleware chain next, express app use middleware next(), express handler next function",
+        "vec": "how does the next() function work in Express.js middleware and what happens when it's called",
+        "hyde": "app.use((req, res, next) => { console.log('before'); next(); }); app.use((req, res, next) => { console.log('after'); next(); }); next() passes control to the next middleware in the chain. Call it to proceed, omit it to stop and respond immediately."
+      }
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 22708.564667002065,
+      "total": 0.7590000000000001,
+      "expansion": {
+        "raw": "This is a search query expansion for Prisma ORM, which is a Node.js ORM for TypeScript/JavaScript. The query is about finding multiple records with a where clause.\n\nLex: keyword variants for technical search\nvec: natural language rephrasing\nhyde: a short hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: Prisma findMany where clause, Prisma ORM query filtering, prisma query where operator\nvec: how to write a Prisma ORM query to find multiple records with a where clause\nhyde: const users = await prisma.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' } });",
+        "lex": "Prisma findMany where clause, Prisma ORM query filtering, prisma query where operator",
+        "vec": "how to write a Prisma ORM query to find multiple records with a where clause",
+        "hyde": "const users = await prisma.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' } });"
+      }
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 22997.53491699812,
+      "total": 0.7125000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create these three types of expansions.\n</think>\n\nlex: next.js server component data fetch, nextjs server side rendering api route, next.js get static props data\nvec: how to fetch data in next.js server components for server side rendering\nhyde: In Next.js server components, data fetches automatically at build time. Use 'use client' for client-side fetching. For API calls, use 'fetch()' directly in the component. Use 'revalidatePath()' for ISR updates.",
+        "lex": "next.js server component data fetch, nextjs server side rendering api route, next.js get static props data",
+        "vec": "how to fetch data in next.js server components for server side rendering",
+        "hyde": "In Next.js server components, data fetches automatically at build time. Use 'use client' for client-side fetching. For API calls, use 'fetch()' directly in the component. Use 'revalidatePath()' for ISR updates."
+      }
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 27439.34420900041,
+      "total": 0.7670000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create a realistic, syntactically valid code snippet that would match this query.\n</think>\n\nlex: Zod schema validation parse transform TypeScript, Zod transform optional default, Zod schema preprocess\nvec: How to use Zod schema validation with parse and transform for preprocessing and default values\nhyde: import { z } from 'zod';\\nconst schema = z.object({ name: z.string().transform(s => s.toUpperCase()) });\\nconst result = schema.parse({ name: 'john' });\\nconsole.log(result); // { name: 'JOHN' }",
+        "lex": "Zod schema validation parse transform TypeScript, Zod transform optional default, Zod schema preprocess",
+        "vec": "How to use Zod schema validation with parse and transform for preprocessing and default values",
+        "hyde": "import { z } from 'zod';\\nconst schema = z.object({ name: z.string().transform(s => s.toUpperCase()) });\\nconst result = schema.parse({ name: 'john' });\\nconsole.log(result); // { name: 'JOHN' }"
+      }
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 28867.167917000188,
+      "total": 0.7510000000000001,
+      "expansion": {
+        "raw": "I need to expand this query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me think about what tRPC is - it's a type-safe RPC framework for Node.js/TypeScript. Routers are used to group endpoints, and procedures are individual handlers. Mutations are typically POST operations that modify state.\n</think>\n\nlex: tRPC router, tRPC procedure, tRPC mutation, @tRPC/server/http, tRPC POST endpoint\nvec: how to create a tRPC router with a mutation procedure for creating/updating resources\nhyde: import { router, publicProcedure } from '@trpc/server';\\nexport const appRouter = router({\\n  create: publicProcedure.input({ name: 'string' }).mutation(async ({ input }) => ({ id: 1, ...input }))\\n});",
+        "lex": "tRPC router, tRPC procedure, tRPC mutation, @tRPC/server/http, tRPC POST endpoint",
+        "vec": "how to create a tRPC router with a mutation procedure for creating/updating resources",
+        "hyde": "import { router, publicProcedure } from '@trpc/server';\\nexport const appRouter = router({\\n  create: publicProcedure.input({ name: 'string' }).mutation(async ({ input }) => ({ id: 1, ...input }))\\n});"
+      }
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.8799999999999999,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 34019.36233299784,
+      "total": 0.6885000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions:\n- lex: technical keywords and identifiers\n- vec: a natural language rephrasing\n- hyde: a realistic short code snippet\n\nMake sure the response starts with lex: and has exactly 3 lines.\n</think>\n\nlex: tailwindcss responsive breakpoints, tailwind responsive utilities, tailwindcss mobile first breakpoints\nvec: how to use Tailwind CSS responsive breakpoints and utility classes for different screen sizes\nhyde: Responsive breakpoints in Tailwind CSS: sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px). Use classes like `md:flex`, `lg:hidden`, `sm:text-lg` to show/hide elements at different screen sizes.",
+        "lex": "tailwindcss responsive breakpoints, tailwind responsive utilities, tailwindcss mobile first breakpoints",
+        "vec": "how to use Tailwind CSS responsive breakpoints and utility classes for different screen sizes",
+        "hyde": "Responsive breakpoints in Tailwind CSS: sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px). Use classes like `md:flex`, `lg:hidden`, `sm:text-lg` to show/hide elements at different screen sizes."
+      }
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 22352.468709003006,
+      "total": 0.7590000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about Jest testing with mocking and spyOn. I need to create:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: jest mock module spyOn, jest mock function spy, jest test mock dependency\nvec: how to use jest mock module and spyOn in testing\nhyde: const mockFn = jest.fn();\\njest.spyOn(globalThis, 'fetch').mockResolvedValue({ data: {} });\\nexpect(mockFn).toHaveBeenCalled();\\njest.restoreAllMocks();",
+        "lex": "jest mock module spyOn, jest mock function spy, jest test mock dependency",
+        "vec": "how to use jest mock module and spyOn in testing",
+        "hyde": "const mockFn = jest.fn();\\njest.spyOn(globalThis, 'fetch').mockResolvedValue({ data: {} });\\nexpect(mockFn).toHaveBeenCalled();\\njest.restoreAllMocks();"
+      }
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 22219.32491700136,
+      "total": 0.6652500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: docker compose multi-service networking, docker compose network bridge, docker service networking ports\nvec: how to set up networking between multiple services in a docker compose file\nhyde: Services communicate via service names in docker compose. Define a network: services: web: networks: - mynet db: networks: - mynet. Use docker compose up to start services on the same network.",
+        "lex": "docker compose multi-service networking, docker compose network bridge, docker service networking ports",
+        "vec": "how to set up networking between multiple services in a docker compose file",
+        "hyde": "Services communicate via service names in docker compose. Define a network: services: web: networks: - mynet db: networks: - mynet. Use docker compose up to start services on the same network."
+      }
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.45,
+      "latencyMs": 25221.792208001716,
+      "total": 0.7125000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: github actions ci workflow matrix strategy, github actions matrix strategy os node version, actions matrix include ci testing\nvec: how to use matrix strategy in github actions ci workflow to test across multiple operating systems and versions\nhyde: matrix: ${{ matrix.os = ['ubuntu-latest', 'windows-latest'], matrix.node-version = ['18', '20'] }}",
+        "lex": "github actions ci workflow matrix strategy, github actions matrix strategy os node version, actions matrix include ci testing",
+        "vec": "how to use matrix strategy in github actions ci workflow to test across multiple operating systems and versions",
+        "hyde": "matrix: ${{ matrix.os = ['ubuntu-latest', 'windows-latest'], matrix.node-version = ['18', '20'] }}"
+      }
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 25053.600500003085,
+      "total": 0.7277500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: unused import, dead code, unused variable, unused function, import analysis, code lint\nvec: Find and identify imports and code that are never used in the source file\nhyde: import os\\nimport sys\\nimport json\\n\\ndef unused_function():\\n    pass",
+        "lex": "unused import, dead code, unused variable, unused function, import analysis, code lint",
+        "vec": "Find and identify imports and code that are never used in the source file",
+        "hyde": "import os\\nimport sys\\nimport json\\n\\ndef unused_function():\\n    pass"
+      }
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.9200000000000002,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 35813.50116699468,
+      "total": 0.7590000000000001,
+      "expansion": {
+        "raw": "I need to expand this search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me think about what would match this query:\n- lex: circular dependency detection modules, cycle detection dependency graph, module circular import\n- vec: how to detect circular dependencies between modules in a codebase\n- hyde: A practical code snippet showing how to detect circular dependencies\n\nLet me write concise, realistic lines.\n</think>\n\nlex: circular dependency detection modules, cycle detection dependency graph, module circular import\nvec: how to detect circular dependencies between modules in a codebase\nhyde: def has_cycle(graph): visited = set(); rec_stack = set(); def dfs(node): visited.add(node); rec_stack.add(node); for neighbor in graph[node]: if neighbor not in visited: if dfs(neighbor): return True; rec_stack.remove(node); return False in rec_stack",
+        "lex": "circular dependency detection modules, cycle detection dependency graph, module circular import",
+        "vec": "how to detect circular dependencies between modules in a codebase",
+        "hyde": "def has_cycle(graph): visited = set(); rec_stack = set(); def dfs(node): visited.add(node); rec_stack.add(node); for neighbor in graph[node]: if neighbor not in visited: if dfs(neighbor): return True; rec_stack.remove(node); return False in rec_stack"
+      }
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 26612.157375006063,
+      "total": 0.7437500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: unreachable code, dead code, control flow graph, CFG, unreachable statements, taint analysis\nvec: Find and identify code paths that can never be executed, including syntax errors, early returns, and conditional branches that are always false.\nhyde: ```python\\ndef process(data):\\n    if False:\\n        return \"impossible\"\\n    return data",
+        "lex": "unreachable code, dead code, control flow graph, CFG, unreachable statements, taint analysis",
+        "vec": "Find and identify code paths that can never be executed, including syntax errors, early returns, and conditional branches that are always false.",
+        "hyde": "```python\\ndef process(data):\\n    if False:\\n        return \"impossible\"\\n    return data"
+      }
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.575,
+      "latencyMs": 32289.660541995545,
+      "total": 0.7437500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: sql injection vulnerability, sqli input sanitization, prepared statements parameterized query, sql injection prevention\nvec: how to prevent sql injection attacks in web applications\nhyde: SQL injection occurs when user input is directly concatenated into SQL queries. Fix by using parameterized statements: cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,)). Never use f-strings or string formatting with user data.",
+        "lex": "sql injection vulnerability, sqli input sanitization, prepared statements parameterized query, sql injection prevention",
+        "vec": "how to prevent sql injection attacks in web applications",
+        "hyde": "SQL injection occurs when user input is directly concatenated into SQL queries. Fix by using parameterized statements: cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,)). Never use f-strings or string formatting with user data."
+      }
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 33278.58595800353,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: code duplication similar functions refactor, duplicate code refactoring, extract function common code, code smell duplication\nvec: how to find and refactor duplicate code in a codebase\nhyde: function addItems(items) { return items.map(x => x * 2); }\\nfunction multiply(items, factor) { return items.map(x => x * factor); }\\n// Extract common pattern into multiply(items, factor)\\nfunction multiply(items, factor) { return items.map(x => x * factor); }\\nfunction addItems(items) { return multiply(items, 2); }",
+        "lex": "code duplication similar functions refactor, duplicate code refactoring, extract function common code, code smell duplication",
+        "vec": "how to find and refactor duplicate code in a codebase",
+        "hyde": "function addItems(items) { return items.map(x => x * 2); }\\nfunction multiply(items, factor) { return items.map(x => x * factor); }\\n// Extract common pattern into multiply(items, factor)\\nfunction multiply(items, factor) { return items.map(x => x * factor); }\\nfunction addItems(items) { return multiply(items, 2); }"
+      }
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 34386.66970899794,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query about performance bottlenecks related to N+1 query problems.\n\nlex: should include keywords like \"N+1 query\", \"lazy loading\", \"eager loading\", \"relationship\", \"fetch\", \"ORM\"\nvec: a natural language rephrasing\nhyde: a short hypothetical code snippet that demonstrates an N+1 query problem\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: N+1 query performance, N+1 query problem ORM, eager loading lazy loading, relationship fetch\nvec: how to identify and fix N+1 query performance bottlenecks in database code\nhyde: def get_users_with_posts():\\n    users = User.query.all()\\n    for user in users:\\n        post = user.posts[0]  # Separate query for each user",
+        "lex": "N+1 query performance, N+1 query problem ORM, eager loading lazy loading, relationship fetch",
+        "vec": "how to identify and fix N+1 query performance bottlenecks in database code",
+        "hyde": "def get_users_with_posts():\\n    users = User.query.all()\\n    for user in users:\\n        post = user.posts[0]  # Separate query for each user"
+      }
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 21451.98245899519,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions that would be useful for finding code with missing error handling.\n</think>\n\nlex: missing error handling try catch, unhandled exception async error, null pointer exception fallback\nvec: how to add try-catch error handling in code, prevent unhandled exceptions in programming\nhyde: function fetchData() { const response = await api.get('/users'); return response.data; } // No try-catch, will throw on network error",
+        "lex": "missing error handling try catch, unhandled exception async error, null pointer exception fallback",
+        "vec": "how to add try-catch error handling in code, prevent unhandled exceptions in programming",
+        "hyde": "function fetchData() { const response = await api.get('/users'); return response.data; } // No try-catch, will throw on network error"
+      }
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 31505.67391599907,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "This is a query about type safety in programming, specifically about using `any` types, assertions, and unsafe casts. This is a common concern in statically typed languages like TypeScript, C#, or Rust.\n\nLet me expand this into:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet that would match\n\nI need to make sure the hyde is realistic and syntactically valid code, not pseudocode.\n</think>\n\nlex: type safety any assertion unsafe cast TypeScript C#, type checking, explicit cast, type guard\nvec: How to safely handle type assertions and avoid unsafe casts in statically typed programming languages\nhyde: In TypeScript, `any` bypasses type checking: `const x: any = getValue(); const y = x.toUpperCase();` Use type guards instead: `if (typeof x === 'string') { const s = x.toUpperCase(); }` In C#, use `as` or `is` operators, or `dynamic` with caution.",
+        "lex": "type safety any assertion unsafe cast TypeScript C#, type checking, explicit cast, type guard",
+        "vec": "How to safely handle type assertions and avoid unsafe casts in statically typed programming languages",
+        "hyde": "In TypeScript, `any` bypasses type checking: `const x: any = getValue(); const y = x.toUpperCase();` Use type guards instead: `if (typeof x === 'string') { const s = x.toUpperCase(); }` In C#, use `as` or `is` operators, or `dynamic` with caution."
+      }
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 0.96,
+      "semantic": 1.0,
+      "hyde": 0.325,
+      "latencyMs": 27345.697749995452,
+      "total": 0.6732500000000001,
+      "expansion": {
+        "raw": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: memory leak event listener cleanup remove, event listener cleanup unbind, event listener remove memory, event handler cleanup dispose\nvec: how to prevent memory leaks by properly cleaning up event listeners in JavaScript\nhyde: Memory leaks occur when event listeners are attached to elements that are never removed. Use removeEventListener() or delegate events to prevent orphaned listeners. In React, use useEffect cleanup functions. In Vue, use onMounted/onUnmounted hooks.",
+        "lex": "memory leak event listener cleanup remove, event listener cleanup unbind, event listener remove memory, event handler cleanup dispose",
+        "vec": "how to prevent memory leaks by properly cleaning up event listeners in JavaScript",
+        "hyde": "Memory leaks occur when event listeners are attached to elements that are never removed. Use removeEventListener() or delegate events to prevent orphaned listeners. In React, use useEffect cleanup functions. In Vue, use onMounted/onUnmounted hooks."
+      }
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "modelName": "qwen3.5-4b-FT",
+      "format": 1.0,
+      "keyword": 1.0,
+      "semantic": 1.0,
+      "hyde": 0.7,
+      "latencyMs": 20820.87354199757,
+      "total": 0.7750000000000001,
+      "expansion": {
+        "raw": "This is a search query expansion for a programming concern about race conditions in async/concurrent code.\n\nlex: should expand to keyword variants for search\nvec: natural language rephrasing\nhyde: a short hypothetical code snippet that would match\n\nLet me write three concise lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: race condition async concurrent, async mutex lock synchronization, thread safety concurrent access\nvec: how to prevent race conditions in async concurrent code when multiple threads access shared resources\nhyde: async function fetchData() { let counter = 0; await Promise.all([increment(counter), increment(counter)]); } // race condition - counter increments twice",
+        "lex": "race condition async concurrent, async mutex lock synchronization, thread safety concurrent access",
+        "vec": "how to prevent race conditions in async concurrent code when multiple threads access shared resources",
+        "hyde": "async function fetchData() { let counter = 0; await Promise.all([increment(counter), increment(counter)]); } // race condition - counter increments twice"
+      }
+    }
+  ],
+  "rawResults": [
+    {
+      "queryId": "sym-01",
+      "query": "useEffect cleanup",
+      "output": "The user wants me to expand a search query about useEffect cleanup in React. This is a common React hook pattern where you need to clean up event listeners, timers, or other resources when a component unmounts.\n\nLet me create:\n- lex: keywords for BM25 search\n- vec: a natural language rephrasing\n- hyde: a realistic short code snippet\n\nI need to make sure the hyde is syntactically valid and not pseudocode.\n</think>\n\nlex: useEffect cleanup function, React cleanup callback, component unmount event listener\nvec: How to properly clean up resources in a React useEffect hook when a component unmounts\nhyde: useEffect(() => {\\n  const intervalId = setInterval(() => {}, 1000);\\n  return () => clearInterval(intervalId);\\n}, []);",
+      "latencyMs": 34217.122166999616
+    },
+    {
+      "queryId": "sym-02",
+      "query": "handleSubmit function",
+      "output": "The user wants me to expand a search query about \"handleSubmit function\" into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: handleSubmit, onSubmit, form submission, React hook, controlled input\nvec: How to implement a handleSubmit function in a React form for handling user input and submission\nhyde: function handleSubmit(e) { e.preventDefault(); console.log(e.target); const formData = new FormData(e.target); return { name: formData.get('name'), email: formData.get('email') }; }",
+      "latencyMs": 27211.531291999563
+    },
+    {
+      "queryId": "sym-03",
+      "query": "SearchBar component",
+      "output": "The user wants me to expand the search query \"SearchBar component\" into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions.\n</think>\n\nlex: SearchBar component React, SearchBar input field form, search component UI\nvec: how to create a SearchBar component for user input with search functionality\nhyde: const SearchBar = ({ onSearch }) => (\\n  <input type=\"text\" placeholder=\"Search...\" onChange={(e) => onSearch(e.target.value)} />\\n);",
+      "latencyMs": 23263.441374998365
+    },
+    {
+      "queryId": "sym-04",
+      "query": "createEmbeddingsClient",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet\n\nLet me create a meaningful expansion.\n</think>\n\nlex: createEmbeddingsClient AWS, createEmbeddingsClient OpenAI, embeddings client API\nvec: how to create an embeddings client for semantic vector search\nhyde: const { createEmbeddingsClient } = require('@aws-sdk/credential-providers'); const client = createEmbeddingsClient({ region: 'us-east-1' }); const vectors = await client.embedText({ text: 'machine learning query' });",
+      "latencyMs": 20276.736749998236
+    },
+    {
+      "queryId": "sym-05",
+      "query": "parseParameterSize",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"parseParameterSize\".\n</think>\n\nlex: parseParameterSize function, parse parameter size validation, parseParamSize input\nvec: how to parse and validate the size of a function or API parameter\nhyde: function parseParameterSize(param, maxSize) { if (typeof param === 'string' && param.length > maxSize) throw new Error('Parameter too large'); return param.length; }",
+      "latencyMs": 19466.61837499414
+    },
+    {
+      "queryId": "sym-06",
+      "query": "buildCombinedIndex",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"buildCombinedIndex\".\n</think>\n\nlex: buildCombinedIndex function, combined index search full-text vector, index combining multiple search sources\nvec: how to build a combined search index that matches across multiple types of data sources\nhyde: function buildCombinedIndex(sources) { const index = new InvertedIndex(); sources.forEach(s => s.forEach(doc => index.add(doc))); return index; }",
+      "latencyMs": 20393.97412499966
+    },
+    {
+      "queryId": "sym-07",
+      "query": "cosineSimilarity helper",
+      "output": "The user wants me to expand a search query about cosineSimilarity helper into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: cosineSimilarity helper function, cosine similarity vector comparison, dot product normalized cosine\nvec: how to implement a cosine similarity helper function for comparing vectors\nhyde: function cosineSimilarity(vec1, vec2) { const dot = vec1.reduce((sum, v, i) => sum + v * vec2[i], 0); const mag1 = Math.sqrt(vec1.reduce((s, v) => s + v * v, 0)); const mag2 = Math.sqrt(vec2.reduce((s, v) => s + v * v, 0)); return mag1 > 0 && mag2 > 0 ? dot / (mag1 * mag2) : 0; }",
+      "latencyMs": 32493.779500000528
+    },
+    {
+      "queryId": "sym-08",
+      "query": "QueryGenerator class",
+      "output": "The user wants me to expand a search query about a QueryGenerator class into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: QueryGenerator class implementation, query parameterization, SQL injection prevention\nvec: how to implement a QueryGenerator class for safely building database queries\nhyde: class QueryGenerator { static buildWhere(params) { return 'SELECT * FROM users WHERE ' + params.map(p => `${p.key} = ?`).join(' AND '); } }",
+      "latencyMs": 20085.141915995337
+    },
+    {
+      "queryId": "sym-09",
+      "query": "aggregateRetrievalResults",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"aggregateRetrievalResults\".\n</think>\n\nlex: aggregateRetrievalResults function, aggregate retrieval results search, retrieval aggregation query expansion\nvec: how do you aggregate and retrieve search results from multiple sources\nhyde: function aggregateRetrievalResults(results) { const byType = results.reduce((acc, r) => { acc[r.type] = (acc[r.type] || 0) + 1; return acc; }, {}); return byType; }",
+      "latencyMs": 21952.242166997166
+    },
+    {
+      "queryId": "sym-10",
+      "query": "LocalLLMClient constructor",
+      "output": "The user is asking about the LocalLLMClient constructor, which appears to be from a library for running local LLMs (Large Language Models). I need to expand this into three types:\n\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me write three concise lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: LocalLLMClient constructor local llm client, LocalLLMClient initialize model, local llm inference client\nvec: How do you create and initialize a LocalLLMClient to run local large language models?\nhyde: const client = new LocalLLMClient({ model: 'llama3', maxTokens: 256, temperature: 0.7 }); await client.generate('Explain quantum computing');",
+      "latencyMs": 26620.08458300261
+    },
+    {
+      "queryId": "err-01",
+      "query": "fix TypeError cannot read property of undefined",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: TypeError cannot read property of undefined fix, undefined property access JavaScript, optional chaining null check\nvec: How do I fix a JavaScript error where I'm trying to access a property on an undefined or null object?\nhyde: const user = null;\\nconsole.log(user.name); // TypeError: Cannot read properties of null (reading 'name')\\n// Fix 1: Optional chaining - console.log(user?.name)\\n// Fix 2: Null check - if (user) console.log(user.name)\\n// Fix 3: Default value - console.log((user || {}).name)",
+      "latencyMs": 32713.23449999909
+    },
+    {
+      "queryId": "err-02",
+      "query": "resolve ECONNREFUSED localhost",
+      "output": "The user wants me to expand a search query about ECONNREFUSED localhost errors into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet that would match this query\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: ECONNREFUSED localhost connection refused, localhost port not listening, network error connection refused\nvec: How do I fix a localhost ECONNREFUSED error when trying to connect to a local server?\nhyde: const server = require('http').createServer((req, res) => res.end('OK')); server.listen(3000, 'localhost');\\ntry {\\n  const http = require('http');\\n  http.get('http://localhost:3000', (res) => console.log(res));\\n} catch (err) {\\n  if (err.code === 'ECONNREFUSED') console.error('Server not running on localhost:3000');\\n}",
+      "latencyMs": 33675.06654200406
+    },
+    {
+      "queryId": "err-03",
+      "query": "module not found cannot resolve import",
+      "output": "This is a common JavaScript/TypeScript error where an import statement can't find the module it's trying to import. Let me expand this into three types:\n\n- lex: technical keywords for search\n- vec: a natural language rephrasing\n- hyde: a realistic short code snippet that would cause this error\n</think>\n\nlex: module not found, cannot resolve import, import error, unresolved dependency, ESM import path\nvec: How do I fix a module not found error when an import statement can't resolve a dependency?\nhyde: import { useState } from 'react';\\nconst App = () => { return <div>Hello</div>; };\\nexport default App;\\n// Error: Cannot find module 'react' or its corresponding type declarations",
+      "latencyMs": 23515.831083001103
+    },
+    {
+      "queryId": "err-04",
+      "query": "CORS origin not allowed headers",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: CORS origin not allowed headers fix, CORS preflight OPTIONS, Access-Control-Allow-Origin\nvec: How to fix CORS errors when a browser blocks requests between different origins\nhyde: const options = { method: 'POST', headers: { 'Access-Control-Allow-Origin': '*' } }; fetch('/api', { headers: { 'Origin': 'https://example.com' } });",
+      "latencyMs": 26198.897333997593
+    },
+    {
+      "queryId": "err-05",
+      "query": "out of memory heap allocation failed",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: OutOfMemoryError heap allocation, heap overflow memory allocation, memory exhausted allocation failure\nvec: Application running out of memory when trying to allocate heap memory, causing allocation failure\nhyde: try { var data = new byte[1024 * 1024 * 1024]; } catch (OutOfMemoryException e) { Console.WriteLine(\"Heap allocation failed: \" + e.Message); }",
+      "latencyMs": 35283.805582999776
+    },
+    {
+      "queryId": "err-06",
+      "query": "database connection timeout pool exhausted",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: database connection timeout pool exhausted, db connection pool max connections, database query timeout connection\nvec: how to fix database connection timeout errors when the connection pool is exhausted\nhyde: ConnectionPool.get(timeout=5) raised TimeoutError after 120 connections were in use. Increase max_pool_size from 10 to 50, add connection health checks, and implement retry logic with exponential backoff.",
+      "latencyMs": 27042.220332994475
+    },
+    {
+      "queryId": "err-07",
+      "query": "promise rejected unhandled async error",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order\nNo explanations, preamble, markdown fences, or trailing text",
+      "latencyMs": 14018.620875001943
+    },
+    {
+      "queryId": "err-08",
+      "query": "circular dependency detected import cycle",
+      "output": "The user wants me to expand a search query about circular dependencies in code. I need to provide:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet that would match this query\n\nLet me write three concise lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: circular dependency import cycle, cyclic import module, circular dependency detection\nvec: how to detect and resolve circular dependencies between modules in software\nhyde: Module A imports module B, and module B imports back to module A. This creates a circular dependency that can cause import errors, infinite loops, or runtime failures. Break cycles by extracting shared code into a separate module or using dependency injection.",
+      "latencyMs": 22649.408166995272
+    },
+    {
+      "queryId": "err-09",
+      "query": "type error argument not assignable to parameter",
+      "output": "This is a TypeScript error about type mismatch between an argument and a parameter. Let me expand this into three types:\n\n- lex: keyword variants for search - type error argument not assignable, type mismatch parameter, TypeScript incompatible types\n- vec: natural language rephrasing - how to fix a TypeScript error where an argument type doesn't match the expected parameter type\n- hyde: a realistic short code snippet that would trigger this error\n</think>\n\nlex: type error argument not assignable to parameter, TypeScript incompatible types, argument type mismatch\nvec: How do I fix a TypeScript error where an argument type is not assignable to a function parameter type?\nhyde: function add(a: number, b: number): number { return a + b; }\\nconst result = add(5, \"10\"); // Error: argument of type 'string' is not assignable to parameter of type 'number'",
+      "latencyMs": 27439.588624998578
+    },
+    {
+      "queryId": "err-10",
+      "query": "permission denied EACCES file access",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: EACCES, errno 13, chmod, chown, file permissions, access denied, Unix permissions\nvec: How to fix permission denied EACCES errors when trying to access files on Unix/Linux\nhyde: File not readable: EACCES (13). Check file permissions with ls -l. Use chmod 644 to make readable, or chown to change ownership. Run as root with sudo if needed.",
+      "latencyMs": 28525.64474999963
+    },
+    {
+      "queryId": "con-01",
+      "query": "authentication middleware",
+      "output": "The user wants me to expand the search query \"authentication middleware\" into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions.\n</think>\n\nlex: auth middleware express, jwt middleware authentication, authorization middleware route\nvec: how to implement authentication middleware in a web framework\nhyde: const authMiddleware = (req, res, next) => {\\n  const token = req.headers.authorization?.split(' ')[1];\\n  if (!token) return res.status(401).json({ error: 'Unauthorized' });\\n  req.user = jwt.verify(token, process.env.JWT_SECRET);\\n  next();\\n};",
+      "latencyMs": 24518.940916001156
+    },
+    {
+      "queryId": "con-02",
+      "query": "rate limiting implementation",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions for \"rate limiting implementation\".\n</think>\n\nlex: rate limiting api token bucket, rate limiter algorithm token bucket leaky bucket, http rate limiting middleware\nvec: how to implement rate limiting in an api using token bucket or leaky bucket algorithm\nhyde: import rate_limit from 'express-rate-limit'; app.use('/api', rate_limit({ windowCount: 60, windowMs: 15000, message: 'Too many requests' }));",
+      "latencyMs": 21983.80483299843
+    },
+    {
+      "queryId": "con-03",
+      "query": "caching strategy invalidation",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: cache invalidation strategy, caching stale data, cache key expiration, write-through cache, cache busting\nvec: what are the different caching strategies and how does cache invalidation work\nhyde: Cache invalidation strategies include: time-based (TTL), key-based (invalidate related keys on write), event-driven (pub/sub signals), and versioned keys. Write-through ensures data is fresh but slower. Cache busting adds version params to URLs.",
+      "latencyMs": 29523.719958000584
+    },
+    {
+      "queryId": "con-04",
+      "query": "retry logic exponential backoff",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for \"retry logic exponential backoff\".\n</think>\n\nlex: retry exponential backoff, retry logic backoff algorithm, retry delay exponential, circuit breaker retry\nvec: how to implement retry logic with exponential backoff for resilient APIs\nhyde: Exponential backoff: retry with delays of 1s, 2s, 4s, 8s... capped at max. Add jitter to avoid thundering herd. Formula: delay = min(2^attempt * base, max_delay) + random(0, jitter). Use for transient failures, not permanent errors.",
+      "latencyMs": 28827.004499995383
+    },
+    {
+      "queryId": "con-05",
+      "query": "connection pooling database",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: connection_pool database, database_pooling connection, connection_pooling sql\nvec: how does database connection pooling work and why is it important for performance\nhyde: Connection pooling reuses database connections instead of creating new ones for each request. For MySQL, use HikariCP in Java or psycopg2.pool in Python. Typical pool size: 10-20 connections. Creates overhead when creating connections, wastes resources.",
+      "latencyMs": 32156.558374997985
+    },
+    {
+      "queryId": "con-06",
+      "query": "event driven architecture pub sub",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: event-driven-architecture pub-sub, event-driven-architecture message-queue, pubsub event emitter async\nvec: what is event-driven architecture and how do pub-sub patterns work\nhyde: Event-driven architecture uses pub-sub to decouple components. Publishers emit events, subscribers receive them asynchronously. Popular systems: Kafka, RabbitMQ, AWS SNS/SQS. Benefits: loose coupling, scalability, resilience.",
+      "latencyMs": 27844.096500004525
+    },
+    {
+      "queryId": "con-07",
+      "query": "dependency injection service container",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: dependency injection di, service container ioc, inject dependencies, dependency injection framework\nvec: what is dependency injection and how does a service container work\nhyde: Dependency injection (DI) separates object creation from usage. A service container (like Unity, Autofac, or Microsoft's built-in DI) registers services and resolves dependencies at runtime, promoting loose coupling and testability.",
+      "latencyMs": 29461.77549999993
+    },
+    {
+      "queryId": "con-08",
+      "query": "pagination cursor offset limit",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a hypothetical short code snippet\n\nLet me create three types of expansions for pagination cursor offset limit.\n</think>\n\nlex: pagination cursor offset limit, pagination cursor based offset limit, infinite scroll pagination cursor\nvec: how to implement pagination using cursor-based approach instead of offset for better performance\nhyde: Offset pagination loads N rows starting from row N, causing performance issues as N grows. Cursor pagination uses unique identifiers from previous results. Use 'next_cursor' parameter to fetch next page. Cursor is O(1) per page, offset is O(N).",
+      "latencyMs": 23365.847916997154
+    },
+    {
+      "queryId": "con-09",
+      "query": "graceful shutdown signal handling",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: graceful shutdown signal handler, SIGTERM SIGINT cleanup, process termination\u4f18\u96c5, shutdown callback handlers\nvec: how to implement graceful shutdown in an application to handle termination signals cleanly\nhyde: import signal, os\\ndef signal_handler(signum, frame):\\n    print(\"Shutting down gracefully...\")\\n    save_state()\\n    close_connections()\\n    os.exit(0)\\nsignal.signal(signal.SIGTERM, signal_handler)\\nsignal.signal(signal.SIGINT, signal_handler)",
+      "latencyMs": 31092.149832998984
+    },
+    {
+      "queryId": "con-10",
+      "query": "streaming response server sent events",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: streaming response server-sent events sse, stream server sent events api, sse event source stream\nvec: how to implement a streaming response using server-sent events in a web API\nhyde: const eventSource = new EventSource('/api/stream'); eventSource.addEventListener('message', (e) => console.log(e.data)); eventSource.onerror(handleError);",
+      "latencyMs": 26728.24054100056
+    },
+    {
+      "queryId": "fw-01",
+      "query": "React context vs Redux state management",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order\nNo explanations, preamble, markdown fences, or trailing text",
+      "latencyMs": 13980.449624999892
+    },
+    {
+      "queryId": "fw-02",
+      "query": "Express middleware chain next function",
+      "output": "The user is asking about Express.js middleware and specifically about the `next()` function in the middleware chain. This is a fundamental concept in Express.js routing.\n\nLet me expand this into:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nI need to make sure the response is EXACTLY 3 lines starting with lex:, vec:, hyde: in that order, with no explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: express middleware chain next, express app use middleware next(), express handler next function\nvec: how does the next() function work in Express.js middleware and what happens when it's called\nhyde: app.use((req, res, next) => { console.log('before'); next(); }); app.use((req, res, next) => { console.log('after'); next(); }); next() passes control to the next middleware in the chain. Call it to proceed, omit it to stop and respond immediately.",
+      "latencyMs": 31921.136917000695
+    },
+    {
+      "queryId": "fw-03",
+      "query": "Prisma ORM query findMany where",
+      "output": "This is a search query expansion for Prisma ORM, which is a Node.js ORM for TypeScript/JavaScript. The query is about finding multiple records with a where clause.\n\nLex: keyword variants for technical search\nvec: natural language rephrasing\nhyde: a short hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: Prisma findMany where clause, Prisma ORM query filtering, prisma query where operator\nvec: how to write a Prisma ORM query to find multiple records with a where clause\nhyde: const users = await prisma.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' } });",
+      "latencyMs": 22708.564667002065
+    },
+    {
+      "queryId": "fw-04",
+      "query": "Next.js server component data fetching",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create these three types of expansions.\n</think>\n\nlex: next.js server component data fetch, nextjs server side rendering api route, next.js get static props data\nvec: how to fetch data in next.js server components for server side rendering\nhyde: In Next.js server components, data fetches automatically at build time. Use 'use client' for client-side fetching. For API calls, use 'fetch()' directly in the component. Use 'revalidatePath()' for ISR updates.",
+      "latencyMs": 22997.53491699812
+    },
+    {
+      "queryId": "fw-05",
+      "query": "Zod schema validation parse transform",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create a realistic, syntactically valid code snippet that would match this query.\n</think>\n\nlex: Zod schema validation parse transform TypeScript, Zod transform optional default, Zod schema preprocess\nvec: How to use Zod schema validation with parse and transform for preprocessing and default values\nhyde: import { z } from 'zod';\\nconst schema = z.object({ name: z.string().transform(s => s.toUpperCase()) });\\nconst result = schema.parse({ name: 'john' });\\nconsole.log(result); // { name: 'JOHN' }",
+      "latencyMs": 27439.34420900041
+    },
+    {
+      "queryId": "fw-06",
+      "query": "tRPC router procedure mutation",
+      "output": "I need to expand this query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me think about what tRPC is - it's a type-safe RPC framework for Node.js/TypeScript. Routers are used to group endpoints, and procedures are individual handlers. Mutations are typically POST operations that modify state.\n</think>\n\nlex: tRPC router, tRPC procedure, tRPC mutation, @tRPC/server/http, tRPC POST endpoint\nvec: how to create a tRPC router with a mutation procedure for creating/updating resources\nhyde: import { router, publicProcedure } from '@trpc/server';\\nexport const appRouter = router({\\n  create: publicProcedure.input({ name: 'string' }).mutation(async ({ input }) => ({ id: 1, ...input }))\\n});",
+      "latencyMs": 28867.167917000188
+    },
+    {
+      "queryId": "fw-07",
+      "query": "Tailwind responsive breakpoints utilities",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions:\n- lex: technical keywords and identifiers\n- vec: a natural language rephrasing\n- hyde: a realistic short code snippet\n\nMake sure the response starts with lex: and has exactly 3 lines.\n</think>\n\nlex: tailwindcss responsive breakpoints, tailwind responsive utilities, tailwindcss mobile first breakpoints\nvec: how to use Tailwind CSS responsive breakpoints and utility classes for different screen sizes\nhyde: Responsive breakpoints in Tailwind CSS: sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px). Use classes like `md:flex`, `lg:hidden`, `sm:text-lg` to show/hide elements at different screen sizes.",
+      "latencyMs": 34019.36233299784
+    },
+    {
+      "queryId": "fw-08",
+      "query": "Jest mock module spyOn testing",
+      "output": "The user wants me to expand a search query about Jest testing with mocking and spyOn. I need to create:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: jest mock module spyOn, jest mock function spy, jest test mock dependency\nvec: how to use jest mock module and spyOn in testing\nhyde: const mockFn = jest.fn();\\njest.spyOn(globalThis, 'fetch').mockResolvedValue({ data: {} });\\nexpect(mockFn).toHaveBeenCalled();\\njest.restoreAllMocks();",
+      "latencyMs": 22352.468709003006
+    },
+    {
+      "queryId": "fw-09",
+      "query": "Docker compose multi service networking",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: docker compose multi-service networking, docker compose network bridge, docker service networking ports\nvec: how to set up networking between multiple services in a docker compose file\nhyde: Services communicate via service names in docker compose. Define a network: services: web: networks: - mynet db: networks: - mynet. Use docker compose up to start services on the same network.",
+      "latencyMs": 22219.32491700136
+    },
+    {
+      "queryId": "fw-10",
+      "query": "GitHub Actions CI workflow matrix",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: github actions ci workflow matrix strategy, github actions matrix strategy os node version, actions matrix include ci testing\nvec: how to use matrix strategy in github actions ci workflow to test across multiple operating systems and versions\nhyde: matrix: ${{ matrix.os = ['ubuntu-latest', 'windows-latest'], matrix.node-version = ['18', '20'] }}",
+      "latencyMs": 25221.792208001716
+    },
+    {
+      "queryId": "rev-01",
+      "query": "find unused imports dead code",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: unused import, dead code, unused variable, unused function, import analysis, code lint\nvec: Find and identify imports and code that are never used in the source file\nhyde: import os\\nimport sys\\nimport json\\n\\ndef unused_function():\\n    pass",
+      "latencyMs": 25053.600500003085
+    },
+    {
+      "queryId": "rev-02",
+      "query": "detect circular dependencies modules",
+      "output": "I need to expand this search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a short hypothetical code snippet\n\nLet me think about what would match this query:\n- lex: circular dependency detection modules, cycle detection dependency graph, module circular import\n- vec: how to detect circular dependencies between modules in a codebase\n- hyde: A practical code snippet showing how to detect circular dependencies\n\nLet me write concise, realistic lines.\n</think>\n\nlex: circular dependency detection modules, cycle detection dependency graph, module circular import\nvec: how to detect circular dependencies between modules in a codebase\nhyde: def has_cycle(graph): visited = set(); rec_stack = set(); def dfs(node): visited.add(node); rec_stack.add(node); for neighbor in graph[node]: if neighbor not in visited: if dfs(neighbor): return True; rec_stack.remove(node); return False in rec_stack",
+      "latencyMs": 35813.50116699468
+    },
+    {
+      "queryId": "rev-03",
+      "query": "dead code detection unreachable",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: unreachable code, dead code, control flow graph, CFG, unreachable statements, taint analysis\nvec: Find and identify code paths that can never be executed, including syntax errors, early returns, and conditional branches that are always false.\nhyde: ```python\\ndef process(data):\\n    if False:\\n        return \"impossible\"\\n    return data",
+      "latencyMs": 26612.157375006063
+    },
+    {
+      "queryId": "rev-04",
+      "query": "security vulnerability SQL injection",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: sql injection vulnerability, sqli input sanitization, prepared statements parameterized query, sql injection prevention\nvec: how to prevent sql injection attacks in web applications\nhyde: SQL injection occurs when user input is directly concatenated into SQL queries. Fix by using parameterized statements: cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,)). Never use f-strings or string formatting with user data.",
+      "latencyMs": 32289.660541995545
+    },
+    {
+      "queryId": "rev-05",
+      "query": "code duplication similar functions refactor",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, synonyms, related terms)\n- vec: a natural language rephrasing for semantic vector search\n- hyde: a short hypothetical code snippet that would match this query\n\nLet me create three types of expansions.\n</think>\n\nlex: code duplication similar functions refactor, duplicate code refactoring, extract function common code, code smell duplication\nvec: how to find and refactor duplicate code in a codebase\nhyde: function addItems(items) { return items.map(x => x * 2); }\\nfunction multiply(items, factor) { return items.map(x => x * factor); }\\n// Extract common pattern into multiply(items, factor)\\nfunction multiply(items, factor) { return items.map(x => x * factor); }\\nfunction addItems(items) { return multiply(items, 2); }",
+      "latencyMs": 33278.58595800353
+    },
+    {
+      "queryId": "rev-06",
+      "query": "performance bottleneck N+1 query",
+      "output": "The user wants me to expand a search query about performance bottlenecks related to N+1 query problems.\n\nlex: should include keywords like \"N+1 query\", \"lazy loading\", \"eager loading\", \"relationship\", \"fetch\", \"ORM\"\nvec: a natural language rephrasing\nhyde: a short hypothetical code snippet that demonstrates an N+1 query problem\n\nLet me write exactly 3 lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: N+1 query performance, N+1 query problem ORM, eager loading lazy loading, relationship fetch\nvec: how to identify and fix N+1 query performance bottlenecks in database code\nhyde: def get_users_with_posts():\\n    users = User.query.all()\\n    for user in users:\\n        post = user.posts[0]  # Separate query for each user",
+      "latencyMs": 34386.66970899794
+    },
+    {
+      "queryId": "rev-07",
+      "query": "missing error handling try catch",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet\n\nLet me create three types of expansions that would be useful for finding code with missing error handling.\n</think>\n\nlex: missing error handling try catch, unhandled exception async error, null pointer exception fallback\nvec: how to add try-catch error handling in code, prevent unhandled exceptions in programming\nhyde: function fetchData() { const response = await api.get('/users'); return response.data; } // No try-catch, will throw on network error",
+      "latencyMs": 21451.98245899519
+    },
+    {
+      "queryId": "rev-08",
+      "query": "type safety any assertion unsafe cast",
+      "output": "This is a query about type safety in programming, specifically about using `any` types, assertions, and unsafe casts. This is a common concern in statically typed languages like TypeScript, C#, or Rust.\n\nLet me expand this into:\n- lex: keyword variants for technical search\n- vec: a natural language rephrasing\n- hyde: a hypothetical code snippet that would match\n\nI need to make sure the hyde is realistic and syntactically valid code, not pseudocode.\n</think>\n\nlex: type safety any assertion unsafe cast TypeScript C#, type checking, explicit cast, type guard\nvec: How to safely handle type assertions and avoid unsafe casts in statically typed programming languages\nhyde: In TypeScript, `any` bypasses type checking: `const x: any = getValue(); const y = x.toUpperCase();` Use type guards instead: `if (typeof x === 'string') { const s = x.toUpperCase(); }` In C#, use `as` or `is` operators, or `dynamic` with caution.",
+      "latencyMs": 31505.67391599907
+    },
+    {
+      "queryId": "rev-09",
+      "query": "memory leak event listener cleanup",
+      "output": "The user wants me to expand a search query into three types:\n- lex: keyword variants for technical search (identifiers, related terms)\n- vec: a natural language rephrasing for semantic search\n- hyde: a short hypothetical code snippet that would match this query\n\nI need to output EXACTLY 3 lines starting with lex:, vec:, hyde: in that order. No explanations, preamble, markdown fences, or trailing text.\n</think>\n\nlex: memory leak event listener cleanup remove, event listener cleanup unbind, event listener remove memory, event handler cleanup dispose\nvec: how to prevent memory leaks by properly cleaning up event listeners in JavaScript\nhyde: Memory leaks occur when event listeners are attached to elements that are never removed. Use removeEventListener() or delegate events to prevent orphaned listeners. In React, use useEffect cleanup functions. In Vue, use onMounted/onUnmounted hooks.",
+      "latencyMs": 27345.697749995452
+    },
+    {
+      "queryId": "rev-10",
+      "query": "race condition async concurrent access",
+      "output": "This is a search query expansion for a programming concern about race conditions in async/concurrent code.\n\nlex: should expand to keyword variants for search\nvec: natural language rephrasing\nhyde: a short hypothetical code snippet that would match\n\nLet me write three concise lines starting with lex:, vec:, hyde: in that order.\n</think>\n\nlex: race condition async concurrent, async mutex lock synchronization, thread safety concurrent access\nvec: how to prevent race conditions in async concurrent code when multiple threads access shared resources\nhyde: async function fetchData() { let counter = 0; await Promise.all([increment(counter), increment(counter)]); } // race condition - counter increments twice",
+      "latencyMs": 20820.87354199757
+    }
+  ]
+}
