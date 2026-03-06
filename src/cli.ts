@@ -3467,15 +3467,10 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		return;
 	}
 
-	// Display results table
-	console.log(`\n${c.bold}Results (sorted by quality):${c.reset}\n`);
-	console.log(
-		`  ${"Model".padEnd(28)} ${"Speed".padEnd(7)} ${"Cost".padEnd(11)} ${"Ctx".padEnd(6)} ${"Dim".padEnd(6)} ${"NDCG".padEnd(6)} ${"MRR".padEnd(6)} ${"Hit@5"}`,
-	);
-	console.log(`  ${"─".repeat(82)}`);
+	// ── btop-inspired benchmark dashboard ──────────────────────────────────────
 
 	// Truncate long model names
-	const truncate = (s: string, max = 26) =>
+	const truncate = (s: string, max = 28) =>
 		s.length > max ? `${s.slice(0, max - 1)}…` : s;
 
 	// Format context length (e.g., 32000 -> "32K")
@@ -3484,131 +3479,277 @@ async function handleBenchmark(args: string[]): Promise<void> {
 
 	// Calculate best/worst for highlighting
 	const successResults = results.filter((r) => !r.error);
-	const minSpeed = Math.min(...successResults.map((r) => r.speedMs));
-	const maxSpeed = Math.max(...successResults.map((r) => r.speedMs));
 	const costsWithValues = successResults.filter((r) => r.cost !== undefined);
-	const minCost =
-		costsWithValues.length > 0
-			? Math.min(...costsWithValues.map((r) => r.cost!))
-			: undefined;
-	const maxCost =
-		costsWithValues.length > 0
-			? Math.max(...costsWithValues.map((r) => r.cost!))
-			: undefined;
-	const maxNdcg = Math.max(...successResults.map((r) => r.ndcg));
-	const minNdcg = Math.min(...successResults.map((r) => r.ndcg));
-	const shouldHighlight = successResults.length > 1;
 
-	for (const r of results) {
-		const displayName = truncate(r.model).padEnd(28);
-		if (r.error) {
-			console.log(`  ${c.red}${displayName} ERROR${c.reset}`);
-			console.log(`  ${c.dim}  ${r.error}${c.reset}`);
-			continue;
-		}
+	// Extended color palette for the dashboard
+	const bc = {
+		border: "\x1b[38;5;240m",       // dim gray – box borders
+		header: "\x1b[1;36m",           // bold cyan – section titles
+		rowNum: "\x1b[38;5;242m",       // dim row numbers
+		modelName: "\x1b[1;97m",        // bold white – model names
+		errorModel: "\x1b[38;5;203m",   // red – error model names
+		dimText: "\x1b[38;5;242m",      // dim text
+		footer: "\x1b[38;5;238m",       // very dim footer hints
+		// Speed gradient
+		speedFast: "\x1b[38;5;78m",     // green
+		speedMid: "\x1b[38;5;228m",     // yellow
+		speedSlow: "\x1b[38;5;214m",    // orange
+		speedSlowest: "\x1b[38;5;203m", // red
+		// Cost
+		costFree: "\x1b[38;5;78m",      // green for FREE
+		costCheap: "\x1b[38;5;78m",     // green for cheapest
+		costExpensive: "\x1b[38;5;203m",// red for most expensive
+		costNa: "\x1b[38;5;242m",       // dim for N/A
+		// Metric gradient
+		metricTop: "\x1b[38;5;78m",     // top 25%   – green
+		metricHigh: "\x1b[38;5;228m",   // 25-50%    – yellow-green
+		metricMid: "\x1b[38;5;214m",    // 50-75%    – orange
+		metricLow: "\x1b[38;5;203m",    // bottom 25% – red
+		// Awards
+		awardLabel: "\x1b[38;5;250m",   // soft white for award labels
+		awardValue: "\x1b[1;97m",       // bold white for winner names
+		awardStat: "\x1b[38;5;78m",     // green for stat values
+		rst: "\x1b[0m",
+	};
 
-		// Speed with highlighting
-		const speedVal = `${(r.speedMs / 1000).toFixed(1)}s`;
-		let speed = speedVal.padEnd(7);
-		if (shouldHighlight && r.speedMs === minSpeed) {
-			speed = `${c.green}${speedVal.padEnd(7)}${c.reset}`;
-		} else if (
-			shouldHighlight &&
-			r.speedMs === maxSpeed &&
-			minSpeed !== maxSpeed
-		) {
-			speed = `${c.red}${speedVal.padEnd(7)}${c.reset}`;
-		}
+	const termWidth = process.stdout.columns || 88;
+	const boxWidth = Math.min(Math.max(termWidth - 2, 82), 110);
 
-		// Cost with highlighting (FREE for local/ollama/lmstudio models)
+	// Box drawing helpers
+	const bdr = bc.border;
+	const rst = bc.rst;
+
+	const hLine = (w: number) => "─".repeat(w);
+	const pad = (s: string, w: number) => s.padEnd(w);
+	const rpad = (s: string, w: number) => s.padStart(w);
+
+	// Inner width (box width minus 2 for │ on each side)
+	const inner = boxWidth - 2;
+
+	// Section header line: ├─ Title ───...─┤
+	const sectionHeader = (title: string) => {
+		const titleStr = ` ${title} `;
+		const fill = hLine(inner - titleStr.length - 1);
+		return `${bdr}├─${bc.header}${titleStr}${bdr}${fill}┤${rst}`;
+	};
+
+	// Top border: ┌─ Title ───...─┐
+	const topBorder = (title: string) => {
+		const titleStr = ` ${title} `;
+		const fill = hLine(inner - titleStr.length - 1);
+		return `${bdr}┌─${bc.header}${titleStr}${bdr}${fill}┐${rst}`;
+	};
+
+	// Bottom border with hint text
+	const bottomBorder = (hint: string) => {
+		const hintStr = ` ${hint} `;
+		const fill = hLine(inner - hintStr.length - 1);
+		return `${bdr}└${fill}${bc.footer}${hintStr}${bdr}┘${rst}`;
+	};
+
+	// Empty box row
+	const emptyRow = () => `${bdr}│${rst}${" ".repeat(inner)}${bdr}│${rst}`;
+
+	// Content row – pads/truncates content to fit inner width
+	const row = (content: string, visibleLen: number) => {
+		const available = inner - 2; // 1 space padding each side
+		const extraSpaces = Math.max(0, available - visibleLen);
+		return `${bdr}│${rst} ${content}${" ".repeat(extraSpaces)} ${bdr}│${rst}`;
+	};
+
+	// Separator row inside table
+	const tableSep = (colWidths: number[]) => {
+		// Build: ── ─────... ──────... ...
+		const segments = colWidths.map((w) => "─".repeat(w));
+		const line = " " + segments.join(" ") + " ";
+		const padded = line.padEnd(inner);
+		return `${bdr}│${bc.dimText}${padded}${bdr}│${rst}`;
+	};
+
+	// Metric gradient coloring based on percentile rank
+	const metricGradient = (value: number, allValues: number[]) => {
+		if (allValues.length <= 1) return bc.metricTop;
+		const sorted = [...allValues].sort((a, b) => a - b);
+		const rank = sorted.indexOf(value) / (sorted.length - 1); // 0=worst, 1=best
+		if (rank >= 0.75) return bc.metricTop;
+		if (rank >= 0.5) return bc.metricHigh;
+		if (rank >= 0.25) return bc.metricMid;
+		return bc.metricLow;
+	};
+
+	// Speed gradient (lower = better, so invert rank)
+	const speedGradient = (speedMs: number, allSpeeds: number[]) => {
+		if (allSpeeds.length <= 1) return bc.speedFast;
+		const sorted = [...allSpeeds].sort((a, b) => a - b);
+		const rank = sorted.indexOf(speedMs) / (sorted.length - 1); // 0=fastest, 1=slowest
+		if (rank <= 0.25) return bc.speedFast;
+		if (rank <= 0.5) return bc.speedMid;
+		if (rank <= 0.75) return bc.speedSlow;
+		return bc.speedSlowest;
+	};
+
+	// Cost gradient (lower = better)
+	const costColor = (r: BenchmarkResult, minCost?: number, maxCost?: number) => {
 		const isLocal = r.model.startsWith("ollama/") || r.model.startsWith("lmstudio/");
-		const costVal = isLocal
-			? "FREE"
-			: r.cost !== undefined
-				? `$${r.cost.toFixed(5)}`
-				: "N/A";
-		let cost = costVal.padEnd(11);
-		if (isLocal) {
-			cost = `${c.green}${costVal.padEnd(11)}${c.reset}`;
-		} else if (
-			shouldHighlight &&
-			r.cost !== undefined &&
-			minCost !== undefined &&
-			r.cost === minCost
-		) {
-			cost = `${c.green}${costVal.padEnd(11)}${c.reset}`;
-		} else if (
-			shouldHighlight &&
-			r.cost !== undefined &&
-			maxCost !== undefined &&
-			r.cost === maxCost &&
-			minCost !== maxCost
-		) {
-			cost = `${c.red}${costVal.padEnd(11)}${c.reset}`;
+		if (isLocal) return bc.costFree;
+		if (r.cost === undefined) return bc.costNa;
+		if (minCost !== undefined && r.cost === minCost) return bc.costCheap;
+		if (maxCost !== undefined && r.cost === maxCost && minCost !== maxCost) return bc.costExpensive;
+		return rst;
+	};
+
+	const allSpeeds = successResults.map((r) => r.speedMs);
+	const allNdcg = successResults.map((r) => r.ndcg);
+	const allMrr = successResults.map((r) => r.mrr);
+	const allHit5 = successResults.map((r) => r.hitRate.k5);
+	const minCost = costsWithValues.length > 0 ? Math.min(...costsWithValues.map((r) => r.cost!)) : undefined;
+	const maxCost = costsWithValues.length > 0 ? Math.max(...costsWithValues.map((r) => r.cost!)) : undefined;
+
+	// Column widths (visible characters, no ANSI)
+	// #(2) model(28) speed(8) cost(11) ctx(5) dim(5) ndcg(5) mrr(5) h@5(4)
+	const COL = { num: 2, model: 28, speed: 8, cost: 11, ctx: 5, dim: 5, ndcg: 5, mrr: 5, hit5: 4 };
+	const headerRowVisible =
+		COL.num + 1 + COL.model + 1 + COL.speed + 1 + COL.cost + 1 +
+		COL.ctx + 1 + COL.dim + 1 + COL.ndcg + 1 + COL.mrr + 1 + COL.hit5;
+
+	// Header labels
+	const colHeader = [
+		rpad("#", COL.num),
+		pad("Model", COL.model),
+		pad("Speed", COL.speed),
+		pad("Cost", COL.cost),
+		pad("Ctx", COL.ctx),
+		pad("Dim", COL.dim),
+		pad("NDCG", COL.ndcg),
+		pad("MRR", COL.mrr),
+		"H@5",
+	].join(" ");
+
+	const colWidths = [COL.num, COL.model, COL.speed, COL.cost, COL.ctx, COL.dim, COL.ndcg, COL.mrr, COL.hit5];
+
+	// Build the dashboard output
+	const lines: string[] = [];
+	lines.push("");
+	lines.push(topBorder("Embedding Benchmark"));
+	lines.push(emptyRow());
+
+	// Header row
+	const hdrContent = `${bc.dimText}${colHeader}${rst}`;
+	lines.push(row(hdrContent, headerRowVisible));
+
+	// Separator
+	lines.push(tableSep(colWidths));
+
+	// Data rows
+	results.forEach((r, idx) => {
+		const rowNum = `${bc.rowNum}${rpad(String(idx + 1), COL.num)}${rst}`;
+
+		if (r.error) {
+			const modelStr = `${bc.errorModel}${pad(truncate(r.model, COL.model), COL.model)}${rst}`;
+			const errorLabel = `${bc.errorModel}ERROR${rst}`;
+			const contentStr = `${rowNum} ${modelStr} ${errorLabel}`;
+			const visLen = COL.num + 1 + COL.model + 1 + 5;
+			lines.push(row(contentStr, visLen));
+			const errMsg = truncate(r.error, inner - 4);
+			lines.push(row(`${bc.dimText}    ${errMsg}${rst}`, 4 + errMsg.length));
+			return;
 		}
 
-		// Context length
-		const ctx = fmtCtx(r.contextLength).padEnd(6);
+		// Model name
+		const modelDisplay = truncate(r.model, COL.model);
+		const modelStr = `${bc.modelName}${pad(modelDisplay, COL.model)}${rst}`;
 
-		// NDCG with highlighting
+		// Speed
+		const speedVal = `${(r.speedMs / 1000).toFixed(1)}s`;
+		const sColor = speedGradient(r.speedMs, allSpeeds);
+		const speedStr = `${sColor}${pad(speedVal, COL.speed)}${rst}`;
+
+		// Cost
+		const isLocal = r.model.startsWith("ollama/") || r.model.startsWith("lmstudio/");
+		const costVal = isLocal ? "FREE" : r.cost !== undefined ? `$${r.cost.toFixed(5)}` : "N/A";
+		const cColor = costColor(r, minCost, maxCost);
+		const costStr = `${cColor}${pad(costVal, COL.cost)}${rst}`;
+
+		// Ctx + Dim
+		const ctxStr = `${bc.dimText}${pad(fmtCtx(r.contextLength), COL.ctx)}${rst}`;
+		const dimStr = `${bc.dimText}${pad(`${r.dimension}d`, COL.dim)}${rst}`;
+
+		// NDCG, MRR, Hit@5
 		const ndcgVal = `${r.ndcg.toFixed(0)}%`;
-		let ndcg = ndcgVal.padEnd(6);
-		if (shouldHighlight && r.ndcg === maxNdcg) {
-			ndcg = `${c.green}${ndcgVal.padEnd(6)}${c.reset}`;
-		} else if (shouldHighlight && r.ndcg === minNdcg && minNdcg !== maxNdcg) {
-			ndcg = `${c.red}${ndcgVal.padEnd(6)}${c.reset}`;
-		}
+		const ndcgColor = metricGradient(r.ndcg, allNdcg);
+		const ndcgStr = `${ndcgColor}${pad(ndcgVal, COL.ndcg)}${rst}`;
 
-		const dim = `${r.dimension}d`.padEnd(6);
-		const mrr = `${r.mrr.toFixed(0)}%`.padEnd(6);
-		const hit5 = `${r.hitRate.k5.toFixed(0)}%`;
+		const mrrVal = `${r.mrr.toFixed(0)}%`;
+		const mrrColor = metricGradient(r.mrr, allMrr);
+		const mrrStr = `${mrrColor}${pad(mrrVal, COL.mrr)}${rst}`;
 
-		console.log(
-			`  ${displayName} ${speed} ${cost} ${ctx} ${dim} ${ndcg} ${mrr} ${hit5}`,
-		);
-	}
+		const hit5Val = `${r.hitRate.k5.toFixed(0)}%`;
+		const hit5Color = metricGradient(r.hitRate.k5, allHit5);
+		const hit5Str = `${hit5Color}${hit5Val}${rst}`;
 
-	// Summary
+		const contentStr = `${rowNum} ${modelStr} ${speedStr} ${costStr} ${ctxStr} ${dimStr} ${ndcgStr} ${mrrStr} ${hit5Str}`;
+		lines.push(row(contentStr, headerRowVisible));
+	});
+
+	// Footer separator
+	lines.push(tableSep(colWidths));
+
+	// Stats summary inside box
+	const statsStr = `${bc.rowNum}${results.length} models tested  •  ${chunksWithPaths.length} chunks  •  ${testQueries.length} queries${rst}`;
+	const statsVisible = `${results.length} models tested  •  ${chunksWithPaths.length} chunks  •  ${testQueries.length} queries`.length;
+	lines.push(row(`    ${statsStr}`, 4 + statsVisible));
+	lines.push(emptyRow());
+
+	// Awards section
 	if (successResults.length > 0) {
-		const fastest = successResults.reduce((a, b) =>
-			a.speedMs < b.speedMs ? a : b,
-		);
-		const cheapest =
-			costsWithValues.length > 0
-				? costsWithValues.reduce((a, b) =>
-						(a.cost || Number.POSITIVE_INFINITY) <
-						(b.cost || Number.POSITIVE_INFINITY)
-							? a
-							: b,
-					)
-				: null;
-		const bestQuality = successResults.reduce((a, b) =>
-			a.ndcg > b.ndcg ? a : b,
-		);
+		lines.push(sectionHeader("Awards"));
+		lines.push(emptyRow());
 
-		console.log(`\n${c.bold}Summary:${c.reset}`);
-		console.log(
-			`  ${c.green}🏆 Best Quality:${c.reset} ${bestQuality.model} (NDCG: ${bestQuality.ndcg.toFixed(0)}%)`,
-		);
-		console.log(
-			`  ${c.green}⚡ Fastest:${c.reset} ${fastest.model} (${(fastest.speedMs / 1000).toFixed(2)}s)`,
-		);
+		const fastest = successResults.reduce((a, b) => a.speedMs < b.speedMs ? a : b);
+		const cheapest = costsWithValues.length > 0
+			? costsWithValues.reduce((a, b) =>
+				(a.cost ?? Infinity) < (b.cost ?? Infinity) ? a : b)
+			: null;
+		const bestQuality = successResults.reduce((a, b) => a.ndcg > b.ndcg ? a : b);
+
+		const awardRow = (icon: string, label: string, winner: string, stat: string) => {
+			const labelPad = pad(label, 14);
+			const winnerPad = pad(truncate(winner, 42), 42);
+			const content = `  ${icon} ${bc.awardLabel}${labelPad}${rst}${bc.awardValue}${winnerPad}${rst}${bc.awardStat}${stat}${rst}`;
+			const visLen = 2 + 2 + labelPad.length + winnerPad.length + stat.length;
+			return row(content, visLen);
+		};
+
+		lines.push(awardRow("🏆", "Best Quality", bestQuality.model, `NDCG ${bestQuality.ndcg.toFixed(0)}%`));
+		lines.push(awardRow("⚡", "Fastest", fastest.model, `${(fastest.speedMs / 1000).toFixed(2)}s`));
 		if (cheapest) {
-			console.log(
-				`  ${c.green}💰 Cheapest:${c.reset} ${cheapest.model} ($${cheapest.cost?.toFixed(6)})`,
-			);
+			lines.push(awardRow("💰", "Cheapest", cheapest.model, `$${cheapest.cost?.toFixed(5)}`));
 		}
+
+		lines.push(emptyRow());
 	}
 
-	console.log(
-		`\n${c.dim}Metrics: NDCG (quality), MRR (rank), Hit@5 (found in top 5)${c.reset}`,
-	);
-	console.log(
-		`${c.dim}Use --auto to generate queries from docstrings (works on any codebase)${c.reset}`,
-	);
-	console.log(
-		`${c.dim}Use --verbose for detailed per-query results${c.reset}\n`,
-	);
+	// Metrics legend section
+	lines.push(sectionHeader("Metrics"));
+	lines.push(emptyRow());
+
+	const metricRow = (name: string, desc: string) => {
+		const namePad = `${bc.header}${pad(name, 7)}${rst}`;
+		const descStr = `${bc.dimText}${desc}${rst}`;
+		const content = `  ${namePad}${descStr}`;
+		const visLen = 2 + 7 + desc.length;
+		return row(content, visLen);
+	};
+
+	lines.push(metricRow("NDCG", "Normalized Discounted Cumulative Gain (retrieval quality)"));
+	lines.push(metricRow("MRR", "Mean Reciprocal Rank (first relevant result position)"));
+	lines.push(metricRow("H@5", "Hit Rate at K=5 (found relevant result in top 5)"));
+	lines.push(emptyRow());
+
+	lines.push(bottomBorder("--auto for auto-queries  •  --verbose for per-query detail"));
+	lines.push("");
+
+	console.log(lines.join("\n"));
 
 	// Upload results to Firebase for persistent history
 	try {
