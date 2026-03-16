@@ -65,7 +65,7 @@ export const MultiModelAnimation: React.FC = () => {
 				{/* Terminal Section */}
 				<div className="relative z-10 px-4 pt-4 md:px-12 md:pt-12">
 					<TerminalWindow
-						title="claudemem — zsh — 120×24"
+						title="mnemex — zsh — 120×24"
 						className="w-full shadow-2xl border-white/10 min-h-[300px] bg-[#0c0c0c]"
 						noPadding={false}
 					>
@@ -75,7 +75,7 @@ export const MultiModelAnimation: React.FC = () => {
 								className={`transition-opacity duration-300 flex items-center ${stage >= 1 ? "opacity-100" : "opacity-0"}`}
 							>
 								<span className="text-claude-ish mr-2 font-bold">➜</span>
-								<span className="text-white font-semibold">claudemem</span>
+								<span className="text-white font-semibold">mnemex</span>
 								<span className="text-gray-600 ml-2">\</span>
 							</div>
 

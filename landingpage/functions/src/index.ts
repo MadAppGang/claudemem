@@ -1,5 +1,5 @@
 /**
- * Firebase Cloud Functions for claudemem Benchmark Results
+ * Firebase Cloud Functions for mnemex Benchmark Results
  *
  * These functions handle benchmark result uploads securely without
  * exposing Firebase credentials in the client code.
@@ -127,7 +127,7 @@ interface BenchmarkUploadPayload {
 	durationMs: number;
 	totalCost: number;
 	modelScores: ModelScoreEntry[];
-	claudememVersion: string;
+	mnemexVersion: string;
 	machineId?: string;
 }
 
@@ -183,7 +183,7 @@ function validatePayload(data: unknown): data is BenchmarkUploadPayload {
 	if (!isValidString(d.runId)) return false;
 	if (!isValidString(d.projectName)) return false;
 	if (!isValidString(d.projectPath)) return false;
-	if (!isValidString(d.claudememVersion)) return false;
+	if (!isValidString(d.mnemexVersion)) return false;
 
 	// Required number fields
 	if (!isValidNumber(d.sampleSize)) return false;
@@ -277,7 +277,7 @@ export const uploadBenchmarkResults = onRequest(
 				durationMs: payload.durationMs,
 				totalCost: payload.totalCost,
 				modelScores: payload.modelScores,
-				claudememVersion: payload.claudememVersion,
+				mnemexVersion: payload.mnemexVersion,
 				machineId: payload.machineId || null,
 			};
 

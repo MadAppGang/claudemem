@@ -1,7 +1,7 @@
 {
-	"name": "claudemem-functions",
+	"name": "mnemex-functions",
 	"version": "1.0.0",
-	"description": "Firebase Cloud Functions for claudemem benchmark results",
+	"description": "Firebase Cloud Functions for mnemex benchmark results",
 	"main": "lib/index.js",
 	"scripts": {
 		"build": "tsc",

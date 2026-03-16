@@ -27,7 +27,7 @@ const HeroSection: React.FC = () => {
 	const [copied, setCopied] = useState(false);
 
 	const handleCopy = () => {
-		navigator.clipboard.writeText("npm install -g claudemem");
+		navigator.clipboard.writeText("npm install -g mnemex");
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
 	};
@@ -57,14 +57,13 @@ const HeroSection: React.FC = () => {
 					<br />
 					<span className="text-gray-400">Every Session.</span>
 					<br />
-					<span className="text-white">claudemem</span>{" "}
+					<span className="text-white">mnemex</span>{" "}
 					<span className="text-[#00d4aa]">Remembers.</span>
 				</h1>
 
 				{/* Value Proposition */}
 				<p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-					Give{" "}
-					<span className="text-white font-medium">Claude Code</span>,{" "}
+					Give <span className="text-white font-medium">Claude Code</span>,{" "}
 					<span className="text-white font-medium">Cursor</span>, and AI
 					assistants persistent understanding of your codebase.{" "}
 					<span className="text-[#00d4aa]">
@@ -116,7 +115,7 @@ const HeroSection: React.FC = () => {
 					>
 						<span className="text-[#00d4aa] font-mono font-bold">$</span>
 						<code className="text-gray-300 font-mono">
-							npm install -g claudemem
+							npm install -g mnemex
 						</code>
 						<span className="text-gray-500 group-hover:text-[#00d4aa] transition-colors">
 							{copied ? "✓" : "⎘"}
@@ -124,7 +123,7 @@ const HeroSection: React.FC = () => {
 					</button>
 
 					<a
-						href="https://github.com/MadAppGang/claudemem"
+						href="https://github.com/MadAppGang/mnemex"
 						target="_blank"
 						rel="noreferrer"
 						className="flex items-center gap-2 bg-white text-black font-bold px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors"
@@ -195,8 +194,7 @@ const ProblemSection: React.FC = () => {
 				{/* Section Header */}
 				<div className="text-center mb-16">
 					<h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-						Why Your AI{" "}
-						<span className="text-red-500">Keeps Failing</span>
+						Why Your AI <span className="text-red-500">Keeps Failing</span>
 					</h2>
 					<p className="text-gray-500 text-lg max-w-2xl mx-auto">
 						The hidden costs of stateless coding assistants
@@ -234,7 +232,7 @@ const ProblemSection: React.FC = () => {
 };
 
 // ============================================================================
-// SOLUTION SECTION - How claudemem fixes it
+// SOLUTION SECTION - How mnemex fixes it
 // ============================================================================
 
 const SolutionSection: React.FC = () => {
@@ -251,8 +249,8 @@ const SolutionSection: React.FC = () => {
 						<span className="text-[#00d4aa]">Understand Forever.</span>
 					</h2>
 					<p className="text-gray-500 text-lg max-w-2xl mx-auto">
-						claudemem pre-indexes your codebase locally, giving AI agents instant
-						context every session.
+						mnemex pre-indexes your codebase locally, giving AI agents
+						instant context every session.
 					</p>
 				</div>
 
@@ -263,7 +261,7 @@ const SolutionSection: React.FC = () => {
 						<div className="flex items-center gap-2 mb-4">
 							<div className="w-3 h-3 bg-red-500 rounded-full" />
 							<span className="text-red-400 font-bold uppercase text-sm">
-								Without claudemem
+								Without mnemex
 							</span>
 						</div>
 						<div className="space-y-3 text-sm">
@@ -299,7 +297,7 @@ const SolutionSection: React.FC = () => {
 						<div className="flex items-center gap-2 mb-4">
 							<div className="w-3 h-3 bg-[#00d4aa] rounded-full" />
 							<span className="text-[#00d4aa] font-bold uppercase text-sm">
-								With claudemem
+								With mnemex
 							</span>
 						</div>
 						<div className="space-y-3 text-sm">
@@ -343,7 +341,7 @@ const SolutionSection: React.FC = () => {
 						<div className="text-4xl text-[#00d4aa]">→</div>
 						<div>
 							<div className="text-5xl font-black text-[#00d4aa]">200ms</div>
-							<div className="text-sm text-gray-400">claudemem</div>
+							<div className="text-sm text-gray-400">mnemex</div>
 						</div>
 						<div className="bg-[#00d4aa]/10 px-4 py-2 rounded-full">
 							<span className="text-[#00d4aa] font-bold">100x faster</span>
@@ -443,7 +441,7 @@ const HowItWorksSection: React.FC = () => {
 					</div>
 
 					<h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight">
-						How claudemem{" "}
+						How mnemex{" "}
 						<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00d4aa] to-cyan-400">
 							Works
 						</span>
@@ -470,7 +468,8 @@ const HowItWorksSection: React.FC = () => {
 									<div
 										className="h-full w-full"
 										style={{
-											background: 'repeating-linear-gradient(90deg, #374151 0px, #374151 8px, transparent 8px, transparent 16px)'
+											background:
+												"repeating-linear-gradient(90deg, #374151 0px, #374151 8px, transparent 8px, transparent 16px)",
 										}}
 									/>
 								</div>
@@ -480,7 +479,8 @@ const HowItWorksSection: React.FC = () => {
 										className="h-full bg-gradient-to-r from-[#00d4aa] via-[#00d4aa] to-cyan-400 transition-all duration-1000 ease-out"
 										style={{
 											width: `${currentStep * 25}%`,
-											boxShadow: '0 0 12px rgba(0,212,170,0.6), 0 0 24px rgba(0,212,170,0.3)'
+											boxShadow:
+												"0 0 12px rgba(0,212,170,0.6), 0 0 24px rgba(0,212,170,0.3)",
 										}}
 									/>
 								</div>
@@ -489,8 +489,9 @@ const HowItWorksSection: React.FC = () => {
 									className="absolute top-1/2 w-3 h-3 bg-white rounded-full transition-all duration-1000 ease-out"
 									style={{
 										left: `${currentStep * 25}%`,
-										transform: 'translate(-50%, -50%)',
-										boxShadow: '0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(0,212,170,0.6)'
+										transform: "translate(-50%, -50%)",
+										boxShadow:
+											"0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(0,212,170,0.6)",
 									}}
 								/>
 							</div>
@@ -527,7 +528,9 @@ const HowItWorksSection: React.FC = () => {
 											<h3 className="text-lg font-bold text-white mb-1">
 												{step.title}
 											</h3>
-											<p className="text-xs text-gray-500 mb-3">{step.subtitle}</p>
+											<p className="text-xs text-gray-500 mb-3">
+												{step.subtitle}
+											</p>
 
 											{/* Expanded info on current step */}
 											<div
@@ -618,7 +621,7 @@ const HowItWorksSection: React.FC = () => {
 
 								<p className="text-gray-400 text-lg mb-8 leading-relaxed">
 									Traditional RAG systems re-analyze your code on{" "}
-									<em>every single query</em>. claudemem builds understanding
+									<em>every single query</em>. mnemex builds understanding
 									once—then your AI assistant has instant, PageRank-ranked
 									context every time it needs it.
 								</p>
@@ -632,7 +635,9 @@ const HowItWorksSection: React.FC = () => {
 										<div className="text-sm text-gray-400 mb-1">
 											vs 10-30 seconds
 										</div>
-										<div className="text-xs text-gray-600">Context retrieval</div>
+										<div className="text-xs text-gray-600">
+											Context retrieval
+										</div>
 									</div>
 
 									<div className="bg-[#080808] border border-gray-800 rounded-xl p-6 text-center">
@@ -652,7 +657,9 @@ const HowItWorksSection: React.FC = () => {
 											28+
 										</div>
 										<div className="text-sm text-gray-400 mb-1">Languages</div>
-										<div className="text-xs text-gray-600">Full AST parsing</div>
+										<div className="text-xs text-gray-600">
+											Full AST parsing
+										</div>
 									</div>
 								</div>
 
@@ -665,7 +672,7 @@ const HowItWorksSection: React.FC = () => {
 												Self-Learning Intelligence
 											</h4>
 											<p className="text-sm text-gray-400">
-												claudemem learns from your corrections and adapts to
+												mnemex learns from your corrections and adapts to
 												your team's patterns. The more you use it, the smarter
 												your AI context becomes.
 											</p>
@@ -689,7 +696,7 @@ const HowItWorksSection: React.FC = () => {
 };
 
 // ============================================================================
-// DIFFERENTIATORS - What makes claudemem unique
+// DIFFERENTIATORS - What makes mnemex unique
 // ============================================================================
 
 const DifferentiatorsSection: React.FC = () => {
@@ -730,7 +737,7 @@ const DifferentiatorsSection: React.FC = () => {
 				{/* Section Header */}
 				<div className="text-center mb-16">
 					<h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-						Why claudemem?
+						Why mnemex?
 					</h2>
 					<p className="text-gray-500 text-lg max-w-2xl mx-auto">
 						Built different from traditional RAG systems
@@ -777,19 +784,19 @@ const QuickStartSection: React.FC = () => {
 		{
 			step: 1,
 			label: "Install",
-			command: "npm install -g claudemem",
+			command: "npm install -g mnemex",
 			description: "Install the CLI globally",
 		},
 		{
 			step: 2,
 			label: "Index",
-			command: "claudemem index",
+			command: "mnemex index",
 			description: "Index your codebase (~15 seconds)",
 		},
 		{
 			step: 3,
 			label: "Search",
-			command: 'claudemem search "auth logic"',
+			command: 'mnemex search "auth logic"',
 			description: "Get instant semantic results",
 		},
 	];
@@ -800,8 +807,7 @@ const QuickStartSection: React.FC = () => {
 				{/* Section Header */}
 				<div className="text-center mb-12">
 					<h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-						Get Started in{" "}
-						<span className="text-[#00d4aa]">60 Seconds</span>
+						Get Started in <span className="text-[#00d4aa]">60 Seconds</span>
 					</h2>
 					<p className="text-gray-500 text-lg">
 						Three commands. That's all it takes.
@@ -836,7 +842,7 @@ const QuickStartSection: React.FC = () => {
 				{/* CTA */}
 				<div className="text-center">
 					<a
-						href="https://github.com/MadAppGang/claudemem#readme"
+						href="https://github.com/MadAppGang/mnemex#readme"
 						target="_blank"
 						rel="noreferrer"
 						className="inline-flex items-center gap-2 bg-[#00d4aa] text-black font-bold px-8 py-4 rounded-lg hover:bg-[#00d4aa]/90 transition-colors text-lg"
@@ -878,7 +884,7 @@ const FooterSection: React.FC = () => {
 							<div className="w-8 h-8 bg-[#00d4aa] rounded flex items-center justify-center text-black text-sm font-bold">
 								M
 							</div>
-							claudemem
+							mnemex
 						</div>
 						<p className="text-gray-500 text-sm max-w-xs">
 							Local-first semantic code intelligence for AI agents. Open source,
@@ -926,7 +932,7 @@ const FooterSection: React.FC = () => {
 							<ul className="space-y-2 text-sm text-gray-500">
 								<li>
 									<a
-										href="https://github.com/MadAppGang/claudemem"
+										href="https://github.com/MadAppGang/mnemex"
 										className="hover:text-[#00d4aa] transition-colors"
 									>
 										GitHub

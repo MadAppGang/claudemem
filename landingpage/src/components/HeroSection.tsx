@@ -180,12 +180,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 						<div className="flex flex-col gap-2.5 font-mono text-[13px] md:text-[14px] text-left">
 							<div className="flex items-center gap-3 text-gray-300 group-hover:text-white transition-colors">
 								<span className="text-claude-ish select-none font-bold">$</span>
-								<span>npm install -g claude-codemem</span>
+								<span>npm install -g mnemex</span>
 							</div>
 							<div className="w-full h-[1px] bg-white/5"></div>
 							<div className="flex items-center gap-3 text-white font-bold">
 								<span className="text-claude-ish select-none font-bold">$</span>
-								<span>claudemem index</span>
+								<span>mnemex index</span>
 							</div>
 						</div>
 					</div>
@@ -207,7 +207,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 				>
 					<TerminalWindow
 						className="h-full w-full bg-[#0d1117] shadow-[0_0_50px_rgba(0,0,0,0.6)] border-[#30363d]"
-						title="claudemem — -zsh — 140×45"
+						title="mnemex — -zsh — 140×45"
 						noPadding={true}
 					>
 						<div className="flex flex-col h-full font-mono text-[13px] md:text-sm">
@@ -248,7 +248,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 																		{line.data.model} • Claude Max
 																	</div>
 																	<div className="text-xs text-gray-600">
-																		~/dev/claudemem-landing
+																		~/dev/mnemex-landing
 																	</div>
 																</div>
 															</div>
@@ -352,7 +352,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 							{/* Persistent Footer Status Bar */}
 							<div className="bg-[#161b22] border-t border-[#30363d] px-3 py-1.5 flex justify-between items-center text-[10px] md:text-[11px] font-mono leading-none shrink-0 select-none z-20 rounded-b-xl">
 								<div className="flex items-center gap-2 md:gap-3">
-									<span className="font-bold text-claude-ish">claudemem</span>
+									<span className="font-bold text-claude-ish">mnemex</span>
 									<span className="text-[#484f58]">●</span>
 									<span className="text-[#e2b340]">{status.model}</span>
 									<span className="text-[#484f58]">●</span>

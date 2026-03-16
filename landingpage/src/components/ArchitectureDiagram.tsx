@@ -276,7 +276,7 @@ export const ArchitectureDiagram: React.FC = () => {
 						How Semantic Code Search Works
 					</h2>
 					<p className="text-gray-500 text-base max-w-3xl mx-auto leading-relaxed">
-						claudemem combines <span className="text-white">AST parsing</span>,{" "}
+						mnemex combines <span className="text-white">AST parsing</span>,{" "}
 						<span className="text-white">PageRank scoring</span>, and{" "}
 						<span className="text-white">vector embeddings</span> to give AI
 						code assistants deep understanding of your codebase.
@@ -477,7 +477,7 @@ export const ArchitectureDiagram: React.FC = () => {
 								Semantic Understanding
 							</h4>
 							<p>
-								Traditional code search relies on keyword matching. claudemem
+								Traditional code search relies on keyword matching. mnemex
 								combines AST parsing with vector embeddings to understand code
 								intent - finding authentication logic even when searching for
 								"login validation".

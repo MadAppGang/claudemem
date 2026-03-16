@@ -316,7 +316,7 @@ const ProblemSynthesisSection = () => {
 						<span className="text-[#00D4AA]">already knew</span>:
 					</h3>
 					<p className="text-gray-500 font-mono text-lg">
-						Claudemem pre-indexes your codebase so your agent doesn't have to
+						mnemex pre-indexes your codebase so your agent doesn't have to
 						guess.
 					</p>
 				</div>
@@ -462,7 +462,7 @@ const GranularitySection = () => {
 						<span className="text-gray-600">Zero Rediscovery.</span>
 					</h2>
 					<p className="text-lg md:text-xl text-gray-400 font-mono max-w-3xl mx-auto leading-relaxed">
-						claudemem indexes your codebase once. Understands it deeply. Serves
+						mnemex indexes your codebase once. Understands it deeply. Serves
 						that understanding to AI agents instantly — session after session.
 					</p>
 
@@ -853,7 +853,7 @@ const FeatureDeepDive: React.FC = () => {
 						Engineered for Understanding
 					</h2>
 					<p className="text-gray-500 font-mono text-lg">
-						The technical architecture behind claudemem.
+						The technical architecture behind mnemex.
 					</p>
 				</div>
 
@@ -1132,7 +1132,7 @@ const FeatureLearning = () => (
 		<div>
 			<h3 className="text-2xl font-bold text-white mb-2">Adaptive Learning</h3>
 			<p className="text-gray-400 leading-relaxed max-w-2xl">
-				Mark search results as helpful or unhelpful. claudemem learns which
+				Mark search results as helpful or unhelpful. mnemex learns which
 				files and document types work best for your codebase using{" "}
 				<span className="text-claude-ish">
 					Exponential Moving Average (EMA)
@@ -1237,7 +1237,7 @@ const ContextWinSection = () => {
 						</h2>
 						<p className="text-xl text-gray-400 leading-relaxed">
 							Stop wasting 50% of your context window on "exploration." With
-							claudemem, the AI starts with understanding, leaving the full
+							mnemex, the AI starts with understanding, leaving the full
 							window for reasoning and code generation.
 						</p>
 					</div>
@@ -1246,7 +1246,7 @@ const ContextWinSection = () => {
 						{/* Before */}
 						<div className="space-y-2">
 							<div className="flex justify-between text-sm font-mono text-gray-400">
-								<span>Without claudemem</span>
+								<span>Without mnemex</span>
 								<span className="text-red-500 font-bold">Inefficient</span>
 							</div>
 							<div className="h-12 bg-gray-900 rounded-lg overflow-hidden flex text-[10px] font-bold text-white/80 uppercase tracking-wider">
@@ -1268,7 +1268,7 @@ const ContextWinSection = () => {
 						{/* After */}
 						<div className="space-y-2">
 							<div className="flex justify-between text-sm font-mono text-gray-400">
-								<span>With claudemem</span>
+								<span>With mnemex</span>
 								<span className="text-claude-ish font-bold">Optimized</span>
 							</div>
 							<div className="h-12 bg-gray-900 rounded-lg overflow-hidden flex text-[10px] font-bold text-white/80 uppercase tracking-wider relative shadow-[0_0_30px_rgba(0,212,170,0.1)]">
@@ -1307,10 +1307,10 @@ const ComparisonSection: React.FC = () => {
 						Market Analysis
 					</div>
 					<h2 className="text-4xl md:text-6xl font-black text-white mb-6">
-						How claudemem Compares
+						How mnemex Compares
 					</h2>
 					<p className="text-xl text-gray-500 font-mono max-w-2xl mx-auto mb-10">
-						The code understanding landscape has exploded. claudemem is
+						The code understanding landscape has exploded. mnemex is
 						different. You pick the models. You run the benchmarks. You own the
 						stack.
 					</p>
@@ -1347,11 +1347,11 @@ const ComparisonSection: React.FC = () => {
 										Feature
 									</th>
 
-									{/* Claudemem Column - Always Visible & Highlighted */}
+									{/* mnemex Column - Always Visible & Highlighted */}
 									<th className="p-6 font-mono text-xs text-claude-ish uppercase tracking-widest font-bold bg-claude-ish/5 border-l border-r border-claude-ish/20 min-w-[200px]">
 										<div className="flex items-center gap-2">
 											<div className="w-2 h-2 rounded-full bg-claude-ish"></div>
-											claudemem
+											mnemex
 										</div>
 									</th>
 
@@ -1391,19 +1391,19 @@ const ComparisonSection: React.FC = () => {
 											{row.feature}
 										</td>
 
-										{/* Claudemem Value */}
+										{/* mnemex Value */}
 										<td className="p-6 text-white bg-claude-ish/5 border-l border-r border-claude-ish/20 font-bold relative">
 											{/* Hover Highlight Effect */}
 											<div className="absolute inset-0 bg-claude-ish/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
 											<span className="relative z-10 flex items-center gap-2">
-												{row.claudemem.includes("✅") ? (
+												{row.mnemex.includes("✅") ? (
 													<>
 														<span className="text-claude-ish text-lg">●</span>
-														<span>{row.claudemem.replace(/✅ ?/, "")}</span>
+														<span>{row.mnemex.replace(/✅ ?/, "")}</span>
 													</>
 												) : (
-													row.claudemem
+													row.mnemex
 												)}
 											</span>
 										</td>
@@ -1475,7 +1475,7 @@ const ComparisonSection: React.FC = () => {
 							The Model Freedom Difference
 						</h3>
 						<p className="text-gray-400 leading-relaxed text-lg">
-							Every other tool makes model choices for you. claudemem doesn't.
+							Every other tool makes model choices for you. mnemex doesn't.
 						</p>
 						<div className="space-y-6 text-sm font-mono text-gray-400 leading-relaxed bg-[#0c0c0c] p-8 rounded-xl border border-white/5">
 							<h4 className="text-white font-bold uppercase tracking-widest mb-4">
@@ -1497,7 +1497,7 @@ const ComparisonSection: React.FC = () => {
 								Use your Claude Code subscription for keyless access.
 							</p>
 							<p className="pt-4 border-t border-white/5 text-gray-500 italic">
-								claudemem doesn't care. Plug in what works for you.
+								mnemex doesn't care. Plug in what works for you.
 							</p>
 						</div>
 					</div>
@@ -1668,14 +1668,14 @@ const ComparisonSection: React.FC = () => {
 											# Search from terminal
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											search "payment"
 										</div>
 									</div>
 									<div>
 										<div className="text-gray-500 mb-1"># See dependencies</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											callers "validate"
 										</div>
 									</div>
@@ -1684,7 +1684,7 @@ const ComparisonSection: React.FC = () => {
 											# Visualise PageRank
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem map
+											<span className="text-claude-ish">$</span> mnemex map
 										</div>
 									</div>
 								</div>
@@ -1708,7 +1708,7 @@ const ComparisonSection: React.FC = () => {
 											# Go fully local (Ollama)
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											config --embeddings ollama/nomic --summarizer
 											ollama/llama3
 										</div>
@@ -1718,7 +1718,7 @@ const ComparisonSection: React.FC = () => {
 											# Or use Claude Code sub
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											config --summarizer claude-code
 										</div>
 									</div>
@@ -1745,7 +1745,7 @@ const ComparisonSection: React.FC = () => {
 											# Test on YOUR code
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											benchmark --full
 										</div>
 									</div>
@@ -1754,7 +1754,7 @@ const ComparisonSection: React.FC = () => {
 											# Compare specific models
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											benchmark --models "voyage-3,text-3-large"
 										</div>
 									</div>
@@ -1767,7 +1767,7 @@ const ComparisonSection: React.FC = () => {
 				{/* --- SUMMARY TABLE --- */}
 				<div className="bg-[#111] rounded-2xl border border-white/10 p-8 md:p-12">
 					<h3 className="text-2xl font-bold text-white mb-8 text-center">
-						Summary: Why claudemem?
+						Summary: Why mnemex?
 					</h3>
 					<div className="overflow-x-auto">
 						<table className="w-full text-left border-collapse font-mono text-sm">
@@ -1777,7 +1777,7 @@ const ComparisonSection: React.FC = () => {
 										If you need...
 									</th>
 									<th className="py-4 px-4 text-claude-ish uppercase tracking-widest text-xs">
-										claudemem delivers
+										mnemex delivers
 									</th>
 								</tr>
 							</thead>

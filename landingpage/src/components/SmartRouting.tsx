@@ -85,7 +85,7 @@ export const SmartRouting: React.FC = () => {
 					</span>
 				</h2>
 				<p className="text-lg text-gray-400 font-mono max-w-2xl mx-auto leading-relaxed">
-					Claudemem intelligently routes your prompts based on the model you
+					mnemex intelligently routes your prompts based on the model you
 					select.
 					<br />
 					<span className="text-white">Zero config. Zero friction.</span>
@@ -209,7 +209,7 @@ export const SmartRouting: React.FC = () => {
 							<div className="bg-[#050505] rounded border border-gray-800 p-4 relative overflow-hidden">
 								<div className="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
 									<span className="text-white font-bold font-mono tracking-tight">
-										CLAUDEMEM_ROUTER
+										MNEMEX_ROUTER
 									</span>
 									<div className="flex gap-1">
 										<div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -220,7 +220,7 @@ export const SmartRouting: React.FC = () => {
 								{/* Dynamic Terminal Text */}
 								<div className="font-mono text-xs space-y-2 min-h-[40px]">
 									<div className="text-gray-500">
-										$ claudemem routing-table --watch
+										$ mnemex routing-table --watch
 									</div>
 									<div className="text-claude-ish truncate">
 										{activePath === 0 && ">> DETECTED: opus-4.5 (NATIVE)"}
@@ -395,7 +395,7 @@ export const SmartRouting: React.FC = () => {
 				</div>
 
 				<TerminalWindow
-					title="claudemem routing"
+					title="mnemex routing"
 					className="bg-[#050505] shadow-[0_0_60px_-15px_rgba(0,0,0,0.8)] border-gray-800 rounded-lg h-[500px]"
 					noPadding={true}
 				>
@@ -413,7 +413,7 @@ export const SmartRouting: React.FC = () => {
 							<div className="flex gap-2 text-white mb-4">
 								<span className="text-claude-ish">$</span>
 								<TypingAnimation
-									text="claudemem --model anthropic/claude-sonnet-4.5"
+									text="mnemex --model anthropic/claude-sonnet-4.5"
 									speed={20}
 									className="font-semibold"
 								/>
@@ -454,7 +454,7 @@ export const SmartRouting: React.FC = () => {
 							<div className="flex gap-2 text-white mb-4">
 								<span className="text-claude-ish">$</span>
 								<TypingAnimation
-									text="claudemem --free"
+									text="mnemex --free"
 									speed={20}
 									className="font-semibold"
 								/>
@@ -506,7 +506,7 @@ export const SmartRouting: React.FC = () => {
 							<div className="flex gap-2 text-white mb-4">
 								<span className="text-claude-ish">$</span>
 								<TypingAnimation
-									text="claudemem --model openai/gpt-5.1"
+									text="mnemex --model openai/gpt-5.1"
 									speed={20}
 									className="font-semibold"
 								/>
@@ -547,7 +547,7 @@ export const SmartRouting: React.FC = () => {
 							<div className="flex gap-2 text-white">
 								<span className="text-claude-ish">$</span>
 								<div className="flex flex-col">
-									<div>claudemem \</div>
+									<div>mnemex \</div>
 									<div className="pl-4">
 										--model-opus anthropic/claude-opus-4.5 \{" "}
 										<span className="text-gray-600"># Native Claude</span>

@@ -198,7 +198,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 						<div className="p-4 rounded-xl bg-gradient-to-br from-purple-900/10 to-blue-900/10 border border-white/5 hidden md:block">
 							<div className="text-xs text-gray-400 mb-2">Need help?</div>
 							<a
-								href="https://github.com/MadAppGang/claudemem/issues"
+								href="https://github.com/MadAppGang/mnemex/issues"
 								target="_blank"
 								rel="noreferrer"
 								className="text-xs font-bold text-white hover:text-claude-ish flex items-center gap-2"
@@ -243,7 +243,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											<div className="p-4 text-sm text-gray-300 font-mono">
 												<div className="flex gap-2">
 													<span className="text-claude-ish select-none">$</span>
-													<span>npm install -g claude-codemem</span>
+													<span>npm install -g mnemex</span>
 												</div>
 											</div>
 										</TerminalWindow>
@@ -265,7 +265,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												</div>
 												<div className="flex gap-2 mt-2">
 													<span className="text-claude-ish select-none">$</span>
-													<span>brew install --cask claudemem</span>
+													<span>brew install --cask mnemex</span>
 												</div>
 											</div>
 										</TerminalWindow>
@@ -278,7 +278,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</h3>
 									<div className="bg-[#111] border border-white/10 rounded-lg p-4 font-mono text-sm text-gray-400 break-all">
 										curl -fsSL
-										https://raw.githubusercontent.com/MadAppGang/claudemem/main/install.sh
+										https://raw.githubusercontent.com/MadAppGang/mnemex/main/install.sh
 										| bash
 									</div>
 								</div>
@@ -312,7 +312,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</div>
 											<div className="flex gap-2">
 												<span className="text-claude-ish select-none">$</span>
-												<span>claudemem init</span>
+												<span>mnemex init</span>
 											</div>
 										</div>
 										<div>
@@ -321,14 +321,14 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</div>
 											<div className="flex gap-2">
 												<span className="text-claude-ish select-none">$</span>
-												<span>claudemem index</span>
+												<span>mnemex index</span>
 											</div>
 										</div>
 										<div>
 											<div className="text-gray-500 mb-1"># Search</div>
 											<div className="flex gap-2">
 												<span className="text-claude-ish select-none">$</span>
-												<span>claudemem search "authentication flow"</span>
+												<span>mnemex search "authentication flow"</span>
 											</div>
 										</div>
 									</div>
@@ -341,7 +341,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									3. Configure Embeddings
 								</h2>
 								<p className="text-gray-400">
-									claudemem needs an embedding provider to generate vector
+									mnemex needs an embedding provider to generate vector
 									representations of your code.
 								</p>
 
@@ -361,7 +361,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="bg-black/50 p-3 rounded border border-white/10 font-mono text-xs text-gray-300">
 											export OPENROUTER_API_KEY="your-key"
 											<br />
-											claudemem init{" "}
+											mnemex init{" "}
 											<span className="text-gray-500">
 												# select "OpenRouter"
 											</span>
@@ -398,7 +398,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="bg-black/50 p-3 rounded border border-white/10 font-mono text-xs text-gray-300">
 											ollama pull nomic-embed-text
 											<br />
-											claudemem init{" "}
+											mnemex init{" "}
 											<span className="text-gray-500"># select "Ollama"</span>
 										</div>
 										<div className="text-[10px] text-gray-500 font-mono">
@@ -415,7 +415,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Compatible with any OpenAI-style embedding endpoint.
 									</p>
 									<div className="font-mono text-xs text-gray-500">
-										claudemem init # select "Custom endpoint"
+										mnemex init # select "Custom endpoint"
 									</div>
 								</div>
 							</div>
@@ -490,7 +490,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</p>
 									<div className="bg-black/50 p-4 rounded border border-white/10 font-mono text-sm text-gray-300">
 										<span className="text-claude-ish">export</span>{" "}
-										CLAUDEMEM_LLM="cc/sonnet"
+										MNEMEX_LLM="cc/sonnet"
 									</div>
 								</div>
 							</div>
@@ -529,12 +529,12 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 													</tr>
 													<tr>
 														<td className="p-3 text-blue-300">
-															CLAUDEMEM_MODEL
+															MNEMEX_MODEL
 														</td>
 														<td className="p-3">Override embedding model</td>
 													</tr>
 													<tr>
-														<td className="p-3 text-blue-300">CLAUDEMEM_LLM</td>
+														<td className="p-3 text-blue-300">MNEMEX_LLM</td>
 														<td className="p-3">Enrichment LLM Spec</td>
 													</tr>
 												</tbody>
@@ -551,19 +551,19 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												<tbody className="divide-y divide-white/5 bg-[#0c0c0c] text-gray-400">
 													<tr>
 														<td className="p-3 text-yellow-300">
-															~/.claudemem/config.json
+															~/.mnemex/config.json
 														</td>
 														<td className="p-3">Global config</td>
 													</tr>
 													<tr>
-														<td className="p-3 text-yellow-300">.claudemem/</td>
+														<td className="p-3 text-yellow-300">.mnemex/</td>
 														<td className="p-3">
 															Project index (add to .gitignore)
 														</td>
 													</tr>
 													<tr>
 														<td className="p-3 text-yellow-300">
-															claudemem.json
+															mnemex.json
 														</td>
 														<td className="p-3">Project-specific config</td>
 													</tr>
@@ -583,7 +583,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									CLI Reference
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
-									Complete command-line interface documentation for claudemem.
+									Complete command-line interface documentation for mnemex.
 								</p>
 							</div>
 
@@ -603,7 +603,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</div>
 										<div className="flex gap-2 mb-4">
-											<span className="text-claude-ish">$</span> claudemem init
+											<span className="text-claude-ish">$</span> mnemex init
 										</div>
 
 										<div>
@@ -612,14 +612,14 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</div>
 										<div className="flex gap-2 mb-4">
-											<span className="text-claude-ish">$</span> claudemem index
+											<span className="text-claude-ish">$</span> mnemex index
 										</div>
 
 										<div>
 											<span className="text-gray-500"># 3. Search</span>
 										</div>
 										<div className="flex gap-2">
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											search "authentication flow"
 										</div>
 									</div>
@@ -645,7 +645,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										noPadding
 									>
 										<div className="p-4 text-sm text-gray-300 font-mono">
-											<span className="text-claude-ish">$</span> claudemem init
+											<span className="text-claude-ish">$</span> mnemex init
 										</div>
 									</TerminalWindow>
 								</div>
@@ -743,7 +743,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										PageRank.
 									</p>
 									<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-										<span className="text-claude-ish">$</span> claudemem map
+										<span className="text-claude-ish">$</span> mnemex map
 										"auth"
 									</div>
 								</div>
@@ -841,7 +841,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Report search feedback to improve ranking quality.
 									</p>
 									<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										feedback --query "auth" --helpful chunk1,chunk2 --unhelpful
 										chunk3
 									</div>
@@ -876,14 +876,14 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</p>
 									<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300 space-y-1">
 										<div>
-											<span className="text-claude-ish">$</span> claudemem learn
+											<span className="text-claude-ish">$</span> mnemex learn
 											stats{" "}
 											<span className="text-gray-500">
 												# View current weights and statistics
 											</span>
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> claudemem learn
+											<span className="text-claude-ish">$</span> mnemex learn
 											reset{" "}
 											<span className="text-gray-500">
 												# Reset all learned weights
@@ -897,7 +897,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										How Learning Works
 									</div>
 									<p className="text-sm text-gray-400">
-										claudemem uses{" "}
+										mnemex uses{" "}
 										<strong className="text-white">
 											Exponential Moving Average (EMA)
 										</strong>{" "}
@@ -924,7 +924,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Compare embedding models for speed and quality on your code.
 									</p>
 									<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark
 										--models=voyage-code-3,openai/text-embedding-3-small
 									</div>
@@ -976,7 +976,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										noPadding
 									>
 										<div className="p-4 text-sm text-gray-300 font-mono">
-											<span className="text-claude-ish">$</span> claudemem --mcp
+											<span className="text-claude-ish">$</span> mnemex --mcp
 										</div>
 									</TerminalWindow>
 								</div>
@@ -994,7 +994,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										noPadding
 									>
 										<div className="p-4 text-sm text-gray-300 font-mono">
-											<span className="text-claude-ish">$</span> claudemem
+											<span className="text-claude-ish">$</span> mnemex
 											--autocomplete-server --project .
 										</div>
 									</TerminalWindow>
@@ -1016,7 +1016,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											Run in daemon mode, watching for file changes.
 										</p>
 										<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-											<span className="text-claude-ish">$</span> claudemem watch
+											<span className="text-claude-ish">$</span> mnemex watch
 										</div>
 									</div>
 
@@ -1028,7 +1028,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											Install git post-commit hook for auto-indexing.
 										</p>
 										<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-											<span className="text-claude-ish">$</span> claudemem hooks
+											<span className="text-claude-ish">$</span> mnemex hooks
 											install
 										</div>
 									</div>
@@ -1046,7 +1046,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<span className="text-gray-500 text-sm">&lt;role&gt;</span>
 									</h3>
 									<p className="text-gray-400">
-										Get role-based prompts to teach agents how to use claudemem.
+										Get role-based prompts to teach agents how to use mnemex.
 									</p>
 									<Table
 										headers={["Role", "Description"]}
@@ -1074,7 +1074,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											# Append to CLAUDE.md for Claude Code
 										</span>
 										<br />
-										<span className="text-claude-ish">$</span> claudemem ai
+										<span className="text-claude-ish">$</span> mnemex ai
 										skill --raw &gt;&gt; CLAUDE.md
 									</div>
 								</div>
@@ -1120,11 +1120,11 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												</td>
 											</tr>
 											<tr>
-												<td className="p-3 text-blue-300">CLAUDEMEM_MODEL</td>
+												<td className="p-3 text-blue-300">MNEMEX_MODEL</td>
 												<td className="p-3">Override embedding model</td>
 											</tr>
 											<tr>
-												<td className="p-3 text-blue-300">CLAUDEMEM_LLM</td>
+												<td className="p-3 text-blue-300">MNEMEX_LLM</td>
 												<td className="p-3">LLM spec for enrichment</td>
 											</tr>
 										</tbody>
@@ -1220,7 +1220,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Integration Guide
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
-									Complete guide for using claudemem with Claude Code and the
+									Complete guide for using mnemex with Claude Code and the
 									Code Analysis Plugin.
 								</p>
 							</div>
@@ -1234,7 +1234,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<div className="space-y-4">
 										<p className="text-gray-400 text-sm leading-relaxed">
 											When combined with the{" "}
-											<strong>Code Analysis Plugin</strong>, claudemem gives
+											<strong>Code Analysis Plugin</strong>, mnemex gives
 											Claude "detective skills" to navigate your codebase.
 											Instead of guessing files or running grep, it can trace
 											calls, find definitions, and understand architecture.
@@ -1243,7 +1243,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											headers={["Component", "Purpose"]}
 											rows={[
 												[
-													'<strong class="text-white">claudemem CLI</strong>',
+													'<strong class="text-white">mnemex CLI</strong>',
 													"Local semantic search engine & graph builder",
 												],
 												[
@@ -1259,7 +1259,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</div>
 									<div className="bg-[#0c0c0c] border border-white/10 rounded-lg p-4 font-mono text-[10px] text-gray-400 overflow-x-auto leading-relaxed whitespace-pre shadow-2xl">
 										{`┌────────────────────────────────────────────────────────┐
-│               CLAUDE CODE + CLAUDEMEM                  │
+│               CLAUDE CODE + MNEMEX                  │
 ├────────────────────────────────────────────────────────┤
 │                                                        │
 │  ┌──────────────────────────────────────────────────┐  │
@@ -1268,7 +1268,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 │  └──────────────────────────────────────────────────┘  │
 │                           ↓                            │
 │  ┌──────────────────────────────────────────────────┐  │
-│  │                 CLAUDEMEM CLI                    │  │
+│  │                 MNEMEX CLI                    │  │
 │  │ map | symbol | callers | callees | search        │  │
 │  └──────────────────────────────────────────────────┘  │
 │                           ↓                            │
@@ -1299,14 +1299,14 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="p-4 text-sm text-gray-300 font-mono space-y-2">
 											<div>
 												<span className="text-claude-ish">$</span> npm install
-												-g claude-codemem
+												-g mnemex
 											</div>
 											<div>
-												<span className="text-claude-ish">$</span> claudemem
+												<span className="text-claude-ish">$</span> mnemex
 												init
 											</div>
 											<div>
-												<span className="text-claude-ish">$</span> claudemem
+												<span className="text-claude-ish">$</span> mnemex
 												index
 											</div>
 										</div>
@@ -1511,10 +1511,10 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												Claude Actions:
 											</div>
 											<div className="text-blue-300">
-												1. claudemem symbol DatabaseConnection
+												1. mnemex symbol DatabaseConnection
 											</div>
 											<div className="text-blue-300">
-												2. claudemem callers DatabaseConnection
+												2. mnemex callers DatabaseConnection
 											</div>
 											<div className="text-gray-400 pl-4">
 												→ Finds 12 usages in 5 files
@@ -1539,14 +1539,14 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												Claude Actions:
 											</div>
 											<div className="text-blue-300">
-												1. claudemem map "payment flow"
+												1. mnemex map "payment flow"
 											</div>
 											<div className="text-gray-400 pl-4">
 												→ Identifies PaymentService (Rank 0.8) and StripeAdapter
 												(Rank 0.4)
 											</div>
 											<div className="text-blue-300">
-												2. claudemem callees PaymentService
+												2. mnemex callees PaymentService
 											</div>
 											<div className="text-gray-400 pl-4">
 												→ Maps dependencies: User, Config, StripeAdapter
@@ -1582,7 +1582,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<ul className="space-y-3 text-sm text-gray-400">
 											<li className="flex gap-2">
 												<span className="text-[#3fb950]">•</span> Start with{" "}
-												<code>claudemem map</code> to get the big picture.
+												<code>mnemex map</code> to get the big picture.
 											</li>
 											<li className="flex gap-2">
 												<span className="text-[#3fb950]">•</span> Check{" "}
@@ -1653,7 +1653,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										</thead>
 										<tbody className="divide-y divide-white/5 bg-[#0c0c0c] text-gray-400">
 											<tr>
-												<td className="p-3 text-white">claudemem</td>
+												<td className="p-3 text-white">mnemex</td>
 												<td className="p-3">0.3.0+</td>
 												<td className="p-3">Core commands (map, symbol)</td>
 											</tr>
@@ -1685,7 +1685,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs claude-context
+									mnemex vs claude-context
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Local-first embedded storage vs cloud-dependent MCP server.
@@ -1705,7 +1705,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</a>
 									, MIT) by Zilliz is a semantic code search MCP server using
 									Milvus/Zilliz Cloud for vectors.
-									<strong className="text-white"> claudemem</strong> uses
+									<strong className="text-white"> mnemex</strong> uses
 									embedded LanceDB — no cloud signup required, fully local
 									operation possible.
 								</p>
@@ -1716,7 +1716,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Architecture Philosophy
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "claude-context (Zilliz)"]}
+									headers={["Aspect", "mnemex", "claude-context (Zilliz)"]}
 									rows={[
 										[
 											'<strong class="text-white">Vector Database</strong>',
@@ -1747,13 +1747,13 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								/>
 								<div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mt-4">
 									<div className="text-xs text-green-400 font-bold uppercase tracking-widest mb-2">
-										claudemem's Key Advantage
+										mnemex's Key Advantage
 									</div>
 									<p className="text-sm text-gray-400">
 										<strong className="text-white">
 											Zero cloud signup required.
 										</strong>{" "}
-										claudemem works out-of-the-box with embedded LanceDB.
+										mnemex works out-of-the-box with embedded LanceDB.
 										claude-context requires creating accounts on both Zilliz
 										Cloud and OpenAI before first use.
 									</p>
@@ -1765,7 +1765,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Code Understanding
 								</h3>
 								<Table
-									headers={["Feature", "claudemem", "claude-context"]}
+									headers={["Feature", "mnemex", "claude-context"]}
 									rows={[
 										[
 											'<strong class="text-white">AST Parsing</strong>',
@@ -1811,11 +1811,11 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Developer Experience
 								</h3>
 								<Table
-									headers={["Feature", "claudemem", "claude-context"]}
+									headers={["Feature", "mnemex", "claude-context"]}
 									rows={[
 										[
 											'<strong class="text-white">Installation</strong>',
-											'<span class="text-green-400">npm install -g claude-codemem</span>',
+											'<span class="text-green-400">npm install -g mnemex</span>',
 											"npx + Zilliz Cloud signup + OpenAI key",
 										],
 										[
@@ -1852,7 +1852,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Pricing & Requirements
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "claude-context"]}
+									headers={["Aspect", "mnemex", "claude-context"]}
 									rows={[
 										[
 											'<strong class="text-white">License</strong>',
@@ -1904,7 +1904,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h4 className="text-lg font-bold text-white mb-3">
-											Choose claudemem
+											Choose mnemex
 										</h4>
 										<ul className="space-y-2 text-sm text-gray-300">
 											<li>• Zero-config, instant setup</li>
@@ -1942,10 +1942,10 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs Context-Engine
+									mnemex vs Context-Engine
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
-									How claudemem compares to Context-Engine for code
+									How mnemex compares to Context-Engine for code
 									intelligence.
 								</p>
 							</div>
@@ -1965,7 +1965,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										</a>
 										, MIT license) is a Python-based MCP retrieval stack with
 										ReFRAG micro-chunking and 6 Docker services.
-										<strong className="text-white"> claudemem</strong> takes a
+										<strong className="text-white"> mnemex</strong> takes a
 										different approach: single-binary, local-first with embedded
 										LanceDB and PageRank symbol graphs.
 									</p>
@@ -1977,7 +1977,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Architecture Philosophy
 									</h3>
 									<Table
-										headers={["Aspect", "claudemem", "Context-Engine"]}
+										headers={["Aspect", "mnemex", "Context-Engine"]}
 										rows={[
 											[
 												'<strong class="text-white">Language</strong>',
@@ -2011,7 +2011,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											Design Philosophy
 										</div>
 										<p className="text-sm text-gray-400">
-											claudemem follows the{" "}
+											mnemex follows the{" "}
 											<strong className="text-white">
 												"SQLite philosophy"
 											</strong>{" "}
@@ -2029,7 +2029,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Code Understanding
 									</h3>
 									<Table
-										headers={["Feature", "claudemem", "Context-Engine"]}
+										headers={["Feature", "mnemex", "Context-Engine"]}
 										rows={[
 											[
 												'<strong class="text-white">Chunking</strong>',
@@ -2060,10 +2060,10 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									/>
 									<div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mt-4">
 										<div className="text-xs text-green-400 font-bold uppercase tracking-widest mb-2">
-											claudemem's Key Differentiator
+											mnemex's Key Differentiator
 										</div>
 										<p className="text-sm text-gray-400">
-											While Context-Engine focuses on retrieval, claudemem
+											While Context-Engine focuses on retrieval, mnemex
 											builds a{" "}
 											<strong className="text-white">
 												semantic understanding
@@ -2082,7 +2082,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Search Capabilities
 									</h3>
 									<Table
-										headers={["Feature", "claudemem", "Context-Engine"]}
+										headers={["Feature", "mnemex", "Context-Engine"]}
 										rows={[
 											[
 												'<strong class="text-white">Hybrid Search</strong>',
@@ -2124,11 +2124,11 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Developer Experience
 									</h3>
 									<Table
-										headers={["Feature", "claudemem", "Context-Engine"]}
+										headers={["Feature", "mnemex", "Context-Engine"]}
 										rows={[
 											[
 												'<strong class="text-white">Setup Time</strong>',
-												'<span class="text-green-400">npm install -g + claudemem init</span>',
+												'<span class="text-green-400">npm install -g + mnemex init</span>',
 												"Docker Compose + VS Code extension",
 											],
 											[
@@ -2156,7 +2156,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										MCP Integration
 									</h3>
 									<Table
-										headers={["Feature", "claudemem", "Context-Engine"]}
+										headers={["Feature", "mnemex", "Context-Engine"]}
 										rows={[
 											[
 												'<strong class="text-white">Transport</strong>',
@@ -2183,7 +2183,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Documentation Indexing
 									</h3>
 									<Table
-										headers={["Feature", "claudemem", "Context-Engine"]}
+										headers={["Feature", "mnemex", "Context-Engine"]}
 										rows={[
 											[
 												'<strong class="text-white">External Docs</strong>',
@@ -2199,10 +2199,10 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									/>
 									<div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
 										<div className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-2">
-											Unique to claudemem
+											Unique to mnemex
 										</div>
 										<p className="text-sm text-gray-400">
-											claudemem's documentation indexing lets you search React
+											mnemex's documentation indexing lets you search React
 											docs alongside your React code. Useful for queries like{" "}
 											<em>"how does React's useEffect work?"</em> during
 											development.
@@ -2216,7 +2216,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Performance & Scaling
 									</h3>
 									<Table
-										headers={["Aspect", "claudemem", "Context-Engine"]}
+										headers={["Aspect", "mnemex", "Context-Engine"]}
 										rows={[
 											[
 												'<strong class="text-white">Memory</strong>',
@@ -2249,7 +2249,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 													M
 												</div>
 												<h4 className="text-lg font-bold text-white">
-													Choose claudemem
+													Choose mnemex
 												</h4>
 											</div>
 											<ul className="space-y-2 text-sm text-gray-300">
@@ -2322,7 +2322,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</h4>
 									<p className="text-sm text-gray-400 mb-4">
 										Based on this comparison, features we might consider for
-										claudemem:
+										mnemex:
 									</p>
 									<div className="grid md:grid-cols-2 gap-4 text-sm">
 										<div className="bg-black/30 rounded-lg p-3">
@@ -2358,7 +2358,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs Greptile
+									mnemex vs Greptile
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Local-first semantic search vs cloud-based AI code review
@@ -2379,7 +2379,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</a>
 									, $29M+ funded) is a cloud PR code review platform claiming
 									82% bug catch rate via codegraph analysis.
-									<strong className="text-white"> claudemem</strong> is a
+									<strong className="text-white"> mnemex</strong> is a
 									local-first semantic code search tool with PageRank symbol
 									graphs — different goals, different tradeoffs.
 								</p>
@@ -2390,7 +2390,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Architecture
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "Greptile"]}
+									headers={["Aspect", "mnemex", "Greptile"]}
 									rows={[
 										[
 											'<strong class="text-white">Deployment</strong>',
@@ -2428,7 +2428,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
 										<div className="text-claude-ish font-bold mb-2">
-											claudemem
+											mnemex
 										</div>
 										<p className="text-sm text-gray-400">
 											Developer semantic search, dead-code detection, impact
@@ -2450,7 +2450,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Features
 								</h3>
 								<Table
-									headers={["Feature", "claudemem", "Greptile"]}
+									headers={["Feature", "mnemex", "Greptile"]}
 									rows={[
 										[
 											'<strong class="text-white">Semantic Search</strong>',
@@ -2501,7 +2501,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Pricing
 								</h3>
 								<Table
-									headers={["Plan", "claudemem", "Greptile"]}
+									headers={["Plan", "mnemex", "Greptile"]}
 									rows={[
 										[
 											'<strong class="text-white">License</strong>',
@@ -2553,7 +2553,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h4 className="text-lg font-bold text-white mb-3">
-											Choose claudemem
+											Choose mnemex
 										</h4>
 										<ul className="space-y-2 text-sm text-gray-300">
 											<li>• Privacy-first / air-gapped environments</li>
@@ -2590,7 +2590,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs Brokk
+									mnemex vs Brokk
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Lightweight semantic search vs full Code Property Graph
@@ -2612,7 +2612,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									, GPL-3.0) is a Java Swing IDE using Joern for full Code
 									Property Graph (CPG) analysis with compiler-grade type
 									inference.
-									<strong className="text-white"> claudemem</strong> uses
+									<strong className="text-white"> mnemex</strong> uses
 									tree-sitter AST with PageRank symbol ranking — lightweight vs.
 									heavy-duty.
 								</p>
@@ -2623,7 +2623,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Architecture
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "Brokk"]}
+									headers={["Aspect", "mnemex", "Brokk"]}
 									rows={[
 										[
 											'<strong class="text-white">Runtime</strong>',
@@ -2667,7 +2667,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<div className="grid md:grid-cols-2 gap-6">
 										<div>
 											<div className="text-claude-ish font-bold mb-2">
-												claudemem (Symbol Graph)
+												mnemex (Symbol Graph)
 											</div>
 											<ul className="text-sm text-gray-400 space-y-1">
 												<li>• AST parsing via tree-sitter (28+ languages)</li>
@@ -2696,7 +2696,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Features
 								</h3>
 								<Table
-									headers={["Feature", "claudemem", "Brokk"]}
+									headers={["Feature", "mnemex", "Brokk"]}
 									rows={[
 										[
 											'<strong class="text-white">Semantic Search</strong>',
@@ -2747,7 +2747,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Pricing
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "Brokk"]}
+									headers={["Aspect", "mnemex", "Brokk"]}
 									rows={[
 										[
 											'<strong class="text-white">License</strong>',
@@ -2780,7 +2780,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h4 className="text-lg font-bold text-white mb-3">
-											Choose claudemem
+											Choose mnemex
 										</h4>
 										<ul className="space-y-2 text-sm text-gray-300">
 											<li>• Multi-language codebases</li>
@@ -2816,7 +2816,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs Serena
+									mnemex vs Serena
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Semantic embeddings vs LSP-based structural analysis.
@@ -2836,7 +2836,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</a>
 									, MIT) uses Language Server Protocol for structural code
 									understanding with 35+ MCP tools — no embeddings, pure LSP.
-									<strong className="text-white"> claudemem</strong> combines
+									<strong className="text-white"> mnemex</strong> combines
 									tree-sitter AST with vector embeddings for hybrid semantic
 									search — fundamentally different approaches.
 								</p>
@@ -2849,7 +2849,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
 										<div className="text-claude-ish font-bold mb-2">
-											claudemem (Embeddings)
+											mnemex (Embeddings)
 										</div>
 										<p className="text-sm text-gray-400">
 											AST → Vector embeddings → Semantic similarity search
@@ -2880,7 +2880,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Features
 								</h3>
 								<Table
-									headers={["Feature", "claudemem", "Serena"]}
+									headers={["Feature", "mnemex", "Serena"]}
 									rows={[
 										[
 											'<strong class="text-white">Semantic Search</strong>',
@@ -2936,7 +2936,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Technical Stack
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "Serena"]}
+									headers={["Aspect", "mnemex", "Serena"]}
 									rows={[
 										[
 											'<strong class="text-white">Backend</strong>',
@@ -2950,7 +2950,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										],
 										[
 											'<strong class="text-white">Setup</strong>',
-											'<span class="text-green-400">npm install -g claudemem</span>',
+											'<span class="text-green-400">npm install -g mnemex</span>',
 											"uvx from git or Docker",
 										],
 										[
@@ -2974,7 +2974,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<p className="text-sm text-gray-400">
 									Serena explicitly positions LSP and RAG as{" "}
 									<strong className="text-white">complementary</strong>{" "}
-									approaches. You could use both: claudemem for semantic
+									approaches. You could use both: mnemex for semantic
 									discovery, Serena for precise symbol-level editing.
 								</p>
 							</div>
@@ -2986,7 +2986,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h4 className="text-lg font-bold text-white mb-3">
-											Choose claudemem
+											Choose mnemex
 										</h4>
 										<ul className="space-y-2 text-sm text-gray-300">
 											<li>• "Find code that does X" queries</li>
@@ -3022,7 +3022,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs Amp
+									mnemex vs Amp
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Local-first open source vs enterprise cloud AI coding agent.
@@ -3043,7 +3043,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									) is an enterprise AI coding agent powered by Claude Opus 4.5
 									with credit-based pricing, SCIP indexing, and background
 									agents.
-									<strong className="text-white"> claudemem</strong> is free,
+									<strong className="text-white"> mnemex</strong> is free,
 									local-first semantic search focused on code understanding —
 									different scope entirely.
 								</p>
@@ -3054,7 +3054,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Architecture
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "Amp"]}
+									headers={["Aspect", "mnemex", "Amp"]}
 									rows={[
 										[
 											'<strong class="text-white">Deployment</strong>',
@@ -3090,7 +3090,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Features
 								</h3>
 								<Table
-									headers={["Feature", "claudemem", "Amp"]}
+									headers={["Feature", "mnemex", "Amp"]}
 									rows={[
 										[
 											'<strong class="text-white">Semantic Search</strong>',
@@ -3136,7 +3136,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Pricing
 								</h3>
 								<Table
-									headers={["Plan", "claudemem", "Amp"]}
+									headers={["Plan", "mnemex", "Amp"]}
 									rows={[
 										[
 											'<strong class="text-white">License</strong>',
@@ -3175,7 +3175,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<p className="text-sm text-gray-400 mb-3">
 										Amp uses <code className="text-blue-400">AGENTS.md</code>{" "}
 										(an open spec now under Linux Foundation stewardship) for
-										project-level AI guidance. claudemem integrates with Claude
+										project-level AI guidance. mnemex integrates with Claude
 										Code's <code className="text-claude-ish">CLAUDE.md</code>{" "}
 										for similar purposes.
 									</p>
@@ -3194,7 +3194,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h4 className="text-lg font-bold text-white mb-3">
-											Choose claudemem
+											Choose mnemex
 										</h4>
 										<ul className="space-y-2 text-sm text-gray-300">
 											<li>• Air-gapped / privacy-first</li>
@@ -3231,7 +3231,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs claude-mem: Complete 2025 Comparison
+									mnemex vs claude-mem: Complete 2025 Comparison
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Similar names, completely different tools. One searches your
@@ -3253,7 +3253,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="flex items-center gap-3">
 											<div className="w-3 h-3 rounded-full bg-claude-ish"></div>
 											<span className="text-white font-bold text-lg">
-												claudemem
+												mnemex
 											</span>
 										</div>
 										<p className="text-gray-300 text-lg leading-relaxed">
@@ -3264,7 +3264,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											parsing, PageRank, and symbol graphs.
 										</p>
 										<p className="text-sm text-gray-500 font-mono">
-											npm install -g claude-codemem
+											npm install -g mnemex
 										</p>
 									</div>
 									<div className="space-y-3">
@@ -3293,7 +3293,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<strong className="text-green-400">
 											complementary, not competitors
 										</strong>
-										. Use claudemem to search code + use claude-mem for session
+										. Use mnemex to search code + use claude-mem for session
 										memory = best of both worlds.
 									</p>
 								</div>
@@ -3319,9 +3319,9 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										9.3k+ ★
 									</a>
 									) launched first and has a larger community.
-									<strong className="text-white"> claudemem</strong> (
+									<strong className="text-white"> mnemex</strong> (
 									<a
-										href="https://github.com/MadAppGang/claudemem"
+										href="https://github.com/MadAppGang/mnemex"
 										className="text-blue-400 hover:underline"
 										target="_blank"
 										rel="noreferrer"
@@ -3343,11 +3343,11 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6 space-y-4">
 										<h3 className="text-claude-ish font-bold text-xl">
-											claudemem solves: "Where is X in my code?"
+											mnemex solves: "Where is X in my code?"
 										</h3>
 										<p className="text-gray-400 leading-relaxed">
 											When you ask Claude "where is authentication handled?" it
-											needs to actually <em>find</em> that code. claudemem
+											needs to actually <em>find</em> that code. mnemex
 											indexes your codebase with tree-sitter AST parsing,
 											creates embeddings, and builds a symbol graph so AI can
 											search semantically — not just grep for strings.
@@ -3357,13 +3357,13 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												# Search for concepts, not just strings
 											</div>
 											<div className="text-white">
-												claudemem search "error handling logic"
+												mnemex search "error handling logic"
 											</div>
 											<div className="text-gray-500 mt-2">
 												# Find what calls a function
 											</div>
 											<div className="text-white">
-												claudemem callers validateToken
+												mnemex callers validateToken
 											</div>
 										</div>
 									</div>
@@ -3402,7 +3402,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Architecture Deep Dive
 								</h2>
 								<Table
-									headers={["Component", "claudemem", "claude-mem"]}
+									headers={["Component", "mnemex", "claude-mem"]}
 									rows={[
 										[
 											'<strong class="text-white">What It Indexes</strong>',
@@ -3454,7 +3454,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Feature-by-Feature Comparison
 								</h2>
 								<Table
-									headers={["Feature", "claudemem", "claude-mem"]}
+									headers={["Feature", "mnemex", "claude-mem"]}
 									rows={[
 										[
 											'<strong class="text-white">Semantic Code Search</strong>',
@@ -3533,11 +3533,11 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="space-y-4">
 										<h3 className="text-lg font-bold text-claude-ish">
-											claudemem Integration
+											mnemex Integration
 										</h3>
 										<div className="bg-[#0c0c0c] rounded-xl p-5 space-y-3 font-mono text-sm">
 											<div className="text-gray-500"># Run as MCP server</div>
-											<div className="text-white">claudemem --mcp</div>
+											<div className="text-white">mnemex --mcp</div>
 											<div className="text-gray-500 mt-4">
 												# Available MCP tools:
 											</div>
@@ -3598,7 +3598,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Project Details
 								</h2>
 								<Table
-									headers={["Detail", "claudemem", "claude-mem"]}
+									headers={["Detail", "mnemex", "claude-mem"]}
 									rows={[
 										[
 											'<strong class="text-white">Maintainer</strong>',
@@ -3622,7 +3622,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										],
 										[
 											'<strong class="text-white">Package Name</strong>',
-											'<code class="bg-gray-800 px-1 rounded">claude-codemem</code>',
+											'<code class="bg-gray-800 px-1 rounded">mnemex</code>',
 											'<code class="bg-gray-800 px-1 rounded">claude-mem</code>',
 										],
 										[
@@ -3643,7 +3643,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-											<span className="text-claude-ish">→</span> Use claudemem
+											<span className="text-claude-ish">→</span> Use mnemex
 											when you ask:
 										</h3>
 										<ul className="space-y-3 text-gray-300">
@@ -3735,13 +3735,13 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-[#0c0c0c]/50 rounded-xl p-5">
 										<div className="text-sm text-gray-500 mb-2">
-											1. Code understanding (claudemem)
+											1. Code understanding (mnemex)
 										</div>
 										<div className="font-mono text-sm text-white">
-											npm install -g claude-codemem
+											npm install -g mnemex
 										</div>
 										<div className="font-mono text-sm text-gray-400 mt-1">
-											claudemem index && claudemem --mcp
+											mnemex index && mnemex --mcp
 										</div>
 									</div>
 									<div className="bg-[#0c0c0c]/50 rounded-xl p-5">
@@ -3780,7 +3780,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<details className="group bg-[#1a1a1a] rounded-xl border border-white/10">
 										<summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium hover:text-claude-ish transition-colors">
 											<span>
-												Are claudemem and claude-mem the same project?
+												Are mnemex and claude-mem the same project?
 											</span>
 											<span className="text-gray-500 group-open:rotate-180 transition-transform">
 												▼
@@ -3789,7 +3789,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="px-5 pb-5 text-gray-400">
 											<strong className="text-white">No.</strong> They are
 											completely separate projects by different maintainers.
-											claude-mem (by @thedotmack) is session memory. claudemem
+											claude-mem (by @thedotmack) is session memory. mnemex
 											(by MadAppGang) is semantic code search. The similar names
 											are coincidental.
 										</div>
@@ -3805,7 +3805,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="px-5 pb-5 text-gray-400">
 											<strong className="text-green-400">Yes!</strong> They
 											solve different problems and complement each other
-											perfectly. Use claudemem for code search and
+											perfectly. Use mnemex for code search and
 											understanding, claude-mem for session persistence and
 											memory.
 										</div>
@@ -3819,7 +3819,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											claude-mem has ~9.3k stars and launched earlier. claudemem
+											claude-mem has ~9.3k stars and launched earlier. mnemex
 											is newer and growing. Stars don't determine which tool you
 											need — they solve different problems.
 										</div>
@@ -3833,7 +3833,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											claudemem uses{" "}
+											mnemex uses{" "}
 											<strong className="text-green-400">MIT</strong> (most
 											permissive). claude-mem uses{" "}
 											<strong className="text-yellow-400">AGPL-3.0</strong>{" "}
@@ -3844,16 +3844,16 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 
 									<details className="group bg-[#1a1a1a] rounded-xl border border-white/10">
 										<summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium hover:text-claude-ish transition-colors">
-											<span>Does claudemem remember past sessions?</span>
+											<span>Does mnemex remember past sessions?</span>
 											<span className="text-gray-500 group-open:rotate-180 transition-transform">
 												▼
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											<strong className="text-white">No.</strong> claudemem
+											<strong className="text-white">No.</strong> mnemex
 											indexes your <em>code</em>, not your <em>sessions</em>. If
 											you need session memory, use claude-mem alongside
-											claudemem.
+											mnemex.
 										</div>
 									</details>
 
@@ -3868,7 +3868,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											<strong className="text-white">No.</strong> claude-mem
 											captures tool observations as text. It doesn't parse AST,
 											build symbol graphs, or compute PageRank. For code
-											understanding, use claudemem.
+											understanding, use mnemex.
 										</div>
 									</details>
 								</div>
@@ -3881,12 +3881,12 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								</h3>
 								<div className="flex flex-col sm:flex-row gap-4 justify-center">
 									<a
-										href="https://github.com/MadAppGang/claudemem"
+										href="https://github.com/MadAppGang/mnemex"
 										target="_blank"
 										rel="noreferrer"
 										className="px-6 py-3 bg-claude-ish text-black font-bold rounded-lg hover:bg-claude-ish/90 transition-colors"
 									>
-										Get claudemem →
+										Get mnemex →
 									</a>
 									<a
 										href="https://github.com/thedotmack/claude-mem"
@@ -3913,7 +3913,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs mem0: Code Search vs AI Memory (2026)
+									mnemex vs mem0: Code Search vs AI Memory (2026)
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Different layers of the AI stack. One searches code, the other
@@ -3934,7 +3934,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="flex items-center gap-3">
 											<div className="w-3 h-3 rounded-full bg-claude-ish"></div>
 											<span className="text-white font-bold text-lg">
-												claudemem
+												mnemex
 											</span>
 										</div>
 										<p className="text-gray-300 text-lg leading-relaxed">
@@ -3945,7 +3945,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											graphs with PageRank, helps AI find and understand code.
 										</p>
 										<p className="text-sm text-gray-500 font-mono">
-											npm install -g claude-codemem
+											npm install -g mnemex
 										</p>
 									</div>
 									<div className="space-y-3">
@@ -3972,7 +3972,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<strong className="text-green-400">
 											different problems at different layers
 										</strong>
-										. claudemem = code understanding. mem0 = user memory. Use
+										. mnemex = code understanding. mem0 = user memory. Use
 										both for the complete AI assistant stack.
 									</p>
 								</div>
@@ -4003,7 +4003,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										</div>
 										<div className="bg-claude-ish/10 border border-claude-ish/30 rounded-lg p-4">
 											<div className="text-claude-ish font-bold mb-2">
-												claudemem
+												mnemex
 											</div>
 											<div className="text-gray-400 text-xs">
 												"WHERE is the code?"
@@ -4031,12 +4031,12 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6 space-y-4">
 										<h3 className="text-claude-ish font-bold text-xl">
-											claudemem: "Where is X in my code?"
+											mnemex: "Where is X in my code?"
 										</h3>
 										<p className="text-gray-400 leading-relaxed">
 											When AI needs to find authentication logic, understand
 											what calls a function, or detect unused code — it needs
-											code intelligence. claudemem indexes with tree-sitter AST,
+											code intelligence. mnemex indexes with tree-sitter AST,
 											builds symbol graphs, and enables semantic search.
 										</p>
 										<div className="bg-[#0c0c0c] rounded-lg p-4 font-mono text-sm">
@@ -4044,18 +4044,18 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												# Find code semantically
 											</div>
 											<div className="text-white">
-												claudemem search "payment validation"
+												mnemex search "payment validation"
 											</div>
 											<div className="text-gray-500 mt-2">
 												# Trace dependencies
 											</div>
 											<div className="text-white">
-												claudemem callers processPayment
+												mnemex callers processPayment
 											</div>
 											<div className="text-gray-500 mt-2">
 												# Find unused code
 											</div>
-											<div className="text-white">claudemem dead-code</div>
+											<div className="text-white">mnemex dead-code</div>
 										</div>
 									</div>
 
@@ -4099,7 +4099,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Architecture Comparison
 								</h2>
 								<Table
-									headers={["Component", "claudemem", "mem0"]}
+									headers={["Component", "mnemex", "mem0"]}
 									rows={[
 										[
 											'<strong class="text-white">Data Source</strong>',
@@ -4151,7 +4151,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Feature-by-Feature Comparison
 								</h2>
 								<Table
-									headers={["Feature", "claudemem", "mem0"]}
+									headers={["Feature", "mnemex", "mem0"]}
 									rows={[
 										[
 											'<strong class="text-white">Semantic Code Search</strong>',
@@ -4230,7 +4230,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h3 className="text-lg font-bold text-white mb-4">
-											claudemem
+											mnemex
 										</h3>
 										<ul className="space-y-3 text-sm text-gray-400">
 											<li className="flex justify-between">
@@ -4248,7 +4248,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											<li className="flex justify-between">
 												<span>Package</span>
 												<span className="font-mono text-xs">
-													claude-codemem
+													mnemex
 												</span>
 											</li>
 											<li className="flex justify-between">
@@ -4293,7 +4293,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-											<span className="text-claude-ish">→</span> Use claudemem
+											<span className="text-claude-ish">→</span> Use mnemex
 											when you ask:
 										</h3>
 										<ul className="space-y-3 text-gray-300">
@@ -4387,7 +4387,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											# AI needs to find the auth code
 										</div>
 										<div className="text-claude-ish">
-											claudemem → "Auth module is in src/auth/, 12 files, main
+											mnemex → "Auth module is in src/auth/, 12 files, main
 											entry validateToken()"
 										</div>
 									</div>
@@ -4411,7 +4411,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="space-y-4">
 									<details className="group bg-[#1a1a1a] rounded-xl border border-white/10">
 										<summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium hover:text-claude-ish transition-colors">
-											<span>Is mem0 a competitor to claudemem?</span>
+											<span>Is mem0 a competitor to mnemex?</span>
 											<span className="text-gray-500 group-open:rotate-180 transition-transform">
 												▼
 											</span>
@@ -4419,7 +4419,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="px-5 pb-5 text-gray-400">
 											<strong className="text-white">No.</strong> They solve
 											different problems at different layers. mem0 is for user
-											memory (preferences, conversations). claudemem is for code
+											memory (preferences, conversations). mnemex is for code
 											understanding (search, symbols, dependencies). They're
 											complementary.
 										</div>
@@ -4428,23 +4428,23 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<details className="group bg-[#1a1a1a] rounded-xl border border-white/10">
 										<summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium hover:text-claude-ish transition-colors">
 											<span>
-												Can claudemem remember user preferences like mem0?
+												Can mnemex remember user preferences like mem0?
 											</span>
 											<span className="text-gray-500 group-open:rotate-180 transition-transform">
 												▼
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											<strong className="text-white">No.</strong> claudemem
+											<strong className="text-white">No.</strong> mnemex
 											indexes source code, not user interactions. For user
-											memory, use mem0 or claude-mem alongside claudemem.
+											memory, use mem0 or claude-mem alongside mnemex.
 										</div>
 									</details>
 
 									<details className="group bg-[#1a1a1a] rounded-xl border border-white/10">
 										<summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium hover:text-claude-ish transition-colors">
 											<span>
-												Can mem0 understand my codebase like claudemem?
+												Can mem0 understand my codebase like mnemex?
 											</span>
 											<span className="text-gray-500 group-open:rotate-180 transition-transform">
 												▼
@@ -4454,7 +4454,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											<strong className="text-white">No.</strong> mem0 stores
 											facts and user context, not code structure. It doesn't
 											parse AST, build symbol graphs, or compute PageRank. For
-											code intelligence, use claudemem.
+											code intelligence, use mnemex.
 										</div>
 									</details>
 
@@ -4467,7 +4467,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
 											<strong className="text-purple-400">mem0</strong> has 45k+
-											GitHub stars and raised $24M (YC S24). claudemem is a
+											GitHub stars and raised $24M (YC S24). mnemex is a
 											newer, growing project. But stars/funding don't determine
 											which tool you need — they solve different problems.
 										</div>
@@ -4481,7 +4481,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											Both are permissive. claudemem uses{" "}
+											Both are permissive. mnemex uses{" "}
 											<strong className="text-green-400">MIT</strong>. mem0 uses{" "}
 											<strong className="text-green-400">Apache 2.0</strong>.
 											Both allow commercial use.
@@ -4497,12 +4497,12 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								</h3>
 								<div className="flex flex-col sm:flex-row gap-4 justify-center">
 									<a
-										href="https://github.com/MadAppGang/claudemem"
+										href="https://github.com/MadAppGang/mnemex"
 										target="_blank"
 										rel="noreferrer"
 										className="px-6 py-3 bg-claude-ish text-black font-bold rounded-lg hover:bg-claude-ish/90 transition-colors"
 									>
-										Get claudemem →
+										Get mnemex →
 									</a>
 									<a
 										href="https://github.com/mem0ai/mem0"
@@ -4528,7 +4528,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<span className="text-gray-600">/</span>
 								</div>
 								<h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-									claudemem vs Supermemory
+									mnemex vs Supermemory
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
 									Code intelligence vs personal knowledge management — different
@@ -4553,7 +4553,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									, MIT) is an{" "}
 									<strong className="text-yellow-400">"AI second brain"</strong>{" "}
 									for saving URLs, bookmarks, PDFs, and notes.
-									<strong className="text-white"> claudemem</strong> is{" "}
+									<strong className="text-white"> mnemex</strong> is{" "}
 									<strong className="text-claude-ish">
 										semantic code search
 									</strong>{" "}
@@ -4570,7 +4570,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
 										<div className="text-claude-ish font-bold mb-2">
-											claudemem
+											mnemex
 										</div>
 										<p className="text-sm text-gray-400 mb-3">
 											Semantic code search + symbol analysis
@@ -4604,7 +4604,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Technical Comparison
 								</h3>
 								<Table
-									headers={["Aspect", "claudemem", "Supermemory"]}
+									headers={["Aspect", "mnemex", "Supermemory"]}
 									rows={[
 										[
 											'<strong class="text-white">Content Type</strong>',
@@ -4640,7 +4640,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Features
 								</h3>
 								<Table
-									headers={["Feature", "claudemem", "Supermemory"]}
+									headers={["Feature", "mnemex", "Supermemory"]}
 									rows={[
 										[
 											'<strong class="text-white">Semantic Search</strong>',
@@ -4691,7 +4691,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Integrations
 								</h3>
 								<Table
-									headers={["Platform", "claudemem", "Supermemory"]}
+									headers={["Platform", "mnemex", "Supermemory"]}
 									rows={[
 										[
 											'<strong class="text-white">Claude Code</strong>',
@@ -4737,7 +4737,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Pricing
 								</h3>
 								<Table
-									headers={["Tier", "claudemem", "Supermemory"]}
+									headers={["Tier", "mnemex", "Supermemory"]}
 									rows={[
 										[
 											'<strong class="text-white">License</strong>',
@@ -4775,7 +4775,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<p className="text-sm text-gray-400">
 									These tools are{" "}
 									<strong className="text-white">complementary</strong>: use{" "}
-									<strong className="text-claude-ish">claudemem</strong> to
+									<strong className="text-claude-ish">mnemex</strong> to
 									search and analyze your codebase, and{" "}
 									<strong className="text-purple-400">Supermemory</strong> to
 									save research, documentation, and notes that inform your
@@ -4790,7 +4790,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h4 className="text-lg font-bold text-white mb-3">
-											Use claudemem for
+											Use mnemex for
 										</h4>
 										<ul className="space-y-2 text-sm text-gray-300">
 											<li>• "Where is authentication handled?"</li>

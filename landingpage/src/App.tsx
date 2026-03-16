@@ -24,7 +24,7 @@ const App: React.FC = () => {
 							<div className="w-7 h-7 bg-[#00d4aa] rounded flex items-center justify-center text-[12px] text-black font-bold">
 								M
 							</div>
-							claudemem
+							mnemex
 						</button>
 						<div className="flex items-center gap-6 text-sm">
 							<button
@@ -40,7 +40,7 @@ const App: React.FC = () => {
 								Docs
 							</button>
 							<a
-								href="https://github.com/MadAppGang/claudemem"
+								href="https://github.com/MadAppGang/mnemex"
 								target="_blank"
 								rel="noreferrer"
 								className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-colors text-white"
@@ -89,7 +89,7 @@ const App: React.FC = () => {
 						<div className="w-8 h-8 bg-[#00d4aa] rounded flex items-center justify-center text-[14px] text-black">
 							M
 						</div>
-						claudemem
+						mnemex
 					</button>
 					<div className="hidden md:flex items-center gap-10 text-[11px] font-mono text-gray-500 uppercase tracking-[0.2em] font-black">
 						<button
@@ -105,7 +105,7 @@ const App: React.FC = () => {
 							Docs
 						</button>
 						<a
-							href="https://github.com/MadAppGang/claudemem"
+							href="https://github.com/MadAppGang/mnemex"
 							target="_blank"
 							rel="noreferrer"
 							className="group flex items-center gap-2 bg-white/5 px-5 py-2.5 border border-white/10 rounded-full hover:bg-white/10 hover:border-white/30 transition-all text-white"
@@ -144,7 +144,7 @@ const App: React.FC = () => {
 								<div className="w-8 h-8 bg-[#00d4aa] rounded flex items-center justify-center text-[14px] text-black">
 									M
 								</div>
-								claudemem
+								mnemex
 							</div>
 							<p className="text-gray-500 text-sm max-w-xs">
 								Local-first semantic code intelligence for AI agents.
@@ -181,7 +181,7 @@ const App: React.FC = () => {
 								<ul className="space-y-2 text-sm text-gray-500">
 									<li>
 										<a
-											href="https://github.com/MadAppGang/claudemem"
+											href="https://github.com/MadAppGang/mnemex"
 											className="hover:text-[#00d4aa] transition-colors"
 										>
 											GitHub

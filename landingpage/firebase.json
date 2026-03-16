@@ -12,7 +12,7 @@
 	},
 	"functions": {
 		"source": "functions",
-		"codebase": "claudemem-functions",
+		"codebase": "mnemex-functions",
 		"ignore": [
 			"node_modules",
 			".git",

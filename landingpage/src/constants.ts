@@ -4,7 +4,7 @@ export const HERO_SEQUENCE: TerminalLine[] = [
 	{
 		id: "cmd-1",
 		type: "system",
-		content: "claudemem index",
+		content: "mnemex index",
 		delay: 500,
 	},
 	{
@@ -44,7 +44,7 @@ export const HERO_SEQUENCE: TerminalLine[] = [
 	{
 		id: "tool-1",
 		type: "tool",
-		content: 'claudemem(query="authentication logic")',
+		content: 'mnemex(query="authentication logic")',
 		data: {
 			details: "Searching 3 granular levels (File, Symbol, Intent)...",
 		},
@@ -100,7 +100,7 @@ export const RESEARCH_LEVELS = [
 export const COMPARISON_MATRIX = [
 	{
 		feature: "Cost",
-		claudemem: "Free / MIT",
+		mnemex: "Free / MIT",
 		context: "Free (needs API)",
 		serena: "Free / MIT",
 		brokk: "Free / GPL-3.0",
@@ -110,7 +110,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Privacy",
-		claudemem: "100% Local",
+		mnemex: "100% Local",
 		context: "Cloud default",
 		serena: "Local",
 		brokk: "Local",
@@ -120,7 +120,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "CLI Tool",
-		claudemem: "✅",
+		mnemex: "✅",
 		context: "❌",
 		serena: "❌",
 		brokk: "❌",
@@ -130,7 +130,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Claude Code Plugin",
-		claudemem: "✅ MCP",
+		mnemex: "✅ MCP",
 		context: "✅ MCP",
 		serena: "✅ MCP",
 		brokk: "❌ Desktop app",
@@ -140,7 +140,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Adaptive Learning",
-		claudemem: "✅ EMA-based",
+		mnemex: "✅ EMA-based",
 		context: "✅",
 		serena: "❌",
 		brokk: "❌",
@@ -150,7 +150,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Embedding Models",
-		claudemem: "Any (cloud/local)",
+		mnemex: "Any (cloud/local)",
 		context: "Fixed",
 		serena: "N/A",
 		brokk: "Fixed",
@@ -160,7 +160,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Summarizer LLM",
-		claudemem: "Any (cloud/local)",
+		mnemex: "Any (cloud/local)",
 		context: "N/A",
 		serena: "N/A",
 		brokk: "Fixed",
@@ -170,7 +170,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Built-in Benchmarks",
-		claudemem: "✅ Full suite",
+		mnemex: "✅ Full suite",
 		context: "❌",
 		serena: "❌",
 		brokk: "❌",
@@ -180,7 +180,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "PageRank",
-		claudemem: "✅ Symbol-level",
+		mnemex: "✅ Symbol-level",
 		context: "❌",
 		serena: "❌",
 		brokk: "✅",
@@ -190,7 +190,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Semantic Search",
-		claudemem: "✅ Hybrid",
+		mnemex: "✅ Hybrid",
 		context: "✅",
 		serena: "❌",
 		brokk: "✅",
@@ -200,7 +200,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Hierarchical Summaries",
-		claudemem: "✅",
+		mnemex: "✅",
 		context: "❌",
 		serena: "❌",
 		brokk: "Skeletons",
@@ -210,7 +210,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Symbol Graph",
-		claudemem: "✅ Pre-computed",
+		mnemex: "✅ Pre-computed",
 		context: "❌",
 		serena: "Via LSP",
 		brokk: "Full CPG",
@@ -220,7 +220,7 @@ export const COMPARISON_MATRIX = [
 	},
 	{
 		feature: "Languages",
-		claudemem: "28+",
+		mnemex: "28+",
 		context: "12+",
 		serena: "30+",
 		brokk: "Java-focused",

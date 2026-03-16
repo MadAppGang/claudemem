@@ -59,7 +59,7 @@ export const BridgeDiagram: React.FC = () => {
 					{/* CONNECTOR 1 */}
 					<Connector />
 
-					{/* MIDDLE NODE: CLAUDEMEM */}
+					{/* MIDDLE NODE: MNEMEX */}
 					<div className="w-full md:w-72 flex flex-col items-center relative z-20">
 						{/* Glowing Backdrop */}
 						<div className="absolute inset-0 bg-claude-ish/5 blur-xl rounded-full"></div>
@@ -70,7 +70,7 @@ export const BridgeDiagram: React.FC = () => {
 							</div>
 							<div className="text-center py-4">
 								<div className="text-white font-bold text-lg mb-1 tracking-tight">
-									CLAUDEMEM
+									MNEMEX
 								</div>
 								<div className="flex items-center justify-center gap-2 text-[10px] text-claude-ish/80 font-bold uppercase tracking-widest">
 									<span className="animate-pulse">●</span> Active

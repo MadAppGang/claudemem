@@ -10,7 +10,7 @@ interface TerminalWindowProps {
 export const TerminalWindow: React.FC<TerminalWindowProps> = ({
 	children,
 	className = "",
-	title = "claudemem-cli",
+	title = "mnemex-cli",
 	noPadding = false,
 }) => {
 	return (

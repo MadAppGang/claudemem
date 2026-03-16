@@ -145,7 +145,7 @@ export const SelfLearningDoc: React.FC<{
 					labels. Our context is different:
 				</p>
 				<DocTable
-					headers={["Traditional ML", "claudemem Context"]}
+					headers={["Traditional ML", "mnemex Context"]}
 					rows={[
 						["Millions of samples", "50-500 sessions per project"],
 						["Explicit labels/ratings", "No explicit user feedback"],
@@ -457,7 +457,7 @@ export const SelfLearningDoc: React.FC<{
 							</span>
 						</div>
 						<div>
-							<span className="text-claude-ish">$</span> claudemem config set
+							<span className="text-claude-ish">$</span> mnemex config set
 							learning.enabled true
 						</div>
 						<div className="mt-3">
@@ -466,7 +466,7 @@ export const SelfLearningDoc: React.FC<{
 							</span>
 						</div>
 						<div>
-							<span className="text-claude-ish">$</span> claudemem config set
+							<span className="text-claude-ish">$</span> mnemex config set
 							learning.analysis.enabled true
 						</div>
 						<div className="mt-3">
@@ -475,7 +475,7 @@ export const SelfLearningDoc: React.FC<{
 							</span>
 						</div>
 						<div>
-							<span className="text-claude-ish">$</span> claudemem config set
+							<span className="text-claude-ish">$</span> mnemex config set
 							learning.generation.enabled true
 						</div>
 					</div>

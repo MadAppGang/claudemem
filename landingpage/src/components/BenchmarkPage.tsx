@@ -67,7 +67,7 @@ const BenchmarkPage: React.FC = () => {
 								Can the model find the right code chunk given a query?
 							</p>
 							<div className="mt-4 bg-[#0a0a0a] p-2 rounded text-xs font-mono text-gray-500">
-								$ claudemem benchmark
+								$ mnemex benchmark
 							</div>
 						</div>
 						<div className="bg-[#151515] p-6 rounded-xl border border-white/5">
@@ -79,7 +79,7 @@ const BenchmarkPage: React.FC = () => {
 								Does the model understand what the code actually does?
 							</p>
 							<div className="mt-4 bg-[#0a0a0a] p-2 rounded text-xs font-mono text-gray-500">
-								$ claudemem benchmark-llm
+								$ mnemex benchmark-llm
 							</div>
 						</div>
 					</div>
@@ -159,7 +159,7 @@ const BenchmarkPage: React.FC = () => {
 							Running Embedding Benchmarks
 						</h3>
 						<TerminalWindow
-							title="claudemem-benchmark"
+							title="mnemex-benchmark"
 							className="bg-[#0c0c0c]"
 							noPadding
 						>
@@ -169,7 +169,7 @@ const BenchmarkPage: React.FC = () => {
 										# Test default embedding models
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark
 									</div>
 								</div>
@@ -179,7 +179,7 @@ const BenchmarkPage: React.FC = () => {
 										codebase)
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark --auto
 									</div>
 								</div>
@@ -188,14 +188,14 @@ const BenchmarkPage: React.FC = () => {
 										# Test specific embedding models
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark --models="voyage-code-3,text-embedding-3-large"
 									</div>
 								</div>
 								<div>
 									<div className="text-gray-500 mb-1"># Test local models</div>
 									<div>
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark --models="ollama/nomic-embed-text"
 									</div>
 								</div>
@@ -281,7 +281,7 @@ Summary:
 							Running LLM Benchmarks
 						</h3>
 						<TerminalWindow
-							title="claudemem-benchmark-llm"
+							title="mnemex-benchmark-llm"
 							className="bg-[#0c0c0c]"
 							noPadding
 						>
@@ -291,7 +291,7 @@ Summary:
 										# Test specific generator models
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark-llm --generators="openrouter/openai/gpt-4o-mini"
 									</div>
 								</div>
@@ -300,7 +300,7 @@ Summary:
 										# Add judge models for evaluation
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark-llm --generators="gpt-4o-mini" --judges="gpt-4o"
 									</div>
 								</div>
@@ -309,7 +309,7 @@ Summary:
 										# Run local models in parallel
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> claudemem
+										<span className="text-claude-ish">$</span> mnemex
 										benchmark-llm --generators="ollama/llama3.1:8b"
 										--local-parallelism=4
 									</div>
@@ -327,7 +327,7 @@ Summary:
 
 Status:     completed
 Started:    12/24/2025, 12:10:59 AM
-Project:    /Users/jack/mag/claudemem
+Project:    /Users/jack/mag/mnemex
 Cases:      50
 
 ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -547,18 +547,18 @@ How many refinement rounds were needed to achieve target retrieval rank?
 							<h4 className="text-white font-bold mb-4">Quick Reference</h4>
 							<div className="bg-[#0c0c0c] border border-white/10 rounded-lg p-6 font-mono text-xs overflow-x-auto text-gray-400">
 								{`# EMBEDDING BENCHMARK
-claudemem benchmark                           # Test default models
-claudemem benchmark --auto                    # Auto-generate queries
-claudemem benchmark --real                    # Use 100 chunks (vs 50)
+mnemex benchmark                           # Test default models
+mnemex benchmark --auto                    # Auto-generate queries
+mnemex benchmark --real                    # Use 100 chunks (vs 50)
 
 # LLM BENCHMARK
-claudemem benchmark-llm                              # Test defaults
-claudemem benchmark-llm --generators="model1,model2" # Test specific models
-claudemem benchmark-llm --sample-size=100            # Set sample size
+mnemex benchmark-llm                              # Test defaults
+mnemex benchmark-llm --generators="model1,model2" # Test specific models
+mnemex benchmark-llm --sample-size=100            # Set sample size
 
 # HISTORY
-claudemem benchmark-list                      # List all runs
-claudemem benchmark-show RUN_ID               # Show specific run`}
+mnemex benchmark-list                      # List all runs
+mnemex benchmark-show RUN_ID               # Show specific run`}
 							</div>
 						</div>
 					</div>
