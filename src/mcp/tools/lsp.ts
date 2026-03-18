@@ -36,12 +36,12 @@ export function registerLspTools(server: McpServer, deps: ToolDeps): void {
 				.optional()
 				.describe("File path for position-based lookup (requires line/column)"),
 			line: z
-				.number()
+				.coerce.number()
 				.int()
 				.optional()
 				.describe("Line number (1-indexed) for position-based lookup"),
 			column: z
-				.number()
+				.coerce.number()
 				.int()
 				.optional()
 				.describe("Column number (1-indexed) for position-based lookup"),
@@ -150,8 +150,8 @@ export function registerLspTools(server: McpServer, deps: ToolDeps): void {
 				.string()
 				.optional()
 				.describe("File path for position-based lookup"),
-			line: z.number().int().optional().describe("Line number (1-indexed)"),
-			column: z.number().int().optional().describe("Column number (1-indexed)"),
+			line: z.coerce.number().int().optional().describe("Line number (1-indexed)"),
+			column: z.coerce.number().int().optional().describe("Column number (1-indexed)"),
 			includeDeclaration: z
 				.boolean()
 				.default(true)
@@ -244,8 +244,8 @@ export function registerLspTools(server: McpServer, deps: ToolDeps): void {
 			"LSP-only — no fallback when LSP is unavailable.",
 		{
 			file: z.string().describe("File path"),
-			line: z.number().int().min(1).describe("Line number (1-indexed)"),
-			column: z.number().int().min(1).describe("Column number (1-indexed)"),
+			line: z.coerce.number().int().min(1).describe("Line number (1-indexed)"),
+			column: z.coerce.number().int().min(1).describe("Column number (1-indexed)"),
 		},
 		async ({ file, line, column }) => {
 			const startTime = Date.now();
@@ -259,8 +259,7 @@ export function registerLspTools(server: McpServer, deps: ToolDeps): void {
 								text: JSON.stringify({
 									hover: null,
 									lspAvailable: false,
-									message:
-										"LSP is not enabled. Set MNEMEX_LSP=true to enable.",
+									message: "LSP is not enabled. Set MNEMEX_LSP=true to enable.",
 									...buildFreshness(stateManager, startTime),
 								}),
 							},

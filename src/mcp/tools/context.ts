@@ -21,11 +21,11 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 				.string()
 				.describe("File path (relative to workspace root) to get context for"),
 			line: z
-				.number()
+				.coerce.number()
 				.default(1)
 				.describe("Line number within the file (default: 1)"),
 			radius: z
-				.number()
+				.coerce.number()
 				.min(1)
 				.max(10)
 				.default(2)
