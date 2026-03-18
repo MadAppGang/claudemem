@@ -2,7 +2,7 @@
  * Mnemex Search Steps Evaluation — Full Ablation Runner
  *
  * Runs all ablation conditions (A, B1, C1, C2, C3, D, E, F) against a single
- * claudemem-indexed eval repo, then generates a comparison report.
+ * mnemex-indexed eval repo, then generates a comparison report.
  *
  * Skipped conditions:
  *   - B2 (CNN router): no trained model available
@@ -33,6 +33,7 @@
 
 import { mkdir, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { parseArgs } from "node:util";
 import { createIndexer } from "../../src/core/indexer.js";
 import { createFileTracker } from "../../src/core/tracker.js";
@@ -329,7 +330,9 @@ const QMD_CLI_PATH = (() => {
 		const qmdBin = new TextDecoder().decode(whichProc.stdout).trim();
 		if (!qmdBin) return null;
 		// Follow symlinks to find the real package dir
-		const realBin = Bun.spawnSync(["readlink", "-f", qmdBin], { stdout: "pipe" });
+		const realBin = Bun.spawnSync(["readlink", "-f", qmdBin], {
+			stdout: "pipe",
+		});
 		const realPath = new TextDecoder().decode(realBin.stdout).trim();
 		// The bin script is at .../bin/qmd, the JS entry is at .../dist/cli/qmd.js
 		const pkgDir = realPath.replace(/\/bin\/qmd$/, "");
@@ -350,10 +353,29 @@ function makeQmdSearchFn(mode: "search" | "query"): SearchFunction {
 		let spawnCmd: string[];
 		if (QMD_CLI_PATH) {
 			// Run via Node to get sqlite-vec support (better-sqlite3 + loadExtension)
-			spawnCmd = ["node", QMD_CLI_PATH, cmd, query, "--json", "-n", String(opts.k), "-c", QMD_COLLECTION];
+			spawnCmd = [
+				"node",
+				QMD_CLI_PATH,
+				cmd,
+				query,
+				"--json",
+				"-n",
+				String(opts.k),
+				"-c",
+				QMD_COLLECTION,
+			];
 		} else {
 			// Fallback: use qmd wrapper (may run under Bun without sqlite-vec)
-			spawnCmd = ["qmd", cmd, query, "--json", "-n", String(opts.k), "-c", QMD_COLLECTION];
+			spawnCmd = [
+				"qmd",
+				cmd,
+				query,
+				"--json",
+				"-n",
+				String(opts.k),
+				"-c",
+				QMD_COLLECTION,
+			];
 		}
 		// Limit reranking candidates for query mode to keep latency reasonable
 		if (mode === "query") spawnCmd.push("-C", "10");
@@ -386,52 +408,19 @@ function makeQmdSearchFn(mode: "search" | "query"): SearchFunction {
 const QMD_CONDITIONS = new Set(["Q1", "Q2"]);
 
 // ============================================================================
-// SINGLE-CONDITION MODE  (called by orchestrator subprocess)
+// Per-repo ground truth query templates for mixed-mode evaluation
 // ============================================================================
 
-if (singleCondition !== undefined) {
-	// Find the condition definition
-	const condition = STANDARD_CONDITIONS.find((c) => c.name === singleCondition);
-	if (!condition) {
-		console.error(`Unknown condition: ${singleCondition}`);
-		process.exit(1);
-	}
+type QueryTemplate = { q: string; gt: string };
 
-	// Load symbols for both modes (used as basis + for symbol queries in mixed mode)
-	const indexDbPath = getIndexDbPath(repoPath);
-	const fileTracker = createFileTracker(indexDbPath, repoPath);
-	const topSymbols = fileTracker.getTopSymbols(symbolLimit);
-	fileTracker.close();
-
-	if (topSymbols.length === 0) {
-		console.error(
-			`No symbols found in index at: ${indexDbPath}\n` +
-				"Run `claudemem index` on the repo first.",
-		);
-		process.exit(1);
-	}
-
-	// Build queries based on query mode
-	let queries: HarnessQuery[];
-
-	if (queryMode === "mixed") {
-		// Mixed queries: 10 symbol_lookup + 10 semantic_search + 10 exploratory
-		// Use top symbols for symbol queries, generate realistic natural-language
-		// queries for semantic and exploratory types
-		const symbolQueries: HarnessQuery[] = topSymbols
-			.slice(0, 10)
-			.map((sym, idx) => ({
-				id: `sym-${String(idx + 1).padStart(3, "0")}-${sym.name}`,
-				codeUnitId: `${sym.filePath}::${sym.name}`,
-				type: "doc_api_lookup" as QueryType,
-				query: sym.name,
-				shouldFind: true,
-				routerLabel: "symbol_lookup" as const,
-				groundTruthFiles: [sym.filePath],
-			}));
-
-		// Semantic queries: realistic bug-report / behavior questions using top symbols
-		const semanticTemplates = [
+// Used in single-condition mode (line ~716) — TS can't see past conditional branch
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const REPO_TEMPLATES: Record<
+	string,
+	{ semantic: QueryTemplate[]; exploratory: QueryTemplate[] }
+> = {
+	jlowin_fastmcp: {
+		semantic: [
 			{
 				q: "how does error handling work in the server",
 				gt: "src/fastmcp/server/server.py",
@@ -466,20 +455,8 @@ if (singleCondition !== undefined) {
 				q: "background task execution and progress tracking",
 				gt: "src/fastmcp/server/server.py",
 			},
-		];
-
-		const semanticQueries: HarnessQuery[] = semanticTemplates.map((t, idx) => ({
-			id: `sem-${String(idx + 1).padStart(3, "0")}`,
-			codeUnitId: t.gt,
-			type: "specific_behavior" as QueryType,
-			query: t.q,
-			shouldFind: true,
-			routerLabel: "semantic_search" as const,
-			groundTruthFiles: [t.gt],
-		}));
-
-		// Exploratory queries: conceptual "how to" questions
-		const exploratoryTemplates = [
+		],
+		exploratory: [
 			{
 				q: "how to create a custom MCP server with FastMCP",
 				gt: "src/fastmcp/server/server.py",
@@ -510,8 +487,251 @@ if (singleCondition !== undefined) {
 				q: "using providers pattern in server",
 				gt: "src/fastmcp/server/providers/__init__.py",
 			},
-			{ q: "dependency injection in tools", gt: "src/fastmcp/dependencies.py" },
-		];
+			{
+				q: "dependency injection in tools",
+				gt: "src/fastmcp/dependencies.py",
+			},
+		],
+	},
+
+	tinygrad_tinygrad: {
+		semantic: [
+			{
+				q: "how does lazy evaluation work for tensor operations",
+				gt: "tinygrad/schedule/indexing.py",
+			},
+			{
+				q: "GPU device selection and memory management",
+				gt: "tinygrad/device.py",
+			},
+			{
+				q: "tensor shape inference and broadcasting rules",
+				gt: "tinygrad/tensor.py",
+			},
+			{
+				q: "how are operations simplified in the UOp graph",
+				gt: "tinygrad/uop/ops.py",
+			},
+			{
+				q: "AMD GPU shader compilation pipeline",
+				gt: "tinygrad/renderer/amd/dsl.py",
+			},
+			{
+				q: "how does autograd compute gradients",
+				gt: "tinygrad/tensor.py",
+			},
+			{
+				q: "runtime C FFI bindings and memory allocation",
+				gt: "tinygrad/runtime/support/c.py",
+			},
+			{
+				q: "helper utilities for flattening nested structures",
+				gt: "tinygrad/helpers.py",
+			},
+			{
+				q: "HIP runtime error handling",
+				gt: "tinygrad/runtime/autogen/hip.py",
+			},
+			{
+				q: "HSA runtime status codes and initialization",
+				gt: "tinygrad/runtime/autogen/hsa.py",
+			},
+		],
+		exploratory: [
+			{
+				q: "how to create a simple neural network with tinygrad",
+				gt: "tinygrad/tensor.py",
+			},
+			{
+				q: "implementing custom operations",
+				gt: "tinygrad/uop/ops.py",
+			},
+			{
+				q: "running models on AMD GPUs",
+				gt: "tinygrad/device.py",
+			},
+			{
+				q: "understanding the compute graph",
+				gt: "tinygrad/schedule/indexing.py",
+			},
+			{
+				q: "profiling GPU kernel execution",
+				gt: "tinygrad/renderer/amd/sqtt.py",
+			},
+			{
+				q: "writing custom renderers",
+				gt: "tinygrad/renderer/amd/dsl.py",
+			},
+			{
+				q: "memory optimization for large models",
+				gt: "tinygrad/device.py",
+			},
+			{
+				q: "debugging tensor operations",
+				gt: "tinygrad/helpers.py",
+			},
+			{
+				q: "using tinygrad with CUDA",
+				gt: "tinygrad/runtime/support/c.py",
+			},
+			{
+				q: "batch processing and data loading",
+				gt: "extra/datasets/openimages.py",
+			},
+		],
+	},
+
+	huggingface_transformers: {
+		semantic: [
+			{
+				q: "how does model loading and weight initialization work",
+				gt: "src/transformers/modeling_utils.py",
+			},
+			{
+				q: "tokenizer encoding and decoding implementation",
+				gt: "src/transformers/tokenization_utils_base.py",
+			},
+			{
+				q: "training loop and gradient accumulation",
+				gt: "src/transformers/trainer.py",
+			},
+			{
+				q: "how are attention masks computed and applied",
+				gt: "src/transformers/modeling_attn_mask_utils.py",
+			},
+			{
+				q: "KV cache management for generation",
+				gt: "src/transformers/cache_utils.py",
+			},
+			{
+				q: "how are logits processed during text generation",
+				gt: "src/transformers/generation/logits_process.py",
+			},
+			{
+				q: "model configuration loading and validation",
+				gt: "src/transformers/configuration_utils.py",
+			},
+			{
+				q: "pipeline inference base class and dispatch",
+				gt: "src/transformers/pipelines/base.py",
+			},
+			{
+				q: "flash attention integration and fallback",
+				gt: "src/transformers/modeling_flash_attention_utils.py",
+			},
+			{
+				q: "trainer callback events and state management",
+				gt: "src/transformers/trainer_callback.py",
+			},
+		],
+		exploratory: [
+			{
+				q: "how to load a pretrained model for inference",
+				gt: "src/transformers/modeling_utils.py",
+			},
+			{
+				q: "fine-tuning a model with the Trainer API",
+				gt: "src/transformers/trainer.py",
+			},
+			{
+				q: "using auto classes to load models and tokenizers",
+				gt: "src/transformers/models/auto/modeling_auto.py",
+			},
+			{
+				q: "configuring text generation parameters",
+				gt: "src/transformers/generation/utils.py",
+			},
+			{
+				q: "building a text generation pipeline",
+				gt: "src/transformers/pipelines/text_generation.py",
+			},
+			{
+				q: "quantization options and configuration",
+				gt: "src/transformers/quantizers/__init__.py",
+			},
+			{
+				q: "setting training hyperparameters and output directories",
+				gt: "src/transformers/training_args.py",
+			},
+			{
+				q: "how to process images for vision models",
+				gt: "src/transformers/image_processing_utils.py",
+			},
+			{
+				q: "optimizing model training with learning rate schedules",
+				gt: "src/transformers/optimization.py",
+			},
+			{
+				q: "understanding model output dataclasses",
+				gt: "src/transformers/modeling_outputs.py",
+			},
+		],
+	},
+};
+
+// ============================================================================
+// SINGLE-CONDITION MODE  (called by orchestrator subprocess)
+// ============================================================================
+
+if (singleCondition !== undefined) {
+	// Find the condition definition
+	const condition = STANDARD_CONDITIONS.find((c) => c.name === singleCondition);
+	if (!condition) {
+		console.error(`Unknown condition: ${singleCondition}`);
+		process.exit(1);
+	}
+
+	// Load symbols for both modes (used as basis + for symbol queries in mixed mode)
+	const indexDbPath = getIndexDbPath(repoPath);
+	const fileTracker = createFileTracker(indexDbPath, repoPath);
+	const topSymbols = fileTracker.getTopSymbols(symbolLimit);
+	fileTracker.close();
+
+	if (topSymbols.length === 0) {
+		console.error(
+			`No symbols found in index at: ${indexDbPath}\n` +
+				"Run `mnemex index` on the repo first.",
+		);
+		process.exit(1);
+	}
+
+	// Build queries based on query mode
+	let queries: HarnessQuery[];
+
+	if (queryMode === "mixed") {
+		// Mixed queries: 10 symbol_lookup + 10 semantic_search + 10 exploratory
+		// Use top symbols for symbol queries, generate realistic natural-language
+		// queries for semantic and exploratory types
+		const symbolQueries: HarnessQuery[] = topSymbols
+			.slice(0, 10)
+			.map((sym, idx) => ({
+				id: `sym-${String(idx + 1).padStart(3, "0")}-${sym.name}`,
+				codeUnitId: `${sym.filePath}::${sym.name}`,
+				type: "doc_api_lookup" as QueryType,
+				query: sym.name,
+				shouldFind: true,
+				routerLabel: "symbol_lookup" as const,
+				groundTruthFiles: [sym.filePath],
+			}));
+
+		// Semantic queries: realistic bug-report / behavior questions using top symbols
+		// Use repo-specific templates when available; fall back to symbol-only mode.
+		const repoTemplates = REPO_TEMPLATES[repoName];
+
+		const semanticTemplates = repoTemplates?.semantic ?? [];
+
+		const semanticQueries: HarnessQuery[] = semanticTemplates.map((t, idx) => ({
+			id: `sem-${String(idx + 1).padStart(3, "0")}`,
+			codeUnitId: t.gt,
+			type: "specific_behavior" as QueryType,
+			query: t.q,
+			shouldFind: true,
+			routerLabel: "semantic_search" as const,
+			groundTruthFiles: [t.gt],
+		}));
+
+		// Exploratory queries: conceptual "how to" questions
+		const exploratoryTemplates = repoTemplates?.exploratory ?? [];
 
 		const exploratoryQueries: HarnessQuery[] = exploratoryTemplates.map(
 			(t, idx) => ({
@@ -547,7 +767,7 @@ if (singleCondition !== undefined) {
 		});
 	}
 
-	// QMD conditions use QMD CLI — no claudemem indexer needed
+	// QMD conditions use QMD CLI — no mnemex indexer needed
 	const isQmd = QMD_CONDITIONS.has(condition.name);
 
 	let searchFn: SearchFunction;
@@ -568,21 +788,38 @@ if (singleCondition !== undefined) {
 			? repoPath
 			: `${repoPath}/`;
 
+		// Some indexes were created when repos lived at ~/.mnemex/eval-repos/
+		// before being moved to the current eval-repos-dir. Build a list of
+		// candidate prefixes so we can strip any of them.
+		const stalePrefix = `${homedir()}/.mnemex/eval-repos/${repoName}/`;
+		const stripPrefixes = [repoPrefixWithSlash, stalePrefix];
+
+		/** Strip any known repo-root prefix from an absolute file path. */
+		function toRelativePath(absPath: string): string {
+			for (const prefix of stripPrefixes) {
+				if (absPath.startsWith(prefix)) {
+					return absPath.slice(prefix.length);
+				}
+			}
+			// Last resort: look for the repo name in the path and strip up to it
+			const marker = `/${repoName}/`;
+			const idx = absPath.indexOf(marker);
+			if (idx !== -1) {
+				return absPath.slice(idx + marker.length);
+			}
+			return absPath;
+		}
+
 		const baseSearchFn: SearchFunction = async (query, opts) => {
 			const results = await indexer!.search(query, {
 				limit: Math.min(opts.k, SEARCH_LIMIT),
 				useCase: "search",
 			});
-			return results.map((r) => {
-				const filePath = r.chunk.filePath.startsWith(repoPrefixWithSlash)
-					? r.chunk.filePath.slice(repoPrefixWithSlash.length)
-					: r.chunk.filePath;
-				return {
-					docId: filePath,
-					score: r.score,
-					snippet: r.chunk.content.slice(0, 200),
-				};
-			});
+			return results.map((r) => ({
+				docId: toRelativePath(r.chunk.filePath),
+				score: r.score,
+				snippet: r.chunk.content.slice(0, 200),
+			}));
 		};
 
 		const routerAwareSearchFn: SearchFunction = async (query, opts) => {
@@ -592,16 +829,11 @@ if (singleCondition !== undefined) {
 				useCase: "search",
 				keywordOnly: useKeyword,
 			});
-			return results.map((r) => {
-				const filePath = r.chunk.filePath.startsWith(repoPrefixWithSlash)
-					? r.chunk.filePath.slice(repoPrefixWithSlash.length)
-					: r.chunk.filePath;
-				return {
-					docId: filePath,
-					score: r.score,
-					snippet: r.chunk.content.slice(0, 200),
-				};
-			});
+			return results.map((r) => ({
+				docId: toRelativePath(r.chunk.filePath),
+				score: r.score,
+				snippet: r.chunk.content.slice(0, 200),
+			}));
 		};
 
 		searchFn = condition.useRouter ? routerAwareSearchFn : baseSearchFn;

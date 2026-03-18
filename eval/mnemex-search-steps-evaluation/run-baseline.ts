@@ -2,7 +2,7 @@
  * Mnemex Search Steps Evaluation — Baseline Runner
  *
  * Runs Condition A (baseline: pure hybrid retrieval, no router/expander/reranker)
- * against a single claudemem-indexed eval repo.
+ * against a single mnemex-indexed eval repo.
  *
  * Queries are generated from the top-N symbols in the index by PageRank score.
  * Each symbol's name becomes the query text; the file it lives in is ground truth.
@@ -73,7 +73,7 @@ fileTracker.close();
 if (topSymbols.length === 0) {
 	console.error(
 		`No symbols found in index at: ${indexDbPath}\n` +
-			"Run `claudemem index` on the repo first.",
+			"Run `mnemex index` on the repo first.",
 	);
 	process.exit(1);
 }

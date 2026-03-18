@@ -9,7 +9,7 @@
  *   bun eval/mnemex-search-steps-evaluation/ablation.ts --condition A --dataset hybrid --output runs/
  *
  * The harness is structured around pluggable function interfaces so that
- * the actual claudemem search logic can be wired in later without changing
+ * the actual mnemex search logic can be wired in later without changing
  * the experiment structure.
  */
 
@@ -54,7 +54,7 @@ export interface ExpandedQuery {
 
 /**
  * Core retrieval function — always executes, is never disabled.
- * Implement this by calling into claudemem's search API.
+ * Implement this by calling into mnemex's search API.
  */
 export type SearchFunction = (
 	query: string,
@@ -313,8 +313,8 @@ export interface AblationConfig {
 	querySet: HarnessQuery[];
 	/** Directory to write per-condition JSON results */
 	outputDir: string;
-	/** Path to a claudemem index (optional — for real search) */
-	claudememPath?: string;
+	/** Path to a mnemex index (optional — for real search) */
+	mnemexPath?: string;
 	/** K values to compute recall at */
 	kValues: number[];
 	/** Print progress for each query */
@@ -401,12 +401,12 @@ function percentile(sorted: number[], p: number): number {
 }
 
 // ============================================================================
-// Mock implementations (replaced when wired to real claudemem)
+// Mock implementations (replaced when wired to real mnemex)
 // ============================================================================
 
 /**
  * Mock search function — returns empty results.
- * Replace with real claudemem API call to measure actual retrieval quality.
+ * Replace with real mnemex API call to measure actual retrieval quality.
  */
 export const mockSearchFn: SearchFunction = async (_query, _opts) => {
 	return [];
