@@ -51,6 +51,8 @@ import {
 	registerMemoryTools,
 	registerObserveTools,
 	registerThinkTools,
+	registerReadFileTools,
+	registerSearchPatternTools,
 	type ToolDeps,
 } from "./tools/index.js";
 import { LspManager } from "../lsp/manager.js";
@@ -275,6 +277,10 @@ export async function startMcpServer(): Promise<void> {
 	registerMemoryTools(server, deps);
 	registerObserveTools(server, deps);
 	registerThinkTools(server);
+
+	// File reading and pattern search tools
+	registerReadFileTools(server, deps);
+	registerSearchPatternTools(server, deps);
 
 	// -------------------------------------------------------------------------
 	// Step 11: Connect stdio transport

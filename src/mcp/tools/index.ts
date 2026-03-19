@@ -20,4 +20,6 @@ export { registerRenameTools } from "./rename.js";
 export { registerMemoryTools } from "./memory.js";
 export { registerObserveTools } from "./observe.js";
 export { registerThinkTools } from "./think.js";
+export { registerReadFileTools } from "./read-file.js";
+export { registerSearchPatternTools } from "./search-pattern.js";
 export type { ToolDeps } from "./deps.js";
