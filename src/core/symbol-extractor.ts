@@ -142,8 +142,17 @@ export class SymbolExtractor {
 				updatedAt: now,
 			});
 
-			// Don't traverse into nested definitions (we get them separately)
-			return false;
+			// Continue into class-like nodes to extract methods
+			const classLikeTypes = new Set([
+				"class_declaration",
+				"class_definition",
+				"class_specifier",
+				"struct_item",
+				"struct_specifier",
+				"trait_item",
+				"impl_item",
+			]);
+			return classLikeTypes.has(node.type);
 		});
 
 		return symbols;

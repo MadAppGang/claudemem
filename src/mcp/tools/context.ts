@@ -7,15 +7,16 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { readSymbolBody } from "../../retrieval/backends/utils/read-body.js";
 import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
 export function registerContextTools(server: McpServer, deps: ToolDeps): void {
-	const { cache, stateManager } = deps;
+	const { cache, stateManager, config } = deps;
 
 	server.tool(
 		"context",
-		"Get rich context for a file location: enclosing symbol, imports, and related symbols via the reference graph.",
+		"Get rich context for a file location: enclosing symbol with source body, imports, and related symbols via the reference graph.",
 		{
 			file: z
 				.string()
@@ -30,8 +31,12 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 				.max(10)
 				.default(2)
 				.describe("Number of related symbols to include (default: 2)"),
+			includeBody: z
+				.boolean()
+				.default(true)
+				.describe("Include source code body of the enclosing symbol (default: true)"),
 		},
-		async ({ file, line, radius }) => {
+		async ({ file, line, radius, includeBody }) => {
 			const startTime = Date.now();
 
 			try {
@@ -91,6 +96,20 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 					}
 				}
 
+				// Read body from disk if requested
+				let body: string | null = null;
+				let bodyStale = false;
+				if (includeBody && enclosing) {
+					const bodyResult = readSymbolBody(
+						config.workspaceRoot,
+						enclosing.filePath,
+						enclosing.startLine,
+						enclosing.endLine,
+					);
+					body = bodyResult.body;
+					bodyStale = bodyResult.stale;
+				}
+
 				const enclosingPayload = enclosing
 					? {
 							name: enclosing.name,
@@ -99,6 +118,7 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 							startLine: enclosing.startLine,
 							endLine: enclosing.endLine,
 							signature: enclosing.signature ?? null,
+							...(includeBody ? { body, bodyStale } : {}),
 						}
 					: null;
 

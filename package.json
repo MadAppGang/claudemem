@@ -1,6 +1,6 @@
 {
 	"name": "mnemex",
-	"version": "0.24.0",
+	"version": "0.25.0",
 	"description": "Local code indexing tool with semantic search for Claude Code - MCP server and CLI",
 	"type": "module",
 	"main": "./dist/index.js",
