@@ -31,9 +31,10 @@ import {
 	getApiKey,
 	getContext7ApiKey,
 	getEmbeddingModel,
+	getEmbeddingProvider,
 	getLLMSpec,
 	getVoyageApiKey,
-	hasApiKey,
+	hasValidEmbeddingCredentials,
 	isLearningEnabled,
 	isVectorEnabled,
 	loadGlobalConfig,
@@ -155,6 +156,21 @@ function compactDuration(ms: number): string {
 	if (ms < 1000) return `${ms}ms`;
 	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
 	return `${(ms / 60000).toFixed(1)}m`;
+}
+
+/** Exit with an error if the embedding provider is missing required credentials */
+function assertValidEmbeddingCredentials(): void {
+	if (hasValidEmbeddingCredentials()) {
+		return;
+	}
+	const provider = getEmbeddingProvider();
+	const envHint =
+		provider === "voyage" ? "VOYAGE_API_KEY" : "OPENROUTER_API_KEY";
+	console.error(
+		`Error: API key not configured for embedding provider '${provider}'.`,
+	);
+	console.error(`Run 'mnemex init' to set up, or set ${envHint}.`);
+	process.exit(1);
 }
 
 // ============================================================================
@@ -721,11 +737,9 @@ async function handleIndex(args: string[]): Promise<void> {
 	// Check if vector mode is enabled
 	const vectorEnabled = isVectorEnabled(projectPath);
 
-	// Check for API key (not needed when vector mode is disabled)
-	if (vectorEnabled && !hasApiKey()) {
-		console.error("Error: OpenRouter API key not configured.");
-		console.error("Run 'mnemex init' to set up, or set OPENROUTER_API_KEY.");
-		process.exit(1);
+	// Check for API key (not needed for local providers or when vector mode is disabled)
+	if (vectorEnabled) {
+		assertValidEmbeddingCredentials();
 	}
 
 	// Get model info for display
@@ -982,7 +996,7 @@ async function handleCloudIndex(args: string[]): Promise<void> {
 	// Build embeddings client for thin mode (vectors generated locally)
 	let embeddingsClient: import("./types.js").IEmbeddingsClient | undefined;
 	const cloudMode = teamConfig.cloudMode ?? "thin";
-	if (cloudMode === "thin" && hasApiKey()) {
+	if (cloudMode === "thin" && hasValidEmbeddingCredentials()) {
 		const { createEmbeddingsClient } = await import("./core/embeddings.js");
 		embeddingsClient = createEmbeddingsClient();
 	}
@@ -1505,11 +1519,9 @@ async function handleSearch(args: string[]): Promise<void> {
 	// Check if vector mode is enabled in config
 	const vectorEnabled = isVectorEnabled(projectPath);
 
-	// Check for API key (not needed for keyword-only search or when vector mode disabled)
-	if (!keywordOnly && vectorEnabled && !hasApiKey()) {
-		console.error("Error: OpenRouter API key not configured.");
-		console.error("Run 'mnemex init' to set up, or set OPENROUTER_API_KEY.");
-		process.exit(1);
+	// Check for API key (not needed for local providers, keyword-only search, or when vector mode disabled)
+	if (!keywordOnly && vectorEnabled) {
+		assertValidEmbeddingCredentials();
 	}
 
 	const { createIndexer, EmbeddingModelMismatchError } = await import(
@@ -3061,12 +3073,8 @@ async function handleBenchmark(args: string[]): Promise<void> {
 		orange: "\x1b[38;5;209m",
 	};
 
-	// Check for API key
-	if (!hasApiKey()) {
-		console.error("Error: OpenRouter API key not configured.");
-		console.error("Run 'mnemex init' to set up, or set OPENROUTER_API_KEY.");
-		process.exit(1);
-	}
+	// Check for API key (not needed for local providers)
+	assertValidEmbeddingCredentials();
 
 	// Parse flags
 	const useRealData = args.includes("--real");
@@ -6673,7 +6681,9 @@ ${c.yellow}${c.bold}CODE ANALYSIS COMMANDS${c.reset}
   ${c.green}impact${c.reset} <symbol>        Analyze change impact ${c.dim}(transitive callers)${c.reset}
 
 ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
-  ${c.green}ui${c.reset}                     Interactive full-screen TUI ${c.dim}(search, map, graph, analysis)${c.reset}
+  ${c.green}ui${c.reset} [path]              Interactive full-screen TUI ${c.dim}(search, map, graph, analysis, doctor)${c.reset}
+  ${c.green}setup${c.reset}                  TUI setup wizard ${c.dim}(provider, model, scope, enrichment)${c.reset}
+  ${c.green}monitor${c.reset} [path]          Passive MCP activity display ${c.dim}(auto-updates from Claude Code)${c.reset}
   ${c.green}watch${c.reset}                  Watch for changes and auto-reindex ${c.dim}(daemon mode)${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
   ${c.green}hook${c.reset}                   Claude Code hook handler ${c.dim}(reads JSON from stdin)${c.reset}
@@ -6844,6 +6854,11 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.cyan}mnemex dead-code${c.reset}                       ${c.dim}# find dead code${c.reset}
   ${c.cyan}mnemex test-gaps${c.reset}                       ${c.dim}# find untested code${c.reset}
   ${c.cyan}mnemex impact createIndexer${c.reset}            ${c.dim}# change impact analysis${c.reset}
+
+  ${c.dim}# Interactive TUI${c.reset}
+  ${c.cyan}mnemex ui${c.reset}                              ${c.dim}# full-screen TUI${c.reset}
+  ${c.cyan}mnemex setup${c.reset}                           ${c.dim}# configure provider, model, scope${c.reset}
+  ${c.cyan}mnemex monitor${c.reset}                         ${c.dim}# watch MCP activity from Claude Code${c.reset}
 
   ${c.dim}# Developer experience${c.reset}
   ${c.cyan}mnemex watch${c.reset}                           ${c.dim}# auto-reindex on changes${c.reset}
