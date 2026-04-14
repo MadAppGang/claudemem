@@ -36,7 +36,7 @@ function isIndexed(cwd: string): IndexStatus {
 /**
  * Run mnemex command and return output
  */
-function runClaudemem(args: string[], cwd?: string): string | null {
+function runMnemex(args: string[], cwd?: string): string | null {
 	try {
 		const result = spawnSync(process.execPath, [process.argv[1], ...args], {
 			cwd,
@@ -84,7 +84,7 @@ mnemex index
 
 	// If pattern looks like a symbol name, try symbol lookup first
 	if (/^[A-Z][a-zA-Z0-9]*$|^[a-z][a-zA-Z0-9_]*$/.test(pattern)) {
-		results = runClaudemem(["--nologo", "symbol", pattern, "--raw"], input.cwd);
+		results = runMnemex(["--nologo", "symbol", pattern, "--raw"], input.cwd);
 		if (results && !results.includes("No results") && results.trim()) {
 			commandUsed = "symbol";
 		} else {
@@ -95,7 +95,7 @@ mnemex index
 	// Fallback to map
 	if (!results) {
 		results =
-			runClaudemem(["--nologo", "map", pattern, "--raw"], input.cwd) ||
+			runMnemex(["--nologo", "map", pattern, "--raw"], input.cwd) ||
 			"No results found";
 		commandUsed = "map";
 	}
@@ -169,7 +169,7 @@ Allowing command as fallback.`,
 
 	// Run mnemex instead
 	const results =
-		runClaudemem(["--nologo", "map", extractedPattern, "--raw"], input.cwd) ||
+		runMnemex(["--nologo", "map", extractedPattern, "--raw"], input.cwd) ||
 		"No results found";
 
 	return {

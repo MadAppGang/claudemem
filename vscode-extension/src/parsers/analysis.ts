@@ -1,8 +1,12 @@
-import { parseKV } from './kv.js';
-import type { DeadCodeResult, TestGapResult, ImpactResult } from '../types/messages.js';
+import { parseKV } from "./kv.js";
+import type {
+	DeadCodeResult,
+	TestGapResult,
+	ImpactResult,
+} from "../types/messages.js";
 
 /**
- * Parse the output of `claudemem dead-code --agent`.
+ * Parse the output of `mnemex dead-code --agent`.
  *
  * Format:
  *   dead_code_count=<n>
@@ -10,28 +14,28 @@ import type { DeadCodeResult, TestGapResult, ImpactResult } from '../types/messa
  *   ...
  */
 export function parseDeadCodeOutput(raw: string): DeadCodeResult[] {
-  const items: DeadCodeResult[] = [];
+	const items: DeadCodeResult[] = [];
 
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('dead_symbol ')) {
-      continue;
-    }
-    const kv = parseKV(trimmed.slice('dead_symbol '.length));
-    items.push({
-      name: kv['name'] ?? '',
-      file: kv['file'] ?? '',
-      line: parseInt(kv['line'] ?? '0', 10),
-      kind: kv['kind'] ?? '',
-      pagerank: parseFloat(kv['pagerank'] ?? '0'),
-    });
-  }
+	for (const line of raw.split("\n")) {
+		const trimmed = line.trim();
+		if (!trimmed.startsWith("dead_symbol ")) {
+			continue;
+		}
+		const kv = parseKV(trimmed.slice("dead_symbol ".length));
+		items.push({
+			name: kv["name"] ?? "",
+			file: kv["file"] ?? "",
+			line: parseInt(kv["line"] ?? "0", 10),
+			kind: kv["kind"] ?? "",
+			pagerank: parseFloat(kv["pagerank"] ?? "0"),
+		});
+	}
 
-  return items;
+	return items;
 }
 
 /**
- * Parse the output of `claudemem test-gaps --agent`.
+ * Parse the output of `mnemex test-gaps --agent`.
  *
  * Format:
  *   test_gap_count=<n>
@@ -39,29 +43,29 @@ export function parseDeadCodeOutput(raw: string): DeadCodeResult[] {
  *   ...
  */
 export function parseTestGapsOutput(raw: string): TestGapResult[] {
-  const items: TestGapResult[] = [];
+	const items: TestGapResult[] = [];
 
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('test_gap ')) {
-      continue;
-    }
-    const kv = parseKV(trimmed.slice('test_gap '.length));
-    items.push({
-      name: kv['name'] ?? '',
-      file: kv['file'] ?? '',
-      line: parseInt(kv['line'] ?? '0', 10),
-      kind: kv['kind'] ?? '',
-      pagerank: parseFloat(kv['pagerank'] ?? '0'),
-      callers: parseInt(kv['callers'] ?? '0', 10),
-    });
-  }
+	for (const line of raw.split("\n")) {
+		const trimmed = line.trim();
+		if (!trimmed.startsWith("test_gap ")) {
+			continue;
+		}
+		const kv = parseKV(trimmed.slice("test_gap ".length));
+		items.push({
+			name: kv["name"] ?? "",
+			file: kv["file"] ?? "",
+			line: parseInt(kv["line"] ?? "0", 10),
+			kind: kv["kind"] ?? "",
+			pagerank: parseFloat(kv["pagerank"] ?? "0"),
+			callers: parseInt(kv["callers"] ?? "0", 10),
+		});
+	}
 
-  return items;
+	return items;
 }
 
 /**
- * Parse the output of `claudemem impact <name> --agent`.
+ * Parse the output of `mnemex impact <name> --agent`.
  *
  * Format:
  *   symbol=<name>
@@ -70,27 +74,27 @@ export function parseTestGapsOutput(raw: string): TestGapResult[] {
  *   ...
  */
 export function parseImpactOutput(raw: string): ImpactResult {
-  let symbol = '';
-  const affected: ImpactResult['affected'] = [];
+	let symbol = "";
+	const affected: ImpactResult["affected"] = [];
 
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      continue;
-    }
+	for (const line of raw.split("\n")) {
+		const trimmed = line.trim();
+		if (!trimmed) {
+			continue;
+		}
 
-    if (trimmed.startsWith('symbol=')) {
-      symbol = trimmed.slice('symbol='.length);
-    } else if (trimmed.startsWith('affected ')) {
-      const kv = parseKV(trimmed.slice('affected '.length));
-      affected.push({
-        name: kv['name'] ?? '',
-        file: kv['file'] ?? '',
-        line: parseInt(kv['line'] ?? '0', 10),
-        kind: kv['kind'] ?? '',
-      });
-    }
-  }
+		if (trimmed.startsWith("symbol=")) {
+			symbol = trimmed.slice("symbol=".length);
+		} else if (trimmed.startsWith("affected ")) {
+			const kv = parseKV(trimmed.slice("affected ".length));
+			affected.push({
+				name: kv["name"] ?? "",
+				file: kv["file"] ?? "",
+				line: parseInt(kv["line"] ?? "0", 10),
+				kind: kv["kind"] ?? "",
+			});
+		}
+	}
 
-  return { symbol, affected };
+	return { symbol, affected };
 }

@@ -1,8 +1,8 @@
-import { parseKV } from './kv.js';
-import type { CallersResult } from '../types/messages.js';
+import { parseKV } from "./kv.js";
+import type { CallersResult } from "../types/messages.js";
 
 /**
- * Parse the output of `claudemem callers <name> --agent`.
+ * Parse the output of `mnemex callers <name> --agent`.
  *
  * Format:
  *   symbol=<name>
@@ -11,27 +11,27 @@ import type { CallersResult } from '../types/messages.js';
  *   ...
  */
 export function parseCallersOutput(raw: string): CallersResult {
-  let symbol = '';
-  const callers: CallersResult['callers'] = [];
+	let symbol = "";
+	const callers: CallersResult["callers"] = [];
 
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      continue;
-    }
+	for (const line of raw.split("\n")) {
+		const trimmed = line.trim();
+		if (!trimmed) {
+			continue;
+		}
 
-    if (trimmed.startsWith('symbol=')) {
-      symbol = trimmed.slice('symbol='.length);
-    } else if (trimmed.startsWith('caller ')) {
-      const kv = parseKV(trimmed.slice('caller '.length));
-      callers.push({
-        name: kv['name'] ?? '',
-        file: kv['file'] ?? '',
-        line: parseInt(kv['line'] ?? '0', 10),
-        kind: kv['kind'] ?? '',
-      });
-    }
-  }
+		if (trimmed.startsWith("symbol=")) {
+			symbol = trimmed.slice("symbol=".length);
+		} else if (trimmed.startsWith("caller ")) {
+			const kv = parseKV(trimmed.slice("caller ".length));
+			callers.push({
+				name: kv["name"] ?? "",
+				file: kv["file"] ?? "",
+				line: parseInt(kv["line"] ?? "0", 10),
+				kind: kv["kind"] ?? "",
+			});
+		}
+	}
 
-  return { symbol, callers };
+	return { symbol, callers };
 }

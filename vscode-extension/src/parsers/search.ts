@@ -1,8 +1,8 @@
-import { parseKV } from './kv.js';
-import type { SearchResult } from '../types/messages.js';
+import { parseKV } from "./kv.js";
+import type { SearchResult } from "../types/messages.js";
 
 /**
- * Parse the output of `claudemem search --agent`.
+ * Parse the output of `mnemex search --agent`.
  *
  * Format:
  *   query=<string>
@@ -11,23 +11,23 @@ import type { SearchResult } from '../types/messages.js';
  *   ...
  */
 export function parseSearchOutput(raw: string): SearchResult[] {
-  const results: SearchResult[] = [];
+	const results: SearchResult[] = [];
 
-  for (const line of raw.split('\n')) {
-    if (!line.startsWith('result ')) {
-      continue;
-    }
-    const kv = parseKV(line.slice('result '.length));
-    results.push({
-      file: kv['file'] ?? '',
-      line: parseInt(kv['line'] ?? '0', 10),
-      endLine: parseInt(kv['end_line'] ?? kv['line'] ?? '0', 10),
-      score: parseFloat(kv['score'] ?? '0'),
-      type: kv['type'] ?? '',
-      name: kv['name'] ?? '',
-      summary: kv['summary'],
-    });
-  }
+	for (const line of raw.split("\n")) {
+		if (!line.startsWith("result ")) {
+			continue;
+		}
+		const kv = parseKV(line.slice("result ".length));
+		results.push({
+			file: kv["file"] ?? "",
+			line: parseInt(kv["line"] ?? "0", 10),
+			endLine: parseInt(kv["end_line"] ?? kv["line"] ?? "0", 10),
+			score: parseFloat(kv["score"] ?? "0"),
+			type: kv["type"] ?? "",
+			name: kv["name"] ?? "",
+			summary: kv["summary"],
+		});
+	}
 
-  return results;
+	return results;
 }

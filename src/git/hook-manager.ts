@@ -23,7 +23,7 @@ export interface HookStatus {
 	installed: boolean;
 	hookType?: "post-commit";
 	path?: string;
-	isClaudemem?: boolean;
+	isMnemex?: boolean;
 }
 
 // ============================================================================
@@ -170,13 +170,13 @@ export class GitHookManager {
 		}
 
 		const content = readFileSync(hookPath, "utf-8");
-		const isClaudemem = content.includes(HOOK_MARKER);
+		const isMnemex = content.includes(HOOK_MARKER);
 
 		return {
-			installed: isClaudemem,
-			hookType: isClaudemem ? "post-commit" : undefined,
+			installed: isMnemex,
+			hookType: isMnemex ? "post-commit" : undefined,
 			path: hookPath,
-			isClaudemem,
+			isMnemex,
 		};
 	}
 
