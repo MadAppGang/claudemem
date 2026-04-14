@@ -26,10 +26,10 @@ function sleep(ms: number, token: vscode.CancellationToken): Promise<boolean> {
 }
 
 function getConfig() {
-	const cfg = vscode.workspace.getConfiguration("claudememAutocomplete");
+	const cfg = vscode.workspace.getConfiguration("mnemexAutocomplete");
 	return {
 		enable: cfg.get<boolean>("enable", true),
-		binaryPath: cfg.get<string>("binaryPath", "claudemem"),
+		binaryPath: cfg.get<string>("binaryPath", "mnemex"),
 		debounceMs: cfg.get<number>("debounceMs", 120),
 		maxPrefixChars: cfg.get<number>("maxPrefixChars", 4000),
 		maxSuffixChars: cfg.get<number>("maxSuffixChars", 2000),
@@ -73,7 +73,7 @@ class JsonlRpcClient implements vscode.Disposable {
 
 		this.proc.on("exit", (code, signal) => {
 			const err = new Error(
-				`claudemem autocomplete server exited (${code ?? "null"} / ${signal ?? "null"})`,
+				`mnemex autocomplete server exited (${code ?? "null"} / ${signal ?? "null"})`,
 			);
 			for (const { reject } of this.pending.values()) reject(err);
 			this.pending.clear();
@@ -156,12 +156,12 @@ class ClientManager implements vscode.Disposable {
 		const cfg = getConfig();
 		const env: NodeJS.ProcessEnv = { ...process.env };
 
-		if (cfg.llmProvider) env.CLAUDEMEM_LLM_PROVIDER = cfg.llmProvider;
-		if (cfg.llmModel) env.CLAUDEMEM_LLM_MODEL = cfg.llmModel;
-		if (cfg.llmEndpoint) env.CLAUDEMEM_LLM_ENDPOINT = cfg.llmEndpoint;
+		if (cfg.llmProvider) env.MNEMEX_LLM_PROVIDER = cfg.llmProvider;
+		if (cfg.llmModel) env.MNEMEX_LLM_MODEL = cfg.llmModel;
+		if (cfg.llmEndpoint) env.MNEMEX_LLM_ENDPOINT = cfg.llmEndpoint;
 
 		const openRouterKey = await this.context.secrets.get(
-			"claudemem.openrouterApiKey",
+			"mnemex.openrouterApiKey",
 		);
 		if (openRouterKey) env.OPENROUTER_API_KEY = openRouterKey;
 
@@ -197,7 +197,7 @@ class ClientManager implements vscode.Disposable {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	const output = vscode.window.createOutputChannel("claudemem Autocomplete");
+	const output = vscode.window.createOutputChannel("mnemex Autocomplete");
 	context.subscriptions.push(output);
 
 	const manager = new ClientManager(context, output);
@@ -205,11 +205,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			"claudememAutocomplete.restartServer",
+			"mnemexAutocomplete.restartServer",
 			async () => {
 				manager.restartAll();
 				vscode.window.showInformationMessage(
-					"claudemem autocomplete server restarted.",
+					"mnemex autocomplete server restarted.",
 				);
 			},
 		),
@@ -217,7 +217,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			"claudememAutocomplete.setOpenRouterKey",
+			"mnemexAutocomplete.setOpenRouterKey",
 			async () => {
 				const value = await vscode.window.showInputBox({
 					title: "OpenRouter API Key",
@@ -226,7 +226,7 @@ export function activate(context: vscode.ExtensionContext) {
 					placeHolder: "sk-or-v1-…",
 				});
 				if (!value) return;
-				await context.secrets.store("claudemem.openrouterApiKey", value);
+				await context.secrets.store("mnemex.openrouterApiKey", value);
 				manager.restartAll();
 				vscode.window.showInformationMessage(
 					"OpenRouter API key saved (VS Code Secret Storage).",

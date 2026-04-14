@@ -1,57 +1,57 @@
-# claudemem OpenCode Integration
+# mnemex OpenCode Integration
 
-Plugins to integrate claudemem with [OpenCode](https://opencode.ai/).
+Plugins to integrate mnemex with [OpenCode](https://opencode.ai/).
 
 ## Available Plugins
 
-### 1. `claudemem.ts` - Suggestion Plugin
+### 1. `mnemex.ts` - Suggestion Plugin
 
-Intercepts grep/glob/list and suggests claudemem alternatives. Non-invasive.
+Intercepts grep/glob/list and suggests mnemex alternatives. Non-invasive.
 
 ```bash
 # Install
-cp claudemem.ts /path/to/project/.opencode/plugin/
+cp mnemex.ts /path/to/project/.opencode/plugin/
 
 # Add to opencode.json
 {
-  "plugin": ["file://.opencode/plugin/claudemem.ts"]
+  "plugin": ["file://.opencode/plugin/mnemex.ts"]
 }
 ```
 
-### 2. `claudemem-tools.ts` - Custom Tools Plugin
+### 2. `mnemex-tools.ts` - Custom Tools Plugin
 
-Adds claudemem as first-class tools the LLM can use directly:
-- `claudemem_search` - Semantic code search
-- `claudemem_map` - Structural overview
-- `claudemem_symbol` - Find symbol location
-- `claudemem_callers` - Impact analysis
-- `claudemem_callees` - Dependency tracing
-- `claudemem_context` - Full context
-- `claudemem_dead_code` - Find unused code
-- `claudemem_test_gaps` - Find untested code
+Adds mnemex as first-class tools the LLM can use directly:
+- `mnemex_search` - Semantic code search
+- `mnemex_map` - Structural overview
+- `mnemex_symbol` - Find symbol location
+- `mnemex_callers` - Impact analysis
+- `mnemex_callees` - Dependency tracing
+- `mnemex_context` - Full context
+- `mnemex_dead_code` - Find unused code
+- `mnemex_test_gaps` - Find untested code
 
 ```bash
 # Install
-cp claudemem-tools.ts /path/to/project/.opencode/plugin/
+cp mnemex-tools.ts /path/to/project/.opencode/plugin/
 
 # Add to opencode.json
 {
-  "plugin": ["file://.opencode/plugin/claudemem-tools.ts"]
+  "plugin": ["file://.opencode/plugin/mnemex-tools.ts"]
 }
 ```
 
 ## Prerequisites
 
-1. Install claudemem:
+1. Install mnemex:
    ```bash
-   npm install -g claude-codemem
+   npm install -g mnemex
    ```
 
 2. Index your project:
    ```bash
    cd /path/to/project
-   claudemem init
-   claudemem index
+   mnemex init
+   mnemex index
    ```
 
 3. Set API key:

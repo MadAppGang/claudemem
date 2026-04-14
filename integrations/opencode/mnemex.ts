@@ -1,51 +1,51 @@
 /**
- * claudemem Integration Plugin for OpenCode
+ * mnemex Integration Plugin for OpenCode
  *
- * Intercepts grep/glob/list tools and suggests claudemem alternatives
+ * Intercepts grep/glob/list tools and suggests mnemex alternatives
  * for semantic code search.
  *
  * Installation:
- *   1. Copy to .opencode/plugin/claudemem.ts
- *   2. Add to opencode.json: { "plugin": ["file://.opencode/plugin/claudemem.ts"] }
+ *   1. Copy to .opencode/plugin/mnemex.ts
+ *   2. Add to opencode.json: { "plugin": ["file://.opencode/plugin/mnemex.ts"] }
  *
- * @see https://github.com/MadAppGang/claudemem
+ * @see https://github.com/MadAppGang/mnemex
  */
 
 import type { Plugin } from "@opencode-ai/plugin";
 
-export const ClaudemumPlugin: Plugin = async (ctx) => {
+export const MnemexPlugin: Plugin = async (ctx) => {
 	const { $ } = ctx;
 
-	// Check if claudemem is available (cross-platform)
-	let claudememAvailable = false;
-	let claudememIndexed = false;
+	// Check if mnemex is available (cross-platform)
+	let mnemexAvailable = false;
+	let mnemexIndexed = false;
 
 	try {
-		const whichResult = await $`which claudemem`.quiet();
-		claudememAvailable = whichResult.exitCode === 0;
+		const whichResult = await $`which mnemex`.quiet();
+		mnemexAvailable = whichResult.exitCode === 0;
 
-		if (claudememAvailable) {
-			const statusResult = await $`claudemem status`.quiet();
-			claudememIndexed = statusResult.exitCode === 0;
+		if (mnemexAvailable) {
+			const statusResult = await $`mnemex status`.quiet();
+			mnemexIndexed = statusResult.exitCode === 0;
 		}
 	} catch {
-		claudememAvailable = false;
+		mnemexAvailable = false;
 	}
 
 	// Log status on plugin load
-	if (!claudememAvailable) {
+	if (!mnemexAvailable) {
 		console.log(
-			"\n⚠️  claudemem not installed. Install with: npm install -g claude-codemem\n",
+			"\n⚠️  mnemex not installed. Install with: npm install -g mnemex\n",
 		);
-	} else if (!claudememIndexed) {
-		console.log("\n⚠️  claudemem not indexed. Run: claudemem index\n");
+	} else if (!mnemexIndexed) {
+		console.log("\n⚠️  mnemex not indexed. Run: mnemex index\n");
 	} else {
-		console.log("\n✅ claudemem plugin loaded\n");
+		console.log("\n✅ mnemex plugin loaded\n");
 	}
 
 	return {
 		"tool.execute.before": async (input, output) => {
-			if (!claudememAvailable || !claudememIndexed) return;
+			if (!mnemexAvailable || !mnemexIndexed) return;
 
 			const tool = input.tool;
 			const args = output.args;
@@ -63,8 +63,8 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
 
 				if (isSemanticQuery) {
 					console.log(`\n💡 Tip: For semantic search, try:`);
-					console.log(`   claudemem --nologo search "${pattern}" --raw`);
-					console.log(`   claudemem --nologo map "${pattern}" --raw\n`);
+					console.log(`   mnemex --nologo search "${pattern}" --raw`);
+					console.log(`   mnemex --nologo map "${pattern}" --raw\n`);
 				}
 			}
 
@@ -75,7 +75,7 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
 				// Detect broad patterns like **/*.ts or **/*
 				if (pattern.startsWith("**")) {
 					console.log(`\n💡 Tip: For structural overview, try:`);
-					console.log(`   claudemem --nologo map --raw`);
+					console.log(`   mnemex --nologo map --raw`);
 					console.log(`   (Shows symbols ranked by importance)\n`);
 				}
 			}
@@ -83,7 +83,7 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
 			// Intercept list for directory exploration
 			if (tool === "list") {
 				console.log(`\n💡 Tip: For codebase structure with PageRank, try:`);
-				console.log(`   claudemem --nologo map --raw\n`);
+				console.log(`   mnemex --nologo map --raw\n`);
 			}
 
 			// Intercept read for multiple files (suggest targeted reads)
@@ -92,7 +92,7 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
 				const filePath = String(args.filePath);
 				if (filePath.includes("*") || filePath.endsWith("/")) {
 					console.log(`\n💡 Tip: Find specific code locations first:`);
-					console.log(`   claudemem --nologo symbol <name> --raw`);
+					console.log(`   mnemex --nologo symbol <name> --raw`);
 					console.log(`   (Then read specific file:line ranges)\n`);
 				}
 			}
@@ -100,4 +100,4 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
 	};
 };
 
-export default ClaudemumPlugin;
+export default MnemexPlugin;

@@ -1,85 +1,85 @@
 {
-	"name": "claudemem-autocomplete",
-	"displayName": "claudemem Autocomplete",
-	"description": "Inline code completion powered by claudemem semantic context + local/cloud LLMs",
+	"name": "mnemex-autocomplete",
+	"displayName": "mnemex Autocomplete",
+	"description": "Inline code completion powered by mnemex semantic context + local/cloud LLMs",
 	"version": "0.0.1",
-	"publisher": "claudemem",
+	"publisher": "mnemex",
 	"engines": {
 		"vscode": "^1.92.0"
 	},
 	"categories": ["Programming Languages", "AI"],
 	"activationEvents": [
 		"onStartupFinished",
-		"onCommand:claudememAutocomplete.setOpenRouterKey",
-		"onCommand:claudememAutocomplete.restartServer"
+		"onCommand:mnemexAutocomplete.setOpenRouterKey",
+		"onCommand:mnemexAutocomplete.restartServer"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "claudememAutocomplete.setOpenRouterKey",
-				"title": "claudemem: Set OpenRouter API Key"
+				"command": "mnemexAutocomplete.setOpenRouterKey",
+				"title": "mnemex: Set OpenRouter API Key"
 			},
 			{
-				"command": "claudememAutocomplete.restartServer",
-				"title": "claudemem: Restart Autocomplete Server"
+				"command": "mnemexAutocomplete.restartServer",
+				"title": "mnemex: Restart Autocomplete Server"
 			}
 		],
 		"configuration": {
-			"title": "claudemem Autocomplete",
+			"title": "mnemex Autocomplete",
 			"properties": {
-				"claudememAutocomplete.enable": {
+				"mnemexAutocomplete.enable": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enable inline autocompletions from claudemem."
+					"description": "Enable inline autocompletions from mnemex."
 				},
-				"claudememAutocomplete.binaryPath": {
+				"mnemexAutocomplete.binaryPath": {
 					"type": "string",
-					"default": "claudemem",
-					"description": "Path to the claudemem binary."
+					"default": "mnemex",
+					"description": "Path to the mnemex binary."
 				},
-				"claudememAutocomplete.debounceMs": {
+				"mnemexAutocomplete.debounceMs": {
 					"type": "number",
 					"default": 120,
 					"minimum": 0,
 					"description": "Debounce time for automatic inline completions."
 				},
-				"claudememAutocomplete.maxPrefixChars": {
+				"mnemexAutocomplete.maxPrefixChars": {
 					"type": "number",
 					"default": 4000,
 					"minimum": 200,
 					"description": "Max characters before cursor to send to the server."
 				},
-				"claudememAutocomplete.maxSuffixChars": {
+				"mnemexAutocomplete.maxSuffixChars": {
 					"type": "number",
 					"default": 2000,
 					"minimum": 0,
 					"description": "Max characters after cursor to send to the server."
 				},
-				"claudememAutocomplete.maxTokens": {
+				"mnemexAutocomplete.maxTokens": {
 					"type": "number",
 					"default": 200,
 					"minimum": 16,
 					"description": "Max tokens for the completion model."
 				},
-				"claudememAutocomplete.temperature": {
+				"mnemexAutocomplete.temperature": {
 					"type": "number",
 					"default": 0.2,
 					"minimum": 0,
 					"maximum": 2,
 					"description": "Temperature for the completion model."
 				},
-				"claudememAutocomplete.llmProvider": {
+				"mnemexAutocomplete.llmProvider": {
 					"type": "string",
 					"default": "",
-					"description": "Override LLM provider for completions (openrouter | local | anthropic | claude-code). Empty = use claudemem config/env."
+					"description": "Override LLM provider for completions (openrouter | local | anthropic | claude-code). Empty = use mnemex config/env."
 				},
-				"claudememAutocomplete.llmModel": {
+				"mnemexAutocomplete.llmModel": {
 					"type": "string",
 					"default": "",
-					"description": "Override LLM model for completions. Empty = use claudemem config/env."
+					"description": "Override LLM model for completions. Empty = use mnemex config/env."
 				},
-				"claudememAutocomplete.llmEndpoint": {
+				"mnemexAutocomplete.llmEndpoint": {
 					"type": "string",
 					"default": "",
 					"description": "Override local LLM endpoint (OpenAI-compatible), e.g. http://localhost:11434/v1 or LM Studio http://localhost:1234/v1."
