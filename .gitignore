@@ -6,8 +6,8 @@ dist/
 *.tsbuildinfo
 
 # Binary builds
-claudemem
-claudemem-*
+mnemex
+mnemex-*
 
 # Tree-sitter grammars (downloaded at build time)
 grammars/*.wasm
@@ -17,7 +17,6 @@ grammars/*.wasm
 .env.local
 
 # Index data (per-project)
-.claudemem/
 
 # IDE
 .idea/
@@ -46,3 +45,5 @@ models
 
 # Worktrees
 .worktrees/
+
+.mnemex/

@@ -22,5 +22,5 @@ ${BOLD}Quick Start:${RESET}
 ${BOLD}MCP Server (for Claude Code):${RESET}
   ${CYAN}mnemex --mcp${RESET}         Start as MCP server
 
-${DIM}Documentation: https://github.com/MadAppGang/claudemem${RESET}
+${DIM}Documentation: https://github.com/MadAppGang/mnemex${RESET}
 `);

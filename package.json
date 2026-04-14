@@ -5,8 +5,7 @@
 	"type": "module",
 	"main": "./dist/index.js",
 	"bin": {
-		"mnemex": "dist/index.js",
-		"claudemem": "dist/index.js"
+		"mnemex": "dist/index.js"
 	},
 	"scripts": {
 		"dev": "bun run src/index.ts",
@@ -35,6 +34,7 @@
 		"@modelcontextprotocol/sdk": "^1.22.0",
 		"@opentui/core": "0.1.82",
 		"@opentui/react": "0.1.82",
+		"@vscode/ripgrep": "^1.17.1",
 		"better-sqlite3": "^11.6.0",
 		"dotenv": "^16.4.7",
 		"minimatch": "^10.0.1",

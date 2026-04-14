@@ -1,4 +1,4 @@
-# Multi-stage build for claudemem cloud server
+# Multi-stage build for mnemex cloud server
 # Produces a minimal image with just bun + bundled JS + schema.sql
 
 FROM oven/bun:1 AS builder
