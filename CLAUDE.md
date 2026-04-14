@@ -122,3 +122,19 @@ Evaluation harness lives in the sibling `../agentbench/` repo. See the `agentben
 8. **CLI alias ordering**: Flag-style command aliases (e.g. `--watch` → `watch`) must mutate `args` BEFORE `const command = args[0]` to take effect
 9. **Data directory**: mnemex uses `.mnemex/` (migrated from `.claudemem/` automatically on first run)
 10. **Env vars**: `MNEMEX_MODEL`, `MNEMEX_LLM`, `MNEMEX_DOCS_ENABLED` (renamed from CLAUDEMEM_*)
+11. **Wire protocol migration**: HTTP headers renamed `X-ClaudeMem-*` → `X-Mnemex-*`. Server accepts BOTH during migration window; clients send only `X-Mnemex-*`. See `src/cloud/server/middleware.ts` for dual-read logic. Do NOT remove legacy fallback until all deployed clients have upgraded.
+12. **Homebrew formula**: lives in the unified tap at `../homebrew-tap/Formula/mnemex.rb` (repo `MadAppGang/homebrew-tap`). The old `homebrew/claudemem.rb` formula in this repo has been deleted.
+
+## Historical Artifacts
+
+The following directories intentionally retain `claudemem` references — they are frozen records of decisions/outputs made under the old name. Do NOT rewrite them:
+
+- **`src/migration.ts`** — runtime migration code that looks for `.claudemem/` directories. Renaming breaks migration for existing users.
+- **`src/cloud/**`** — contains intentional `X-ClaudeMem-*` header fallback reads (legacy client compatibility). See gotcha #11.
+- **`docs/adr/**`** — architecture decision records are historical. Rewriting them falsifies the record.
+- **`ai-docs/sessions/**`, `ai-docs/seo-research-claudemem-positioning.md`, `ai-docs/design-reviews/**`, `ai-docs/research-paper-*/**`** — frozen session records, research artifacts, design reviews.
+- **`experiments/query-expansion/results/**`** — frozen experiment JSON outputs from benchmark runs.
+- **`experiments/query-expansion/training/**`, `experiments/query-expansion/bench/run-finetuned.py`** — training scripts that reference HuggingFace model names like `jackrudenko/claudemem-expansion-*`. These are **external identifiers** on HuggingFace — renaming here would point at non-existent repos.
+- **`eval/mnemex-search-steps-evaluation/runs/**`** — frozen eval run outputs.
+- **`.agents/skills/agentbench-eval/SKILL.md`** — agentbench skill doc; references in it describe the repo at a point in time.
+- **Lockfiles** (`package-lock.json`, `bun.lock`, `vscode-extension/*-lock.json`) — regenerate on next install.
