@@ -29,8 +29,11 @@ export async function check(ctx: RequestContext): Promise<Response> {
 		return json({ error: "too_many_hashes", max: MAX_HASHES }, 400);
 	}
 
-	// Extract correlation header — optional, missing on older clients
-	const commitSha = ctx.req.headers.get("X-ClaudeMem-Commit-SHA");
+	// Extract correlation header — optional, missing on older clients.
+	// Prefer X-Mnemex-* with legacy X-ClaudeMem-* fallback.
+	const commitSha =
+		ctx.req.headers.get("X-Mnemex-Commit-SHA") ??
+		ctx.req.headers.get("X-ClaudeMem-Commit-SHA");
 	if (commitSha) {
 		ctx.metrics.commitSha = commitSha;
 	}

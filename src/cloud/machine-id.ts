@@ -1,7 +1,7 @@
 /**
  * Generate and persist a stable anonymous machine ID.
  * Stored at ~/.mnemex/machine-id — created on first call, reused thereafter.
- * Used as X-ClaudeMem-Machine-ID header for server-side device tracking.
+ * Used as X-Mnemex-Machine-ID header for server-side device tracking.
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";

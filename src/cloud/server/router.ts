@@ -19,7 +19,7 @@ export interface RequestMetrics {
 	repoSlug?: string;
 	/** 40-char hex commit SHA — correlation key across the index pipeline */
 	commitSha?: string;
-	/** Anonymous machine UUID from X-ClaudeMem-Machine-ID header */
+	/** Anonymous machine UUID from X-Mnemex-Machine-ID header (or legacy X-ClaudeMem-Machine-ID) */
 	machineId?: string;
 
 	// --- Index upload (POST /v1/index) ---

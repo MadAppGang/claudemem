@@ -5,7 +5,9 @@
  * mnemex cloud REST API. Uses native fetch() (no external dependencies).
  *
  * Authentication: Bearer token sent in Authorization header.
- * All requests include X-ClaudeMem-Version header for server-side negotiation.
+ * All requests include X-Mnemex-Version header for server-side negotiation.
+ * (Server still accepts legacy X-ClaudeMem-Version for old clients during
+ * the migration window.)
  *
  * Error handling:
  *   401 → CloudApiError (auth failure)
@@ -61,7 +63,7 @@ export interface ThinCloudClientOptions {
 	endpoint: string;
 	/** Bearer token for authentication */
 	token: string;
-	/** API protocol version sent in X-ClaudeMem-Version header (default: 1) */
+	/** API protocol version sent in X-Mnemex-Version header (default: 1) */
 	version?: number;
 }
 
@@ -99,7 +101,7 @@ export class ThinCloudClient implements ICloudIndexClient {
 	): Promise<ChunkCheckResult> {
 		const extraHeaders: Record<string, string> = {};
 		if (commitSha) {
-			extraHeaders["X-ClaudeMem-Commit-SHA"] = commitSha;
+			extraHeaders["X-Mnemex-Commit-SHA"] = commitSha;
 		}
 		return this.postWithHeaders<ChunkCheckResult>(
 			"/v1/chunks/check",
@@ -225,8 +227,8 @@ export class ThinCloudClient implements ICloudIndexClient {
 	private headers(): Record<string, string> {
 		return {
 			Authorization: `Bearer ${this.token}`,
-			"X-ClaudeMem-Version": String(this.version),
-			"X-ClaudeMem-Machine-ID": this.machineId,
+			"X-Mnemex-Version": String(this.version),
+			"X-Mnemex-Machine-ID": this.machineId,
 			"Content-Type": "application/json",
 		};
 	}

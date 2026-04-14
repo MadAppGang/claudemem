@@ -93,7 +93,7 @@ function apiRequest(
 	opts: { method?: string; body?: unknown; apiKey?: string } = {},
 ): Promise<Response> {
 	const headers: Record<string, string> = {
-		"X-ClaudeMem-Version": "1",
+		"X-Mnemex-Version": "1",
 		"Content-Type": "application/json",
 	};
 	if (opts.apiKey) headers["Authorization"] = `Bearer ${opts.apiKey}`;
@@ -157,8 +157,20 @@ describe("E2E: API key management", () => {
 
 	it("no auth header returns 401", async () => {
 		const res = await fetch(`${BASE_URL}/v1/keys`, {
+			headers: { "X-Mnemex-Version": "1" },
+		});
+		expect(res.status).toBe(401);
+		const body = await res.json();
+		expect(body).toMatchObject({ error: "unauthorized" });
+	});
+
+	// Backward compatibility: old clients that still send X-ClaudeMem-*
+	// must continue to work until the legacy header is removed.
+	it("legacy X-ClaudeMem-Version header is still accepted", async () => {
+		const res = await fetch(`${BASE_URL}/v1/keys`, {
 			headers: { "X-ClaudeMem-Version": "1" },
 		});
+		// Version check passes → auth fails (401), not a 422 unsupported_version.
 		expect(res.status).toBe(401);
 		const body = await res.json();
 		expect(body).toMatchObject({ error: "unauthorized" });

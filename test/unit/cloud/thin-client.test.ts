@@ -116,12 +116,14 @@ describe("ThinCloudClient — request headers", () => {
 		expect(headers["Authorization"]).toBe(`Bearer ${TOKEN}`);
 	});
 
-	test("includes X-ClaudeMem-Version header (default 1)", async () => {
+	test("includes X-Mnemex-Version header (default 1)", async () => {
 		const fetchMock = mockFetch(mockResponse({ existing: [], missing: [] }));
 		await client.checkChunks(REPO, ["hash1"]);
 		const [, options] = fetchMock.mock.calls[0] as [string, RequestInit];
 		const headers = options.headers as Record<string, string>;
-		expect(headers["X-ClaudeMem-Version"]).toBe("1");
+		expect(headers["X-Mnemex-Version"]).toBe("1");
+		// Legacy header no longer sent by client (server still accepts it).
+		expect(headers["X-ClaudeMem-Version"]).toBeUndefined();
 	});
 
 	test("uses custom version when specified", async () => {
@@ -134,7 +136,7 @@ describe("ThinCloudClient — request headers", () => {
 		await c.checkChunks(REPO, ["hash1"]);
 		const [, options] = fetchMock.mock.calls[0] as [string, RequestInit];
 		const headers = options.headers as Record<string, string>;
-		expect(headers["X-ClaudeMem-Version"]).toBe("2");
+		expect(headers["X-Mnemex-Version"]).toBe("2");
 	});
 
 	test("strips trailing slash from endpoint", async () => {

@@ -80,14 +80,20 @@ export async function versionMiddleware(
 	// Skip version check for health endpoint
 	if (ctx.pathname === "/v1/health") return null;
 
-	const version = ctx.req.headers.get("X-ClaudeMem-Version");
+	// Prefer new X-Mnemex-* header; fall back to legacy X-ClaudeMem-* for
+	// backward compatibility with clients that haven't upgraded yet.
+	const version =
+		ctx.req.headers.get("X-Mnemex-Version") ??
+		ctx.req.headers.get("X-ClaudeMem-Version");
 	if (!version || version !== "1") {
 		return json({ error: "unsupported_version", supported: [1] }, 422);
 	}
 
 	// Extract anonymous machine ID for telemetry.
 	// Gracefully absent for older clients — log null is fine.
-	const machineId = ctx.req.headers.get("X-ClaudeMem-Machine-ID");
+	const machineId =
+		ctx.req.headers.get("X-Mnemex-Machine-ID") ??
+		ctx.req.headers.get("X-ClaudeMem-Machine-ID");
 	if (machineId) {
 		ctx.metrics.machineId = machineId;
 	}

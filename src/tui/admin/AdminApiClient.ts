@@ -34,7 +34,7 @@ export class AdminApiClient {
 		return {
 			Authorization: `Bearer ${this.masterKey}`,
 			"Content-Type": "application/json",
-			"X-ClaudeMem-Version": "1",
+			"X-Mnemex-Version": "1",
 		};
 	}
 
