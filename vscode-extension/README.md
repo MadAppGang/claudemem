@@ -1,8 +1,8 @@
-# claudemem for VS Code
+# mnemex for VS Code
 
 Semantic code search and symbol navigation right in your VS Code sidebar.
 
-claudemem uses AST-aware code chunking, vector embeddings, and a PageRank-based symbol graph to help you find code by *meaning*, not just text matching.
+mnemex uses AST-aware code chunking, vector embeddings, and a PageRank-based symbol graph to help you find code by *meaning*, not just text matching.
 
 ## Features
 
@@ -31,41 +31,41 @@ Auto-follows your cursor and shows the current symbol's context, callers, callee
 
 ## Prerequisites
 
-Install the claudemem CLI first:
+Install the mnemex CLI first:
 
 ```bash
-npm install -g claude-codemem
+npm install -g mnemex
 ```
 
 Then index your project:
 
 ```bash
 cd your-project
-claudemem index .
+mnemex index .
 ```
 
 ## Getting Started
 
 1. Install this extension
-2. Open a project that has been indexed with `claudemem index`
-3. Click the claudemem icon in the activity bar (left sidebar)
+2. Open a project that has been indexed with `mnemex index`
+3. Click the mnemex icon in the activity bar (left sidebar)
 4. Start searching!
 
 ## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `claudemem.binaryPath` | auto-detect | Path to the claudemem binary |
-| `claudemem.commandTimeoutSeconds` | 60 | Timeout for CLI commands |
+| `mnemex.binaryPath` | auto-detect | Path to the mnemex binary |
+| `mnemex.commandTimeoutSeconds` | 60 | Timeout for CLI commands |
 
 ## Commands
 
-- **claudemem: Open Search** -- focus the search sidebar
-- **claudemem: Re-index Project** -- rebuild the index for the current workspace
-- **claudemem: Open Symbol Context Panel** -- open the companion panel (`Cmd+Shift+M`)
+- **mnemex: Open Search** -- focus the search sidebar
+- **mnemex: Re-index Project** -- rebuild the index for the current workspace
+- **mnemex: Open Symbol Context Panel** -- open the companion panel (`Cmd+Shift+M`)
 
 ## Links
 
-- [claudemem CLI on npm](https://www.npmjs.com/package/claude-codemem)
-- [GitHub Repository](https://github.com/MadAppGang/claudemem)
-- [Report Issues](https://github.com/MadAppGang/claudemem/issues)
+- [mnemex CLI on npm](https://www.npmjs.com/package/mnemex)
+- [GitHub Repository](https://github.com/MadAppGang/mnemex)
+- [Report Issues](https://github.com/MadAppGang/mnemex/issues)

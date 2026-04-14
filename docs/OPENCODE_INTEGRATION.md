@@ -1,6 +1,6 @@
-# claudemem + OpenCode Integration Guide
+# mnemex + OpenCode Integration Guide
 
-Integrate claudemem with [OpenCode](https://opencode.ai/) to replace grep/glob/list with intelligent semantic search.
+Integrate mnemex with [OpenCode](https://opencode.ai/) to replace grep/glob/list with intelligent semantic search.
 
 ## Table of Contents
 
@@ -20,12 +20,12 @@ Integrate claudemem with [OpenCode](https://opencode.ai/) to replace grep/glob/l
 
 **The integration works by:**
 1. Intercepting `grep`, `glob`, `list`, and `read` tool calls via `tool.execute.before` hook
-2. Suggesting claudemem alternatives for semantic queries
-3. Optionally replacing tools entirely with claudemem commands
+2. Suggesting mnemex alternatives for semantic queries
+3. Optionally replacing tools entirely with mnemex commands
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    OPENCODE + CLAUDEMEM                          │
+│                    OPENCODE + MNEMEX                          │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  User Query: "Find authentication code"                         │
@@ -37,11 +37,11 @@ Integrate claudemem with [OpenCode](https://opencode.ai/) to replace grep/glob/l
 │                              ↓                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │              tool.execute.before HOOK                      │  │
-│  │  Intercepts grep → Suggests: claudemem search "auth"       │  │
+│  │  Intercepts grep → Suggests: mnemex search "auth"       │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                              ↓                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                   CLAUDEMEM                                │  │
+│  │                   MNEMEX                                │  │
 │  │  Semantic search → Ranked results with PageRank           │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
@@ -52,18 +52,18 @@ Integrate claudemem with [OpenCode](https://opencode.ai/) to replace grep/glob/l
 
 ## Quick Start
 
-### Step 1: Install claudemem
+### Step 1: Install mnemex
 
 ```bash
-npm install -g claude-codemem
+npm install -g mnemex
 ```
 
 ### Step 2: Index Your Project
 
 ```bash
 cd /path/to/your/project
-claudemem init    # First-time setup
-claudemem index   # Index codebase
+mnemex init    # First-time setup
+mnemex index   # Index codebase
 ```
 
 ### Step 3: Install the Plugin
@@ -73,8 +73,8 @@ claudemem index   # Index codebase
 mkdir -p .opencode/plugin
 
 # Download the plugin
-curl -o .opencode/plugin/claudemem.ts \
-  https://raw.githubusercontent.com/MadAppGang/mnemex/main/integrations/opencode/claudemem.ts
+curl -o .opencode/plugin/mnemex.ts \
+  https://raw.githubusercontent.com/MadAppGang/mnemex/main/integrations/opencode/mnemex.ts
 ```
 
 Or create it manually (see [Plugin Installation](#plugin-installation)).
@@ -86,7 +86,7 @@ Add to your `opencode.json`:
 ```json
 {
   "plugin": [
-    "file://.opencode/plugin/claudemem.ts"
+    "file://.opencode/plugin/mnemex.ts"
   ]
 }
 ```
@@ -97,15 +97,15 @@ Add to your `opencode.json`:
 
 ### Option 1: Minimal Plugin (Suggestion Only)
 
-This version suggests claudemem alternatives without blocking the original tool:
+This version suggests mnemex alternatives without blocking the original tool:
 
-Create `.opencode/plugin/claudemem.ts`:
+Create `.opencode/plugin/mnemex.ts`:
 
 ```typescript
 /**
- * claudemem Integration Plugin for OpenCode
+ * mnemex Integration Plugin for OpenCode
  *
- * Intercepts grep/glob/list tools and suggests claudemem alternatives
+ * Intercepts grep/glob/list tools and suggests mnemex alternatives
  * for semantic code search.
  */
 
@@ -114,18 +114,18 @@ import type { Plugin } from "opencode"
 export const ClaudemumPlugin: Plugin = async (ctx) => {
   const { $ } = ctx
 
-  // Check if claudemem is available
-  let claudememAvailable = false
+  // Check if mnemex is available
+  let mnemexAvailable = false
   try {
-    const result = await $`which claudemem`
-    claudememAvailable = result.exitCode === 0
+    const result = await $`which mnemex`
+    mnemexAvailable = result.exitCode === 0
   } catch {
-    claudememAvailable = false
+    mnemexAvailable = false
   }
 
   return {
     "tool.execute.before": async (input, output) => {
-      if (!claudememAvailable) return
+      if (!mnemexAvailable) return
 
       const tool = input.tool
       const args = output.args
@@ -139,7 +139,7 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
 
         if (isSemanticQuery) {
           console.log(`\n💡 Tip: For semantic search, try:`)
-          console.log(`   claudemem --nologo search "${pattern}" --raw\n`)
+          console.log(`   mnemex --nologo search "${pattern}" --raw\n`)
         }
       }
 
@@ -150,14 +150,14 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
         // Detect broad patterns like **/*.ts
         if (pattern.includes("**")) {
           console.log(`\n💡 Tip: For structural overview, try:`)
-          console.log(`   claudemem --nologo map --raw\n`)
+          console.log(`   mnemex --nologo map --raw\n`)
         }
       }
 
       // Intercept list for directory exploration
       if (tool === "list") {
         console.log(`\n💡 Tip: For codebase structure, try:`)
-        console.log(`   claudemem --nologo map --raw\n`)
+        console.log(`   mnemex --nologo map --raw\n`)
       }
     },
   }
@@ -166,15 +166,15 @@ export const ClaudemumPlugin: Plugin = async (ctx) => {
 
 ### Option 2: Full Replacement Plugin
 
-This version replaces grep/glob with claudemem when appropriate:
+This version replaces grep/glob with mnemex when appropriate:
 
-Create `.opencode/plugin/claudemem-replace.ts`:
+Create `.opencode/plugin/mnemex-replace.ts`:
 
 ```typescript
 /**
- * claudemem Full Replacement Plugin for OpenCode
+ * mnemex Full Replacement Plugin for OpenCode
  *
- * Replaces grep/glob with claudemem for semantic queries.
+ * Replaces grep/glob with mnemex for semantic queries.
  * Falls back to original tools for regex patterns.
  */
 
@@ -192,16 +192,16 @@ interface ClaudemumResult {
 export const ClaudemumReplacePlugin: Plugin = async (ctx) => {
   const { $ } = ctx
 
-  // Check if claudemem is available and indexed
-  let claudememReady = false
+  // Check if mnemex is available and indexed
+  let mnemexReady = false
   try {
-    const result = await $`claudemem status 2>/dev/null`
-    claudememReady = result.exitCode === 0
+    const result = await $`mnemex status 2>/dev/null`
+    mnemexReady = result.exitCode === 0
   } catch {
-    claudememReady = false
+    mnemexReady = false
   }
 
-  // Helper to parse claudemem --raw output
+  // Helper to parse mnemex --raw output
   const parseClaudemumOutput = (output: string): ClaudemumResult[] => {
     const results: ClaudemumResult[] = []
     const records = output.split("---")
@@ -228,12 +228,12 @@ export const ClaudemumReplacePlugin: Plugin = async (ctx) => {
 
   return {
     "tool.execute.before": async (input, output) => {
-      if (!claudememReady) return
+      if (!mnemexReady) return
 
       const tool = input.tool
       const args = output.args
 
-      // Replace grep with claudemem search for semantic queries
+      // Replace grep with mnemex search for semantic queries
       if (tool === "grep" && args.pattern) {
         const pattern = args.pattern
 
@@ -242,7 +242,7 @@ export const ClaudemumReplacePlugin: Plugin = async (ctx) => {
 
         if (!isRegex) {
           try {
-            const result = await $`claudemem --nologo search ${pattern} --raw -n 10`
+            const result = await $`mnemex --nologo search ${pattern} --raw -n 10`
 
             if (result.exitCode === 0 && result.stdout.trim()) {
               const matches = parseClaudemumOutput(result.stdout)
@@ -256,29 +256,29 @@ export const ClaudemumReplacePlugin: Plugin = async (ctx) => {
               output.result = formatted
               output.skip = true
 
-              console.log(`\n🔍 claudemem semantic search: ${matches.length} results\n`)
+              console.log(`\n🔍 mnemex semantic search: ${matches.length} results\n`)
             }
           } catch (e) {
             // Fall back to original grep on error
-            console.log(`\n⚠️ claudemem failed, using grep\n`)
+            console.log(`\n⚠️ mnemex failed, using grep\n`)
           }
         }
       }
 
-      // Replace glob with claudemem map for broad searches
+      // Replace glob with mnemex map for broad searches
       if (tool === "glob" && args.pattern) {
         const pattern = args.pattern
 
         // Only intercept very broad patterns
         if (pattern === "**/*" || pattern === "**/*.ts" || pattern === "**/*.js") {
           try {
-            const result = await $`claudemem --nologo map --raw --tokens 2000`
+            const result = await $`mnemex --nologo map --raw --tokens 2000`
 
             if (result.exitCode === 0 && result.stdout.trim()) {
               output.result = result.stdout
               output.skip = true
 
-              console.log(`\n📊 claudemem map: structural overview\n`)
+              console.log(`\n📊 mnemex map: structural overview\n`)
             }
           } catch {
             // Fall back to original glob
@@ -292,15 +292,15 @@ export const ClaudemumReplacePlugin: Plugin = async (ctx) => {
 
 ### Option 3: Custom Tools Plugin
 
-Add claudemem as custom tools alongside built-in tools:
+Add mnemex as custom tools alongside built-in tools:
 
-Create `.opencode/plugin/claudemem-tools.ts`:
+Create `.opencode/plugin/mnemex-tools.ts`:
 
 ```typescript
 /**
- * claudemem Custom Tools Plugin for OpenCode
+ * mnemex Custom Tools Plugin for OpenCode
  *
- * Adds claudemem commands as first-class tools.
+ * Adds mnemex commands as first-class tools.
  */
 
 import type { Plugin } from "opencode"
@@ -312,20 +312,20 @@ export const ClaudemumToolsPlugin: Plugin = async (ctx) => {
   return {
     tool: {
       // Semantic code search
-      claudemem_search: tool({
+      mnemex_search: tool({
         description: "Semantic code search using natural language. Better than grep for understanding code meaning.",
         args: {
           query: tool.schema.string().describe("Natural language search query"),
           limit: tool.schema.number().optional().describe("Max results (default: 10)"),
         },
         async execute({ query, limit = 10 }) {
-          const result = await $`claudemem --nologo search ${query} --raw -n ${limit}`
+          const result = await $`mnemex --nologo search ${query} --raw -n ${limit}`
           return result.stdout || "No results found"
         },
       }),
 
       // Repository structure map
-      claudemem_map: tool({
+      mnemex_map: tool({
         description: "Get structural overview of codebase with PageRank-ranked symbols. Use before diving into code.",
         args: {
           query: tool.schema.string().optional().describe("Focus area (optional)"),
@@ -333,57 +333,57 @@ export const ClaudemumToolsPlugin: Plugin = async (ctx) => {
         },
         async execute({ query, tokens = 2000 }) {
           const cmd = query
-            ? $`claudemem --nologo map ${query} --raw --tokens ${tokens}`
-            : $`claudemem --nologo map --raw --tokens ${tokens}`
+            ? $`mnemex --nologo map ${query} --raw --tokens ${tokens}`
+            : $`mnemex --nologo map --raw --tokens ${tokens}`
           const result = await cmd
           return result.stdout || "No symbols found"
         },
       }),
 
       // Find symbol definition
-      claudemem_symbol: tool({
+      mnemex_symbol: tool({
         description: "Find exact location of a symbol (function, class, etc.) by name.",
         args: {
           name: tool.schema.string().describe("Symbol name to find"),
         },
         async execute({ name }) {
-          const result = await $`claudemem --nologo symbol ${name} --raw`
+          const result = await $`mnemex --nologo symbol ${name} --raw`
           return result.stdout || `Symbol '${name}' not found`
         },
       }),
 
       // Find callers (impact analysis)
-      claudemem_callers: tool({
+      mnemex_callers: tool({
         description: "Find all code that calls/uses a symbol. Essential before modifying any code.",
         args: {
           name: tool.schema.string().describe("Symbol name"),
         },
         async execute({ name }) {
-          const result = await $`claudemem --nologo callers ${name} --raw`
+          const result = await $`mnemex --nologo callers ${name} --raw`
           return result.stdout || `No callers found for '${name}'`
         },
       }),
 
       // Find callees (dependencies)
-      claudemem_callees: tool({
+      mnemex_callees: tool({
         description: "Find all symbols that a function/class calls. Traces data flow and dependencies.",
         args: {
           name: tool.schema.string().describe("Symbol name"),
         },
         async execute({ name }) {
-          const result = await $`claudemem --nologo callees ${name} --raw`
+          const result = await $`mnemex --nologo callees ${name} --raw`
           return result.stdout || `No callees found for '${name}'`
         },
       }),
 
       // Full context
-      claudemem_context: tool({
+      mnemex_context: tool({
         description: "Get full context: symbol definition + callers + callees. Use for complex modifications.",
         args: {
           name: tool.schema.string().describe("Symbol name"),
         },
         async execute({ name }) {
-          const result = await $`claudemem --nologo context ${name} --raw`
+          const result = await $`mnemex --nologo context ${name} --raw`
           return result.stdout || `Context not found for '${name}'`
         },
       }),
@@ -405,12 +405,12 @@ export const ClaudemumToolsPlugin: Plugin = async (ctx) => {
 
 ### Tools Intercepted
 
-| OpenCode Tool | claudemem Alternative | When to Replace |
+| OpenCode Tool | mnemex Alternative | When to Replace |
 |---------------|----------------------|-----------------|
-| `grep` | `claudemem search` | Semantic/natural language queries |
-| `glob` | `claudemem map` | Broad file pattern searches |
-| `list` | `claudemem map` | Directory structure exploration |
-| `read` | (No replacement) | Use after claudemem locates files |
+| `grep` | `mnemex search` | Semantic/natural language queries |
+| `glob` | `mnemex map` | Broad file pattern searches |
+| `list` | `mnemex map` | Directory structure exploration |
+| `read` | (No replacement) | Use after mnemex locates files |
 
 ### Decision Logic
 
@@ -418,11 +418,11 @@ export const ClaudemumToolsPlugin: Plugin = async (ctx) => {
 grep "authentication flow"
   → Is it a regex? (has special chars like [, ], |, *, etc.)
     → YES: Use original grep
-    → NO: Use claudemem search (semantic)
+    → NO: Use mnemex search (semantic)
 
 glob "**/*.ts"
   → Is it a broad pattern?
-    → YES: Suggest claudemem map
+    → YES: Suggest mnemex map
     → NO: Use original glob
 ```
 
@@ -435,15 +435,15 @@ glob "**/*.ts"
 ```json
 {
   "plugin": [
-    "file://.opencode/plugin/claudemem.ts"
+    "file://.opencode/plugin/mnemex.ts"
   ],
   "tools": {
-    "claudemem_search": true,
-    "claudemem_map": true,
-    "claudemem_symbol": true,
-    "claudemem_callers": true,
-    "claudemem_callees": true,
-    "claudemem_context": true
+    "mnemex_search": true,
+    "mnemex_map": true,
+    "mnemex_symbol": true,
+    "mnemex_callers": true,
+    "mnemex_callees": true,
+    "mnemex_context": true
   }
 }
 ```
@@ -451,11 +451,11 @@ glob "**/*.ts"
 ### Environment Variables
 
 ```bash
-# Required for claudemem
+# Required for mnemex
 export OPENROUTER_API_KEY="your-key"
 
 # Optional: Override default model
-export CLAUDEMEM_MODEL="voyage/voyage-code-3"
+export MNEMEX_MODEL="voyage/voyage-code-3"
 ```
 
 ---
@@ -466,16 +466,16 @@ When using the custom tools plugin, OpenCode's LLM can directly call:
 
 | Tool | Example |
 |------|---------|
-| `claudemem_search` | "Find error handling code" |
-| `claudemem_map` | "Show me the codebase structure" |
-| `claudemem_symbol` | "Find the UserService class" |
-| `claudemem_callers` | "What calls processPayment?" |
-| `claudemem_callees` | "What does AuthService depend on?" |
-| `claudemem_context` | "Full context for DatabasePool" |
+| `mnemex_search` | "Find error handling code" |
+| `mnemex_map` | "Show me the codebase structure" |
+| `mnemex_symbol` | "Find the UserService class" |
+| `mnemex_callers` | "What calls processPayment?" |
+| `mnemex_callees` | "What does AuthService depend on?" |
+| `mnemex_context` | "Full context for DatabasePool" |
 
 ### Benefits Over Built-in Tools
 
-| Built-in Tool | Limitation | claudemem Advantage |
+| Built-in Tool | Limitation | mnemex Advantage |
 |---------------|------------|---------------------|
 | grep | String matching only | Semantic understanding |
 | glob | Returns all matches | PageRank-ranked results |
@@ -486,31 +486,31 @@ When using the custom tools plugin, OpenCode's LLM can directly call:
 
 ## Troubleshooting
 
-### "claudemem: command not found"
+### "mnemex: command not found"
 
 ```bash
 # Install globally
-npm install -g claude-codemem
+npm install -g mnemex
 
 # Verify
-which claudemem
-claudemem --version
+which mnemex
+mnemex --version
 ```
 
 ### "No index found"
 
 ```bash
 # Index your project
-claudemem init
-claudemem index
-claudemem status
+mnemex init
+mnemex index
+mnemex status
 ```
 
 ### Plugin not loading
 
 ```bash
 # Check plugin syntax
-bun check .opencode/plugin/claudemem.ts
+bun check .opencode/plugin/mnemex.ts
 
 # Verify opencode.json
 cat opencode.json | jq '.plugin'
@@ -521,7 +521,7 @@ cat opencode.json | jq '.plugin'
 The `tool.execute.before` hook only fires when the LLM actually uses the tool. If you're not seeing interception:
 
 1. Ensure the plugin is loaded (check OpenCode logs)
-2. Verify claudemem is installed and indexed
+2. Verify mnemex is installed and indexed
 3. Check that the query triggers grep/glob (not another tool)
 
 ---

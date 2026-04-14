@@ -1,6 +1,6 @@
-# claudemem CLI Reference
+# mnemex CLI Reference
 
-Complete command-line interface documentation for claudemem - local semantic code search for Claude Code.
+Complete command-line interface documentation for mnemex - local semantic code search for Claude Code.
 
 ## Table of Contents
 
@@ -21,10 +21,10 @@ Complete command-line interface documentation for claudemem - local semantic cod
 
 ```bash
 # npm (recommended)
-npm install -g claude-codemem
+npm install -g mnemex
 
 # homebrew (macOS)
-brew tap MadAppGang/claude-mem && brew install --cask claudemem
+brew tap MadAppGang/homebrew-tap && brew install mnemex
 
 # or curl
 curl -fsSL https://raw.githubusercontent.com/MadAppGang/mnemex/main/install.sh | bash
@@ -36,14 +36,14 @@ curl -fsSL https://raw.githubusercontent.com/MadAppGang/mnemex/main/install.sh |
 
 ```bash
 # 1. First time setup (configure embedding provider)
-claudemem init
+mnemex init
 
 # 2. Index your project
-claudemem index
+mnemex index
 
 # 3. Search with natural language
-claudemem search "authentication flow"
-claudemem search "where do we handle errors"
+mnemex search "authentication flow"
+mnemex search "where do we handle errors"
 ```
 
 ---
@@ -55,7 +55,7 @@ claudemem search "where do we handle errors"
 Configure embedding and LLM providers interactively.
 
 ```bash
-claudemem init
+mnemex init
 ```
 
 Configures:
@@ -69,7 +69,7 @@ Configures:
 Parse and index your codebase for semantic search.
 
 ```bash
-claudemem index [path]
+mnemex index [path]
 ```
 
 **Options:**
@@ -81,16 +81,16 @@ claudemem index [path]
 **Examples:**
 ```bash
 # Index current directory
-claudemem index
+mnemex index
 
 # Index specific path
-claudemem index /path/to/project
+mnemex index /path/to/project
 
 # Force full re-index
-claudemem index --force
+mnemex index --force
 
 # Fast index without LLM summaries
-claudemem index --no-llm
+mnemex index --no-llm
 ```
 
 ### `search` - Semantic Search
@@ -98,7 +98,7 @@ claudemem index --no-llm
 Search indexed code using natural language queries.
 
 ```bash
-claudemem search <query> [options]
+mnemex search <query> [options]
 ```
 
 **Options:**
@@ -115,19 +115,19 @@ claudemem search <query> [options]
 **Examples:**
 ```bash
 # Basic search
-claudemem search "authentication flow"
+mnemex search "authentication flow"
 
 # Limit results
-claudemem search "error handling" -n 5
+mnemex search "error handling" -n 5
 
 # Filter by language
-claudemem search "database queries" -l python
+mnemex search "database queries" -l python
 
 # Skip auto-reindex (faster)
-claudemem search "config" --no-reindex
+mnemex search "config" --no-reindex
 
 # Keyword-only search (no API calls)
-claudemem search "parseJSON" --keyword
+mnemex search "parseJSON" --keyword
 ```
 
 ### `status` - Show Index Status
@@ -135,7 +135,7 @@ claudemem search "parseJSON" --keyword
 Display information about the current index.
 
 ```bash
-claudemem status [path]
+mnemex status [path]
 ```
 
 Shows:
@@ -150,7 +150,7 @@ Shows:
 Remove all indexed data for a project.
 
 ```bash
-claudemem clear [path]
+mnemex clear [path]
 ```
 
 ### `models` - List Embedding Models
@@ -158,9 +158,9 @@ claudemem clear [path]
 Show available embedding models from OpenRouter.
 
 ```bash
-claudemem models [options]
+mnemex models [options]
 # or
-claudemem --models [options]
+mnemex --models [options]
 ```
 
 **Options:**
@@ -173,13 +173,13 @@ claudemem --models [options]
 **Examples:**
 ```bash
 # All models
-claudemem --models
+mnemex --models
 
 # Free models only
-claudemem --models --free
+mnemex --models --free
 
 # Ollama models
-claudemem --models --ollama
+mnemex --models --ollama
 ```
 
 ---
@@ -193,7 +193,7 @@ These commands query the symbol graph for code navigation. Designed for AI agent
 Get a structured view of the codebase with PageRank-ranked symbols.
 
 ```bash
-claudemem map [query] [options]
+mnemex map [query] [options]
 ```
 
 **Options:**
@@ -205,13 +205,13 @@ claudemem map [query] [options]
 **Examples:**
 ```bash
 # Full repo structure
-claudemem map
+mnemex map
 
 # Focused on authentication
-claudemem map "auth"
+mnemex map "auth"
 
 # For AI agent parsing
-claudemem --nologo map --raw
+mnemex --nologo map --raw
 ```
 
 ### `symbol` - Find Symbol Definition
@@ -219,7 +219,7 @@ claudemem --nologo map --raw
 Locate where a symbol (function, class, etc.) is defined.
 
 ```bash
-claudemem symbol <name> [options]
+mnemex symbol <name> [options]
 ```
 
 **Options:**
@@ -231,10 +231,10 @@ claudemem symbol <name> [options]
 **Examples:**
 ```bash
 # Find symbol
-claudemem symbol createIndexer
+mnemex symbol createIndexer
 
 # Disambiguate by file
-claudemem symbol parse --file="parser.ts"
+mnemex symbol parse --file="parser.ts"
 ```
 
 ### `callers` - Find What Uses a Symbol
@@ -242,7 +242,7 @@ claudemem symbol parse --file="parser.ts"
 Discover all code that calls/references a symbol.
 
 ```bash
-claudemem callers <name> [options]
+mnemex callers <name> [options]
 ```
 
 **Options:**
@@ -254,10 +254,10 @@ claudemem callers <name> [options]
 **Examples:**
 ```bash
 # What uses VectorStore?
-claudemem callers VectorStore
+mnemex callers VectorStore
 
 # Machine-readable
-claudemem --nologo callers VectorStore --raw
+mnemex --nologo callers VectorStore --raw
 ```
 
 ### `callees` - Find What a Symbol Uses
@@ -265,7 +265,7 @@ claudemem --nologo callers VectorStore --raw
 Discover all symbols that a function/class depends on.
 
 ```bash
-claudemem callees <name> [options]
+mnemex callees <name> [options]
 ```
 
 **Options:**
@@ -279,7 +279,7 @@ claudemem callees <name> [options]
 Get a symbol's definition along with its callers and callees.
 
 ```bash
-claudemem context <name> [options]
+mnemex context <name> [options]
 ```
 
 Combines `symbol`, `callers`, and `callees` in one call.
@@ -295,7 +295,7 @@ Static analysis commands powered by the symbol graph and PageRank.
 Detect potentially dead code (zero callers + low PageRank).
 
 ```bash
-claudemem dead-code [options]
+mnemex dead-code [options]
 ```
 
 **Options:**
@@ -309,13 +309,13 @@ claudemem dead-code [options]
 **Examples:**
 ```bash
 # Find dead code
-claudemem dead-code
+mnemex dead-code
 
 # Include exported symbols
-claudemem dead-code --include-exported
+mnemex dead-code --include-exported
 
 # Lower threshold (more results)
-claudemem dead-code --max-pagerank 0.01
+mnemex dead-code --max-pagerank 0.01
 ```
 
 ### `test-gaps` - Find Untested Code
@@ -323,7 +323,7 @@ claudemem dead-code --max-pagerank 0.01
 Find high-importance code that lacks test coverage.
 
 ```bash
-claudemem test-gaps [options]
+mnemex test-gaps [options]
 ```
 
 **Options:**
@@ -338,7 +338,7 @@ claudemem test-gaps [options]
 Analyze the blast radius of changing a symbol.
 
 ```bash
-claudemem impact <symbol> [options]
+mnemex impact <symbol> [options]
 ```
 
 **Options:**
@@ -350,10 +350,10 @@ claudemem impact <symbol> [options]
 **Examples:**
 ```bash
 # What's affected if I change createIndexer?
-claudemem impact createIndexer
+mnemex impact createIndexer
 
 # Limit depth
-claudemem impact parseConfig --max-depth 5
+mnemex impact parseConfig --max-depth 5
 ```
 
 ---
@@ -365,7 +365,7 @@ claudemem impact parseConfig --max-depth 5
 Compare embedding models for index speed, search quality, and cost.
 
 ```bash
-claudemem benchmark [options]
+mnemex benchmark [options]
 ```
 
 **Options:**
@@ -378,14 +378,14 @@ claudemem benchmark [options]
 
 **Examples:**
 ```bash
-# Run on claudemem's test queries
-claudemem benchmark
+# Run on mnemex's test queries
+mnemex benchmark
 
 # Auto-generate queries (any codebase)
-claudemem benchmark --auto
+mnemex benchmark --auto
 
 # Specific models
-claudemem benchmark --models=voyage-code-3,openai/text-embedding-3-small
+mnemex benchmark --models=voyage-code-3,openai/text-embedding-3-small
 ```
 
 ### `benchmark-llm` - LLM Summary Benchmark
@@ -393,7 +393,7 @@ claudemem benchmark --models=voyage-code-3,openai/text-embedding-3-small
 Comprehensive evaluation of LLM summary quality.
 
 ```bash
-claudemem benchmark-llm [options]
+mnemex benchmark-llm [options]
 ```
 
 **Options:**
@@ -411,25 +411,25 @@ claudemem benchmark-llm [options]
 **Subcommands:**
 ```bash
 # List previous runs
-claudemem benchmark-llm --list
+mnemex benchmark-llm --list
 
 # Upload a specific run to Firebase
-claudemem benchmark-llm upload <run-id>
+mnemex benchmark-llm upload <run-id>
 ```
 
 **Examples:**
 ```bash
 # Compare multiple generators
-claudemem benchmark-llm --generators=openrouter/openai/gpt-4o,cc/haiku
+mnemex benchmark-llm --generators=openrouter/openai/gpt-4o,cc/haiku
 
 # Resume interrupted run
-claudemem benchmark-llm --resume=abc123-def456
+mnemex benchmark-llm --resume=abc123-def456
 
 # Local only (no Firebase)
-claudemem benchmark-llm --no-upload
+mnemex benchmark-llm --no-upload
 
 # Use Gemini as judge
-claudemem benchmark-llm --judges=google/gemini-2.0-flash-001
+mnemex benchmark-llm --judges=google/gemini-2.0-flash-001
 ```
 
 **Evaluation Methods:**
@@ -448,7 +448,7 @@ claudemem benchmark-llm --judges=google/gemini-2.0-flash-001
 List all benchmark runs in the database.
 
 ```bash
-claudemem benchmark-list [options]
+mnemex benchmark-list [options]
 ```
 
 **Options:**
@@ -463,7 +463,7 @@ claudemem benchmark-list [options]
 Display detailed results for a specific run.
 
 ```bash
-claudemem benchmark-show <run-id> [options]
+mnemex benchmark-show <run-id> [options]
 ```
 
 ---
@@ -472,10 +472,10 @@ claudemem benchmark-show <run-id> [options]
 
 ### MCP Server (Claude Code Integration)
 
-Run claudemem as an MCP (Model Context Protocol) server for Claude Code.
+Run mnemex as an MCP (Model Context Protocol) server for Claude Code.
 
 ```bash
-claudemem --mcp
+mnemex --mcp
 ```
 
 **Available Tools:**
@@ -489,7 +489,7 @@ claudemem --mcp
 Run a JSONL server for editor autocomplete integration.
 
 ```bash
-claudemem --autocomplete-server --project <path>
+mnemex --autocomplete-server --project <path>
 ```
 
 ---
@@ -501,7 +501,7 @@ claudemem --autocomplete-server --project <path>
 Run in daemon mode, watching for file changes.
 
 ```bash
-claudemem watch [options]
+mnemex watch [options]
 ```
 
 **Options:**
@@ -514,7 +514,7 @@ claudemem watch [options]
 Install a post-commit hook for automatic indexing.
 
 ```bash
-claudemem hooks <subcommand>
+mnemex hooks <subcommand>
 ```
 
 **Subcommands:**
@@ -527,13 +527,13 @@ claudemem hooks <subcommand>
 **Examples:**
 ```bash
 # Install hook
-claudemem hooks install
+mnemex hooks install
 
 # Check status
-claudemem hooks status
+mnemex hooks status
 
 # Remove hook
-claudemem hooks uninstall
+mnemex hooks uninstall
 ```
 
 ---
@@ -545,14 +545,14 @@ claudemem hooks uninstall
 | `OPENROUTER_API_KEY` | API key for OpenRouter (embeddings + LLM) |
 | `ANTHROPIC_API_KEY` | API key for Anthropic LLM |
 | `VOYAGE_API_KEY` | API key for Voyage AI embeddings |
-| `CLAUDEMEM_MODEL` | Override default embedding model |
-| `CLAUDEMEM_LLM` | LLM spec for enrichment (see below) |
+| `MNEMEX_MODEL` | Override default embedding model |
+| `MNEMEX_LLM` | LLM spec for enrichment (see below) |
 
 ---
 
 ## LLM Provider Configuration
 
-The `CLAUDEMEM_LLM` environment variable uses a unified spec format:
+The `MNEMEX_LLM` environment variable uses a unified spec format:
 
 | Prefix | Provider | Example |
 |--------|----------|---------|
@@ -565,13 +565,13 @@ The `CLAUDEMEM_LLM` environment variable uses a unified spec format:
 **Examples:**
 ```bash
 # Use Claude Code subscription
-export CLAUDEMEM_LLM="cc/sonnet"
+export MNEMEX_LLM="cc/sonnet"
 
 # Use OpenRouter
-export CLAUDEMEM_LLM="or/openai/gpt-4o"
+export MNEMEX_LLM="or/openai/gpt-4o"
 
 # Use local Ollama
-export CLAUDEMEM_LLM="ollama/llama3.2"
+export MNEMEX_LLM="ollama/llama3.2"
 ```
 
 ---
@@ -581,7 +581,7 @@ export CLAUDEMEM_LLM="ollama/llama3.2"
 Get role-based prompts for AI agents.
 
 ```bash
-claudemem ai <role> [options]
+mnemex ai <role> [options]
 ```
 
 **Roles:**
@@ -602,16 +602,16 @@ claudemem ai <role> [options]
 **Examples:**
 ```bash
 # Show available roles
-claudemem ai
+mnemex ai
 
 # Full skill document
-claudemem ai skill
+mnemex ai skill
 
 # Append to CLAUDE.md
-claudemem ai skill --raw >> CLAUDE.md
+mnemex ai skill --raw >> CLAUDE.md
 
 # Compact developer instructions
-claudemem ai developer --compact
+mnemex ai developer --compact
 ```
 
 ---
@@ -630,10 +630,10 @@ claudemem ai developer --compact
 
 | Path | Purpose |
 |------|---------|
-| `~/.claudemem/config.json` | Global config (provider, model, API keys) |
-| `.claudemem/` | Project index directory (add to `.gitignore`) |
-| `.claudemem/index.db` | SQLite vector database |
-| `.claudemem/benchmark.db` | Benchmark results database |
+| `~/.mnemex/config.json` | Global config (provider, model, API keys) |
+| `.mnemex/` | Project index directory (add to `.gitignore`) |
+| `.mnemex/index.db` | SQLite vector database |
+| `.mnemex/benchmark.db` | Benchmark results database |
 
 ---
 
@@ -656,4 +656,4 @@ Other languages fall back to line-based chunking.
 ## More Information
 
 - GitHub: https://github.com/MadAppGang/mnemex
-- npm: https://www.npmjs.com/package/claude-codemem
+- npm: https://www.npmjs.com/package/mnemex

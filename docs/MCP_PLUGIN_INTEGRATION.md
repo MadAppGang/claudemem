@@ -1,6 +1,6 @@
-# claudemem MCP Server — Plugin Developer Integration Guide
+# mnemex MCP Server — Plugin Developer Integration Guide
 
-Complete implementation reference for plugin developers integrating with the claudemem MCP server. This document covers server configuration, all 18 MCP tools (11 structured + 7 legacy), response formats, freshness tracking, and recommended integration patterns.
+Complete implementation reference for plugin developers integrating with the mnemex MCP server. This document covers server configuration, all 18 MCP tools (11 structured + 7 legacy), response formats, freshness tracking, and recommended integration patterns.
 
 ---
 
@@ -40,16 +40,16 @@ Complete implementation reference for plugin developers integrating with the cla
 
 ## Server Overview
 
-claudemem is a local semantic code search tool that exposes an MCP (Model Context Protocol) server over stdio transport. When started with `claudemem --mcp`, it:
+mnemex is a local semantic code search tool that exposes an MCP (Model Context Protocol) server over stdio transport. When started with `mnemex --mcp`, it:
 
 - Registers 18 MCP tools for code search, symbol navigation, and analysis
 - Watches the workspace for file changes (auto-detects code modifications from any source)
 - Auto-reindexes in the background with a configurable debounce (default: 120s)
 - Returns immediately on every tool call with cached data plus freshness metadata
-- Shares the `.claudemem/` index directory with CLI commands (concurrent-safe via lock file)
+- Shares the `.mnemex/` index directory with CLI commands (concurrent-safe via lock file)
 
-**Package:** `claude-codemem` (npm)
-**Binary:** `claudemem`
+**Package:** `mnemex` (npm)
+**Binary:** `mnemex`
 **Transport:** stdio (stdin/stdout JSON-RPC)
 **Protocol:** MCP 2024-11-05
 **Server version:** 0.20.1
@@ -57,12 +57,12 @@ claudemem is a local semantic code search tool that exposes an MCP (Model Contex
 ### Startup Sequence
 
 ```
-claudemem --mcp
+mnemex --mcp
   │
   [1] Parse environment variables → McpConfig
   [2] Create stderr logger (configurable level)
   [3] Initialize IndexStateManager (read .reindex-timestamp, check lock files)
-  [4] If no index.db → run blocking initial index (claudemem index --quiet)
+  [4] If no index.db → run blocking initial index (mnemex index --quiet)
   [5] Create IndexCache (lazy-load, invalidated on reindex)
   [6] Create CompletionDetector (poll for background reindex completion)
   [7] Create DebounceReindexer (timer-based, spawns detached child)
@@ -82,8 +82,8 @@ Minimal `.mcp.json` — all environment variables have sensible defaults:
 
 ```json
 {
-  "claudemem": {
-    "command": "claudemem",
+  "mnemex": {
+    "command": "mnemex",
     "args": ["--mcp"]
   }
 }
@@ -93,18 +93,18 @@ With custom configuration:
 
 ```json
 {
-  "claudemem": {
-    "command": "claudemem",
+  "mnemex": {
+    "command": "mnemex",
     "args": ["--mcp"],
     "env": {
-      "CLAUDEMEM_DEBOUNCE_MS": "60000",
-      "CLAUDEMEM_LOG_LEVEL": "info"
+      "MNEMEX_DEBOUNCE_MS": "60000",
+      "MNEMEX_LOG_LEVEL": "info"
     }
   }
 }
 ```
 
-The host spawns `claudemem --mcp` and communicates via stdin/stdout using the MCP JSON-RPC protocol. The server stays alive until it receives SIGTERM (sent when the host session ends).
+The host spawns `mnemex --mcp` and communicates via stdin/stdout using the MCP JSON-RPC protocol. The server stays alive until it receives SIGTERM (sent when the host session ends).
 
 ---
 
@@ -114,13 +114,13 @@ All configuration is read once at startup. No hot-reload.
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
-| `CLAUDEMEM_INDEX_DIR` | path (relative to CWD) | `.claudemem` | Index storage directory |
-| `CLAUDEMEM_DEBOUNCE_MS` | integer | `120000` (2 min) | Delay after last file change before auto-reindex triggers |
-| `CLAUDEMEM_WATCH_PATTERNS` | comma-separated globs | `**/*.{ts,tsx,js,jsx,go,py,rs,java,kt,swift,rb,php,c,cpp,h}` | File patterns to watch for changes |
-| `CLAUDEMEM_IGNORE_PATTERNS` | comma-separated globs | `node_modules/**,.git/**,dist/**,build/**,.next/**,coverage/**` | Patterns to exclude from watching |
-| `CLAUDEMEM_MAX_MEMORY_MB` | integer | `500` | Memory budget for in-memory index cache |
-| `CLAUDEMEM_COMPLETION_POLL_MS` | integer | `2000` | Poll interval for detecting reindex completion |
-| `CLAUDEMEM_LOG_LEVEL` | `debug\|info\|warn\|error` | `warn` | Minimum log level (output goes to stderr, never stdout) |
+| `MNEMEX_INDEX_DIR` | path (relative to CWD) | `.mnemex` | Index storage directory |
+| `MNEMEX_DEBOUNCE_MS` | integer | `120000` (2 min) | Delay after last file change before auto-reindex triggers |
+| `MNEMEX_WATCH_PATTERNS` | comma-separated globs | `**/*.{ts,tsx,js,jsx,go,py,rs,java,kt,swift,rb,php,c,cpp,h}` | File patterns to watch for changes |
+| `MNEMEX_IGNORE_PATTERNS` | comma-separated globs | `node_modules/**,.git/**,dist/**,build/**,.next/**,coverage/**` | Patterns to exclude from watching |
+| `MNEMEX_MAX_MEMORY_MB` | integer | `500` | Memory budget for in-memory index cache |
+| `MNEMEX_COMPLETION_POLL_MS` | integer | `2000` | Poll interval for detecting reindex completion |
+| `MNEMEX_LOG_LEVEL` | `debug\|info\|warn\|error` | `warn` | Minimum log level (output goes to stderr, never stdout) |
 
 **Parsing rules:**
 - Invalid numeric values silently fall back to defaults
@@ -153,7 +153,7 @@ The `text` field contains a JSON-stringified payload. Parse it to access structu
   "content": [
     {
       "type": "text",
-      "text": "Error: No index found at /path/.claudemem. Run 'claudemem index' first."
+      "text": "Error: No index found at /path/.mnemex. Run 'mnemex index' first."
     }
   ],
   "isError": true
@@ -590,7 +590,7 @@ Get index health and server status. No inputs required.
 ```json
 {
   "initialized": true,
-  "indexPath": "/home/user/project/.claudemem",
+  "indexPath": "/home/user/project/.mnemex",
   "indexDbLastIndexed": "2026-03-03T12:30:00.000Z",
   "indexSizeBytes": 15728640,
   "indexedFileCount": 156,
@@ -821,7 +821,7 @@ Any in-flight background reindex (spawned as detached process) continues to comp
 
 ### CLI concurrency
 
-The MCP server and `claudemem index` CLI can run simultaneously:
+The MCP server and `mnemex index` CLI can run simultaneously:
 
 1. CLI acquires disk lock → runs index → releases lock
 2. MCP server's `DebounceReindexer.isRunning()` returns true → skips its own reindex
@@ -844,7 +844,7 @@ This prevents duplicate concurrent reindex operations.
 
 ```
 {workspace}/
-└── .claudemem/                    (CLAUDEMEM_INDEX_DIR)
+└── .mnemex/                    (MNEMEX_INDEX_DIR)
     ├── index.db                   (LanceDB vector + BM25 index)
     ├── ast-graph.json             (symbol reference graph with PageRank)
     ├── .indexing.lock             (PID lock during active reindex)

@@ -1,5 +1,5 @@
 ## Executive Summary
-This document outlines a research and development plan for a continuous learning system to enhance the autonomy of AI coding agents within the `claudemem` ecosystem. The proposed system leverages the existing hook infrastructure to capture rich user-agent interaction data, which is then analyzed to identify patterns of agent error, repetitive user tasks, and workflow inefficiencies. By learning from these interactions, the system can automatically generate new skills, refine agent prompts, and suggest workflow optimizations, creating a powerful feedback loop that drives progressive agent autonomy.
+This document outlines a research and development plan for a continuous learning system to enhance the autonomy of AI coding agents within the `mnemex` ecosystem. The proposed system leverages the existing hook infrastructure to capture rich user-agent interaction data, which is then analyzed to identify patterns of agent error, repetitive user tasks, and workflow inefficiencies. By learning from these interactions, the system can automatically generate new skills, refine agent prompts, and suggest workflow optimizations, creating a powerful feedback loop that drives progressive agent autonomy.
 
 Our core proposal is a three-part architecture: a **Data Collector** that ingests interaction events, a **Learning Engine** that analyzes this data for improvement opportunities, and an **Action Engine** that translates these opportunities into concrete artifacts like new skills, subagents, or updated configurations. This approach moves beyond simple feedback mechanisms to create a system that actively co-evolves with the user, learning their patterns and proactively automating their tasks. Key innovations include the detection of "implicit corrections" (e.g., when a user modifies agent-generated code), the automated generation of specialized subagents to enforce project-specific coding standards, and a framework for the self-evolution of prompt templates.
 
@@ -74,7 +74,7 @@ graph TD
 
 ### 1. Data Collector & Storage (SQLite Extension)
 -   **Mechanism:** A lightweight process, triggered by the existing hook system. Its sole responsibility is to capture the data points defined in the previous section and write them to a dedicated SQLite database.
--   **Schema Extension:** We will extend the existing `claudemem` SQLite database with new tables:
+-   **Schema Extension:** We will extend the existing `mnemex` SQLite database with new tables:
     -   `sessions`: `session_id`, `project_id`, `start_time`, `end_time`, `outcome`.
     -   `interactions`: `interaction_id`, `session_id`, `timestamp`, `user_prompt`, `agent_response`, `agent_reasoning`.
     -   `tool_calls`: `tool_call_id`, `interaction_id`, `tool_name`, `tool_input`, `tool_output_stdout`, `tool_output_stderr`, `was_corrected` (boolean).

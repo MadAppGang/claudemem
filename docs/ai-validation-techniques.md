@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document describes the validation techniques used in claudemem's User-Agent Interaction Monitoring & Continuous Learning System. The system automatically learns from user-agent interactions, generates improvements (skills, subagents, prompt optimizations), and validates their effectiveness using a multi-layer statistical approach.
+This document describes the validation techniques used in mnemex's User-Agent Interaction Monitoring & Continuous Learning System. The system automatically learns from user-agent interactions, generates improvements (skills, subagents, prompt optimizations), and validates their effectiveness using a multi-layer statistical approach.
 
 **Key Innovation**: Unlike traditional A/B testing that requires millions of users, our approach is designed for **local, project-scoped learning** with limited session data. We combine implicit feedback signals, Bayesian statistics, and novel metrics like "Code Survival Rate" to validate improvements with smaller sample sizes.
 
@@ -902,4 +902,4 @@ CI = (p1-p2) ± 1.96 × sqrt(p1(1-p1)/n1 + p2(1-p2)/n2)
 
 *Document Version: 1.0*
 *Last Updated: January 2026*
-*Maintainer: claudemem Development Team*
+*Maintainer: mnemex Development Team*

@@ -1,4 +1,4 @@
-# claudemem Website Content
+# mnemex Website Content
 ## Complete Content for Website Creator
 
 ---
@@ -68,9 +68,9 @@ When you ask Claude or Cursor to help with your codebase, they're essentially se
 ## Comparison Section
 
 ### Headline
-**How claudemem Compares**
+**How mnemex Compares**
 
-| Feature | claudemem | Greptile | Sourcegraph | Cursor |
+| Feature | mnemex | Greptile | Sourcegraph | Cursor |
 |---------|-----------|----------|-------------|--------|
 | **Privacy** | 100% Local | Cloud-only | Cloud/Self-host | Cloud |
 | **Cost** | Free/Open Source | $30/dev/month | Enterprise pricing | Included |
@@ -81,7 +81,7 @@ When you ask Claude or Cursor to help with your codebase, they're essentially se
 ### Key Differentiators
 
 **vs. Greptile ($30/dev/month)**
-- claudemem is free and open source
+- mnemex is free and open source
 - Your code stays local (Greptile requires cloud upload)
 - Same AI integration via MCP protocol
 
@@ -101,7 +101,7 @@ When you ask Claude or Cursor to help with your codebase, they're essentially se
 
 ### Step 1: Index Your Codebase
 ```bash
-claudemem index
+mnemex index
 ```
 Tree-sitter parses your code into semantic chunks. Each function, class, and module becomes a searchable unit.
 
@@ -112,7 +112,7 @@ Automatically maps dependencies: what calls what, what imports what. PageRank id
 Each code chunk is converted to a vector embedding capturing its semantic meaning. Stored locally in LanceDB.
 
 ### Step 4: Connect to AI
-Add claudemem as an MCP server to Claude Code. Your AI assistant now has deep codebase understanding.
+Add mnemex as an MCP server to Claude Code. Your AI assistant now has deep codebase understanding.
 
 **→ Learn more:** [How Indexing Works](/how-it-works)
 
@@ -259,7 +259,7 @@ The model generates its own search queries, executes them, and evaluates results
 
 ### Test Your Own Models
 ```bash
-claudemem benchmark --generators "model1,model2" --sample 50
+mnemex benchmark --generators "model1,model2" --sample 50
 ```
 
 Results automatically uploaded to our public leaderboard (opt-out available).
@@ -272,7 +272,7 @@ Results automatically uploaded to our public leaderboard (opt-out available).
 ## Page Header
 
 ### Headline
-**How claudemem Understands Your Code**
+**How mnemex Understands Your Code**
 
 ### Subheadline
 A technical deep-dive into AST parsing, symbol graphs, PageRank ranking, and semantic embeddings.
@@ -376,7 +376,7 @@ Most tools split code at arbitrary character limits:
 ❌ Naive: Split every 1000 characters
    Result: Functions cut in half, context lost
 
-✓ claudemem: Split at semantic boundaries
+✓ mnemex: Split at semantic boundaries
    Result: Complete functions with their context
 ```
 
@@ -652,20 +652,20 @@ We test on actual open-source projects:
 
 ### Quick Start
 ```bash
-# Install claudemem
-npm install -g claudemem
+# Install mnemex
+npm install -g mnemex
 
 # Index your codebase
-claudemem index
+mnemex index
 
 # Run benchmark with default models
-claudemem benchmark
+mnemex benchmark
 
 # Compare specific models
-claudemem benchmark --generators "voyage-code-3,text-embedding-3-large"
+mnemex benchmark --generators "voyage-code-3,text-embedding-3-large"
 
 # Larger sample size for more reliable results
-claudemem benchmark --sample 100
+mnemex benchmark --sample 100
 ```
 
 ### Interpreting Results
@@ -703,10 +703,10 @@ GitHub: [link to repo]
 ### Install
 ```bash
 # Using npm
-npm install -g claudemem
+npm install -g mnemex
 
 # Using bun (recommended)
-bun install -g claudemem
+bun install -g mnemex
 ```
 
 ---
@@ -716,25 +716,25 @@ bun install -g claudemem
 ### 1. Index Your Codebase
 ```bash
 cd your-project
-claudemem index
+mnemex index
 ```
 
 ### 2. Search (Command Line)
 ```bash
 # Semantic search
-claudemem search "authentication handling"
+mnemex search "authentication handling"
 
 # Symbol lookup
-claudemem symbol "validateUser"
+mnemex symbol "validateUser"
 
 # Find callers
-claudemem callers "processPayment"
+mnemex callers "processPayment"
 ```
 
 ### 3. Connect to Claude Code
 ```bash
 # Add as MCP server
-claude mcp add claudemem -- claudemem mcp
+claude mcp add mnemex -- mnemex mcp
 
 # Now Claude Code can search your codebase semantically
 ```
@@ -745,15 +745,15 @@ claude mcp add claudemem -- claudemem mcp
 
 | Command | Description |
 |---------|-------------|
-| `claudemem index` | Index current directory |
-| `claudemem search <query>` | Semantic code search |
-| `claudemem map` | Show codebase structure with PageRank |
-| `claudemem symbol <name>` | Find symbol definition |
-| `claudemem callers <name>` | Find what calls this symbol |
-| `claudemem callees <name>` | Find what this symbol calls |
-| `claudemem context <name>` | Full context: definition + callers + callees |
-| `claudemem watch` | Auto-reindex on file changes |
-| `claudemem benchmark` | Run model quality benchmarks |
+| `mnemex index` | Index current directory |
+| `mnemex search <query>` | Semantic code search |
+| `mnemex map` | Show codebase structure with PageRank |
+| `mnemex symbol <name>` | Find symbol definition |
+| `mnemex callers <name>` | Find what calls this symbol |
+| `mnemex callees <name>` | Find what this symbol calls |
+| `mnemex context <name>` | Full context: definition + callers + callees |
+| `mnemex watch` | Auto-reindex on file changes |
+| `mnemex benchmark` | Run model quality benchmarks |
 
 ---
 ---
@@ -784,20 +784,20 @@ claude mcp add claudemem -- claudemem mcp
 ## SEO Metadata
 
 ### Homepage
-- **Title**: claudemem - Local Semantic Code Search for AI Agents
+- **Title**: mnemex - Local Semantic Code Search for AI Agents
 - **Description**: Give Claude Code and AI assistants deep understanding of your codebase. Privacy-first indexing with PageRank-powered symbol importance. Free and open source.
 - **Keywords**: code search, semantic search, AI code assistant, Claude Code, MCP server, code understanding, PageRank, embeddings
 
 ### Benchmarks Page
-- **Title**: Embedding & LLM Model Benchmarks | claudemem
+- **Title**: Embedding & LLM Model Benchmarks | mnemex
 - **Description**: Rigorous benchmarks testing which AI models actually work for code understanding. Compare retrieval accuracy, contrastive discrimination, and end-to-end performance.
 
 ### How Indexing Works
-- **Title**: How Code Indexing Works | claudemem
+- **Title**: How Code Indexing Works | mnemex
 - **Description**: Technical deep-dive into AST parsing, symbol graphs, PageRank ranking, and semantic embeddings for intelligent code search.
 
 ### Testing Methodology
-- **Title**: How We Test AI Models for Code | claudemem
+- **Title**: How We Test AI Models for Code | mnemex
 - **Description**: Our rigorous benchmark methodology: retrieval accuracy, contrastive discrimination, pointwise judging, pairwise comparison, and self-evaluation tests.
 
 ---

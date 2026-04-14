@@ -120,7 +120,7 @@ The 8B makes sense only if users also want a general-purpose LLM for other tasks
 - Code queries in existing data: ~240 of 3,148 raw lines (~7.6%) — all in `qmd_expansion_handcrafted.jsonl` (65 entries) and `qmd_expansion_handcrafted_only.jsonl` (175 entries) [Explorer 3 Finding 2]
 - Existing handcrafted code expansions are already high quality (SQL injection, JWT, React, async/await with inline code snippets in hyde) [Explorer 3 Finding 3]
 - Key gap: function-level queries (`"useEffect cleanup hook"`), partial code references (`"fix TypeError"`), file/symbol queries (`"SearchBar component"`) [Explorer 3 Finding 5]
-- Option A (fastest): ~500-1,000 new handcrafted examples covering claudemem's actual query patterns. Cost: <$5 total including training. [Explorer 3 Synthesis]
+- Option A (fastest): ~500-1,000 new handcrafted examples covering mnemex's actual query patterns. Cost: <$5 total including training. [Explorer 3 Synthesis]
 
 ---
 
@@ -192,7 +192,7 @@ CodeSearchNet (1.88M function/docstring pairs) is free and serves as an excellen
 1. **Symbol/function queries**: `"handleSubmit function"`, `"useAuth hook"`, `"SearchBar component"` — these have no examples in current data
 2. **Error message queries**: `"fix TypeError cannot read property"`, `"resolve ECONNREFUSED"` — common developer search patterns
 3. **Framework-specific patterns**: Express middleware, React hooks lifecycle, Prisma ORM queries, FastAPI routes, etc.
-4. **Code review queries**: `"find unused imports"`, `"detect circular dependencies"` — directly relevant to claudemem's use case
+4. **Code review queries**: `"find unused imports"`, `"detect circular dependencies"` — directly relevant to mnemex's use case
 
 ### How Many Examples? Source? Cost?
 
@@ -274,12 +274,12 @@ Yes, with caveats. CodeSearchNet provides realistic function signatures and docs
 1. **HyDE effectiveness on code search** (no direct evidence)
    - Why unexplored: HyDE paper (2022) predates widespread code search adoption; no CodeSearchNet HyDE benchmark found
    - Suggested query: `"HyDE hypothetical document embedding code search retrieval benchmark evaluation CodeSearchNet"`
-   - Mitigation: Run A/B test — compare search quality with and without `hyde:` field in claudemem
+   - Mitigation: Run A/B test — compare search quality with and without `hyde:` field in mnemex
    - Priority: CRITICAL (this determines if hyde is worth the inference overhead)
 
 2. **No empirical qmd-fine-tuned model vs code-specific fine-tuned model comparison**
    - Why unexplored: No one has published this comparison; would require running both fine-tunes
-   - Mitigation: The existing 93.8% on code-heavy eval provides confidence; fine-tune and evaluate on claudemem's actual queries
+   - Mitigation: The existing 93.8% on code-heavy eval provides confidence; fine-tune and evaluate on mnemex's actual queries
    - Priority: CRITICAL (but solvable by just running the experiment)
 
 ### IMPORTANT Gaps (should address before scaling)
@@ -339,9 +339,9 @@ Coverage of the four core questions:
 
 1. **Start with Option A**: Adapt qmd pipeline with Qwen3-1.7B as the Medium tier. Generate 500-1,000 code-specific handcrafted examples targeting function-level queries, error message queries, and framework-specific patterns. Total cost: ~$2-3. Time: 1 day.
 
-2. **Validate HyDE effectiveness** by running A/B search quality test in claudemem: queries with and without the `hyde:` field embedded. This resolves the most critical knowledge gap at zero additional cost.
+2. **Validate HyDE effectiveness** by running A/B search quality test in mnemex: queries with and without the `hyde:` field embedded. This resolves the most critical knowledge gap at zero additional cost.
 
-3. **Define the three-tier lineup** for claudemem's model tier feature:
+3. **Define the three-tier lineup** for mnemex's model tier feature:
    - Fast: Qwen3-0.6B (with `hyde:` optional/disabled)
    - Medium: Qwen3-1.7B (proven, recommended default)
    - Quality: Qwen3-4B (one config line change from Medium)

@@ -1,18 +1,18 @@
-# **Comprehensive Evaluation Methodologies for the Claudemem Benchmark System: Semantic Code Search and Summarization**
+# **Comprehensive Evaluation Methodologies for the Mnemex Benchmark System: Semantic Code Search and Summarization**
 
 ## **Executive Summary**
 
-The Claudemem Benchmark System represents a critical evolution in software engineering intelligence, shifting the focus from generative code synthesis (bug fixing) to the arguably more complex domain of code navigation, search, and comprehension. As modern software repositories grow exponentially in size and complexity, the ability for developers to rapidly locate relevant logic and understand its function without inspecting every line is paramount. This report provides an exhaustive, expert-level analysis of the methodologies required to evaluate such a system. We address the specific architectural constraints provided: support for diverse model backends (Anthropic, OpenRouter, Ollama, LM Studio), a necessity for multi-language proficiency, and the critical balance between operational cost, latency, and descriptive fidelity.
+The Mnemex Benchmark System represents a critical evolution in software engineering intelligence, shifting the focus from generative code synthesis (bug fixing) to the arguably more complex domain of code navigation, search, and comprehension. As modern software repositories grow exponentially in size and complexity, the ability for developers to rapidly locate relevant logic and understand its function without inspecting every line is paramount. This report provides an exhaustive, expert-level analysis of the methodologies required to evaluate such a system. We address the specific architectural constraints provided: support for diverse model backends (Anthropic, OpenRouter, Ollama, LM Studio), a necessity for multi-language proficiency, and the critical balance between operational cost, latency, and descriptive fidelity.
 
 Our analysis synthesizes state-of-the-art research in Information Retrieval (IR), Natural Language Processing (NLP), and Static Analysis. We reject the reliance on traditional n-gram metrics (BLEU, ROUGE) for code summarization, arguing instead for a hybrid evaluation framework. This framework must integrate embedding-based semantic measures (CodeBERTScore), structural verification via Abstract Syntax Trees (Tree-sitter), and rigorous "LLM-as-a-Judge" protocols (Ragas, TruLens) to assess the "faithfulness" of code descriptions. Furthermore, we define a rigorous economic model for evaluating the trade-offs between proprietary APIs (Anthropic) and local execution (Ollama), utilizing Pareto efficiency frontiers to guide model routing decisions. The resulting methodology is designed not merely to score the system but to provide actionable diagnostics for continuous improvement in search relevance and contextual understanding.
 
 ## **1\. The Paradigm Shift in Code Intelligence: From Lexical to Semantic Understanding**
 
-To define appropriate evaluation metrics for the Claudemem Benchmark System, one must first deconstruct the fundamental shift occurring in code retrieval. Historically, code search tools like Grep, Lucene, or early IDE navigators relied on lexical matching—finding exact character sequences. If a developer searched for "authentication," the system retrieved files containing that string. This approach suffers from the "vocabulary mismatch problem," where the developer's intent (e.g., "how do users log in?") does not match the terminology used in the codebase (e.g., IdentityManager or SessionFactory).
+To define appropriate evaluation metrics for the Mnemex Benchmark System, one must first deconstruct the fundamental shift occurring in code retrieval. Historically, code search tools like Grep, Lucene, or early IDE navigators relied on lexical matching—finding exact character sequences. If a developer searched for "authentication," the system retrieved files containing that string. This approach suffers from the "vocabulary mismatch problem," where the developer's intent (e.g., "how do users log in?") does not match the terminology used in the codebase (e.g., IdentityManager or SessionFactory).
 
 ### **1.1 The Semantics of Code Navigation**
 
-The Claudemem system aims to solve this via semantic search and summarization. Here, "understanding" implies mapping the intent of a query to the functional logic of the code, regardless of variable naming conventions. Evaluating this capability requires metrics that are sensitive to semantic proximity rather than just keyword overlap. Furthermore, the distinction between "search" and "navigation" is critical for metric selection.
+The Mnemex system aims to solve this via semantic search and summarization. Here, "understanding" implies mapping the intent of a query to the functional logic of the code, regardless of variable naming conventions. Evaluating this capability requires metrics that are sensitive to semantic proximity rather than just keyword overlap. Furthermore, the distinction between "search" and "navigation" is critical for metric selection.
 
 * **Search** typically implies an exploration of unknown territory ("Find me code that handles PDF parsing").  
 * **Navigation** implies moving to a specific, often known, destination ("Take me to the definition of the User class").  
@@ -24,7 +24,7 @@ Unlike bug fixing, where a unit test provides a binary "Pass/Fail" signal, code 
 
 ## **2\. Retrieval Architecture Evaluation: Measuring the Foundation**
 
-The efficacy of any Retrieval-Augmented Generation (RAG) system is bounded by the quality of its retrieval layer. If the Claudemem system fails to surface the relevant code snippets, the downstream summarization models (Anthropic, OpenRouter, etc.) are forced to hallucinate or provide generic, unhelpful descriptions. Therefore, the first pillar of our evaluation methodology focuses on the "Retriever."
+The efficacy of any Retrieval-Augmented Generation (RAG) system is bounded by the quality of its retrieval layer. If the Mnemex system fails to surface the relevant code snippets, the downstream summarization models (Anthropic, OpenRouter, etc.) are forced to hallucinate or provide generic, unhelpful descriptions. Therefore, the first pillar of our evaluation methodology focuses on the "Retriever."
 
 ### **2.1 Rank-Aware Information Retrieval Metrics**
 
@@ -46,7 +46,7 @@ $$\\text{DCG}\_k \= \\sum\_{i=1}^{k} \\frac{2^{rel\_i} \- 1}{\\log\_2(i+1)}$$
 Here, $rel\_i$ represents the relevance score of the result at position $i$. The term $\\log\_2(i+1)$ acts as a discount factor, reducing the value of relevant items found lower in the list. To make this metric comparable across different queries (which may have different numbers of relevant documents), we normalize it by the Ideal DCG (IDCG), which is the DCG of a perfectly ordered list:
 
 $$\\text{NDCG}\_k \= \\frac{\\text{DCG}\_k}{\\text{IDCG}\_k}$$  
-Application to Claudemem:  
+Application to Mnemex:  
 We strongly recommend NDCG@5 and NDCG@10 as primary Key Performance Indicators (KPIs). Given the system's focus on "search," high NDCG ensures that the most semantically relevant code chunks are presented immediately. If the system supports Ollama or local embeddings, plotting NDCG vs. Latency is crucial to determine if the quality drop of smaller, quantized embedding models is acceptable for the user experience.3
 
 #### **2.1.2 Mean Reciprocal Rank (MRR)**
@@ -56,7 +56,7 @@ While NDCG evaluates the entire list, MRR focuses exclusively on the first relev
 $$\\text{MRR} \= \\frac{1}{|Q|} \\sum\_{i=1}^{|Q|} \\frac{1}{\\text{rank}\_i}$$
 
 where $\\text{rank}\_i$ is the position of the first correct answer for query $i$. If the system returns the correct function at position 1, the score is 1.0. At position 2, it drops to 0.5. At position 10, it is 0.1.  
-Insight: For the Claudemem system, MRR should be weighted heavily for "navigational" queries (e.g., "def process\_payment"), while NDCG is better for "exploratory" queries (e.g., "payment processing logic").1
+Insight: For the Mnemex system, MRR should be weighted heavily for "navigational" queries (e.g., "def process\_payment"), while NDCG is better for "exploratory" queries (e.g., "payment processing logic").1
 
 #### **2.1.3 Precision@k and the "Pooling" Strategy**
 
@@ -75,7 +75,7 @@ Methodology:
 
 ### **2.2 Semantic and Contextual Metrics via Ragas**
 
-The "Claudemem" system specifically emphasizes "contextual retrieval." This implies that retrieving the correct *lines* of code is insufficient if the necessary *context* (imports, global variables) is missing. Standard IR metrics cannot capture this nuance. We must employ LLM-based evaluation frameworks, specifically **Ragas** (Retrieval Augmented Generation Assessment).8
+The "Mnemex" system specifically emphasizes "contextual retrieval." This implies that retrieving the correct *lines* of code is insufficient if the necessary *context* (imports, global variables) is missing. Standard IR metrics cannot capture this nuance. We must employ LLM-based evaluation frameworks, specifically **Ragas** (Retrieval Augmented Generation Assessment).8
 
 #### **2.2.1 Context Precision and Context Recall**
 
@@ -92,7 +92,7 @@ Ragas redefines Precision and Recall for the RAG era using an LLM as a judge.
 
 ## **3\. Generative Quality and Summarization Fidelity**
 
-Once the relevant code is retrieved, the Claudemem system uses models like Claude (Anthropic), Llama (Ollama), or others (OpenRouter) to generate a summary. Evaluating this natural language output is challenging because "good" writing is subjective. However, for code documentation, "correctness" is objective. We propose moving away from lexical overlap metrics toward embedding-based and logic-based evaluations.
+Once the relevant code is retrieved, the Mnemex system uses models like Claude (Anthropic), Llama (Ollama), or others (OpenRouter) to generate a summary. Evaluating this natural language output is challenging because "good" writing is subjective. However, for code documentation, "correctness" is objective. We propose moving away from lexical overlap metrics toward embedding-based and logic-based evaluations.
 
 ### **3.1 The Obsolescence of BLEU and ROUGE**
 
@@ -102,7 +102,7 @@ Historically, text summarization was evaluated using BLEU (Bilingual Evaluation 
   1. "Increments x by one."  
   2. "Adds 1 to variable x."  
      These sentences share very few n-grams, yet they are semantically identical. Conversely, "Increments x" vs. "Decrements x" share high overlap but have opposite meanings.  
-* **Conclusion:** Research consistently shows that BLEU and ROUGE correlate poorly with human judgment in code tasks.12 While they can be tracked as legacy baselines, they should never drive decision-making for the Claudemem system.
+* **Conclusion:** Research consistently shows that BLEU and ROUGE correlate poorly with human judgment in code tasks.12 While they can be tracked as legacy baselines, they should never drive decision-making for the Mnemex system.
 
 ### **3.2 CodeBERTScore: The Semantic Gold Standard**
 
@@ -190,11 +190,11 @@ LLM Judges exhibit predictable biases 27:
 * **Verbosity Bias:** Judges tend to prefer longer answers, even if they are fluff.  
   * *Mitigation:* Explicitly penalize verbosity in the system prompt ("Prefer concise, dense technical descriptions over wordy explanations").  
 * **Self-Preference Bias:** GPT-4 prefers GPT-4 outputs; Claude prefers Claude outputs.  
-  * *Mitigation:* Use a "Jury" approach or ensure the Judge model is different from the Generator models. For the Claudemem system, if evaluating Anthropic models, use a high-end OpenAI or Open Source (Llama 3 70B) model as the judge to ensure neutrality.
+  * *Mitigation:* Use a "Jury" approach or ensure the Judge model is different from the Generator models. For the Mnemex system, if evaluating Anthropic models, use a high-end OpenAI or Open Source (Llama 3 70B) model as the judge to ensure neutrality.
 
 ## **6\. Economic and Operational Efficiency: The Cost of Quality**
 
-The Claudemem system supports a diverse range of backends: Anthropic (Proprietary API), OpenRouter (Aggregator), and Ollama/LM Studio (Local/Self-Hosted). Evaluating "Quality" is insufficient; we must evaluate **Value**.
+The Mnemex system supports a diverse range of backends: Anthropic (Proprietary API), OpenRouter (Aggregator), and Ollama/LM Studio (Local/Self-Hosted). Evaluating "Quality" is insufficient; we must evaluate **Value**.
 
 ### **6.1 The Pareto Efficiency Frontier**
 
@@ -237,7 +237,7 @@ Global metrics hide pockets of failure. The evaluation framework must stratify r
 ### **7.2 Generating Synthetic "Golden Sets"**
 
 Relying on public benchmarks (like CodeSearchNet or HumanEval) is risky due to Data Contamination—the models have likely seen this data during training.34  
-To evaluate "Search" and "Contextual Retrieval" effectively, the Claudemem system requires a Synthetic Data Pipeline:
+To evaluate "Search" and "Contextual Retrieval" effectively, the Mnemex system requires a Synthetic Data Pipeline:
 
 1. **Ingestion:** Take a private or obscure repository relevant to the user's domain.  
 2. **Chunking:** Use Tree-sitter to segment code into logical units (functions/classes).  
@@ -248,13 +248,13 @@ To evaluate "Search" and "Contextual Retrieval" effectively, the Claudemem syste
 
 ## **8\. Integrated Evaluation Framework: Implementation Roadmap**
 
-To operationalize these methodologies for the Claudemem Benchmark System, we propose the following integrated framework.
+To operationalize these methodologies for the Mnemex Benchmark System, we propose the following integrated framework.
 
-### **8.1 The "Claudemem Score"**
+### **8.1 The "Mnemex Score"**
 
-We propose a composite metric, the Claudemem Score, to rank models and configurations.
+We propose a composite metric, the Mnemex Score, to rank models and configurations.
 
-$$\\text{Claudemem Score} \= w\_1(\\text{NDCG@5}) \+ w\_2(\\text{Faithfulness}) \+ w\_3(\\text{CodeBERTScore}) \- w\_4(\\log(\\text{Latency}))$$
+$$\\text{Mnemex Score} \= w\_1(\\text{NDCG@5}) \+ w\_2(\\text{Faithfulness}) \+ w\_3(\\text{CodeBERTScore}) \- w\_4(\\log(\\text{Latency}))$$
 
 * $w\_1$ (Retrieval Weight): High. If you can't find it, you can't use it.  
 * $w\_2$ (Faithfulness Weight): Critical. Penalize hallucinations severely.  
@@ -274,7 +274,7 @@ $$\\text{Claudemem Score} \= w\_1(\\text{NDCG@5}) \+ w\_2(\\text{Faithfulness}) 
 
 ### **8.3 Final Recommendation**
 
-The Claudemem system should not rely on a single metric. By layering **Retrieval Metrics** (NDCG, MRR) with **Generative Semantics** (CodeBERTScore) and **Structural Verification** (Claimify, Tree-sitter), the system can provide a nuanced, robust assessment of code understanding. Furthermore, by rigorously analyzing the **Cost/Quality Pareto Frontier**, users can make data-driven decisions about when to route queries to expensive proprietary models versus efficient local alternatives, optimizing the system for both performance and budget.
+The Mnemex system should not rely on a single metric. By layering **Retrieval Metrics** (NDCG, MRR) with **Generative Semantics** (CodeBERTScore) and **Structural Verification** (Claimify, Tree-sitter), the system can provide a nuanced, robust assessment of code understanding. Furthermore, by rigorously analyzing the **Cost/Quality Pareto Frontier**, users can make data-driven decisions about when to route queries to expensive proprietary models versus efficient local alternatives, optimizing the system for both performance and budget.
 
 ## **9\. Appendix: Technical Reference and Mathematical Definitions**
 

@@ -974,7 +974,7 @@ export interface AgentConfig {
 }
 
 /**
- * Local agent driver - direct function calls to claudemem.
+ * Local agent driver - direct function calls to mnemex.
  * Used for development and fast iteration.
  */
 export class LocalAgentDriver implements AgentDriver {
@@ -1394,7 +1394,7 @@ export class GitEnvironmentManager implements EnvironmentManager {
 
     // Clear any caches
     await exec(`rm -rf ${this.workDir}/node_modules/.cache`);
-    await exec(`rm -rf ${this.workDir}/.claudemem`);
+    await exec(`rm -rf ${this.workDir}/.mnemex`);
   }
 
   async cleanup(): Promise<void> {
@@ -1997,7 +1997,7 @@ export async function runValidationExperiment(
   options: ValidationOptions = {}
 ): Promise<ExperimentResults> {
   const engine = new ExperimentEngine({
-    dbPath: options.dbPath ?? ".claudemem/validation.db",
+    dbPath: options.dbPath ?? ".mnemex/validation.db",
     abConfig: options.abConfig ?? DEFAULT_AB_CONFIG,
   });
 
@@ -2159,13 +2159,13 @@ jobs:
           fi
 
       - name: Run validation
-        run: claudemem validate --tier=${{ steps.tier.outputs.tier }}
+        run: mnemex validate --tier=${{ steps.tier.outputs.tier }}
 
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
           name: validation-results
-          path: .claudemem/validation/
+          path: .mnemex/validation/
 ```
 
 ---
@@ -2174,16 +2174,16 @@ jobs:
 
 ```bash
 # Run validation experiment for pending improvements
-claudemem validate --improvements=all-pending
+mnemex validate --improvements=all-pending
 
 # Run specific scenarios
-claudemem validate --scenarios=file-create,code-search --runs=20
+mnemex validate --scenarios=file-create,code-search --runs=20
 
 # View validation results
-claudemem validate --results
+mnemex validate --results
 
 # Run nightly validation (cron-compatible)
-claudemem validate --nightly --report=json > /var/log/claudemem-validation.json
+mnemex validate --nightly --report=json > /var/log/mnemex-validation.json
 ```
 
 ### 3. Integration with A/B Testing
@@ -2282,7 +2282,7 @@ const decision = abManager.evaluateExperiment(experimentId);
 - [ ] Implement decision engine
 
 ### Phase 4: CLI & Integration (1-2 days)
-- [ ] Add `claudemem validate` CLI command
+- [ ] Add `mnemex validate` CLI command
 - [ ] Create JSON/CLI reporters
 - [ ] Add nightly cron job support
 - [ ] Documentation

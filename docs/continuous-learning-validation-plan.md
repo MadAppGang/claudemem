@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines the architecture and implementation plan for validating, testing, and benchmarking the automatic continuous learning system in claudemem. The system will ensure that auto-generated improvements (skills, subagents, prompts) are safe, effective, and progressively increase agent autonomy.
+This document outlines the architecture and implementation plan for validating, testing, and benchmarking the automatic continuous learning system in mnemex. The system will ensure that auto-generated improvements (skills, subagents, prompts) are safe, effective, and progressively increase agent autonomy.
 
 **Key Components:**
 1. **Validation Layer** - Safety checks before any improvement can be deployed

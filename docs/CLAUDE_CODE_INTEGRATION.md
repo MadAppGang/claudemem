@@ -1,6 +1,6 @@
-# claudemem + Claude Code Integration Guide
+# mnemex + Claude Code Integration Guide
 
-Complete guide for using claudemem with Claude Code and the Code Analysis Plugin for intelligent codebase investigation.
+Complete guide for using mnemex with Claude Code and the Code Analysis Plugin for intelligent codebase investigation.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ Complete guide for using claudemem with Claude Code and the Code Analysis Plugin
 
 ## Overview
 
-**claudemem** is a local semantic code search tool that provides AST-based structural analysis with PageRank ranking. When combined with Claude Code's **Code Analysis Plugin**, it enables Claude to intelligently navigate and understand codebases using:
+**mnemex** is a local semantic code search tool that provides AST-based structural analysis with PageRank ranking. When combined with Claude Code's **Code Analysis Plugin**, it enables Claude to intelligently navigate and understand codebases using:
 
 - **Semantic search** - Natural language queries that understand code meaning
 - **Symbol graph** - PageRank-based importance ranking
@@ -29,7 +29,7 @@ Complete guide for using claudemem with Claude Code and the Code Analysis Plugin
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    CLAUDEMEM + CLAUDE CODE                       │
+│                    MNEMEX + CLAUDE CODE                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌───────────────────────────────────────────────────────────┐  │
@@ -38,7 +38,7 @@ Complete guide for using claudemem with Claude Code and the Code Analysis Plugin
 │  └───────────────────────────────────────────────────────────┘  │
 │                              ↓                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                   CLAUDEMEM CLI                            │  │
+│  │                   MNEMEX CLI                            │  │
 │  │  map | symbol | callers | callees | context | search       │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                              ↓                                   │
@@ -58,33 +58,33 @@ Complete guide for using claudemem with Claude Code and the Code Analysis Plugin
 
 | Component | Purpose |
 |-----------|---------|
-| **claudemem CLI** | Local semantic code search with AST analysis |
+| **mnemex CLI** | Local semantic code search with AST analysis |
 | **Code Analysis Plugin** | Claude Code plugin that provides detective skills |
 | **Detective Skills** | Role-based investigation patterns (architect, developer, tester, debugger) |
-| **PreToolUse Hooks** | Intercept grep/find/glob and suggest claudemem instead |
+| **PreToolUse Hooks** | Intercept grep/find/glob and suggest mnemex instead |
 
 ### Why This Matters
 
-Traditional code search (grep, find, glob) returns **string matches**. claudemem returns **semantic relationships**:
+Traditional code search (grep, find, glob) returns **string matches**. mnemex returns **semantic relationships**:
 
 | Approach | What You Get | Token Cost |
 |----------|--------------|------------|
 | `grep -r "auth"` | Every line containing "auth" | High (irrelevant matches) |
-| `claudemem search "authentication"` | Functions handling authentication | Low (ranked results) |
-| `claudemem callers authenticate` | Every function that uses auth | Precise (impact analysis) |
+| `mnemex search "authentication"` | Functions handling authentication | Low (ranked results) |
+| `mnemex callers authenticate` | Every function that uses auth | Precise (impact analysis) |
 
 ---
 
 ## Quick Start
 
-### Step 1: Install claudemem
+### Step 1: Install mnemex
 
 ```bash
 # npm (recommended)
-npm install -g claude-codemem
+npm install -g mnemex
 
 # or homebrew (macOS)
-brew tap MadAppGang/claude-mem && brew install --cask claudemem
+brew tap MadAppGang/homebrew-tap && brew install mnemex
 
 # or curl
 curl -fsSL https://raw.githubusercontent.com/MadAppGang/mnemex/main/install.sh | bash
@@ -94,14 +94,14 @@ curl -fsSL https://raw.githubusercontent.com/MadAppGang/mnemex/main/install.sh |
 
 ```bash
 # First time setup (configure embedding provider)
-claudemem init
+mnemex init
 
 # Index your project
 cd /path/to/your/project
-claudemem index
+mnemex index
 
 # Verify
-claudemem status
+mnemex status
 ```
 
 ### Step 3: Add the MAG Claude Plugins Marketplace
@@ -133,7 +133,7 @@ Now in Claude Code, just ask questions naturally:
 "What would break if I change the authenticate function?"
 ```
 
-Claude will automatically use claudemem through the detective skills.
+Claude will automatically use mnemex through the detective skills.
 
 ---
 
@@ -189,7 +189,7 @@ To update to the latest version:
 ### Verify Installation
 
 In Claude Code, the plugin adds these skills (visible in `/skills`):
-- `claudemem-search`
+- `mnemex-search`
 - `developer-detective`
 - `architect-detective`
 - `tester-detective`
@@ -219,34 +219,34 @@ The plugin includes PreToolUse hooks that intercept inefficient search patterns:
 ```
 User: "Find all files with database queries"
 Claude: [About to use Grep tool]
-Hook: ⚠️ Consider using claudemem instead:
-      claudemem --nologo map "database query" --raw
+Hook: ⚠️ Consider using mnemex instead:
+      mnemex --nologo map "database query" --raw
 ```
 
-This guides Claude toward the more efficient claudemem commands.
+This guides Claude toward the more efficient mnemex commands.
 
-### 3. claudemem Commands
+### 3. mnemex Commands
 
-The skills use these claudemem commands in a specific order:
+The skills use these mnemex commands in a specific order:
 
 ```bash
 # 1. Get structural overview (ALWAYS FIRST)
-claudemem --nologo map "feature area" --raw
+mnemex --nologo map "feature area" --raw
 
 # 2. Find specific symbol
-claudemem --nologo symbol SymbolName --raw
+mnemex --nologo symbol SymbolName --raw
 
 # 3. Check what uses it (impact analysis)
-claudemem --nologo callers SymbolName --raw
+mnemex --nologo callers SymbolName --raw
 
 # 4. Check what it depends on
-claudemem --nologo callees SymbolName --raw
+mnemex --nologo callees SymbolName --raw
 
 # 5. Get full context (symbol + callers + callees)
-claudemem --nologo context SymbolName --raw
+mnemex --nologo context SymbolName --raw
 
 # 6. Semantic search for code snippets
-claudemem --nologo search "natural language query" --raw
+mnemex --nologo search "natural language query" --raw
 ```
 
 ---
@@ -266,13 +266,13 @@ claudemem --nologo search "natural language query" --raw
 **Example workflow:**
 ```bash
 # Find the symbol
-claudemem --nologo symbol processPayment --raw
+mnemex --nologo symbol processPayment --raw
 
 # Trace what it calls (dependencies)
-claudemem --nologo callees processPayment --raw
+mnemex --nologo callees processPayment --raw
 
 # Trace what calls it (impact)
-claudemem --nologo callers processPayment --raw
+mnemex --nologo callers processPayment --raw
 ```
 
 ### architect-detective
@@ -288,13 +288,13 @@ claudemem --nologo callers processPayment --raw
 **Example workflow:**
 ```bash
 # Get full repo structure with PageRank
-claudemem --nologo map --raw
+mnemex --nologo map --raw
 
 # Focus on high PageRank symbols (> 0.05 = core abstractions)
-claudemem --nologo map "service controller" --raw
+mnemex --nologo map "service controller" --raw
 
 # Find dead code (cleanup opportunities)
-claudemem --nologo dead-code --raw
+mnemex --nologo dead-code --raw
 ```
 
 ### tester-detective
@@ -309,10 +309,10 @@ claudemem --nologo dead-code --raw
 **Example workflow:**
 ```bash
 # Find test gaps (high PageRank + no test callers)
-claudemem --nologo test-gaps --raw
+mnemex --nologo test-gaps --raw
 
 # Check test coverage for specific function
-claudemem --nologo callers criticalFunction --raw
+mnemex --nologo callers criticalFunction --raw
 # Look for callers from *.test.ts, *.spec.ts files
 ```
 
@@ -328,13 +328,13 @@ claudemem --nologo callers criticalFunction --raw
 **Example workflow:**
 ```bash
 # Locate the buggy function
-claudemem --nologo symbol brokenFunction --raw
+mnemex --nologo symbol brokenFunction --raw
 
 # Get full context (callers + callees)
-claudemem --nologo context brokenFunction --raw
+mnemex --nologo context brokenFunction --raw
 
 # Check impact of potential fix
-claudemem --nologo impact brokenFunction --raw
+mnemex --nologo impact brokenFunction --raw
 ```
 
 ### ultrathink-detective
@@ -370,17 +370,17 @@ claudemem --nologo impact brokenFunction --raw
 **What Claude does:**
 ```bash
 # 1. Get structural overview
-claudemem --nologo map --raw
+mnemex --nologo map --raw
 # → Identifies high-PageRank symbols (core abstractions)
 
 # 2. For each core abstraction, trace dependencies
-claudemem --nologo context CoreService --raw
+mnemex --nologo context CoreService --raw
 # → Shows what it depends on and what depends on it
 
 # 3. Map the layers
-claudemem --nologo map "controller handler endpoint" --raw  # Presentation
-claudemem --nologo map "service business domain" --raw      # Business
-claudemem --nologo map "repository database" --raw          # Data
+mnemex --nologo map "controller handler endpoint" --raw  # Presentation
+mnemex --nologo map "service business domain" --raw      # Business
+mnemex --nologo map "repository database" --raw          # Data
 ```
 
 **Output:** Architecture diagram with core abstractions, layer structure, and data flows.
@@ -392,18 +392,18 @@ claudemem --nologo map "repository database" --raw          # Data
 **What Claude does:**
 ```bash
 # 1. Find the symbol
-claudemem --nologo symbol DatabaseConnection --raw
+mnemex --nologo symbol DatabaseConnection --raw
 # → src/db/connection.ts:15-89
 
 # 2. Get ALL callers (impact radius)
-claudemem --nologo callers DatabaseConnection --raw
+mnemex --nologo callers DatabaseConnection --raw
 # → Shows every file:line that references it
 
 # 3. For each caller, update systematically
 # ... edits each location ...
 
 # 4. Verify no remaining references
-claudemem --nologo callers DatabasePool --raw
+mnemex --nologo callers DatabasePool --raw
 ```
 
 ### Example 3: Bug Investigation
@@ -413,20 +413,20 @@ claudemem --nologo callers DatabasePool --raw
 **What Claude does:**
 ```bash
 # 1. Map checkout-related code
-claudemem --nologo map "checkout payment error" --raw
+mnemex --nologo map "checkout payment error" --raw
 
 # 2. Find the checkout handler
-claudemem --nologo symbol CheckoutController --raw
+mnemex --nologo symbol CheckoutController --raw
 
 # 3. Trace the flow
-claudemem --nologo callees CheckoutController --raw
+mnemex --nologo callees CheckoutController --raw
 # → validateCart → processPayment → saveOrder
 
 # 4. Get full context for the likely culprit
-claudemem --nologo context processPayment --raw
+mnemex --nologo context processPayment --raw
 
 # 5. Check error handling
-claudemem --nologo map "throw error exception checkout" --raw
+mnemex --nologo map "throw error exception checkout" --raw
 ```
 
 ### Example 4: Adding a New Feature
@@ -436,16 +436,16 @@ claudemem --nologo map "throw error exception checkout" --raw
 **What Claude does:**
 ```bash
 # 1. Map existing API structure
-claudemem --nologo map "API middleware endpoint" --raw
+mnemex --nologo map "API middleware endpoint" --raw
 
 # 2. Find where requests are handled
-claudemem --nologo symbol APIMiddleware --raw
+mnemex --nologo symbol APIMiddleware --raw
 
 # 3. Check what patterns already exist
-claudemem --nologo callees APIMiddleware --raw
+mnemex --nologo callees APIMiddleware --raw
 
 # 4. Find similar existing middleware for patterns
-claudemem --nologo search "middleware validation guard" --raw
+mnemex --nologo search "middleware validation guard" --raw
 
 # 5. Implement following existing patterns
 ```
@@ -489,12 +489,12 @@ claudemem --nologo search "middleware validation guard" --raw
 
 ✅ **Always start with `map`** - Understand structure before diving in
 ```bash
-claudemem --nologo map "feature area" --raw
+mnemex --nologo map "feature area" --raw
 ```
 
 ✅ **Check `callers` before modifying** - Know your impact radius
 ```bash
-claudemem --nologo callers functionToChange --raw
+mnemex --nologo callers functionToChange --raw
 ```
 
 ✅ **Focus on high PageRank first** - These are core abstractions
@@ -515,7 +515,7 @@ Read({ file_path: "src/auth.ts" })
 
 ✅ **Use `--nologo --raw` for all commands** - Clean, parseable output
 ```bash
-claudemem --nologo search "query" --raw
+mnemex --nologo search "query" --raw
 ```
 
 ### DON'T:
@@ -526,7 +526,7 @@ claudemem --nologo search "query" --raw
 grep -r "authenticate" .
 
 # Good: Returns semantic relationships
-claudemem --nologo callers authenticate --raw
+mnemex --nologo callers authenticate --raw
 ```
 
 ❌ **Don't modify without checking callers**
@@ -535,36 +535,36 @@ claudemem --nologo callers authenticate --raw
 Edit({ file: "auth.ts", ... })
 
 # Good: Check impact first
-claudemem --nologo callers functionToChange --raw
+mnemex --nologo callers functionToChange --raw
 # Then edit with full awareness
 ```
 
 ❌ **Don't search before mapping**
 ```bash
 # Bad: Search results lack context
-claudemem --nologo search "fix the bug" --raw
+mnemex --nologo search "fix the bug" --raw
 
 # Good: Map first, then search
-claudemem --nologo map "feature area" --raw
-claudemem --nologo search "specific query" --raw
+mnemex --nologo map "feature area" --raw
+mnemex --nologo search "specific query" --raw
 ```
 
 ---
 
 ## Troubleshooting
 
-### "claudemem: command not found"
+### "mnemex: command not found"
 
 ```bash
 # Install globally via npm
-npm install -g claude-codemem
+npm install -g mnemex
 
 # Or add to PATH if installed via homebrew
 export PATH="/opt/homebrew/bin:$PATH"
 
 # Verify
-which claudemem
-claudemem --version  # Should be 0.3.0+
+which mnemex
+mnemex --version  # Should be 0.3.0+
 ```
 
 ### "No index found"
@@ -572,22 +572,22 @@ claudemem --version  # Should be 0.3.0+
 ```bash
 # Index your project
 cd /path/to/project
-claudemem index
+mnemex index
 
 # Check status
-claudemem status
+mnemex status
 ```
 
 ### "OPENROUTER_API_KEY not set"
 
-claudemem needs an API key for embeddings:
+mnemex needs an API key for embeddings:
 
 ```bash
 # Set your OpenRouter API key
 export OPENROUTER_API_KEY="your-key-here"
 
 # Or configure during init
-claudemem init
+mnemex init
 ```
 
 Get a free key at https://openrouter.ai
@@ -616,13 +616,13 @@ Get a free key at https://openrouter.ai
 
 ```bash
 # Check if index is up to date
-claudemem status
+mnemex status
 
 # Re-index if needed
-claudemem index --force
+mnemex index --force
 
 # Check version for newer commands
-claudemem --version
+mnemex --version
 # dead-code, test-gaps, impact require v0.4.0+
 ```
 
@@ -632,8 +632,8 @@ claudemem --version
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
-| claudemem | 0.3.0+ | Core commands (map, symbol, callers, callees, context) |
-| claudemem | 0.4.0+ | Analysis commands (dead-code, test-gaps, impact) |
+| mnemex | 0.3.0+ | Core commands (map, symbol, callers, callees, context) |
+| mnemex | 0.4.0+ | Analysis commands (dead-code, test-gaps, impact) |
 | Claude Code | Latest | Plugin support required |
 | Node.js | 18+ | For npm installation |
 | API Key | OpenRouter | For embeddings (free tier available) |
@@ -658,8 +658,8 @@ Other languages fall back to line-based chunking.
 
 ## More Information
 
-- **claudemem GitHub:** https://github.com/MadAppGang/mnemex
-- **claudemem npm:** https://www.npmjs.com/package/claude-codemem
+- **mnemex GitHub:** https://github.com/MadAppGang/mnemex
+- **mnemex npm:** https://www.npmjs.com/package/mnemex
 - **Claude Code Plugins:** https://docs.anthropic.com/en/docs/claude-code/plugins
 - **Plugin Marketplace:** mag-claude-plugins
 

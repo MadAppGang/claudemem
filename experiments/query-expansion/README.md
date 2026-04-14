@@ -1,6 +1,6 @@
 # Query Expansion Model Experiments
 
-Benchmark and fine-tuning pipeline for small LLMs that expand search queries into `lex:` (keywords), `vec:` (semantic rephrasing), and `hyde:` (hypothetical code snippet) variants for claudemem's hybrid search.
+Benchmark and fine-tuning pipeline for small LLMs that expand search queries into `lex:` (keywords), `vec:` (semantic rephrasing), and `hyde:` (hypothetical code snippet) variants for mnemex's hybrid search.
 
 ## Current Leaderboard
 
@@ -47,7 +47,7 @@ experiments/query-expansion/
 │   └── seeds/                    ← Seed queries for data generation
 └── research/                     ← Consolidated research notes
     ├── model-tiers.md            ← Model tier comparison matrix
-    ├── qmd-comparison.md         ← claudemem vs qmd architectural comparison
+    ├── qmd-comparison.md         ← mnemex vs qmd architectural comparison
     └── sft-candidates.md         ← Open-weight LLMs for LoRA SFT
 ```
 

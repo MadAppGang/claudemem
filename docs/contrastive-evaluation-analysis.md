@@ -3,9 +3,9 @@
 **Date**: 2025-12-18
 **Status**: Critical Issue - Evaluation Cannot Differentiate Models
 **Files Analyzed**:
-- `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts`
-- `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/aggregator.ts`
-- `/Users/jack/mag/claudemem/src/benchmark-v2/types.ts`
+- `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts`
+- `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/aggregator.ts`
+- `/Users/jack/mag/mnemex/src/benchmark-v2/types.ts`
 
 ---
 
@@ -206,7 +206,7 @@ For a properly calibrated contrastive test:
 ### Priority 1: Fix Distractor Selection (CRITICAL)
 
 #### Recommendation 1.1: Increase Distractor Count
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/index.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/index.ts`
 **Line**: 96
 
 ```typescript
@@ -229,7 +229,7 @@ export const DEFAULT_CONTRASTIVE_CONFIG: ContrastiveEvaluationConfig = {
 **Impact**: Reduces random baseline from 20% to 10%.
 
 #### Recommendation 1.2: Invert Semantic Similarity Filter
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts`
 **Lines**: 103-120
 
 ```typescript
@@ -277,7 +277,7 @@ function selectSemanticDistractors(
 **Impact**: Dramatically increases task difficulty by using confusable code.
 
 #### Recommendation 1.3: Improve Signature Similarity
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts`
 **Lines**: 146-170
 
 ```typescript
@@ -376,7 +376,7 @@ function functionNameSimilarity(name1: string, name2: string): number {
 ### Priority 2: Add Graduated Difficulty
 
 #### Recommendation 2.1: Multi-Level Difficulty System
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/types.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/types.ts`
 **Line**: 281
 
 ```typescript
@@ -393,7 +393,7 @@ export type DistractorDifficulty =
     | "adversarial"; // 1-in-20 with partial matches (see Rec 3.1)
 ```
 
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts`
 **Add new function after line 138**:
 
 ```typescript
@@ -458,7 +458,7 @@ function calculateDifficultyV2(
 ### Priority 3: Add Harder Contrastive Variants
 
 #### Recommendation 3.1: Partial Match Distractors
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts`
 **Add after line 139**:
 
 ```typescript
@@ -514,7 +514,7 @@ function countConceptOverlap(set1: Set<string>, set2: Set<string>): number {
 **Impact**: Creates adversarial cases where distractors match parts of the summary.
 
 #### Recommendation 3.2: Add Negative Sampling Strategy
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/evaluators/contrastive/index.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/evaluators/contrastive/index.ts`
 **Modify selectDistractors function (lines 57-139)**:
 
 ```typescript
@@ -620,7 +620,7 @@ function selectSemanticDistractors(
 ### Priority 4: Improve Evaluation Metrics
 
 #### Recommendation 4.1: Add Rank-Based Metrics
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/types.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/types.ts`
 **Lines**: 144-152
 
 ```typescript
@@ -654,7 +654,7 @@ export interface ContrastiveResults {
 }
 ```
 
-**Update aggregation** in `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/aggregator.ts`:
+**Update aggregation** in `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/aggregator.ts`:
 
 ```typescript
 // Lines 243-282: Update aggregateContrastive
@@ -712,7 +712,7 @@ private aggregateContrastive(results: EvaluationResult[]): ContrastiveAggregatio
 ### Priority 5: Add Stratified Evaluation
 
 #### Recommendation 5.1: Report by Difficulty
-**File**: `/Users/jack/mag/claudemem/src/benchmark-v2/scorers/aggregator.ts`
+**File**: `/Users/jack/mag/mnemex/src/benchmark-v2/scorers/aggregator.ts`
 **Add new interface**:
 
 ```typescript

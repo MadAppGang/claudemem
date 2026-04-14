@@ -10,7 +10,7 @@ This document describes the testing approach and results for the E2E Validation 
 
 ## System Overview
 
-The claudemem self-improvement system is a closed-loop continuous learning infrastructure that observes user-agent interactions, detects patterns requiring improvement, generates enhancements, validates them safely, and deploys with automatic rollback capabilities.
+The mnemex self-improvement system is a closed-loop continuous learning infrastructure that observes user-agent interactions, detects patterns requiring improvement, generates enhancements, validates them safely, and deploys with automatic rollback capabilities.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐

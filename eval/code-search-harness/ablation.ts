@@ -51,7 +51,7 @@ export interface SearchOptions {
 
 /**
  * Abstraction over the mnemex search backend.
- * Implement this to wire in real claudemem search; use MockSearchExecutor in tests.
+ * Implement this to wire in real mnemex search; use MockSearchExecutor in tests.
  */
 export interface SearchExecutor {
 	search(query: string, options: SearchOptions): Promise<SearchResult[]>;
@@ -87,10 +87,10 @@ export type RerankerFunction = (
 ) => Promise<SearchResult[]>;
 
 // ============================================================================
-// Mock implementations (replaced when wired to real claudemem)
+// Mock implementations (replaced when wired to real mnemex)
 // ============================================================================
 
-/** Mock executor — returns empty results. Replace with real claudemem search. */
+/** Mock executor — returns empty results. Replace with real mnemex search. */
 export class MockSearchExecutor implements SearchExecutor {
 	async search(
 		_query: string,
