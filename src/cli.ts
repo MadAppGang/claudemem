@@ -6634,17 +6634,18 @@ function printHelp(): void {
 		gray: "\x1b[90m",
 	};
 
-	// ASCII art logo (claudish style)
+	// ASCII art logo — MNEMEX rendered as one word, with the letters that
+	// spell MEM (positions 1, 3, 4) highlighted green on an orange base.
 	console.log(`
-${c.orange}   ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗${c.reset}${c.green}███╗   ███╗███████╗███╗   ███╗${c.reset}
-${c.orange}  ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝${c.reset}${c.green}████╗ ████║██╔════╝████╗ ████║${c.reset}
-${c.orange}  ██║     ██║     ███████║██║   ██║██║  ██║█████╗  ${c.reset}${c.green}██╔████╔██║█████╗  ██╔████╔██║${c.reset}
-${c.orange}  ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  ${c.reset}${c.green}██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║${c.reset}
-${c.orange}  ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗${c.reset}${c.green}██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║${c.reset}
-${c.orange}   ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝${c.reset}${c.green}╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝${c.reset}
+  ${c.green}███╗   ███╗${c.reset}${c.orange}███╗   ██╗${c.reset}${c.green}███████╗${c.reset}${c.green}███╗   ███╗${c.reset}${c.orange}███████╗${c.reset}${c.orange}██╗  ██╗${c.reset}
+  ${c.green}████╗ ████║${c.reset}${c.orange}████╗  ██║${c.reset}${c.green}██╔════╝${c.reset}${c.green}████╗ ████║${c.reset}${c.orange}██╔════╝${c.reset}${c.orange}╚██╗██╔╝${c.reset}
+  ${c.green}██╔████╔██║${c.reset}${c.orange}██╔██╗ ██║${c.reset}${c.green}█████╗  ${c.reset}${c.green}██╔████╔██║${c.reset}${c.orange}█████╗  ${c.reset}${c.orange} ╚███╔╝ ${c.reset}
+  ${c.green}██║╚██╔╝██║${c.reset}${c.orange}██║╚██╗██║${c.reset}${c.green}██╔══╝  ${c.reset}${c.green}██║╚██╔╝██║${c.reset}${c.orange}██╔══╝  ${c.reset}${c.orange} ██╔██╗ ${c.reset}
+  ${c.green}██║ ╚═╝ ██║${c.reset}${c.orange}██║ ╚████║${c.reset}${c.green}███████╗${c.reset}${c.green}██║ ╚═╝ ██║${c.reset}${c.orange}███████╗${c.reset}${c.orange}██╔╝ ██╗${c.reset}
+  ${c.green}╚═╝     ╚═╝${c.reset}${c.orange}╚═╝  ╚═══╝${c.reset}${c.green}╚══════╝${c.reset}${c.green}╚═╝     ╚═╝${c.reset}${c.orange}╚══════╝${c.reset}${c.orange}╚═╝  ╚═╝${c.reset}
 
-${c.bold}  Local Code Indexing.${c.reset} ${c.green}For Claude Code.${c.reset}
-${c.dim}  Semantic search powered by embeddings via OpenRouter${c.reset}
+${c.bold}  The AST-aware code index.${c.reset}
+${c.dim}  Symbol graph, PageRank, semantic search — offline.${c.reset}
 
 ${c.yellow}${c.bold}USAGE${c.reset}
   ${c.cyan}mnemex${c.reset} <command> [options]

@@ -44,18 +44,27 @@ function getVersion(): string {
 }
 
 /**
- * ASCII logo for mnemex
+ * ASCII logo for mnemex.
+ *
+ * The word MNEMEX is rendered as a single block, but individual letters are
+ * colored so that M(1), E(3), and M(4) — which together spell MEM — glow
+ * green, while N(2), E(5), and X(6) stay orange. This lets the embedded
+ * "mem" pun read at a glance without splitting the word.
  */
 export function getLogo(): string {
 	const version = getVersion();
+	const g = c.green;
+	const o = c.orange;
+	const r = c.reset;
 	return `
-${c.orange}   ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗${c.reset}${c.green}███╗   ███╗███████╗███╗   ███╗${c.reset}
-${c.orange}  ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝${c.reset}${c.green}████╗ ████║██╔════╝████╗ ████║${c.reset}
-${c.orange}  ██║     ██║     ███████║██║   ██║██║  ██║█████╗  ${c.reset}${c.green}██╔████╔██║█████╗  ██╔████╔██║${c.reset}
-${c.orange}  ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝  ${c.reset}${c.green}██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║${c.reset}
-${c.orange}  ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗${c.reset}${c.green}██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║${c.reset}
-${c.orange}   ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝${c.reset}${c.green}╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝${c.reset}
-${c.dim}  Semantic code search powered by embeddings          v${version}${c.reset}
+  ${g}███╗   ███╗${r}${o}███╗   ██╗${r}${g}███████╗${r}${g}███╗   ███╗${r}${o}███████╗${r}${o}██╗  ██╗${r}
+  ${g}████╗ ████║${r}${o}████╗  ██║${r}${g}██╔════╝${r}${g}████╗ ████║${r}${o}██╔════╝${r}${o}╚██╗██╔╝${r}
+  ${g}██╔████╔██║${r}${o}██╔██╗ ██║${r}${g}█████╗  ${r}${g}██╔████╔██║${r}${o}█████╗  ${r}${o} ╚███╔╝ ${r}
+  ${g}██║╚██╔╝██║${r}${o}██║╚██╗██║${r}${g}██╔══╝  ${r}${g}██║╚██╔╝██║${r}${o}██╔══╝  ${r}${o} ██╔██╗ ${r}
+  ${g}██║ ╚═╝ ██║${r}${o}██║ ╚████║${r}${g}███████╗${r}${g}██║ ╚═╝ ██║${r}${o}███████╗${r}${o}██╔╝ ██╗${r}
+  ${g}╚═╝     ╚═╝${r}${o}╚═╝  ╚═══╝${r}${g}╚══════╝${r}${g}╚═╝     ╚═╝${r}${o}╚══════╝${r}${o}╚═╝  ╚═╝${r}
+${c.bold}  The AST-aware code index.${c.reset}                                v${version}
+${c.dim}  Symbol graph, PageRank, semantic search — offline.${c.reset}
 `;
 }
 
