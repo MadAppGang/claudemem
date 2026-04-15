@@ -38,6 +38,11 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
+        # GITHUB_TOKEN authenticates @vscode/ripgrep's postinstall download from
+        # GitHub Releases; without it the download hits the anonymous 60 req/hr
+        # rate limit and fails with HTTP 403.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun install
 
       - name: Download grammars
@@ -124,6 +129,8 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Install dependencies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun install
 
       - name: Download grammars
@@ -153,11 +160,15 @@ jobs:
           # Get checksums
           curl -sL "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/checksums.txt" -o checksums.txt
 
-          ARM64_SHA=$(grep "darwin-arm64" checksums.txt | awk '{print $1}')
-          X64_SHA=$(grep "darwin-x64" checksums.txt | awk '{print $1}')
+          DARWIN_ARM64_SHA=$(grep "darwin-arm64" checksums.txt | awk '{print $1}')
+          DARWIN_X64_SHA=$(grep "darwin-x64" checksums.txt | awk '{print $1}')
+          LINUX_ARM64_SHA=$(grep "linux-arm64" checksums.txt | awk '{print $1}')
+          LINUX_X64_SHA=$(grep "linux-x64" checksums.txt | awk '{print $1}')
 
-          echo "arm64_sha=$ARM64_SHA" >> $GITHUB_OUTPUT
-          echo "x64_sha=$X64_SHA" >> $GITHUB_OUTPUT
+          echo "darwin_arm64_sha=$DARWIN_ARM64_SHA" >> $GITHUB_OUTPUT
+          echo "darwin_x64_sha=$DARWIN_X64_SHA" >> $GITHUB_OUTPUT
+          echo "linux_arm64_sha=$LINUX_ARM64_SHA" >> $GITHUB_OUTPUT
+          echo "linux_x64_sha=$LINUX_X64_SHA" >> $GITHUB_OUTPUT
 
       - name: Checkout tap repo
         uses: actions/checkout@v4
@@ -171,24 +182,37 @@ jobs:
           mkdir -p tap/Formula
           cat > tap/Formula/mnemex.rb << EOF
           class Mnemex < Formula
-            desc "Local code indexing with semantic search for Claude Code"
+            desc "Seven-layer code memory, benchmarked — AST-aware semantic code index"
             homepage "https://github.com/MadAppGang/mnemex"
             version "${{ steps.release.outputs.version }}"
             license "MIT"
 
-            on_arm do
-              url "https://github.com/MadAppGang/mnemex/releases/download/v${{ steps.release.outputs.version }}/mnemex-darwin-arm64"
-              sha256 "${{ steps.release.outputs.arm64_sha }}"
+            on_macos do
+              on_arm do
+                url "https://github.com/MadAppGang/mnemex/releases/download/v${{ steps.release.outputs.version }}/mnemex-darwin-arm64"
+                sha256 "${{ steps.release.outputs.darwin_arm64_sha }}"
+              end
+              on_intel do
+                url "https://github.com/MadAppGang/mnemex/releases/download/v${{ steps.release.outputs.version }}/mnemex-darwin-x64"
+                sha256 "${{ steps.release.outputs.darwin_x64_sha }}"
+              end
             end
 
-            on_intel do
-              url "https://github.com/MadAppGang/mnemex/releases/download/v${{ steps.release.outputs.version }}/mnemex-darwin-x64"
-              sha256 "${{ steps.release.outputs.x64_sha }}"
+            on_linux do
+              on_arm do
+                url "https://github.com/MadAppGang/mnemex/releases/download/v${{ steps.release.outputs.version }}/mnemex-linux-arm64"
+                sha256 "${{ steps.release.outputs.linux_arm64_sha }}"
+              end
+              on_intel do
+                url "https://github.com/MadAppGang/mnemex/releases/download/v${{ steps.release.outputs.version }}/mnemex-linux-x64"
+                sha256 "${{ steps.release.outputs.linux_x64_sha }}"
+              end
             end
 
             def install
-              binary = "mnemex-darwin-#{Hardware::CPU.arch == :arm64 ? "arm64" : "x64"}"
-              bin.install binary => "mnemex"
+              os_tag = OS.mac? ? "darwin" : "linux"
+              arch_tag = Hardware::CPU.arm? ? "arm64" : "x64"
+              bin.install "mnemex-#{os_tag}-#{arch_tag}" => "mnemex"
             end
 
             test do
