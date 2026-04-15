@@ -63,8 +63,8 @@ export function getLogo(): string {
   ${g}██║╚██╔╝██║${r}${o}██║╚██╗██║${r}${g}██╔══╝  ${r}${g}██║╚██╔╝██║${r}${o}██╔══╝  ${r}${o} ██╔██╗ ${r}
   ${g}██║ ╚═╝ ██║${r}${o}██║ ╚████║${r}${g}███████╗${r}${g}██║ ╚═╝ ██║${r}${o}███████╗${r}${o}██╔╝ ██╗${r}
   ${g}╚═╝     ╚═╝${r}${o}╚═╝  ╚═══╝${r}${g}╚══════╝${r}${g}╚═╝     ╚═╝${r}${o}╚══════╝${r}${o}╚═╝  ╚═╝${r}
-${c.bold}  The AST-aware code index.${c.reset}                                v${version}
-${c.dim}  Symbol graph, PageRank, semantic search — offline.${c.reset}
+${c.bold}  Seven layers of code memory — benchmarked.${c.reset}               v${version}
+${c.dim}  Personal. Team-shared. Offline or any model.${c.reset}
 `;
 }
 

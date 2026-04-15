@@ -6644,8 +6644,8 @@ function printHelp(): void {
   ${c.green}██║ ╚═╝ ██║${c.reset}${c.orange}██║ ╚████║${c.reset}${c.green}███████╗${c.reset}${c.green}██║ ╚═╝ ██║${c.reset}${c.orange}███████╗${c.reset}${c.orange}██╔╝ ██╗${c.reset}
   ${c.green}╚═╝     ╚═╝${c.reset}${c.orange}╚═╝  ╚═══╝${c.reset}${c.green}╚══════╝${c.reset}${c.green}╚═╝     ╚═╝${c.reset}${c.orange}╚══════╝${c.reset}${c.orange}╚═╝  ╚═╝${c.reset}
 
-${c.bold}  The AST-aware code index.${c.reset}
-${c.dim}  Symbol graph, PageRank, semantic search — offline.${c.reset}
+${c.bold}  Seven layers of code memory — benchmarked.${c.reset}
+${c.dim}  Personal. Team-shared. Offline or any model.${c.reset}
 
 ${c.yellow}${c.bold}USAGE${c.reset}
   ${c.cyan}mnemex${c.reset} <command> [options]
