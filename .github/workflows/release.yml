@@ -120,13 +120,34 @@ jobs:
           bun-version: latest
 
       - name: Setup Node.js
+        # Node 24 ships with npm 11.x, which includes OIDC trusted publishing
+        # (npm 11.11.0+). Previously we used Node 22 (npm 10.x, no trusted
+        # publishing) and ran `npm install -g npm@latest` to upgrade — but that
+        # reliably corrupts @npmcli/arborist's transitive deps on the runner
+        # image, producing:
+        #   npm error code MODULE_NOT_FOUND
+        #   npm error Cannot find module 'promise-retry'
+        # Switching to Node 24 avoids the in-place npm upgrade entirely.
+        # check-latest: true forces fetch of the newest cached 24.x so we get
+        # at least npm 11.11.0 even if the runner image hasn't rotated yet.
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+          check-latest: true
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Update npm for OIDC support
-        run: npm install -g npm@latest
+      - name: Verify npm supports OIDC trusted publishing
+        # OIDC trusted publishing requires npm >= 11.11.0 (landed 2026-02-25).
+        # Fail fast with a clear message if Node 24 ever ships an older npm.
+        run: |
+          NPM_VERSION=$(npm --version)
+          echo "npm version: ${NPM_VERSION}"
+          MAJOR=$(echo "$NPM_VERSION" | cut -d. -f1)
+          MINOR=$(echo "$NPM_VERSION" | cut -d. -f2)
+          if [ "$MAJOR" -lt 11 ] || { [ "$MAJOR" -eq 11 ] && [ "$MINOR" -lt 11 ]; }; then
+            echo "::error::npm ${NPM_VERSION} does not support OIDC trusted publishing (need >=11.11.0)"
+            exit 1
+          fi
 
       - name: Install dependencies
         env:
