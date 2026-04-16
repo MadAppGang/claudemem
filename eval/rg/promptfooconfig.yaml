@@ -1,0 +1,110 @@
+# Promptfoo eval: Claude Code Grep tool routed through `mnemex rg` shim.
+#
+# Each test case invokes `drive.sh` with a user-style prompt. `drive.sh` spawns
+# `claude -p` against the fixture corpus, captures tool-call telemetry, and
+# emits a single JSON line on stdout. Assertions parse that JSON.
+#
+# Prerequisites (validated by drive.sh):
+#   - `~/.claude/settings.json` has `env.USE_BUILTIN_RIPGREP = "0"` (what
+#     `mnemex rg install` writes).
+#   - `~/.local/bin/rg` exists and is a logging shim forwarding to bundled rg.
+#   - `~/.local/bin` is on PATH before promptfoo runs.
+#   - The fixture index at `tests/fixtures/rg-corpus/.mnemex/` is committed.
+#
+# Run with:
+#   cd eval/rg && promptfoo eval
+#
+# Expected runtime: ~2 minutes (6 cases × ~20s Haiku sessions, sequential).
+
+description: "Claude Code Grep tool → mnemex rg shim → fixture corpus"
+
+prompts:
+  - "{{prompt}}"
+
+providers:
+  - id: "exec:./drive.sh"
+    label: "claude-code-haiku-4-5"
+    config:
+      # The exec provider passes the rendered prompt as the first argument.
+      # drive.sh parses it as $1 and injects it into `claude -p`.
+
+# Every test case checks the same invariants, so they share these defaults.
+defaultTest:
+  options:
+    # Parse the driver's JSON stdout so each assertion can address fields.
+    transform: "JSON.parse(output)"
+  assert:
+    # The driver must exit cleanly; non-zero means the claude session failed
+    # or the shim could not be installed.
+    - type: javascript
+      value: "output.exit_code === 0"
+    # The model must invoke Grep at least once. If this fires, the prompt
+    # wording has steered the model away from Grep — fix the prompt, not
+    # the shim.
+    - type: javascript
+      value: "output.grep_tool_call_count >= 1"
+    # The shim was hit by at least one Grep-shaped rg invocation.
+    # THIS is the integration claim we're validating.
+    - type: javascript
+      value: "output.shim_grep_hits >= 1"
+
+tests:
+  # ---- Case 1: the canonical "direct search" prompt ------------------------
+  - description: "Plain Grep for a symbol in the source directory"
+    vars:
+      prompt: "Use the Grep tool to search for 'isArray' in source/ and list the first 3 hits."
+    assert:
+      - type: javascript
+        value: "output.grep_tool_calls[0].pattern === 'isArray'"
+      - type: contains
+        value: "source/index.ts"
+
+  # ---- Case 2: count mode forces --count path in the wrapper --------------
+  - description: "Grep in count mode exercises the passthrough fast-path"
+    vars:
+      prompt: "Use the Grep tool with output_mode set to count to count how many times 'isArray' appears in source/."
+    assert:
+      - type: javascript
+        value: "output.grep_tool_calls.some(c => c.output_mode === 'count')"
+      - type: javascript
+        value: "/source\\/index\\.ts:\\s*\\d+/.test(output.grep_tool_result_preview)"
+
+  # ---- Case 3: files-with-matches mode ------------------------------------
+  - description: "Grep files-with-matches returns only file paths"
+    vars:
+      prompt: "Use the Grep tool with output_mode files_with_matches to find which files in source/ contain 'isAsyncFunction'."
+    assert:
+      - type: javascript
+        value: "output.grep_tool_calls.some(c => c.output_mode === 'files_with_matches')"
+      - type: contains
+        value: "source/index.ts"
+
+  # ---- Case 4: symbol that only exists in tests/, to validate glob paths ---
+  - description: "Grep restricted by glob still reaches the shim"
+    vars:
+      prompt: "Use the Grep tool with glob set to test/*.ts to find where 'isBigint' is tested."
+    assert:
+      - type: javascript
+        value: "output.shim_trace_tail.includes('isBigint') || output.grep_tool_result_preview.includes('test/test.ts')"
+
+  # ---- Case 5: pattern with regex metacharacters ---------------------------
+  - description: "Regex pattern works end-to-end through the shim"
+    vars:
+      prompt: "Use the Grep tool to search for the regex 'isArray(Buffer|Like)' in source/."
+    assert:
+      - type: javascript
+        value: "output.grep_tool_call_count >= 1"
+      - type: javascript
+        value: "output.grep_tool_result_preview.length > 0"
+
+  # ---- Case 6: non-matching pattern — still exercises the shim -------------
+  - description: "Search for a pattern with no matches still routes through shim"
+    vars:
+      prompt: "Use the Grep tool to search for 'zzz_no_such_symbol_xyzzy' in source/."
+    assert:
+      # No matches → grep_tool_result_preview is empty or says "No files"
+      - type: javascript
+        value: "output.shim_grep_hits >= 1"
+      # The driver's own baseline asserts guarantee the shim was invoked even
+      # when the search finds nothing. This is the regression test for the
+      # fallback path (exit 1 from rg must not break the wrapper).

@@ -1,0 +1,6 @@
+sindresorhus/is @ 1acbd9e2023f6a8f12deef0788167eaec0fb258f
+tag: v6.1.0
+cloned: 2026-04-15
+purpose: deterministic fixture for mnemex-rg e2e tests
+stripped: .git/, .github/, header.gif, license, dotfiles
+kept: source/, test/, package.json, tsconfig.json, readme.md

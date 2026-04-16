@@ -47,3 +47,8 @@ models
 .worktrees/
 
 .mnemex/
+
+# Promptfoo eval per-run artifacts
+eval/rg/logs/cc-*.jsonl
+eval/rg/logs/shim-*.log
+eval/rg/logs/last-*

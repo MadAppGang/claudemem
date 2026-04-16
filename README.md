@@ -124,6 +124,36 @@ Then Claude Code can use these tools:
 - `get_status` — check what's indexed
 - `clear_index` — start fresh
 
+### Grep replacement (`mnemex rg`)
+
+mnemex ships a drop-in `rg` replacement that Claude Code's built-in Grep tool will call. It runs real ripgrep and mnemex semantic search **in parallel**, then merges the results with mnemex-ranked hits listed first — so every result `rg` would have returned is preserved, plus semantically related hits that literal regex misses.
+
+```bash
+# One-time install
+mnemex rg install
+
+# This writes ~/.local/bin/rg as a shim that execs `mnemex rg "$@"`
+# and sets USE_BUILTIN_RIPGREP=0 in ~/.claude/settings.json so that
+# Claude Code picks up the PATH rg instead of its bundled binary.
+```
+
+Requirements:
+- `~/.local/bin` must be early on your `$PATH`: `export PATH="$HOME/.local/bin:$PATH"`
+- The project needs a `.mnemex/` index for augmentation to kick in. Without one, the shim is a zero-overhead passthrough to the bundled `rg`.
+
+How it behaves:
+- **With an index**: runs `rg` + `mnemex search` in parallel (2s cap on mnemex), merges output with semantic hits first, deduplicated by `file:line`.
+- **Without an index**: direct passthrough to the bundled `rg`. Byte-identical output, no overhead.
+- **`--count` mode or no pattern**: passthrough only (mnemex can't meaningfully augment counts).
+- **Flag-honoring**: mnemex-side filtering respects `-F`, `-w`, `-x`, `-i`, `-s`, `-S` so it doesn't surface lines that `rg` would have rejected.
+
+To revert:
+
+```bash
+mnemex rg uninstall
+# Removes ~/.local/bin/rg and unsets USE_BUILTIN_RIPGREP in ~/.claude/settings.json
+```
+
 ## IDE Integrations
 
 mnemex integrates with AI coding assistants to replace grep/glob with semantic search.
@@ -369,6 +399,19 @@ mnemex pack --include "src/**" --exclude "*.test.ts"
 --tokens                  # show token count report
 ```
 
+### Interactive TUI
+```
+mnemex ui [path]         # full-screen TUI (search, map, graph, analysis, doctor)
+mnemex setup             # interactive setup wizard (provider, model, scope)
+mnemex monitor [path]    # passive display of MCP activity from Claude Code
+```
+
+Keyboard shortcuts in the TUI:
+- `Tab` / `Shift+Tab` — cycle tabs
+- `1`–`5` — jump to tab (search, map, graph, analysis, doctor)
+- `?` — toggle help overlay
+- `q` — quit
+
 ### Developer experience
 ```
 mnemex watch             # auto-reindex on file changes (daemon mode)
@@ -383,6 +426,9 @@ mnemex install opencode                # install OpenCode plugins (suggestion + 
 mnemex install opencode --type tools   # install tools plugin only
 mnemex install opencode status         # check installation status
 mnemex install opencode uninstall      # remove plugins
+mnemex rg install                      # install ~/.local/bin/rg shim for Claude Code Grep
+mnemex rg uninstall                    # remove shim and revert Claude Code settings
+mnemex rg [rg args...]                 # drop-in ripgrep + mnemex semantic augmentation
 ```
 
 ### Documentation commands

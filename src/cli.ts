@@ -125,7 +125,7 @@ function isAgentMode(): boolean {
 function printCompactHelp(): void {
 	console.log(`mnemex v${VERSION} - Semantic code search with AST analysis`);
 	console.log(
-		"Commands: index index --cloud search status clear map symbol callers callees context dead-code test-gaps impact pack watch hooks hook install docs feedback learn update team",
+		"Commands: index index --cloud search status clear map symbol callers callees context dead-code test-gaps impact pack watch hooks hook install rg docs feedback learn update team",
 	);
 	console.log(
 		"Use: mnemex --agent <cmd> | Docs: https://github.com/MadAppGang/mnemex",
@@ -406,6 +406,10 @@ export async function runCli(args: string[]): Promise<void> {
 		// Team/cloud commands
 		case "team":
 			await handleTeam(args.slice(1));
+			break;
+		// Ripgrep replacement — augments rg with mnemex semantic search
+		case "rg":
+			await handleRg(args.slice(1));
 			break;
 		// Sync command — download cloud graph for offline use
 		case "sync":
@@ -7435,4 +7439,122 @@ async function handlePack(args: string[]): Promise<void> {
 		}
 		process.exit(1);
 	}
+}
+
+// ============================================================================
+// rg command — drop-in ripgrep replacement with mnemex semantic augmentation
+// ============================================================================
+
+async function spawnRg(args: string[]): Promise<string> {
+	const { rgPath } = await import("@vscode/ripgrep");
+	const { spawn } = await import("node:child_process");
+	const { ensureLineNumbers } = await import("./rg/index.js");
+	const rgArgs = ensureLineNumbers(args);
+	return new Promise<string>((resolve, reject) => {
+		const proc = spawn(rgPath, rgArgs, { stdio: ["inherit", "pipe", "pipe"] });
+		const chunks: Buffer[] = [];
+		proc.stdout.on("data", (chunk: Buffer) => chunks.push(chunk));
+		proc.on("close", (code: number | null) => {
+			if (code === 0 || code === 1) {
+				resolve(Buffer.concat(chunks).toString("utf-8"));
+			} else {
+				reject(new Error(`rg exited with code ${code}`));
+			}
+		});
+		proc.on("error", reject);
+	});
+}
+
+async function execRgDirect(args: string[]): Promise<void> {
+	const { rgPath } = await import("@vscode/ripgrep");
+	const { spawnSync } = await import("node:child_process");
+	const result = spawnSync(rgPath, args, { stdio: "inherit" });
+	process.exit(result.status ?? 1);
+}
+
+async function searchMnemex(
+	pattern: string,
+	_searchPath: string,
+): Promise<import("./types.js").SearchResult[]> {
+	const projectPath = process.cwd();
+	const { createIndexer } = await import("./core/indexer.js");
+	const indexer = createIndexer({ projectPath });
+
+	try {
+		const searchPromise = indexer.search(pattern, {
+			limit: 30,
+			useCase: "search",
+		});
+
+		const timeoutPromise = new Promise<never>((_, reject) =>
+			setTimeout(() => reject(new Error("mnemex search timeout")), 2000),
+		);
+
+		return await Promise.race([searchPromise, timeoutPromise]);
+	} finally {
+		// Fire-and-forget close: we hard-exit right after output is written,
+		// so awaiting close() here just delays the process teardown.
+		indexer.close().catch(() => {});
+	}
+}
+
+async function handleRgPassthrough(args: string[]): Promise<void> {
+	const { parseRgArgs, mergeResults } = await import("./rg/index.js");
+
+	// Quick check: if no .mnemex/ index, exec bundled rg directly (zero overhead)
+	const mnemexDir = join(process.cwd(), ".mnemex");
+	if (!existsSync(mnemexDir)) {
+		await execRgDirect(args);
+		return;
+	}
+
+	const parsed = parseRgArgs(args);
+
+	if (parsed.mode === "count" || !parsed.pattern) {
+		await execRgDirect(args);
+		return;
+	}
+
+	const [rgOutput, mnemexResults] = await Promise.allSettled([
+		spawnRg(args),
+		searchMnemex(parsed.pattern, parsed.searchPath),
+	]);
+
+	const rgText = rgOutput.status === "fulfilled" ? rgOutput.value : "";
+	const mnemexHits =
+		mnemexResults.status === "fulfilled" ? mnemexResults.value : [];
+
+	const merged = mergeResults(
+		rgText,
+		mnemexHits,
+		parsed.pattern,
+		parsed.mode,
+		parsed.matchFlags,
+	);
+	if (merged) {
+		process.stdout.write(merged);
+	}
+
+	// Hard-exit to avoid waiting for LanceDB/native handles to drain.
+	// Without this, the process hangs for 30s+ after output is flushed
+	// because LanceDB keeps native handles alive past indexer.close().
+	process.exit(merged.trim() ? 0 : 1);
+}
+
+async function handleRg(args: string[]): Promise<void> {
+	const subcommand = args[0];
+
+	if (subcommand === "install") {
+		const { handleRgInstall } = await import("./rg/index.js");
+		await handleRgInstall();
+		return;
+	}
+
+	if (subcommand === "uninstall") {
+		const { handleRgUninstall } = await import("./rg/index.js");
+		await handleRgUninstall();
+		return;
+	}
+
+	await handleRgPassthrough(args);
 }
