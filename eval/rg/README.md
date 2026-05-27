@@ -24,8 +24,9 @@ our shim, which was non-obvious to set up and documented incorrectly at first
 | Layer | Command | Purpose |
 |---|---|---|
 | Binary/e2e | `bun test tests/rg.test.ts tests/rg.e2e.test.ts` | Proves `mnemex rg` keeps rg-compatible output and preserves vanilla rg matches |
-| Promptfoo smoke | `cd eval/rg && promptfoo eval --no-cache` | Fast YAML matrix for Claude Code Grep routing |
+| Promptfoo smoke | `bun run eval:rg:promptfoo` | Fast YAML matrix for Claude Code Grep routing |
 | Inspect eval | `inspect eval eval/rg/inspect_eval.py@rg_plugin` | Rich eval logs with per-case contract scoring and rescore support |
+| HTML report | `bun run eval:rg:report` | Static dashboard with case status, route checks, tool calls, logs, and raw JSON |
 
 ## Prerequisites
 
@@ -47,8 +48,7 @@ after each case. This means the eval does not require a permanent
 ## Running
 
 ```bash
-cd eval/rg
-promptfoo eval --no-cache
+bun run eval:rg:promptfoo
 ```
 
 To view results interactively:
@@ -66,6 +66,17 @@ pip install -r eval/rg/requirements.txt
 inspect eval eval/rg/inspect_eval.py@rg_plugin
 inspect view
 ```
+
+For the local dashboard:
+
+```bash
+bun run eval:rg:report
+open eval/rg/report/index.html
+```
+
+The report command runs the same six cases through `driver.py` and writes a
+self-contained HTML file. It is useful when you want to inspect the contract
+evidence without reading raw JSON or Promptfoo's table output.
 
 Logs from each driver invocation land in `eval/rg/logs/`.
 
@@ -95,6 +106,8 @@ All cases share three baseline assertions:
 - `drive.sh` — tiny promptfoo wrapper around `driver.py`.
 - `promptfooconfig.yaml` — suite definition: provider, tests, assertions.
 - `inspect_eval.py` — Inspect AI task, solver, and scorer.
+- `report.py` — static report generator for local visual review.
+- `report/index.html` — generated dashboard from the latest report run.
 - `logs/*.jsonl`, `logs/*.log` — written on every run for post-mortem
   debugging. Safe to delete.
 

@@ -25,8 +25,9 @@
 		"test": "bun test",
 		"test:integration": "bun test test/integration",
 		"test:watch": "bun test --watch",
-		"eval:rg:promptfoo": "cd eval/rg && promptfoo eval --no-cache",
-		"eval:rg:inspect": "inspect eval eval/rg/inspect_eval.py@rg_plugin"
+		"eval:rg:promptfoo": "cd eval/rg && npx promptfoo@latest eval --no-cache",
+		"eval:rg:inspect": "inspect eval eval/rg/inspect_eval.py@rg_plugin",
+		"eval:rg:report": "python3 eval/rg/report.py"
 	},
 	"dependencies": {
 		"@inquirer/prompts": "^7.0.0",

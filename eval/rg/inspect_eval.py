@@ -56,11 +56,11 @@ CASES: list[Sample] = [
     ),
     Sample(
         id="glob-restriction",
-        input="Use only the Grep tool with path `.` and glob set to `test/*.ts` to find where 'isBigint' is tested.",
+        input="Use only the Grep tool with path `test` and glob set to `*.ts` to find where the regex `is\\.bigint` is tested.",
         target="Glob restriction reaches mnemex rg and returns test/test.ts",
         metadata={
-            "pattern": "isBigint",
-            "glob": "test/*.ts",
+            "pattern": "is\\.bigint",
+            "glob": "*.ts",
             "contains": "test/test.ts",
         },
     ),
