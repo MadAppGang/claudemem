@@ -7,7 +7,7 @@
 #   3. Verifies the shim is live at ~/.local/bin/rg
 #   4. Runs the shim directly (mirrors what Claude Code does internally)
 #   5. Spawns a REAL non-interactive Claude Code session against the
-#      fixture dir with --print mode, forcing a Grep tool call
+#      testdata dir with --print mode, forcing a Grep tool call
 #   6. Captures tool-invocation output via --output-format=stream-json
 #   7. Asserts mnemex-augmented results reach Claude Code's Grep tool
 #   8. Cleans up: restore backups, uninstall shim
@@ -25,7 +25,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CLI_BIN="$REPO_ROOT/dist/index.js"
-FIXTURE="$REPO_ROOT/tests/fixtures/rg-corpus"
+TESTDATA="$REPO_ROOT/tests/testdata/rg-corpus"
 SHIM_PATH="$HOME/.local/bin/rg"
 SETTINGS_PATH="$HOME/.claude/settings.json"
 LOG_DIR="$(mktemp -d -t mnemex-rg-e2e-XXXXXX)"
@@ -35,7 +35,7 @@ DEV_MNEMEX="$LOG_DIR/mnemex-dev"
 
 echo "=== mnemex rg × Claude Code e2e ==="
 echo "Repo:     $REPO_ROOT"
-echo "Fixture:  $FIXTURE"
+echo "Testdata: $TESTDATA"
 echo "Log dir:  $LOG_DIR"
 echo
 
@@ -47,8 +47,8 @@ echo
     echo "FAIL: dist not built. Run: bun run build"
     exit 1
 }
-[[ -d "$FIXTURE/.mnemex" ]] || {
-    echo "FAIL: fixture index missing at $FIXTURE/.mnemex"
+[[ -d "$TESTDATA/.mnemex" ]] || {
+    echo "FAIL: testdata index missing at $TESTDATA/.mnemex"
     exit 1
 }
 command -v claude >/dev/null 2>&1 || {
@@ -142,10 +142,10 @@ echo "  ✓ USE_BUILTIN_RIPGREP=0 in settings.json"
 # ============================================================================
 
 echo
-echo "=== Step 2: direct shim invocation against fixture ==="
+echo "=== Step 2: direct shim invocation against testdata ==="
 SHIM_OUT="$LOG_DIR/shim-direct.out"
 (
-    cd "$FIXTURE"
+    cd "$TESTDATA"
     # `rg` resolves to ~/.local/bin/rg → `mnemex rg "$@"` → dev dist
     rg --line-number "isArray" source/ > "$SHIM_OUT" 2>&1
 )
@@ -177,16 +177,16 @@ else
 fi
 
 # ============================================================================
-# Step 3: real Claude Code session against fixture, force Grep call
+# Step 3: real Claude Code session against testdata, force Grep call
 # ============================================================================
 
 echo
-echo "=== Step 3: Claude Code --print session against fixture ==="
+echo "=== Step 3: Claude Code --print session against testdata ==="
 CC_OUT="$LOG_DIR/claude-code.jsonl"
 CC_PROMPT='Use the Grep tool to search for the exact pattern "isArray" in the source/ directory. Show me the first 3 results verbatim. Do not explain, just show the grep output.'
 
 (
-    cd "$FIXTURE"
+    cd "$TESTDATA"
     claude \
         -p "$CC_PROMPT" \
         --output-format stream-json \
@@ -221,11 +221,11 @@ if ! grep -q '"name":"Grep"' "$CC_OUT"; then
 fi
 echo "  ✓ Grep tool was invoked"
 
-# Extract the Grep tool_result and check for our fixture paths
+# Extract the Grep tool_result and check for our testdata paths
 if grep -q 'source/index.ts' "$CC_OUT"; then
     echo "  ✓ Grep tool result contains source/index.ts hits"
 else
-    echo "FAIL: Grep tool result did not reach fixture paths"
+    echo "FAIL: Grep tool result did not reach testdata paths"
     echo "--- last 10 events ---"
     tail -10 "$CC_OUT"
     exit 1

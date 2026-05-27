@@ -15,7 +15,7 @@ import { createHash } from "node:crypto";
 import { CodeUnitExtractor } from "../../src/core/ast/code-unit-extractor.js";
 import type { CodeUnit, SupportedLanguage } from "../../src/types.js";
 
-const FIXTURES_DIR = join(import.meta.dir, "../fixtures");
+const TESTDATA_DIR = join(import.meta.dir, "../testdata");
 
 describe("CodeUnitExtractor", () => {
 	let extractor: CodeUnitExtractor;
@@ -27,11 +27,11 @@ describe("CodeUnitExtractor", () => {
 
 	describe("TypeScript extraction", () => {
 		let units: CodeUnit[];
-		const filePath = "test/fixtures/sample-typescript.ts";
+		const filePath = "test/testdata/sample-typescript.ts";
 
 		beforeAll(async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-typescript.ts"),
+				join(TESTDATA_DIR, "sample-typescript.ts"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")
@@ -129,7 +129,7 @@ describe("CodeUnitExtractor", () => {
 	describe("Parent-child ID consistency", () => {
 		test("child parentId matches parent id exactly", async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-typescript.ts"),
+				join(TESTDATA_DIR, "sample-typescript.ts"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")
@@ -156,7 +156,7 @@ describe("CodeUnitExtractor", () => {
 
 		test("hierarchy depth is consistent", async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-typescript.ts"),
+				join(TESTDATA_DIR, "sample-typescript.ts"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")
@@ -183,7 +183,7 @@ describe("CodeUnitExtractor", () => {
 
 		test("getChildren returns correct children", async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-typescript.ts"),
+				join(TESTDATA_DIR, "sample-typescript.ts"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")
@@ -210,11 +210,11 @@ describe("CodeUnitExtractor", () => {
 
 	describe("Python extraction", () => {
 		let units: CodeUnit[];
-		const filePath = "test/fixtures/sample-python.py";
+		const filePath = "test/testdata/sample-python.py";
 
 		beforeAll(async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-python.py"),
+				join(TESTDATA_DIR, "sample-python.py"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")
@@ -275,10 +275,10 @@ describe("CodeUnitExtractor", () => {
 
 	describe("Go extraction", () => {
 		let units: CodeUnit[];
-		const filePath = "test/fixtures/sample-go.go";
+		const filePath = "test/testdata/sample-go.go";
 
 		beforeAll(async () => {
-			const source = readFileSync(join(FIXTURES_DIR, "sample-go.go"), "utf-8");
+			const source = readFileSync(join(TESTDATA_DIR, "sample-go.go"), "utf-8");
 			const fileHash = createHash("sha256")
 				.update(source)
 				.digest("hex")
@@ -321,7 +321,7 @@ describe("CodeUnitExtractor", () => {
 	describe("Helper methods", () => {
 		test("sortByDepthDesc returns deepest units first", async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-typescript.ts"),
+				join(TESTDATA_DIR, "sample-typescript.ts"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")
@@ -345,7 +345,7 @@ describe("CodeUnitExtractor", () => {
 
 		test("getMaxDepth returns correct value", async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-typescript.ts"),
+				join(TESTDATA_DIR, "sample-typescript.ts"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")
@@ -366,7 +366,7 @@ describe("CodeUnitExtractor", () => {
 
 		test("getUnitsAtDepth filters correctly", async () => {
 			const source = readFileSync(
-				join(FIXTURES_DIR, "sample-typescript.ts"),
+				join(TESTDATA_DIR, "sample-typescript.ts"),
 				"utf-8",
 			);
 			const fileHash = createHash("sha256")

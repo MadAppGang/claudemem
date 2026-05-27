@@ -141,16 +141,13 @@ export function scoreKeywords(
 	score += Math.min(uniqueTerms.size / 10, 1) * 0.4;
 
 	// Relevance: at least some terms should relate to query
-	const hasOverlap = queryTerms.some(
-		(qt) =>
-			lexTerms.some((lt) => lt.includes(qt) || qt.includes(lt)),
+	const hasOverlap = queryTerms.some((qt) =>
+		lexTerms.some((lt) => lt.includes(qt) || qt.includes(lt)),
 	);
 	if (hasOverlap) score += 0.3;
 
 	// Expansion: terms beyond just repeating query words
-	const newTerms = lexTerms.filter(
-		(lt) => !queryTerms.some((qt) => lt === qt),
-	);
+	const newTerms = lexTerms.filter((lt) => !queryTerms.some((qt) => lt === qt));
 	if (newTerms.length > 0) score += 0.3;
 
 	return Math.min(score, 1);
@@ -174,7 +171,10 @@ export function scoreSemantic(
 	}
 
 	// Different from original (not just echoing)
-	const similarity = jaroWinkler(originalQuery.toLowerCase(), vec.toLowerCase());
+	const similarity = jaroWinkler(
+		originalQuery.toLowerCase(),
+		vec.toLowerCase(),
+	);
 	if (similarity < 0.95) {
 		score += 0.3; // Good: it's actually a rephrasing
 	} else {
@@ -205,12 +205,12 @@ export function scoreHyde(expansion: ExpansionOutput): number {
 
 	// Contains code-like patterns
 	const codePatterns = [
-		/[{}()\[\]]/,           // Brackets
-		/\b(function|const|let|var|class|def|import|export|return|if|for|while|async|await)\b/,  // Keywords
-		/[=;:]/,                // Assignment/statement markers
-		/\.\w+\(/,              // Method calls
-		/\w+\s*=>/,             // Arrow functions
-		/\/\//,                 // Comments
+		/[{}()\[\]]/, // Brackets
+		/\b(function|const|let|var|class|def|import|export|return|if|for|while|async|await)\b/, // Keywords
+		/[=;:]/, // Assignment/statement markers
+		/\.\w+\(/, // Method calls
+		/\w+\s*=>/, // Arrow functions
+		/\/\//, // Comments
 	];
 
 	const matchCount = codePatterns.filter((p) => p.test(hyde)).length;
@@ -285,7 +285,14 @@ export function aggregateModelScores(
 			modelName,
 			paramsB,
 			scores: [],
-			avg: { format: 0, keyword: 0, semantic: 0, hyde: 0, latencyMs: 0, total: 0 },
+			avg: {
+				format: 0,
+				keyword: 0,
+				semantic: 0,
+				hyde: 0,
+				latencyMs: 0,
+				total: 0,
+			},
 		};
 	}
 

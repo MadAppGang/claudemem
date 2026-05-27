@@ -52,9 +52,7 @@ export function registerSearchPatternTools(
 			fileGlob: z
 				.string()
 				.optional()
-				.describe(
-					"Glob pattern to filter files (e.g. '*.ts', '**/*.py')",
-				),
+				.describe("Glob pattern to filter files (e.g. '*.ts', '**/*.py')"),
 			caseSensitive: z
 				.boolean()
 				.default(true)

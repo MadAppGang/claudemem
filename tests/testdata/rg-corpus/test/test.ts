@@ -18,8 +18,8 @@ import is, {
 	type TypeName,
 } from '../source/index.js';
 
-class PromiseSubclassFixture<T> extends Promise<T> {}
-class ErrorSubclassFixture extends Error {}
+class PromiseSubclassTestdata<T> extends Promise<T> {}
+class ErrorSubclassTestdata extends Error {}
 
 const {window} = new JSDOM();
 const {document} = window;
@@ -28,7 +28,7 @@ const structuredClone = globalThis.structuredClone ?? (x => x);
 
 type Test = {
 	assert: (...args: any[]) => void | never;
-	fixtures: unknown[];
+	testdata: unknown[];
 	typename?: TypeName;
 	typeDescription?: AssertionTypeDescription;
 	is(value: unknown): boolean;
@@ -54,7 +54,7 @@ const types = new Map<string, Test>([
 	['undefined', {
 		is: is.undefined,
 		assert: assert.undefined,
-		fixtures: [
+		testdata: [
 			undefined,
 		],
 		typename: 'undefined',
@@ -62,7 +62,7 @@ const types = new Map<string, Test>([
 	['null', {
 		is: is.null,
 		assert: assert.null_,
-		fixtures: [
+		testdata: [
 			null,
 		],
 		typename: 'null',
@@ -70,7 +70,7 @@ const types = new Map<string, Test>([
 	['string', {
 		is: is.string,
 		assert: assert.string,
-		fixtures: [
+		testdata: [
 			'🦄',
 			'hello world',
 			'',
@@ -80,7 +80,7 @@ const types = new Map<string, Test>([
 	['emptyString', {
 		is: is.emptyString,
 		assert: assert.emptyString,
-		fixtures: [
+		testdata: [
 			'',
 			String(),
 		],
@@ -90,7 +90,7 @@ const types = new Map<string, Test>([
 	['number', {
 		is: is.number,
 		assert: assert.number,
-		fixtures: [
+		testdata: [
 			6,
 			1.4,
 			0,
@@ -103,7 +103,7 @@ const types = new Map<string, Test>([
 	['bigint', {
 		is: is.bigint,
 		assert: assert.bigint,
-		fixtures: [
+		testdata: [
 			// Disabled until TS supports it for an ESnnnn target.
 			// 1n,
 			// 0n,
@@ -115,7 +115,7 @@ const types = new Map<string, Test>([
 	['boolean', {
 		is: is.boolean,
 		assert: assert.boolean,
-		fixtures: [
+		testdata: [
 			true, false,
 		],
 		typename: 'boolean',
@@ -123,7 +123,7 @@ const types = new Map<string, Test>([
 	['symbol', {
 		is: is.symbol,
 		assert: assert.symbol,
-		fixtures: [
+		testdata: [
 			Symbol('🦄'),
 		],
 		typename: 'symbol',
@@ -131,7 +131,7 @@ const types = new Map<string, Test>([
 	['numericString', {
 		is: is.numericString,
 		assert: assert.numericString,
-		fixtures: [
+		testdata: [
 			'5',
 			'-3.2',
 			'Infinity',
@@ -143,7 +143,7 @@ const types = new Map<string, Test>([
 	['array', {
 		is: is.array,
 		assert: assert.array,
-		fixtures: [
+		testdata: [
 			[1, 2],
 			Array.from({length: 2}),
 		],
@@ -152,7 +152,7 @@ const types = new Map<string, Test>([
 	['emptyArray', {
 		is: is.emptyArray,
 		assert: assert.emptyArray,
-		fixtures: [
+		testdata: [
 			[],
 			new Array(), // eslint-disable-line @typescript-eslint/no-array-constructor
 		],
@@ -162,7 +162,7 @@ const types = new Map<string, Test>([
 	['function', {
 		is: is.function,
 		assert: assert.function_,
-		fixtures: [
+		testdata: [
 			function foo() {}, // eslint-disable-line func-names
 			function () {},
 			() => {},
@@ -175,7 +175,7 @@ const types = new Map<string, Test>([
 	['buffer', {
 		is: is.buffer,
 		assert: assert.buffer,
-		fixtures: [
+		testdata: [
 			Buffer.from('🦄'),
 		],
 		typename: 'Buffer',
@@ -183,7 +183,7 @@ const types = new Map<string, Test>([
 	['blob', {
 		is: is.blob,
 		assert: assert.blob,
-		fixtures: [
+		testdata: [
 			new window.Blob(),
 		],
 		typename: 'Blob',
@@ -191,7 +191,7 @@ const types = new Map<string, Test>([
 	['object', {
 		is: is.object,
 		assert: assert.object,
-		fixtures: [
+		testdata: [
 			{x: 1},
 			Object.create({x: 1}),
 		],
@@ -200,7 +200,7 @@ const types = new Map<string, Test>([
 	['regExp', {
 		is: is.regExp,
 		assert: assert.regExp,
-		fixtures: [
+		testdata: [
 			/\w/,
 			new RegExp('\\w'), // eslint-disable-line prefer-regex-literals
 		],
@@ -209,7 +209,7 @@ const types = new Map<string, Test>([
 	['date', {
 		is: is.date,
 		assert: assert.date,
-		fixtures: [
+		testdata: [
 			new Date(),
 		],
 		typename: 'Date',
@@ -217,18 +217,18 @@ const types = new Map<string, Test>([
 	['error', {
 		is: is.error,
 		assert: assert.error,
-		fixtures: [
+		testdata: [
 			new Error('🦄'),
-			new ErrorSubclassFixture(),
+			new ErrorSubclassTestdata(),
 		],
 		typename: 'Error',
 	}],
 	['nativePromise', {
 		is: is.nativePromise,
 		assert: assert.nativePromise,
-		fixtures: [
+		testdata: [
 			Promise.resolve(),
-			PromiseSubclassFixture.resolve(),
+			PromiseSubclassTestdata.resolve(),
 		],
 		typename: 'Promise',
 		typeDescription: 'native Promise',
@@ -236,7 +236,7 @@ const types = new Map<string, Test>([
 	['promise', {
 		is: is.promise,
 		assert: assert.promise,
-		fixtures: [
+		testdata: [
 			{then() {}, catch() {}}, // eslint-disable-line unicorn/no-thenable
 		],
 		typename: 'Object',
@@ -245,7 +245,7 @@ const types = new Map<string, Test>([
 	['generator', {
 		is: is.generator,
 		assert: assert.generator,
-		fixtures: [
+		testdata: [
 			(function * () {
 				yield 4;
 			})(),
@@ -255,7 +255,7 @@ const types = new Map<string, Test>([
 	['asyncGenerator', {
 		is: is.asyncGenerator,
 		assert: assert.asyncGenerator,
-		fixtures: [
+		testdata: [
 			(async function * () {
 				yield 4;
 			})(),
@@ -265,7 +265,7 @@ const types = new Map<string, Test>([
 	['generatorFunction', {
 		is: is.generatorFunction,
 		assert: assert.generatorFunction,
-		fixtures: [
+		testdata: [
 			function * () {
 				yield 4;
 			},
@@ -276,7 +276,7 @@ const types = new Map<string, Test>([
 	['asyncGeneratorFunction', {
 		is: is.asyncGeneratorFunction,
 		assert: assert.asyncGeneratorFunction,
-		fixtures: [
+		testdata: [
 			async function * () {
 				yield 4;
 			},
@@ -287,7 +287,7 @@ const types = new Map<string, Test>([
 	['asyncFunction', {
 		is: is.asyncFunction,
 		assert: assert.asyncFunction,
-		fixtures: [
+		testdata: [
 			async function () {},
 			async () => {},
 		],
@@ -297,7 +297,7 @@ const types = new Map<string, Test>([
 	['boundFunction', {
 		is: is.boundFunction,
 		assert: assert.boundFunction,
-		fixtures: [
+		testdata: [
 			() => {},
 			function () {}.bind(null), // eslint-disable-line no-extra-bind
 		],
@@ -306,7 +306,7 @@ const types = new Map<string, Test>([
 	['map', {
 		is: is.map,
 		assert: assert.map,
-		fixtures: [
+		testdata: [
 			new Map([['one', '1']]),
 		],
 		typename: 'Map',
@@ -314,7 +314,7 @@ const types = new Map<string, Test>([
 	['emptyMap', {
 		is: is.emptyMap,
 		assert: assert.emptyMap,
-		fixtures: [
+		testdata: [
 			new Map(),
 		],
 		typename: 'Map',
@@ -323,7 +323,7 @@ const types = new Map<string, Test>([
 	['set', {
 		is: is.set,
 		assert: assert.set,
-		fixtures: [
+		testdata: [
 			new Set(['one']),
 		],
 		typename: 'Set',
@@ -331,7 +331,7 @@ const types = new Map<string, Test>([
 	['emptySet', {
 		is: is.emptySet,
 		assert: assert.emptySet,
-		fixtures: [
+		testdata: [
 			new Set(),
 		],
 		typename: 'Set',
@@ -340,7 +340,7 @@ const types = new Map<string, Test>([
 	['weakSet', {
 		is: is.weakSet,
 		assert: assert.weakSet,
-		fixtures: [
+		testdata: [
 			new WeakSet(),
 		],
 		typename: 'WeakSet',
@@ -348,13 +348,13 @@ const types = new Map<string, Test>([
 	['weakRef', {
 		is: is.weakRef,
 		assert: assert.weakRef,
-		fixtures: window.WeakRef ? [new window.WeakRef({})] : [],
+		testdata: window.WeakRef ? [new window.WeakRef({})] : [],
 		typename: 'WeakRef',
 	}],
 	['weakMap', {
 		is: is.weakMap,
 		assert: assert.weakMap,
-		fixtures: [
+		testdata: [
 			new WeakMap(),
 		],
 		typename: 'WeakMap',
@@ -362,7 +362,7 @@ const types = new Map<string, Test>([
 	['int8Array', {
 		is: is.int8Array,
 		assert: assert.int8Array,
-		fixtures: [
+		testdata: [
 			new Int8Array(),
 		],
 		typename: 'Int8Array',
@@ -370,7 +370,7 @@ const types = new Map<string, Test>([
 	['uint8Array', {
 		is: is.uint8Array,
 		assert: assert.uint8Array,
-		fixtures: [
+		testdata: [
 			new Uint8Array(),
 		],
 		typename: 'Uint8Array',
@@ -378,7 +378,7 @@ const types = new Map<string, Test>([
 	['uint8ClampedArray', {
 		is: is.uint8ClampedArray,
 		assert: assert.uint8ClampedArray,
-		fixtures: [
+		testdata: [
 			new Uint8ClampedArray(),
 		],
 		typename: 'Uint8ClampedArray',
@@ -386,7 +386,7 @@ const types = new Map<string, Test>([
 	['int16Array', {
 		is: is.int16Array,
 		assert: assert.int16Array,
-		fixtures: [
+		testdata: [
 			new Int16Array(),
 		],
 		typename: 'Int16Array',
@@ -394,7 +394,7 @@ const types = new Map<string, Test>([
 	['uint16Array', {
 		is: is.uint16Array,
 		assert: assert.uint16Array,
-		fixtures: [
+		testdata: [
 			new Uint16Array(),
 		],
 		typename: 'Uint16Array',
@@ -402,7 +402,7 @@ const types = new Map<string, Test>([
 	['int32Array', {
 		is: is.int32Array,
 		assert: assert.int32Array,
-		fixtures: [
+		testdata: [
 			new Int32Array(),
 		],
 		typename: 'Int32Array',
@@ -410,7 +410,7 @@ const types = new Map<string, Test>([
 	['uint32Array', {
 		is: is.uint32Array,
 		assert: assert.uint32Array,
-		fixtures: [
+		testdata: [
 			new Uint32Array(),
 		],
 		typename: 'Uint32Array',
@@ -418,7 +418,7 @@ const types = new Map<string, Test>([
 	['float32Array', {
 		is: is.float32Array,
 		assert: assert.float32Array,
-		fixtures: [
+		testdata: [
 			new Float32Array(),
 		],
 		typename: 'Float32Array',
@@ -426,7 +426,7 @@ const types = new Map<string, Test>([
 	['float64Array', {
 		is: is.float64Array,
 		assert: assert.float64Array,
-		fixtures: [
+		testdata: [
 			new Float64Array(),
 		],
 		typename: 'Float64Array',
@@ -434,7 +434,7 @@ const types = new Map<string, Test>([
 	['bigInt64Array', {
 		is: is.bigInt64Array,
 		assert: assert.bigInt64Array,
-		fixtures: [
+		testdata: [
 			new BigInt64Array(),
 		],
 		typename: 'BigInt64Array',
@@ -442,7 +442,7 @@ const types = new Map<string, Test>([
 	['bigUint64Array', {
 		is: is.bigUint64Array,
 		assert: assert.bigUint64Array,
-		fixtures: [
+		testdata: [
 			new BigUint64Array(),
 		],
 		typename: 'BigUint64Array',
@@ -450,7 +450,7 @@ const types = new Map<string, Test>([
 	['arrayBuffer', {
 		is: is.arrayBuffer,
 		assert: assert.arrayBuffer,
-		fixtures: [
+		testdata: [
 			new ArrayBuffer(10),
 		],
 		typename: 'ArrayBuffer',
@@ -458,7 +458,7 @@ const types = new Map<string, Test>([
 	['dataView', {
 		is: is.dataView,
 		assert: assert.dataView,
-		fixtures: [
+		testdata: [
 			new DataView(new ArrayBuffer(10)),
 		],
 		typename: 'DataView',
@@ -466,7 +466,7 @@ const types = new Map<string, Test>([
 	['nan', {
 		is: is.nan,
 		assert: assert.nan,
-		fixtures: [
+		testdata: [
 			NaN, // eslint-disable-line unicorn/prefer-number-properties
 			Number.NaN,
 		],
@@ -476,7 +476,7 @@ const types = new Map<string, Test>([
 	['nullOrUndefined', {
 		is: is.nullOrUndefined,
 		assert: assert.nullOrUndefined,
-		fixtures: [
+		testdata: [
 			null,
 			undefined,
 		],
@@ -485,7 +485,7 @@ const types = new Map<string, Test>([
 	['plainObject', {
 		is: is.plainObject,
 		assert: assert.plainObject,
-		fixtures: [
+		testdata: [
 			{x: 1},
 			Object.create(null),
 			new Object(), // eslint-disable-line no-new-object
@@ -499,7 +499,7 @@ const types = new Map<string, Test>([
 	['integer', {
 		is: is.integer,
 		assert: assert.integer,
-		fixtures: [
+		testdata: [
 			6,
 		],
 		typename: 'number',
@@ -508,7 +508,7 @@ const types = new Map<string, Test>([
 	['safeInteger', {
 		is: is.safeInteger,
 		assert: assert.safeInteger,
-		fixtures: [
+		testdata: [
 			(2 ** 53) - 1,
 			-(2 ** 53) + 1,
 		],
@@ -518,7 +518,7 @@ const types = new Map<string, Test>([
 	['htmlElement', {
 		is: is.htmlElement,
 		assert: assert.htmlElement,
-		fixtures: [
+		testdata: [
 			'div',
 			'input',
 			'span',
@@ -526,7 +526,7 @@ const types = new Map<string, Test>([
 			'canvas',
 			'script',
 		]
-			.map(fixture => document.createElement(fixture)),
+			.map(testdata => document.createElement(testdata)),
 		typeDescription: 'HTMLElement',
 	}],
 	['non-htmlElement', {
@@ -536,7 +536,7 @@ const types = new Map<string, Test>([
 				assert.htmlElement(value);
 			}, value);
 		},
-		fixtures: [
+		testdata: [
 			document.createTextNode('data'),
 			document.createProcessingInstruction('xml-stylesheet', 'href="mycss.css" type="text/css"'),
 			document.createComment('This is a comment'),
@@ -548,7 +548,7 @@ const types = new Map<string, Test>([
 	['observable', {
 		is: is.observable,
 		assert: assert.observable,
-		fixtures: [
+		testdata: [
 			new Observable(),
 			new Subject(),
 			new ZenObservable(() => {}),
@@ -558,7 +558,7 @@ const types = new Map<string, Test>([
 	['nodeStream', {
 		is: is.nodeStream,
 		assert: assert.nodeStream,
-		fixtures: [
+		testdata: [
 			fs.createReadStream('readme.md'),
 			fs.createWriteStream(temporaryFile()),
 			new net.Socket(),
@@ -575,7 +575,7 @@ const types = new Map<string, Test>([
 	['infinite', {
 		is: is.infinite,
 		assert: assert.infinite,
-		fixtures: [
+		testdata: [
 			Number.POSITIVE_INFINITY,
 			Number.NEGATIVE_INFINITY,
 		],
@@ -596,7 +596,7 @@ const testType = (t: ExecutionContext, type: string, exclude?: string[]) => {
 
 	const {is: testIs, assert: testAssert, typename, typeDescription} = testData;
 
-	for (const [key, {fixtures}] of types) {
+	for (const [key, {testdata}] of types) {
 		// TODO: Automatically exclude value types in other tests that we have in the current one.
 		// Could reduce the use of `exclude`.
 		if (exclude?.includes(key)) {
@@ -606,24 +606,24 @@ const testType = (t: ExecutionContext, type: string, exclude?: string[]) => {
 		const isTypeUnderTest = key === type;
 		const assertIs = isTypeUnderTest ? t.true : t.false;
 
-		for (const fixture of fixtures) {
-			assertIs(testIs(fixture), `Value: ${inspect(fixture)}`);
+		for (const testdata of testdata) {
+			assertIs(testIs(testdata), `Value: ${inspect(testdata)}`);
 			const valueType = typeDescription ?? typename ?? 'unspecified';
 
 			if (isTypeUnderTest) {
 				t.notThrows(() => {
-					testAssert(fixture);
+					testAssert(testdata);
 				});
 			} else {
 				t.throws(() => {
-					testAssert(fixture);
+					testAssert(testdata);
 				}, {
-					message: `Expected value which is \`${valueType}\`, received value of type \`${is(fixture)}\`.`,
+					message: `Expected value which is \`${valueType}\`, received value of type \`${is(testdata)}\`.`,
 				});
 			}
 
 			if (isTypeUnderTest && typename) {
-				t.is<TypeName, TypeName>(is(fixture), typename);
+				t.is<TypeName, TypeName>(is(testdata), typename);
 			}
 		}
 	}
@@ -804,7 +804,7 @@ test('is.object', t => {
 		return;
 	}
 
-	for (const element of testData.fixtures) {
+	for (const element of testData.testdata) {
 		t.true(is.object(element));
 		t.notThrows(() => {
 			assert.object(element);
@@ -835,12 +835,12 @@ test('is.promise', t => {
 test('is.asyncFunction', t => {
 	testType(t, 'asyncFunction', ['function']);
 
-	const fixture = async () => {};
-	if (is.asyncFunction(fixture)) {
-		t.true(is.function(fixture().then));
+	const testdata = async () => {};
+	if (is.asyncFunction(testdata)) {
+		t.true(is.function(testdata().then));
 
 		t.notThrows(() => {
-			assert.function_(fixture().then);
+			assert.function_(testdata().then);
 		});
 	}
 });
@@ -852,11 +852,11 @@ test('is.generator', t => {
 test('is.asyncGenerator', t => {
 	testType(t, 'asyncGenerator');
 
-	const fixture = (async function * () {
+	const testdata = (async function * () {
 		yield 4;
 	})();
-	if (is.asyncGenerator(fixture)) {
-		t.true(is.function(fixture.next));
+	if (is.asyncGenerator(testdata)) {
+		t.true(is.function(testdata.next));
 	}
 });
 
@@ -867,12 +867,12 @@ test('is.generatorFunction', t => {
 test('is.asyncGeneratorFunction', t => {
 	testType(t, 'asyncGeneratorFunction', ['function']);
 
-	const fixture = async function * () {
+	const testdata = async function * () {
 		yield 4;
 	};
 
-	if (is.asyncGeneratorFunction(fixture)) {
-		t.true(is.function(fixture().next));
+	if (is.asyncGeneratorFunction(testdata)) {
+		t.true(is.function(testdata().next));
 	}
 });
 
@@ -966,22 +966,22 @@ test('is.enumCase', t => {
 });
 
 test('is.directInstanceOf', t => {
-	const error = new Error('fixture');
-	const errorSubclass = new ErrorSubclassFixture();
+	const error = new Error('testdata');
+	const errorSubclass = new ErrorSubclassTestdata();
 
 	t.true(is.directInstanceOf(error, Error));
-	t.true(is.directInstanceOf(errorSubclass, ErrorSubclassFixture));
+	t.true(is.directInstanceOf(errorSubclass, ErrorSubclassTestdata));
 	t.notThrows(() => {
 		assert.directInstanceOf(error, Error);
 	});
 	t.notThrows(() => {
-		assert.directInstanceOf(errorSubclass, ErrorSubclassFixture);
+		assert.directInstanceOf(errorSubclass, ErrorSubclassTestdata);
 	});
 
-	t.false(is.directInstanceOf(error, ErrorSubclassFixture));
+	t.false(is.directInstanceOf(error, ErrorSubclassTestdata));
 	t.false(is.directInstanceOf(errorSubclass, Error));
 	t.throws(() => {
-		assert.directInstanceOf(error, ErrorSubclassFixture);
+		assert.directInstanceOf(error, ErrorSubclassTestdata);
 	});
 	t.throws(() => {
 		assert.directInstanceOf(errorSubclass, Error);

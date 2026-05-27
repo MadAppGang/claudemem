@@ -249,8 +249,8 @@ const SolutionSection: React.FC = () => {
 						<span className="text-[#00d4aa]">Understand Forever.</span>
 					</h2>
 					<p className="text-gray-500 text-lg max-w-2xl mx-auto">
-						mnemex pre-indexes your codebase locally, giving AI agents
-						instant context every session.
+						mnemex pre-indexes your codebase locally, giving AI agents instant
+						context every session.
 					</p>
 				</div>
 
@@ -672,9 +672,9 @@ const HowItWorksSection: React.FC = () => {
 												Self-Learning Intelligence
 											</h4>
 											<p className="text-sm text-gray-400">
-												mnemex learns from your corrections and adapts to
-												your team's patterns. The more you use it, the smarter
-												your AI context becomes.
+												mnemex learns from your corrections and adapts to your
+												team's patterns. The more you use it, the smarter your
+												AI context becomes.
 											</p>
 										</div>
 									</div>
@@ -979,7 +979,7 @@ const FooterSection: React.FC = () => {
 				{/* Bottom Bar */}
 				<div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-white/5">
 					<p className="text-gray-600 text-xs">
-						© 2025 MadAppGang. MIT License.
+						© 2026 MadAppGang. MIT License.
 					</p>
 					<p className="text-gray-700 text-xs">
 						Built on research from JP Morgan Meta-RAG & Aider

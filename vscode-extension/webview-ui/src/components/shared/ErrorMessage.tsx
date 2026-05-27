@@ -1,13 +1,15 @@
-import React from 'react';
+import React from "react";
 
 interface ErrorMessageProps {
-  message: string;
+	message: string;
 }
 
-export function ErrorMessage({ message }: ErrorMessageProps): React.JSX.Element {
-  return (
-    <div className="error" role="alert">
-      {message}
-    </div>
-  );
+export function ErrorMessage({
+	message,
+}: ErrorMessageProps): React.JSX.Element {
+	return (
+		<div className="error" role="alert">
+			{message}
+		</div>
+	);
 }

@@ -111,9 +111,7 @@ function designA() {
 		`  ${bold("MODE 1: LOCAL")}  ${dim("everything on your machine")}`,
 	);
 	console.log();
-	console.log(
-		`  ╭─ ${bold(white("mnemex pipeline"))} ${"─".repeat(W - 22)}╮`,
-	);
+	console.log(`  ╭─ ${bold(white("mnemex pipeline"))} ${"─".repeat(W - 22)}╮`);
 	o("");
 	o(dim("source files"));
 	o("     │");

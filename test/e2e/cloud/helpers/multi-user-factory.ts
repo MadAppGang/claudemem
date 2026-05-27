@@ -1,7 +1,7 @@
 /**
  * Multi-user factory helpers for E2E tests.
  *
- * Shared utilities for creating test fixtures, synthetic vectors,
+ * Shared utilities for creating test testdata, synthetic vectors,
  * fake SHAs/hashes, and the registerAndIndex helper that wraps
  * the three-step register → upload → assert-ready pattern.
  */

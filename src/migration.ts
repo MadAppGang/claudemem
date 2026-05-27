@@ -37,10 +37,7 @@ const GITIGNORE_FILE = ".gitignore";
  * @param projectPath - Root directory of the project
  * @param silent - Suppress warning messages (default: false)
  */
-export function migrateProjectDir(
-	projectPath: string,
-	silent = false,
-): void {
+export function migrateProjectDir(projectPath: string, silent = false): void {
 	const oldDir = join(projectPath, OLD_DIR_NAME);
 	const newDir = join(projectPath, NEW_DIR_NAME);
 
@@ -176,11 +173,15 @@ function updateGitignore(projectPath: string, silent = false): void {
 			const content = lines.join("\n").replace(/\n+$/, "") + "\n";
 			writeFileSync(gitignorePath, content, "utf-8");
 			if (!silent) {
-				process.stderr.write(`[mnemex] Updated .gitignore to use ${NEW_DIR_NAME}/\n`);
+				process.stderr.write(
+					`[mnemex] Updated .gitignore to use ${NEW_DIR_NAME}/\n`,
+				);
 			}
 		} catch (error) {
 			if (!silent) {
-				process.stderr.write(`[mnemex] Warning: Could not update .gitignore: ${error}\n`);
+				process.stderr.write(
+					`[mnemex] Warning: Could not update .gitignore: ${error}\n`,
+				);
 			}
 		}
 	}

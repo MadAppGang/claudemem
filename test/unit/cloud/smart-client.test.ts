@@ -52,7 +52,7 @@ function mockFetch(response: Response): ReturnType<typeof mock> {
 }
 
 // ============================================================================
-// Fixtures
+// Testdata
 // ============================================================================
 
 /** Upload request that a caller might build (mode and chunks filled optimistically) */

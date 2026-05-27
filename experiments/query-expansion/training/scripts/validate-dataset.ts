@@ -84,12 +84,18 @@ function normalize(q: string): string {
 // Check 1: Format compliance
 for (const ex of examples) {
 	if (!ex.id) issue(ex, "error", "format", "missing id");
-	if (!ex.seed_query?.trim()) issue(ex, "error", "format", "missing seed_query");
+	if (!ex.seed_query?.trim())
+		issue(ex, "error", "format", "missing seed_query");
 	if (!ex.lex?.trim()) issue(ex, "error", "format", "empty lex");
 	if (!ex.vec?.trim()) issue(ex, "error", "format", "empty vec");
 	if (!ex.hyde?.trim()) issue(ex, "error", "format", "empty hyde");
 	if (!ex.messages || ex.messages.length !== 3)
-		issue(ex, "error", "format", `messages has ${ex.messages?.length ?? 0} entries (expected 3)`);
+		issue(
+			ex,
+			"error",
+			"format",
+			`messages has ${ex.messages?.length ?? 0} entries (expected 3)`,
+		);
 	if (!ex.category) issue(ex, "warning", "format", "missing category");
 	if (!ex.language) issue(ex, "warning", "format", "missing language");
 }
@@ -103,9 +109,19 @@ for (const ex of examples) {
 		existing.push(ex.id);
 		if (existing.length === 2) {
 			// Only flag on second occurrence
-			issue(ex, "warning", "dedup", `duplicate query "${ex.seed_query}" (also: ${existing[0]})`);
+			issue(
+				ex,
+				"warning",
+				"dedup",
+				`duplicate query "${ex.seed_query}" (also: ${existing[0]})`,
+			);
 		} else {
-			issue(ex, "warning", "dedup", `duplicate query "${ex.seed_query}" (${existing.length}th occurrence)`);
+			issue(
+				ex,
+				"warning",
+				"dedup",
+				`duplicate query "${ex.seed_query}" (${existing.length}th occurrence)`,
+			);
 		}
 	} else {
 		queryMap.set(key, [ex.id]);
@@ -129,12 +145,22 @@ for (const ex of examples) {
 	// At least one query word should appear in lex (very lenient)
 	const overlap = [...queryWords].filter((w) => lexWords.has(w));
 	if (overlap.length === 0 && queryWords.size > 0) {
-		issue(ex, "warning", "lex-relevance", `no query word overlap in lex: "${ex.lex.slice(0, 60)}..."`);
+		issue(
+			ex,
+			"warning",
+			"lex-relevance",
+			`no query word overlap in lex: "${ex.lex.slice(0, 60)}..."`,
+		);
 	}
 
 	// Lex shouldn't be too short
 	if (ex.lex.trim().split(/[\s,]+/).length < 2) {
-		issue(ex, "warning", "lex-short", `lex has fewer than 2 terms: "${ex.lex}"`);
+		issue(
+			ex,
+			"warning",
+			"lex-short",
+			`lex has fewer than 2 terms: "${ex.lex}"`,
+		);
 	}
 }
 
@@ -145,7 +171,12 @@ for (const ex of examples) {
 
 	// Vec should be a natural language rephrasing (at least 5 words)
 	if (vecLen < 5) {
-		issue(ex, "warning", "vec-short", `vec is only ${vecLen} words: "${ex.vec}"`);
+		issue(
+			ex,
+			"warning",
+			"vec-short",
+			`vec is only ${vecLen} words: "${ex.vec}"`,
+		);
 	}
 
 	// Vec shouldn't be identical to the query
@@ -160,21 +191,26 @@ for (const ex of examples) {
 
 	// Hyde should have minimum length (at least 20 chars)
 	if (ex.hyde.trim().length < 20) {
-		issue(ex, "warning", "hyde-short", `hyde is only ${ex.hyde.trim().length} chars: "${ex.hyde}"`);
+		issue(
+			ex,
+			"warning",
+			"hyde-short",
+			`hyde is only ${ex.hyde.trim().length} chars: "${ex.hyde}"`,
+		);
 	}
 
 	// For code queries, hyde should look like code or technical content
 	// Check for common code patterns
 	const codeSignals = [
-		/[{}\[\]()]/,           // brackets
-		/[=<>!]+/,              // operators
+		/[{}\[\]()]/, // brackets
+		/[=<>!]+/, // operators
 		/\b(import|def|function|class|const|let|var|return|if|for|while)\b/i,
 		/\b(select|create|insert|update|delete|from|where)\b/i,
 		/\b(sudo|apt|npm|pip|docker|git|curl|wget)\b/i,
-		/\.\w+\(/,             // method calls
-		/\w+\.\w+/,            // property access
-		/\/\//,                // comments
-		/#/,                   // comments or shell
+		/\.\w+\(/, // method calls
+		/\w+\.\w+/, // property access
+		/\/\//, // comments
+		/#/, // comments or shell
 	];
 
 	// Technical prose signals (for qmd-style hyde that's descriptive rather than code)
@@ -189,7 +225,12 @@ for (const ex of examples) {
 	const hasProse = proseSignals.some((r) => r.test(ex.hyde));
 
 	if (!hasCode && !hasProse) {
-		issue(ex, "warning", "hyde-quality", `hyde doesn't look like code or tech content: "${ex.hyde.slice(0, 80)}..."`);
+		issue(
+			ex,
+			"warning",
+			"hyde-quality",
+			`hyde doesn't look like code or tech content: "${ex.hyde.slice(0, 80)}..."`,
+		);
 	}
 }
 
@@ -211,7 +252,16 @@ for (const i of issues) {
 }
 
 console.log("Check Results:");
-const allChecks = ["format", "dedup", "lex-relevance", "lex-short", "vec-short", "vec-echo", "hyde-short", "hyde-quality"];
+const allChecks = [
+	"format",
+	"dedup",
+	"lex-relevance",
+	"lex-short",
+	"vec-short",
+	"vec-echo",
+	"hyde-short",
+	"hyde-quality",
+];
 for (const check of allChecks) {
 	const entry = checkCounts.get(check);
 	if (!entry) {
@@ -239,7 +289,8 @@ if (warnings.length > 0) {
 	for (const w of warnings.slice(0, 15)) {
 		console.log(`  [${w.id}] ${w.check}: ${w.detail}`);
 	}
-	if (warnings.length > 15) console.log(`  ... and ${warnings.length - 15} more`);
+	if (warnings.length > 15)
+		console.log(`  ... and ${warnings.length - 15} more`);
 }
 
 // ─── Coverage Analysis ───────────────────────────────────────────────
@@ -251,31 +302,40 @@ const langCounts = new Map<string, number>();
 
 for (const ex of examples) {
 	categoryCounts.set(ex.category, (categoryCounts.get(ex.category) || 0) + 1);
-	const modelKey = ex.model === "qmd/handcrafted" ? "qmd" : ex.model.split("/").pop()!;
+	const modelKey =
+		ex.model === "qmd/handcrafted" ? "qmd" : ex.model.split("/").pop()!;
 	modelCounts.set(modelKey, (modelCounts.get(modelKey) || 0) + 1);
 	langCounts.set(ex.language, (langCounts.get(ex.language) || 0) + 1);
 }
 
 console.log("\nBy category:");
-for (const [cat, count] of [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])) {
+for (const [cat, count] of [...categoryCounts.entries()].sort(
+	(a, b) => b[1] - a[1],
+)) {
 	const pct = ((count / examples.length) * 100).toFixed(1);
 	console.log(`  ${cat.padEnd(14)} ${String(count).padStart(5)}  (${pct}%)`);
 }
 
 console.log("\nBy model:");
-for (const [model, count] of [...modelCounts.entries()].sort((a, b) => b[1] - a[1])) {
+for (const [model, count] of [...modelCounts.entries()].sort(
+	(a, b) => b[1] - a[1],
+)) {
 	console.log(`  ${model.padEnd(22)} ${String(count).padStart(5)}`);
 }
 
 console.log("\nBy language:");
-for (const [lang, count] of [...langCounts.entries()].sort((a, b) => b[1] - a[1])) {
+for (const [lang, count] of [...langCounts.entries()].sort(
+	(a, b) => b[1] - a[1],
+)) {
 	console.log(`  ${lang.padEnd(14)} ${String(count).padStart(5)}`);
 }
 
 // ─── Dedup stats ─────────────────────────────────────────────────────
 const dupGroups = [...queryMap.entries()].filter(([, ids]) => ids.length > 1);
 const totalDups = dupGroups.reduce((sum, [, ids]) => sum + ids.length - 1, 0);
-console.log(`\nDuplicates: ${dupGroups.length} query groups with ${totalDups} extra copies`);
+console.log(
+	`\nDuplicates: ${dupGroups.length} query groups with ${totalDups} extra copies`,
+);
 
 // ─── Fix mode ────────────────────────────────────────────────────────
 if (doFix) {
@@ -321,9 +381,14 @@ if (doFix) {
 
 	const clean = [...bestPerQuery.values()];
 
-	writeFileSync(CLEAN_OUTPUT, clean.map((e) => JSON.stringify(e)).join("\n") + "\n");
+	writeFileSync(
+		CLEAN_OUTPUT,
+		clean.map((e) => JSON.stringify(e)).join("\n") + "\n",
+	);
 	const dupsRemoved = examples.length - errorIds.size - clean.length;
-	console.log(`Removed: ${errorIds.size} errors, ${dupsRemoved} duplicates (kept best per query)`);
+	console.log(
+		`Removed: ${errorIds.size} errors, ${dupsRemoved} duplicates (kept best per query)`,
+	);
 	console.log(`Clean dataset: ${clean.length} examples → ${CLEAN_OUTPUT}`);
 
 	if (doSplit) {
@@ -352,8 +417,14 @@ if (doFix) {
 			evalExamples.push(...shuffled.slice(splitIdx));
 		}
 
-		writeFileSync(TRAIN_OUTPUT, trainExamples.map((e) => JSON.stringify(e)).join("\n") + "\n");
-		writeFileSync(EVAL_OUTPUT, evalExamples.map((e) => JSON.stringify(e)).join("\n") + "\n");
+		writeFileSync(
+			TRAIN_OUTPUT,
+			trainExamples.map((e) => JSON.stringify(e)).join("\n") + "\n",
+		);
+		writeFileSync(
+			EVAL_OUTPUT,
+			evalExamples.map((e) => JSON.stringify(e)).join("\n") + "\n",
+		);
 
 		console.log(`\nTrain/Eval split (90/10, stratified by category):`);
 		console.log(`  Train: ${trainExamples.length} examples → ${TRAIN_OUTPUT}`);
@@ -361,9 +432,13 @@ if (doFix) {
 
 		// Show per-category split
 		console.log("\n  Category        Train   Eval");
-		for (const [cat, exs] of [...byCat.entries()].sort((a, b) => b[1].length - a[1].length)) {
+		for (const [cat, exs] of [...byCat.entries()].sort(
+			(a, b) => b[1].length - a[1].length,
+		)) {
 			const splitIdx = Math.floor(exs.length * 0.9);
-			console.log(`  ${cat.padEnd(16)} ${String(splitIdx).padStart(5)}  ${String(exs.length - splitIdx).padStart(5)}`);
+			console.log(
+				`  ${cat.padEnd(16)} ${String(splitIdx).padStart(5)}  ${String(exs.length - splitIdx).padStart(5)}`,
+			);
 		}
 	}
 }
@@ -374,7 +449,9 @@ if (!doFix) {
 
 // ─── Summary ─────────────────────────────────────────────────────────
 console.log(`\n═══════════════════════════════════════════════════════`);
-console.log(`  Total: ${examples.length} | Errors: ${errors.length} | Warnings: ${warnings.length}`);
+console.log(
+	`  Total: ${examples.length} | Errors: ${errors.length} | Warnings: ${warnings.length}`,
+);
 console.log(`═══════════════════════════════════════════════════════`);
 
 // ─── Helpers ─────────────────────────────────────────────────────────

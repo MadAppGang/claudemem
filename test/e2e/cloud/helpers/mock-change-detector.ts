@@ -1,5 +1,5 @@
 /**
- * MockChangeDetector — implements IChangeDetector with pre-seeded fixture data.
+ * MockChangeDetector — implements IChangeDetector with pre-seeded testdata data.
  *
  * Returns controlled data without running git subprocesses.
  * Stateless after construction — tests construct a new instance per scenario.

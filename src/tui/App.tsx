@@ -16,6 +16,7 @@ import { MapView } from "./views/MapView.js";
 import { GraphView } from "./views/GraphView.js";
 import { AnalysisView } from "./views/AnalysisView.js";
 import { DoctorView } from "./views/DoctorView.js";
+import { IndexNeededView } from "./views/IndexNeededView.js";
 
 // ============================================================================
 // App Props
@@ -40,11 +41,17 @@ function AppInner() {
 		setError,
 		inputFocused,
 		quit,
+		indexNeeded,
+		indexing,
 	} = useAppContext();
 	const { height } = useTerminalDimensions();
 
 	// Global keyboard handling - suppressed when an input field is focused
+	// or when the index prompt / progress view is active (it handles its own keys)
 	useKeyboard((key) => {
+		// IndexNeededView handles its own keyboard — skip global shortcuts
+		if (indexNeeded || indexing) return;
+
 		// Escape always works: unfocus input is handled by the view itself
 		// Ctrl+C always works: handled by renderer exitOnCtrlC
 
@@ -116,6 +123,19 @@ function AppInner() {
 			quit();
 		}
 	});
+
+	// Show the index prompt / progress view when index is missing or being built
+	if (indexNeeded || indexing) {
+		return (
+			<box flexDirection="column" width="100%" height="100%">
+				<IndexNeededView />
+
+				{error && (
+					<ErrorBanner message={error} onDismiss={() => setError(null)} />
+				)}
+			</box>
+		);
+	}
 
 	const mainHeight = height - 2; // subtract tab bar and status bar
 

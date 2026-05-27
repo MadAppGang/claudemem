@@ -52,9 +52,7 @@ function categorizeQuery(query: string): string {
 	const q = query.toLowerCase();
 
 	// Symbol-like queries
-	if (
-		/\b(function|class|method|hook|component|module|import|export)\b/.test(q)
-	)
+	if (/\b(function|class|method|hook|component|module|import|export)\b/.test(q))
 		return "symbol";
 	if (/\b(useeffect|usestate|useref|usememo)\b/.test(q)) return "symbol";
 
@@ -76,8 +74,7 @@ function categorizeQuery(query: string): string {
 		)
 	)
 		return "framework";
-	if (/\b(graphql|rest|grpc|websocket|oauth|jwt)\b/.test(q))
-		return "framework";
+	if (/\b(graphql|rest|grpc|websocket|oauth|jwt)\b/.test(q)) return "framework";
 
 	// Code review queries
 	if (/\b(review|refactor|pattern|anti-?pattern|best practice|vs\b)/.test(q))
@@ -94,9 +91,7 @@ function detectLanguage(query: string, hyde: string): string {
 
 	if (/\b(python|pip|venv|django|flask|pytest|def |import )\b/.test(combined))
 		return "python";
-	if (
-		/\b(typescript|tsx|interface |type |generic|angular)\b/.test(combined)
-	)
+	if (/\b(typescript|tsx|interface |type |generic|angular)\b/.test(combined))
 		return "typescript";
 	if (
 		/\b(javascript|jsx|const |let |var |=>\s|\.then\(|require\()\b/.test(
@@ -104,10 +99,8 @@ function detectLanguage(query: string, hyde: string): string {
 		)
 	)
 		return "javascript";
-	if (/\b(golang|go |goroutine|chan |func |:= )\b/.test(combined))
-		return "go";
-	if (/\b(rust|cargo|fn |let mut|impl |pub fn)\b/.test(combined))
-		return "rust";
+	if (/\b(golang|go |goroutine|chan |func |:= )\b/.test(combined)) return "go";
+	if (/\b(rust|cargo|fn |let mut|impl |pub fn)\b/.test(combined)) return "rust";
 	if (/\b(java|maven|gradle|public class|void )\b/.test(combined))
 		return "java";
 	if (/\b(ruby|gem |rails|def |end$)\b/.test(combined)) return "ruby";
@@ -142,7 +135,9 @@ if (existsSync(OUTPUT)) {
 		existingQueries.add(obj.seed_query.toLowerCase().trim());
 	}
 }
-console.log(`Existing: ${existingIds.size} examples, ${existingQueries.size} unique queries`);
+console.log(
+	`Existing: ${existingIds.size} examples, ${existingQueries.size} unique queries`,
+);
 
 // Load qmd source files
 const handcrafted = loadJsonl(join(SOURCE_DIR, "handcrafted.jsonl"));
@@ -163,7 +158,9 @@ for (const ex of allQmd) {
 	dedupedQmd.push(ex);
 }
 
-console.log(`After dedup (removing overlap with existing): ${dedupedQmd.length} examples`);
+console.log(
+	`After dedup (removing overlap with existing): ${dedupedQmd.length} examples`,
+);
 
 // Convert to our format
 let written = 0;
@@ -183,7 +180,11 @@ for (let i = 0; i < dedupedQmd.length; i++) {
 		else if (type === "hyde") hydeParts.push(text);
 	}
 
-	if (lexParts.length === 0 || vecParts.length === 0 || hydeParts.length === 0) {
+	if (
+		lexParts.length === 0 ||
+		vecParts.length === 0 ||
+		hydeParts.length === 0
+	) {
 		skipped++;
 		continue;
 	}
@@ -227,5 +228,7 @@ for (let i = 0; i < dedupedQmd.length; i++) {
 // Count total
 const totalLines = readFileSync(OUTPUT, "utf-8").trim().split("\n").length;
 
-console.log(`\nConverted: ${written} examples (${skipped} skipped — missing lex/vec/hyde)`);
+console.log(
+	`\nConverted: ${written} examples (${skipped} skipped — missing lex/vec/hyde)`,
+);
 console.log(`Total examples in ${OUTPUT}: ${totalLines}`);

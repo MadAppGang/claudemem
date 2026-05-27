@@ -15,19 +15,14 @@ import { z } from "zod";
 import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
-export function registerReadFileTools(
-	server: McpServer,
-	deps: ToolDeps,
-): void {
+export function registerReadFileTools(server: McpServer, deps: ToolDeps): void {
 	const { stateManager, config } = deps;
 
 	server.tool(
 		"read_file",
 		"Read file contents with optional line range. Paths are relative to the workspace root.",
 		{
-			path: z
-				.string()
-				.describe("File path relative to workspace root"),
+			path: z.string().describe("File path relative to workspace root"),
 			startLine: z
 				.number()
 				.int()
@@ -66,9 +61,7 @@ export function registerReadFileTools(
 
 				// Apply line range if specified
 				const start = startLine ? Math.max(1, startLine) : 1;
-				const end = endLine
-					? Math.min(totalLines, endLine)
-					: totalLines;
+				const end = endLine ? Math.min(totalLines, endLine) : totalLines;
 				const selectedLines = allLines.slice(start - 1, end);
 
 				// Format with line numbers

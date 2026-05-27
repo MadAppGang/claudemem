@@ -18,7 +18,7 @@ import type { CloudSearchResult } from "../../../src/cloud/types.js";
 import type { SearchResult, CodeChunk } from "../../../src/types.js";
 
 // ============================================================================
-// Fixtures
+// Testdata
 // ============================================================================
 
 function makeCloudResult(

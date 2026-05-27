@@ -261,11 +261,11 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											<div className="p-4 text-sm text-gray-300 font-mono">
 												<div className="flex gap-2">
 													<span className="text-claude-ish select-none">$</span>
-													<span>brew tap MadAppGang/claude-mem</span>
+													<span>brew tap MadAppGang/tap</span>
 												</div>
 												<div className="flex gap-2 mt-2">
 													<span className="text-claude-ish select-none">$</span>
-													<span>brew install --cask mnemex</span>
+													<span>brew install mnemex</span>
 												</div>
 											</div>
 										</TerminalWindow>
@@ -528,9 +528,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 														<td className="p-3">Voyage AI embeddings</td>
 													</tr>
 													<tr>
-														<td className="p-3 text-blue-300">
-															MNEMEX_MODEL
-														</td>
+														<td className="p-3 text-blue-300">MNEMEX_MODEL</td>
 														<td className="p-3">Override embedding model</td>
 													</tr>
 													<tr>
@@ -562,9 +560,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 														</td>
 													</tr>
 													<tr>
-														<td className="p-3 text-yellow-300">
-															mnemex.json
-														</td>
+														<td className="p-3 text-yellow-300">mnemex.json</td>
 														<td className="p-3">Project-specific config</td>
 													</tr>
 												</tbody>
@@ -619,8 +615,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											<span className="text-gray-500"># 3. Search</span>
 										</div>
 										<div className="flex gap-2">
-											<span className="text-claude-ish">$</span> mnemex
-											search "authentication flow"
+											<span className="text-claude-ish">$</span> mnemex search
+											"authentication flow"
 										</div>
 									</div>
 								</TerminalWindow>
@@ -743,8 +739,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										PageRank.
 									</p>
 									<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-										<span className="text-claude-ish">$</span> mnemex map
-										"auth"
+										<span className="text-claude-ish">$</span> mnemex map "auth"
 									</div>
 								</div>
 
@@ -841,9 +836,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Report search feedback to improve ranking quality.
 									</p>
 									<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-										<span className="text-claude-ish">$</span> mnemex
-										feedback --query "auth" --helpful chunk1,chunk2 --unhelpful
-										chunk3
+										<span className="text-claude-ish">$</span> mnemex feedback
+										--query "auth" --helpful chunk1,chunk2 --unhelpful chunk3
 									</div>
 									<Table
 										headers={["Flag", "Description"]}
@@ -924,8 +918,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										Compare embedding models for speed and quality on your code.
 									</p>
 									<div className="font-mono text-sm bg-black/30 p-3 rounded border border-white/10 text-gray-300">
-										<span className="text-claude-ish">$</span> mnemex
-										benchmark
+										<span className="text-claude-ish">$</span> mnemex benchmark
 										--models=voyage-code-3,openai/text-embedding-3-small
 									</div>
 								</div>
@@ -1074,8 +1067,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											# Append to CLAUDE.md for Claude Code
 										</span>
 										<br />
-										<span className="text-claude-ish">$</span> mnemex ai
-										skill --raw &gt;&gt; CLAUDE.md
+										<span className="text-claude-ish">$</span> mnemex ai skill
+										--raw &gt;&gt; CLAUDE.md
 									</div>
 								</div>
 							</div>
@@ -1220,8 +1213,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									Integration Guide
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
-									Complete guide for using mnemex with Claude Code and the
-									Code Analysis Plugin.
+									Complete guide for using mnemex with Claude Code and the Code
+									Analysis Plugin.
 								</p>
 							</div>
 
@@ -1234,10 +1227,10 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									<div className="space-y-4">
 										<p className="text-gray-400 text-sm leading-relaxed">
 											When combined with the{" "}
-											<strong>Code Analysis Plugin</strong>, mnemex gives
-											Claude "detective skills" to navigate your codebase.
-											Instead of guessing files or running grep, it can trace
-											calls, find definitions, and understand architecture.
+											<strong>Code Analysis Plugin</strong>, mnemex gives Claude
+											"detective skills" to navigate your codebase. Instead of
+											guessing files or running grep, it can trace calls, find
+											definitions, and understand architecture.
 										</p>
 										<Table
 											headers={["Component", "Purpose"]}
@@ -1302,12 +1295,10 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 												-g mnemex
 											</div>
 											<div>
-												<span className="text-claude-ish">$</span> mnemex
-												init
+												<span className="text-claude-ish">$</span> mnemex init
 											</div>
 											<div>
-												<span className="text-claude-ish">$</span> mnemex
-												index
+												<span className="text-claude-ish">$</span> mnemex index
 											</div>
 										</div>
 									</TerminalWindow>
@@ -1705,9 +1696,9 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									</a>
 									, MIT) by Zilliz is a semantic code search MCP server using
 									Milvus/Zilliz Cloud for vectors.
-									<strong className="text-white"> mnemex</strong> uses
-									embedded LanceDB — no cloud signup required, fully local
-									operation possible.
+									<strong className="text-white"> mnemex</strong> uses embedded
+									LanceDB — no cloud signup required, fully local operation
+									possible.
 								</p>
 							</div>
 
@@ -1945,8 +1936,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 									mnemex vs Context-Engine
 								</h1>
 								<p className="text-xl text-gray-400 leading-relaxed">
-									How mnemex compares to Context-Engine for code
-									intelligence.
+									How mnemex compares to Context-Engine for code intelligence.
 								</p>
 							</div>
 
@@ -2063,8 +2053,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											mnemex's Key Differentiator
 										</div>
 										<p className="text-sm text-gray-400">
-											While Context-Engine focuses on retrieval, mnemex
-											builds a{" "}
+											While Context-Engine focuses on retrieval, mnemex builds a{" "}
 											<strong className="text-white">
 												semantic understanding
 											</strong>{" "}
@@ -2202,8 +2191,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											Unique to mnemex
 										</div>
 										<p className="text-sm text-gray-400">
-											mnemex's documentation indexing lets you search React
-											docs alongside your React code. Useful for queries like{" "}
+											mnemex's documentation indexing lets you search React docs
+											alongside your React code. Useful for queries like{" "}
 											<em>"how does React's useEffect work?"</em> during
 											development.
 										</p>
@@ -2427,9 +2416,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								</h3>
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
-										<div className="text-claude-ish font-bold mb-2">
-											mnemex
-										</div>
+										<div className="text-claude-ish font-bold mb-2">mnemex</div>
 										<p className="text-sm text-gray-400">
 											Developer semantic search, dead-code detection, impact
 											analysis, symbol navigation
@@ -2974,8 +2961,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<p className="text-sm text-gray-400">
 									Serena explicitly positions LSP and RAG as{" "}
 									<strong className="text-white">complementary</strong>{" "}
-									approaches. You could use both: mnemex for semantic
-									discovery, Serena for precise symbol-level editing.
+									approaches. You could use both: mnemex for semantic discovery,
+									Serena for precise symbol-level editing.
 								</p>
 							</div>
 
@@ -3347,10 +3334,10 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										</h3>
 										<p className="text-gray-400 leading-relaxed">
 											When you ask Claude "where is authentication handled?" it
-											needs to actually <em>find</em> that code. mnemex
-											indexes your codebase with tree-sitter AST parsing,
-											creates embeddings, and builds a symbol graph so AI can
-											search semantically — not just grep for strings.
+											needs to actually <em>find</em> that code. mnemex indexes
+											your codebase with tree-sitter AST parsing, creates
+											embeddings, and builds a symbol graph so AI can search
+											semantically — not just grep for strings.
 										</p>
 										<div className="bg-[#0c0c0c] rounded-lg p-4 font-mono text-sm">
 											<div className="text-gray-500">
@@ -3643,8 +3630,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-											<span className="text-claude-ish">→</span> Use mnemex
-											when you ask:
+											<span className="text-claude-ish">→</span> Use mnemex when
+											you ask:
 										</h3>
 										<ul className="space-y-3 text-gray-300">
 											<li className="flex items-start gap-2">
@@ -3779,9 +3766,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="space-y-4">
 									<details className="group bg-[#1a1a1a] rounded-xl border border-white/10">
 										<summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium hover:text-claude-ish transition-colors">
-											<span>
-												Are mnemex and claude-mem the same project?
-											</span>
+											<span>Are mnemex and claude-mem the same project?</span>
 											<span className="text-gray-500 group-open:rotate-180 transition-transform">
 												▼
 											</span>
@@ -3789,9 +3774,9 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="px-5 pb-5 text-gray-400">
 											<strong className="text-white">No.</strong> They are
 											completely separate projects by different maintainers.
-											claude-mem (by @thedotmack) is session memory. mnemex
-											(by MadAppGang) is semantic code search. The similar names
-											are coincidental.
+											claude-mem (by @thedotmack) is session memory. mnemex (by
+											MadAppGang) is semantic code search. The similar names are
+											coincidental.
 										</div>
 									</details>
 
@@ -3805,9 +3790,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<div className="px-5 pb-5 text-gray-400">
 											<strong className="text-green-400">Yes!</strong> They
 											solve different problems and complement each other
-											perfectly. Use mnemex for code search and
-											understanding, claude-mem for session persistence and
-											memory.
+											perfectly. Use mnemex for code search and understanding,
+											claude-mem for session persistence and memory.
 										</div>
 									</details>
 
@@ -3819,8 +3803,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											claude-mem has ~9.3k stars and launched earlier. mnemex
-											is newer and growing. Stars don't determine which tool you
+											claude-mem has ~9.3k stars and launched earlier. mnemex is
+											newer and growing. Stars don't determine which tool you
 											need — they solve different problems.
 										</div>
 									</details>
@@ -3850,10 +3834,9 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											<strong className="text-white">No.</strong> mnemex
-											indexes your <em>code</em>, not your <em>sessions</em>. If
-											you need session memory, use claude-mem alongside
-											mnemex.
+											<strong className="text-white">No.</strong> mnemex indexes
+											your <em>code</em>, not your <em>sessions</em>. If you
+											need session memory, use claude-mem alongside mnemex.
 										</div>
 									</details>
 
@@ -3972,8 +3955,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										<strong className="text-green-400">
 											different problems at different layers
 										</strong>
-										. mnemex = code understanding. mem0 = user memory. Use
-										both for the complete AI assistant stack.
+										. mnemex = code understanding. mem0 = user memory. Use both
+										for the complete AI assistant stack.
 									</p>
 								</div>
 							</div>
@@ -4247,9 +4230,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</li>
 											<li className="flex justify-between">
 												<span>Package</span>
-												<span className="font-mono text-xs">
-													mnemex
-												</span>
+												<span className="font-mono text-xs">mnemex</span>
 											</li>
 											<li className="flex justify-between">
 												<span>Search Speed</span>
@@ -4293,8 +4274,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-6">
 										<h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-											<span className="text-claude-ish">→</span> Use mnemex
-											when you ask:
+											<span className="text-claude-ish">→</span> Use mnemex when
+											you ask:
 										</h3>
 										<ul className="space-y-3 text-gray-300">
 											<li className="flex items-start gap-2">
@@ -4435,17 +4416,15 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 											</span>
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
-											<strong className="text-white">No.</strong> mnemex
-											indexes source code, not user interactions. For user
-											memory, use mem0 or claude-mem alongside mnemex.
+											<strong className="text-white">No.</strong> mnemex indexes
+											source code, not user interactions. For user memory, use
+											mem0 or claude-mem alongside mnemex.
 										</div>
 									</details>
 
 									<details className="group bg-[#1a1a1a] rounded-xl border border-white/10">
 										<summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium hover:text-claude-ish transition-colors">
-											<span>
-												Can mem0 understand my codebase like mnemex?
-											</span>
+											<span>Can mem0 understand my codebase like mnemex?</span>
 											<span className="text-gray-500 group-open:rotate-180 transition-transform">
 												▼
 											</span>
@@ -4467,9 +4446,9 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 										</summary>
 										<div className="px-5 pb-5 text-gray-400">
 											<strong className="text-purple-400">mem0</strong> has 45k+
-											GitHub stars and raised $24M (YC S24). mnemex is a
-											newer, growing project. But stars/funding don't determine
-											which tool you need — they solve different problems.
+											GitHub stars and raised $24M (YC S24). mnemex is a newer,
+											growing project. But stars/funding don't determine which
+											tool you need — they solve different problems.
 										</div>
 									</details>
 
@@ -4569,9 +4548,7 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								</h3>
 								<div className="grid md:grid-cols-2 gap-6">
 									<div className="bg-claude-ish/10 border border-claude-ish/20 rounded-xl p-5">
-										<div className="text-claude-ish font-bold mb-2">
-											mnemex
-										</div>
+										<div className="text-claude-ish font-bold mb-2">mnemex</div>
 										<p className="text-sm text-gray-400 mb-3">
 											Semantic code search + symbol analysis
 										</p>
@@ -4775,8 +4752,8 @@ const DocsPage: React.FC<DocsPageProps> = ({ section = "installation" }) => {
 								<p className="text-sm text-gray-400">
 									These tools are{" "}
 									<strong className="text-white">complementary</strong>: use{" "}
-									<strong className="text-claude-ish">mnemex</strong> to
-									search and analyze your codebase, and{" "}
+									<strong className="text-claude-ish">mnemex</strong> to search
+									and analyze your codebase, and{" "}
 									<strong className="text-purple-400">Supermemory</strong> to
 									save research, documentation, and notes that inform your
 									development. Both integrate with Claude Code via MCP.

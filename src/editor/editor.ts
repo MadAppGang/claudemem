@@ -260,15 +260,11 @@ export class SymbolEditor {
 	 */
 	private triggerReindex(filePath: string): void {
 		try {
-			const child = spawn(
-				"mnemex",
-				["index", "--quiet", "--files", filePath],
-				{
-					cwd: this.config.workspaceRoot,
-					stdio: "ignore",
-					detached: true,
-				},
-			);
+			const child = spawn("mnemex", ["index", "--quiet", "--files", filePath], {
+				cwd: this.config.workspaceRoot,
+				stdio: "ignore",
+				detached: true,
+			});
 			child.unref();
 		} catch {
 			// Best-effort: if mnemex binary isn't available, skip

@@ -9,16 +9,19 @@
  * - Last MCP activity (for StatusBar monitor indicator)
  */
 
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import {
 	type ReactNode,
 	createContext,
 	useCallback,
 	useContext,
+	useRef,
 	useState,
 } from "react";
-import { getIndexVersion } from "../core/index-version.js";
+import { getIndexVersion, needsUpgrade } from "../core/index-version.js";
+import { Indexer } from "../core/indexer.js";
+import { ProgressStore } from "../output/progress-store.js";
 import { FileTracker } from "../core/tracker.js";
 import {
 	type ActivityRecord,
@@ -66,6 +69,16 @@ export interface AppContextValue {
 	lastActivity: ActivityRecord | null;
 	/** Whether running in passive monitor mode (affects StatusBar hints) */
 	monitorMode: boolean;
+	/** True when no index exists or the index is outdated */
+	indexNeeded: boolean;
+	/** Why the index is needed: "missing" or "outdated" */
+	indexReason: "missing" | "outdated" | null;
+	/** True while indexing is actively running */
+	indexing: boolean;
+	/** ProgressStore for the active indexing run (null when not indexing) */
+	progressStore: ProgressStore | null;
+	/** Trigger the indexing process */
+	startIndexing: () => void;
 }
 
 // ============================================================================
@@ -73,6 +86,27 @@ export interface AppContextValue {
 // ============================================================================
 
 const AppContext = createContext<AppContextValue | null>(null);
+
+// ============================================================================
+// Index Detection
+// ============================================================================
+
+/**
+ * Returns why the index is needed, or null if the index is ready.
+ * Checks for the DB file existence/size and version.
+ */
+function checkIndexReason(projectPath: string): "missing" | "outdated" | null {
+	const dbPath = join(projectPath, ".mnemex", "index.db");
+	if (!existsSync(dbPath)) return "missing";
+	try {
+		const stat = statSync(dbPath);
+		if (stat.size < 1024) return "missing"; // basically empty
+	} catch {
+		return "missing";
+	}
+	if (needsUpgrade(projectPath)) return "outdated";
+	return null;
+}
 
 // ============================================================================
 // Provider
@@ -96,8 +130,20 @@ export function AppProvider({
 	const [error, setError] = useState<string | null>(null);
 	const [showHelp, setShowHelp] = useState(false);
 	const [inputFocused, setInputFocused] = useState(false);
-	const [indexVersion] = useState(() => getIndexVersion(projectPath));
+	const [indexVersion, setIndexVersion] = useState(() =>
+		getIndexVersion(projectPath),
+	);
 	const [lastActivity, setLastActivity] = useState<ActivityRecord | null>(null);
+	const [indexReason, setIndexReason] = useState(() =>
+		checkIndexReason(projectPath),
+	);
+	const indexNeeded = indexReason !== null;
+	const [indexing, setIndexing] = useState(false);
+	const [progressStore, setProgressStore] = useState<ProgressStore | null>(
+		null,
+	);
+	// Keep a stable ref to avoid stale closure issues in startIndexing
+	const progressStoreRef = useRef<ProgressStore | null>(null);
 
 	// Create FileTracker singleton — memoized so it survives re-renders.
 	// Without memoization, every state change creates a new tracker instance,
@@ -130,6 +176,39 @@ export function AppProvider({
 		setShowHelp((prev: boolean) => !prev);
 	}, []);
 
+	const startIndexing = useCallback(() => {
+		if (indexing) return;
+
+		const store = new ProgressStore();
+		progressStoreRef.current = store;
+		setProgressStore(store);
+		setIndexing(true);
+
+		const indexer = new Indexer({
+			projectPath,
+			onProgress: (current, total, detail, inProgress) => {
+				store.update(current, total, detail, inProgress);
+			},
+		});
+
+		indexer
+			.index(true)
+			.then(() => {
+				store.finish();
+				// Re-read the version from config after indexing completes
+				setIndexVersion(getIndexVersion(projectPath));
+				setIndexReason(null);
+				setIndexing(false);
+			})
+			.catch((err: unknown) => {
+				store.finish();
+				setIndexing(false);
+				setError(
+					err instanceof Error ? err.message : "Indexing failed",
+				);
+			});
+	}, [indexing, projectPath]);
+
 	// In UI mode, activity monitor only updates the StatusBar indicator
 	const handleActivity = useCallback((record: ActivityRecord) => {
 		setLastActivity(record);
@@ -156,6 +235,11 @@ export function AppProvider({
 		quit,
 		lastActivity,
 		monitorMode,
+		indexNeeded,
+		indexReason,
+		indexing,
+		progressStore,
+		startIndexing,
 	};
 
 	return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

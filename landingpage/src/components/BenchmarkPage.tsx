@@ -169,8 +169,7 @@ const BenchmarkPage: React.FC = () => {
 										# Test default embedding models
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> mnemex
-										benchmark
+										<span className="text-claude-ish">$</span> mnemex benchmark
 									</div>
 								</div>
 								<div>
@@ -179,8 +178,8 @@ const BenchmarkPage: React.FC = () => {
 										codebase)
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> mnemex
-										benchmark --auto
+										<span className="text-claude-ish">$</span> mnemex benchmark
+										--auto
 									</div>
 								</div>
 								<div>
@@ -188,15 +187,15 @@ const BenchmarkPage: React.FC = () => {
 										# Test specific embedding models
 									</div>
 									<div>
-										<span className="text-claude-ish">$</span> mnemex
-										benchmark --models="voyage-code-3,text-embedding-3-large"
+										<span className="text-claude-ish">$</span> mnemex benchmark
+										--models="voyage-code-3,text-embedding-3-large"
 									</div>
 								</div>
 								<div>
 									<div className="text-gray-500 mb-1"># Test local models</div>
 									<div>
-										<span className="text-claude-ish">$</span> mnemex
-										benchmark --models="ollama/nomic-embed-text"
+										<span className="text-claude-ish">$</span> mnemex benchmark
+										--models="ollama/nomic-embed-text"
 									</div>
 								</div>
 							</div>

@@ -192,7 +192,7 @@ const App: React.FC = () => {
 						</div>
 					</div>
 					<div className="pt-8 border-t border-white/5 text-center text-gray-600 text-sm">
-						© 2025 MadAppGang. MIT License.
+						© 2026 MadAppGang. MIT License.
 					</div>
 				</div>
 			</footer>

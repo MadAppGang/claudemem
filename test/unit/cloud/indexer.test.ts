@@ -84,7 +84,7 @@ const { CloudAwareIndexer, createCloudIndexer } = await import(
 );
 
 // ============================================================================
-// Fixtures and helpers
+// Testdata and helpers
 // ============================================================================
 
 const PROJECT_PATH = "/project";

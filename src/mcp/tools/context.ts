@@ -21,12 +21,12 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 			file: z
 				.string()
 				.describe("File path (relative to workspace root) to get context for"),
-			line: z
-				.coerce.number()
+			line: z.coerce
+				.number()
 				.default(1)
 				.describe("Line number within the file (default: 1)"),
-			radius: z
-				.coerce.number()
+			radius: z.coerce
+				.number()
 				.min(1)
 				.max(10)
 				.default(2)
@@ -34,7 +34,9 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 			includeBody: z
 				.boolean()
 				.default(true)
-				.describe("Include source code body of the enclosing symbol (default: true)"),
+				.describe(
+					"Include source code body of the enclosing symbol (default: true)",
+				),
 		},
 		async ({ file, line, radius, includeBody }) => {
 			const startTime = Date.now();

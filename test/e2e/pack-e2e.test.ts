@@ -25,8 +25,8 @@ import { spawnSync } from "child_process";
 // Constants
 // ============================================================================
 
-const WORKTREE = "/Users/jack/mag/mnemex/.worktrees/repomix";
-const CLI = join(WORKTREE, "dist/index.js");
+const REPO_ROOT = resolve(import.meta.dir, "../..");
+const CLI = join(REPO_ROOT, "dist/index.js");
 const SPAWN_TIMEOUT = 30000;
 
 // ============================================================================
@@ -36,7 +36,7 @@ const SPAWN_TIMEOUT = 30000;
 /** Invoke the CLI with given args and return the result */
 function runCli(
 	args: string[],
-	cwd: string = WORKTREE,
+	cwd: string = REPO_ROOT,
 ): {
 	stdout: string;
 	stderr: string;
@@ -72,7 +72,7 @@ function writeBinaryFile(filePath: string, bytes: Buffer): void {
 }
 
 /**
- * Create the standard fixture directory used across multiple test groups.
+ * Create the standard testdata directory used across multiple test groups.
  *
  * Structure:
  *   src/index.ts     - TypeScript source
@@ -82,8 +82,8 @@ function writeBinaryFile(filePath: string, bytes: Buffer): void {
  *   .gitignore       - Ignores dist/
  *   dist/output.js   - Should be excluded by gitignore
  */
-function createStandardFixture(): string {
-	const dir = makeTempDir("fixture");
+function createStandardTestdata(): string {
+	const dir = makeTempDir("testdata");
 
 	writeFile(join(dir, "src", "index.ts"), 'export const hello = "world";');
 	writeFile(
@@ -215,7 +215,7 @@ describe("CLI argument parsing", () => {
 			// No output file should be created in the working directory with --stdout
 			// (files are written relative to cwd when no -o given, but --stdout overrides)
 			const outputFile = join(
-				WORKTREE,
+				REPO_ROOT,
 				`${require("path").basename(dir)}-pack.xml`,
 			);
 			expect(existsSync(outputFile)).toBe(false);
@@ -298,14 +298,14 @@ describe("CLI argument parsing", () => {
 // ============================================================================
 
 describe("Format correctness: XML via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = createStandardFixture();
+		testdataDir = createStandardTestdata();
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-2a: XML output contains <file_summary> section", () => {
@@ -314,7 +314,7 @@ describe("Format correctness: XML via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("<file_summary>");
 	});
@@ -325,7 +325,7 @@ describe("Format correctness: XML via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("<directory_structure>");
 	});
@@ -336,7 +336,7 @@ describe("Format correctness: XML via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("<files>");
 	});
@@ -347,7 +347,7 @@ describe("Format correctness: XML via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toMatch(/<file path=["']src\/index\.ts["']/);
 	});
@@ -358,7 +358,7 @@ describe("Format correctness: XML via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("hello");
 	});
@@ -369,21 +369,21 @@ describe("Format correctness: XML via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("add");
 	});
 });
 
 describe("Format correctness: Markdown via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = createStandardFixture();
+		testdataDir = createStandardTestdata();
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-3a: Markdown output contains '# Codebase:' header", () => {
@@ -392,7 +392,7 @@ describe("Format correctness: Markdown via CLI", () => {
 			"--format",
 			"markdown",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("# Codebase:");
 	});
@@ -403,7 +403,7 @@ describe("Format correctness: Markdown via CLI", () => {
 			"--format",
 			"markdown",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("## Directory Structure");
 	});
@@ -414,7 +414,7 @@ describe("Format correctness: Markdown via CLI", () => {
 			"--format",
 			"markdown",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		const dirSection = stdout.split("## Directory Structure")[1];
 		expect(dirSection).toBeDefined();
@@ -427,7 +427,7 @@ describe("Format correctness: Markdown via CLI", () => {
 			"--format",
 			"markdown",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("### File:");
 	});
@@ -438,7 +438,7 @@ describe("Format correctness: Markdown via CLI", () => {
 			"--format",
 			"markdown",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		const fileSection = stdout.split("### File:")[1];
 		expect(fileSection).toBeDefined();
@@ -451,21 +451,21 @@ describe("Format correctness: Markdown via CLI", () => {
 			"--format",
 			"markdown",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("hello");
 	});
 });
 
 describe("Format correctness: Plain via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = createStandardFixture();
+		testdataDir = createStandardTestdata();
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-4a: Plain output contains 64-char '=' separator lines", () => {
@@ -474,7 +474,7 @@ describe("Format correctness: Plain via CLI", () => {
 			"--format",
 			"plain",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("=".repeat(64));
 	});
@@ -485,7 +485,7 @@ describe("Format correctness: Plain via CLI", () => {
 			"--format",
 			"plain",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("File:");
 	});
@@ -496,7 +496,7 @@ describe("Format correctness: Plain via CLI", () => {
 			"--format",
 			"plain",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("End of Codebase");
 	});
@@ -507,14 +507,14 @@ describe("Format correctness: Plain via CLI", () => {
 // ============================================================================
 
 describe("Filtering: --include via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = createStandardFixture();
+		testdataDir = createStandardTestdata();
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-5a: --include 'src/**' includes only src files in content", () => {
@@ -525,7 +525,7 @@ describe("Filtering: --include via CLI", () => {
 			"--stdout",
 			"--include",
 			"src/**",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("src/index.ts");
 		expect(stdout).toContain("src/utils.ts");
@@ -539,7 +539,7 @@ describe("Filtering: --include via CLI", () => {
 			"--stdout",
 			"--include",
 			"src/**",
-			fixtureDir,
+			testdataDir,
 		]);
 		// README.md should not appear in file content sections
 		const filesSection = stdout.split("<files>")[1] ?? "";
@@ -548,14 +548,14 @@ describe("Filtering: --include via CLI", () => {
 });
 
 describe("Filtering: --exclude via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = createStandardFixture();
+		testdataDir = createStandardTestdata();
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-6a: --exclude '**/*.md' excludes markdown files", () => {
@@ -566,7 +566,7 @@ describe("Filtering: --exclude via CLI", () => {
 			"--stdout",
 			"--exclude",
 			"**/*.md",
-			fixtureDir,
+			testdataDir,
 		]);
 		// README.md should not appear in content sections
 		const filesSection = stdout.split("<files>")[1] ?? "";
@@ -581,7 +581,7 @@ describe("Filtering: --exclude via CLI", () => {
 			"--stdout",
 			"--exclude",
 			"**/*.md",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("src/index.ts");
 		expect(stdout).toContain("src/utils.ts");
@@ -589,25 +589,25 @@ describe("Filtering: --exclude via CLI", () => {
 });
 
 describe("Filtering: gitignore integration", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = createStandardFixture();
+		testdataDir = createStandardTestdata();
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-7a: dist/ file is excluded by default (gitignore)", () => {
-		// The fixture has .gitignore with dist/ entry and dist/output.js file
+		// The testdata has .gitignore with dist/ entry and dist/output.js file
 		// Default behaviour respects gitignore
 		const { stdout } = runCli([
 			"pack",
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		const filesSection = stdout.split("<files>")[1] ?? stdout;
 		expect(filesSection).not.toContain("dist/output.js");
@@ -620,7 +620,7 @@ describe("Filtering: gitignore integration", () => {
 			"xml",
 			"--stdout",
 			"--no-gitignore",
-			fixtureDir,
+			testdataDir,
 		]);
 		// With no-gitignore, dist/ should be included (but note: dist is also in
 		// DEFAULT_EXCLUDE_PATTERNS, so it will still be excluded by default patterns.
@@ -633,14 +633,14 @@ describe("Filtering: gitignore integration", () => {
 });
 
 describe("Filtering: binary files via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = createStandardFixture();
+		testdataDir = createStandardTestdata();
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-8a: binary file appears in directory structure with [binary] marker", () => {
@@ -649,7 +649,7 @@ describe("Filtering: binary files via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		const dirSection = stdout.split("<directory_structure>")[1] ?? stdout;
 		expect(dirSection).toMatch(/logo\.png.*\[binary\]|\[binary\].*logo\.png/);
@@ -661,7 +661,7 @@ describe("Filtering: binary files via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		const filesSection = stdout.split("<files>")[1] ?? "";
 		expect(filesSection).not.toContain("logo.png");
@@ -673,18 +673,18 @@ describe("Filtering: binary files via CLI", () => {
 // ============================================================================
 
 describe("XML special character escaping via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = makeTempDir("xml-escape");
+		testdataDir = makeTempDir("xml-escape");
 		writeFile(
-			join(fixtureDir, "special.ts"),
+			join(testdataDir, "special.ts"),
 			'if (a < b && b > c) { return "ok & done"; }',
 		);
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-9a: ampersand is escaped as &amp; in XML output", () => {
@@ -693,7 +693,7 @@ describe("XML special character escaping via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("&amp;");
 	});
@@ -704,7 +704,7 @@ describe("XML special character escaping via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("&lt;");
 	});
@@ -715,7 +715,7 @@ describe("XML special character escaping via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("&gt;");
 	});
@@ -726,7 +726,7 @@ describe("XML special character escaping via CLI", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		// Extract the files section and check no raw unescaped & followed by space
 		const filesSection = stdout.split("<files>")[1] ?? "";
@@ -740,18 +740,18 @@ describe("XML special character escaping via CLI", () => {
 // ============================================================================
 
 describe("Markdown triple backtick handling via CLI", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = makeTempDir("md-backtick");
+		testdataDir = makeTempDir("md-backtick");
 		writeFile(
-			join(fixtureDir, "example.md"),
+			join(testdataDir, "example.md"),
 			"Here is code:\n```js\nconsole.log('hello');\n```\nEnd.",
 		);
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-10: file with triple backticks does not break markdown structure", () => {
@@ -760,7 +760,7 @@ describe("Markdown triple backtick handling via CLI", () => {
 			"--format",
 			"markdown",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		// Structure must remain intact
 		expect(stdout).toContain("### File:");
@@ -776,15 +776,15 @@ describe("Markdown triple backtick handling via CLI", () => {
 // ============================================================================
 
 describe("Edge case: empty project directory", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = makeTempDir("empty");
+		testdataDir = makeTempDir("empty");
 		// No files created — truly empty directory
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-11a: empty project produces valid XML output with exit 0", () => {
@@ -793,7 +793,7 @@ describe("Edge case: empty project directory", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(status).toBe(0);
 		expect(stdout).toContain("<file_summary>");
@@ -805,24 +805,24 @@ describe("Edge case: empty project directory", () => {
 			"--format",
 			"xml",
 			"--stdout",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toMatch(/Files: 0/);
 	});
 });
 
 describe("Edge case: large file exceeding maxFileSize is skipped", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = makeTempDir("large-file");
-		writeFile(join(fixtureDir, "small.ts"), "const x = 1;");
+		testdataDir = makeTempDir("large-file");
+		writeFile(join(testdataDir, "small.ts"), "const x = 1;");
 		// Write a 300-byte file
-		writeFile(join(fixtureDir, "large.ts"), "x".repeat(300));
+		writeFile(join(testdataDir, "large.ts"), "x".repeat(300));
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-12a: large file is excluded from output when --max-file-size is set", () => {
@@ -833,7 +833,7 @@ describe("Edge case: large file exceeding maxFileSize is skipped", () => {
 			"--stdout",
 			"--max-file-size",
 			"100",
-			fixtureDir,
+			testdataDir,
 		]);
 		// The 300-byte content should not appear
 		expect(stdout).not.toContain("x".repeat(50));
@@ -847,7 +847,7 @@ describe("Edge case: large file exceeding maxFileSize is skipped", () => {
 			"--stdout",
 			"--max-file-size",
 			"100",
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toContain("const x = 1");
 	});
@@ -858,17 +858,17 @@ describe("Edge case: large file exceeding maxFileSize is skipped", () => {
 // ============================================================================
 
 describe("Output file behavior: -o flag", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 	let outputDir: string;
 
 	beforeAll(() => {
-		fixtureDir = makeTempDir("out-file");
+		testdataDir = makeTempDir("out-file");
 		outputDir = makeTempDir("out-dest");
-		writeFile(join(fixtureDir, "main.ts"), "export {};");
+		writeFile(join(testdataDir, "main.ts"), "export {};");
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 		rmSync(outputDir, { recursive: true, force: true });
 	});
 
@@ -880,7 +880,7 @@ describe("Output file behavior: -o flag", () => {
 			"xml",
 			"-o",
 			outFile,
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(status).toBe(0);
 		expect(existsSync(outFile)).toBe(true);
@@ -890,7 +890,7 @@ describe("Output file behavior: -o flag", () => {
 
 	test("E2E-13b: -o output file contains valid XML structure", () => {
 		const outFile = join(outputDir, "output2.xml");
-		runCli(["pack", "--format", "xml", "-o", outFile, fixtureDir]);
+		runCli(["pack", "--format", "xml", "-o", outFile, testdataDir]);
 		const content = readFileSync(outFile, "utf-8");
 		expect(content).toContain("<file_summary>");
 		expect(content).toContain("<directory_structure>");
@@ -905,7 +905,7 @@ describe("Output file behavior: -o flag", () => {
 			"xml",
 			"-o",
 			outFile,
-			fixtureDir,
+			testdataDir,
 		]);
 		// The packed file content should NOT be in stdout when writing to file
 		// (it goes to the file, not stdout)
@@ -920,7 +920,7 @@ describe("Output file behavior: -o flag", () => {
 			"xml",
 			"-o",
 			outFile,
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(status).toBe(0);
 		expect(existsSync(outFile)).toBe(true);
@@ -935,7 +935,7 @@ describe("Output file behavior: -o flag", () => {
 			"xml",
 			"-o",
 			outFile,
-			fixtureDir,
+			testdataDir,
 		]);
 		expect(stdout).toMatch(/files=\d+/);
 		expect(stdout).toMatch(/binary_skipped=\d+/);
@@ -948,7 +948,7 @@ describe("Output file behavior: -o flag", () => {
 // ============================================================================
 
 describe("Repomix comparison: XML structural equivalence", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 	let mnemexOutput: string;
 	let repomixOutputPath: string;
 	let repomixOutput: string;
@@ -957,16 +957,16 @@ describe("Repomix comparison: XML structural equivalence", () => {
 	// beforeAll timeout must exceed repomix startup time (~5s via npx)
 	beforeAll(
 		() => {
-			fixtureDir = makeTempDir("repomix-cmp");
+			testdataDir = makeTempDir("repomix-cmp");
 
-			// Create a simple, well-defined fixture
-			writeFile(join(fixtureDir, "src", "index.ts"), "export const x = 1;");
+			// Create a simple, well-defined testdata
+			writeFile(join(testdataDir, "src", "index.ts"), "export const x = 1;");
 			writeFile(
-				join(fixtureDir, "src", "utils.ts"),
+				join(testdataDir, "src", "utils.ts"),
 				"export function double(n: number) { return n * 2; }",
 			);
-			writeFile(join(fixtureDir, "README.md"), "# Compare Project");
-			// Note: No .gitignore, no binary files — clean fixture for comparison
+			writeFile(join(testdataDir, "README.md"), "# Compare Project");
+			// Note: No .gitignore, no binary files — clean testdata for comparison
 
 			// Get mnemex output
 			const mnemexResult = runCli([
@@ -975,7 +975,7 @@ describe("Repomix comparison: XML structural equivalence", () => {
 				"xml",
 				"--no-gitignore",
 				"--stdout",
-				fixtureDir,
+				testdataDir,
 			]);
 			mnemexOutput = mnemexResult.stdout;
 
@@ -989,7 +989,7 @@ describe("Repomix comparison: XML structural equivalence", () => {
 					"xml",
 					"--output",
 					repomixOutputPath,
-					fixtureDir,
+					testdataDir,
 				],
 				{
 					encoding: "utf-8",
@@ -1011,7 +1011,7 @@ describe("Repomix comparison: XML structural equivalence", () => {
 	);
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 		try {
 			if (existsSync(repomixOutputPath)) {
 				rmSync(repomixOutputPath, { force: true });
@@ -1090,22 +1090,22 @@ describe("Repomix comparison: XML structural equivalence", () => {
 // ============================================================================
 
 describe("--agent mode output format", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = makeTempDir("agent-mode");
-		writeFile(join(fixtureDir, "src", "a.ts"), "const a = 1;");
-		writeFile(join(fixtureDir, "src", "b.ts"), "const b = 2;");
+		testdataDir = makeTempDir("agent-mode");
+		writeFile(join(testdataDir, "src", "a.ts"), "const a = 1;");
+		writeFile(join(testdataDir, "src", "b.ts"), "const b = 2;");
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-15a: --agent pack with -o produces key=value summary lines", () => {
 		const outFile = join(tmpdir(), `agent-test-${Date.now()}.xml`);
 		try {
-			const { stdout } = runCli(["--agent", "pack", "-o", outFile, fixtureDir]);
+			const { stdout } = runCli(["--agent", "pack", "-o", outFile, testdataDir]);
 			expect(stdout).toMatch(/^files=\d+/m);
 			expect(stdout).toMatch(/^binary_skipped=\d+/m);
 			expect(stdout).toMatch(/^size_skipped=\d+/m);
@@ -1129,7 +1129,7 @@ describe("--agent mode output format", () => {
 			"--stdout",
 			"--format",
 			"xml",
-			fixtureDir,
+			testdataDir,
 		]);
 		// When --stdout is used with --agent, the pack content goes to stdout
 		// and no separate summary is emitted
@@ -1139,7 +1139,7 @@ describe("--agent mode output format", () => {
 	test("E2E-15c: --agent pack reports correct fileCount", () => {
 		const outFile = join(tmpdir(), `agent-count-${Date.now()}.xml`);
 		try {
-			const { stdout } = runCli(["--agent", "pack", "-o", outFile, fixtureDir]);
+			const { stdout } = runCli(["--agent", "pack", "-o", outFile, testdataDir]);
 			const match = stdout.match(/^files=(\d+)$/m);
 			expect(match).not.toBeNull();
 			const count = Number.parseInt(match![1], 10);
@@ -1160,27 +1160,27 @@ describe("--agent mode output format", () => {
 // ============================================================================
 
 describe("Default output file naming", () => {
-	let fixtureDir: string;
+	let testdataDir: string;
 
 	beforeAll(() => {
-		fixtureDir = makeTempDir("naming");
-		writeFile(join(fixtureDir, "main.ts"), "const x = 1;");
+		testdataDir = makeTempDir("naming");
+		writeFile(join(testdataDir, "main.ts"), "const x = 1;");
 	});
 
 	afterAll(() => {
-		rmSync(fixtureDir, { recursive: true, force: true });
+		rmSync(testdataDir, { recursive: true, force: true });
 	});
 
 	test("E2E-16a: default XML output file is named <dirname>-pack.xml", () => {
 		// The default output is written relative to the CWD.
-		// We run with the fixture dir as cwd so it writes there.
+		// We run with the testdata dir as cwd so it writes there.
 		const { status } = runCli(
-			["pack", "--format", "xml", fixtureDir],
-			fixtureDir,
+			["pack", "--format", "xml", testdataDir],
+			testdataDir,
 		);
 		expect(status).toBe(0);
-		const expectedName = `${require("path").basename(fixtureDir)}-pack.xml`;
-		const expectedPath = join(fixtureDir, expectedName);
+		const expectedName = `${require("path").basename(testdataDir)}-pack.xml`;
+		const expectedPath = join(testdataDir, expectedName);
 		expect(existsSync(expectedPath)).toBe(true);
 		// Cleanup
 		rmSync(expectedPath, { force: true });
@@ -1188,12 +1188,12 @@ describe("Default output file naming", () => {
 
 	test("E2E-16b: default markdown output file uses .md extension", () => {
 		const { status } = runCli(
-			["pack", "--format", "markdown", fixtureDir],
-			fixtureDir,
+			["pack", "--format", "markdown", testdataDir],
+			testdataDir,
 		);
 		expect(status).toBe(0);
-		const expectedName = `${require("path").basename(fixtureDir)}-pack.md`;
-		const expectedPath = join(fixtureDir, expectedName);
+		const expectedName = `${require("path").basename(testdataDir)}-pack.md`;
+		const expectedPath = join(testdataDir, expectedName);
 		expect(existsSync(expectedPath)).toBe(true);
 		// Cleanup
 		rmSync(expectedPath, { force: true });
@@ -1201,12 +1201,12 @@ describe("Default output file naming", () => {
 
 	test("E2E-16c: default plain output file uses .txt extension", () => {
 		const { status } = runCli(
-			["pack", "--format", "plain", fixtureDir],
-			fixtureDir,
+			["pack", "--format", "plain", testdataDir],
+			testdataDir,
 		);
 		expect(status).toBe(0);
-		const expectedName = `${require("path").basename(fixtureDir)}-pack.txt`;
-		const expectedPath = join(fixtureDir, expectedName);
+		const expectedName = `${require("path").basename(testdataDir)}-pack.txt`;
+		const expectedPath = join(testdataDir, expectedName);
 		expect(existsSync(expectedPath)).toBe(true);
 		// Cleanup
 		rmSync(expectedPath, { force: true });

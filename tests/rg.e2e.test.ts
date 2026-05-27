@@ -1,8 +1,8 @@
 /**
- * End-to-end tests for `mnemex rg` against a pinned fixture corpus.
+ * End-to-end tests for `mnemex rg` against pinned testdata.
  *
  * These tests spawn the real built `mnemex rg` binary (via `bun dist/index.js`)
- * from inside `tests/fixtures/rg-corpus/`, which is a snapshot of
+ * from inside `tests/testdata/rg-corpus/`, which is a snapshot of
  * sindresorhus/is @ v6.1.0 with a committed `.mnemex/` index. They verify:
  *
  *   1. Semantic prepend + rg preservation — mnemex hits rank first, but every
@@ -14,7 +14,7 @@
  *
  * The corpus is pinned (sindresorhus/is @ v6.1.0). The `.mnemex/` index is
  * NOT committed — build it before running these tests with:
- *   cd tests/fixtures/rg-corpus && bun ../../dist/index.js index --force
+ *   cd tests/testdata/rg-corpus && bun ../../dist/index.js index --force
  */
 
 import { describe, expect, test, beforeAll } from "bun:test";
@@ -29,8 +29,8 @@ import { join, resolve } from "node:path";
 
 const REPO_ROOT = resolve(import.meta.dir, "..");
 const CLI_BIN = join(REPO_ROOT, "dist", "index.js");
-const FIXTURE = join(REPO_ROOT, "tests", "fixtures", "rg-corpus");
-const FIXTURE_INDEX = join(FIXTURE, ".mnemex");
+const TESTDATA = join(REPO_ROOT, "tests", "testdata", "rg-corpus");
+const TESTDATA_INDEX = join(TESTDATA, ".mnemex");
 
 // ============================================================================
 // Helpers
@@ -86,17 +86,17 @@ async function runVanillaRg(args: string[], cwd: string): Promise<RgResult> {
 // Test suites
 // ============================================================================
 
-describe("e2e: fixture corpus precondition", () => {
-	test("fixture dir exists with pinned commit marker", () => {
-		expect(existsSync(FIXTURE)).toBe(true);
-		expect(existsSync(join(FIXTURE, "PINNED_COMMIT"))).toBe(true);
-		expect(existsSync(join(FIXTURE, "source", "index.ts"))).toBe(true);
+describe("e2e: testdata corpus precondition", () => {
+	test("testdata dir exists with pinned commit marker", () => {
+		expect(existsSync(TESTDATA)).toBe(true);
+		expect(existsSync(join(TESTDATA, "PINNED_COMMIT"))).toBe(true);
+		expect(existsSync(join(TESTDATA, "source", "index.ts"))).toBe(true);
 	});
 
 	test("committed .mnemex/ index exists", () => {
-		expect(existsSync(FIXTURE_INDEX)).toBe(true);
-		expect(existsSync(join(FIXTURE_INDEX, "index.db"))).toBe(true);
-		expect(existsSync(join(FIXTURE_INDEX, "vectors"))).toBe(true);
+		expect(existsSync(TESTDATA_INDEX)).toBe(true);
+		expect(existsSync(join(TESTDATA_INDEX, "index.db"))).toBe(true);
+		expect(existsSync(join(TESTDATA_INDEX, "vectors"))).toBe(true);
 	});
 
 	test("built CLI exists", () => {
@@ -108,7 +108,7 @@ describe("e2e: semantic prepend + rg preservation", () => {
 	// Search for a literal symbol that exists in source/index.ts.
 	// rg alone will find it, mnemex should surface semantically related hits.
 	test("isArray literal search returns hits and preserves all rg results", () => {
-		const mnemexResult = runMnemexRg(["isArray", "source/"], FIXTURE);
+		const mnemexResult = runMnemexRg(["isArray", "source/"], TESTDATA);
 
 		expect(mnemexResult.exitCode).toBe(0);
 		expect(mnemexResult.stdout.length).toBeGreaterThan(0);
@@ -131,10 +131,10 @@ describe("e2e: semantic prepend + rg preservation", () => {
 		// Run both; every line vanilla rg returned must appear somewhere in
 		// the mnemex-wrapped output (order may differ; mnemex hits come first).
 		const pattern = "isBigint";
-		const mnemex = runMnemexRg(["--line-number", pattern, "source/"], FIXTURE);
+		const mnemex = runMnemexRg(["--line-number", pattern, "source/"], TESTDATA);
 		const vanilla = await runVanillaRg(
 			["--line-number", pattern, "source/"],
-			FIXTURE,
+			TESTDATA,
 		);
 
 		expect(vanilla.exitCode).toBe(0);
@@ -189,12 +189,12 @@ describe("e2e: fallback without index (byte-identity)", () => {
 	});
 });
 
-describe("e2e: flag fidelity against fixture", () => {
+describe("e2e: flag fidelity against testdata", () => {
 	test("--glob restricts to matching files", () => {
 		// The `is` package has source/*.ts and test/*.ts; glob to source only.
 		const result = runMnemexRg(
 			["--glob", "source/*.ts", "isArray", "."],
-			FIXTURE,
+			TESTDATA,
 		);
 		expect(result.exitCode).toBe(0);
 		expect(result.stdout).toContain("source/index.ts");
@@ -202,7 +202,7 @@ describe("e2e: flag fidelity against fixture", () => {
 	});
 
 	test("-l / --files-with-matches returns file paths only", () => {
-		const result = runMnemexRg(["-l", "isArray", "source/"], FIXTURE);
+		const result = runMnemexRg(["-l", "isArray", "source/"], TESTDATA);
 		expect(result.exitCode).toBe(0);
 
 		const lines = result.stdout.split("\n").filter((l) => l.length > 0);
@@ -215,7 +215,7 @@ describe("e2e: flag fidelity against fixture", () => {
 	});
 
 	test("--count passes through rg count format", () => {
-		const result = runMnemexRg(["--count", "isArray", "source/"], FIXTURE);
+		const result = runMnemexRg(["--count", "isArray", "source/"], TESTDATA);
 		expect(result.exitCode).toBe(0);
 
 		const lines = result.stdout.split("\n").filter((l) => l.length > 0);
@@ -230,7 +230,7 @@ describe("e2e: flag fidelity against fixture", () => {
 		// Pick a pattern with few hits so context doesn't explode the output.
 		const result = runMnemexRg(
 			["-C", "1", "isBigint", "source/index.ts"],
-			FIXTURE,
+			TESTDATA,
 		);
 		expect(result.exitCode).toBe(0);
 		// Should contain the actual match line
@@ -241,7 +241,7 @@ describe("e2e: flag fidelity against fixture", () => {
 		// "isArray(" is a legitimate substring in the source. Without -F,
 		// the `(` is a regex metachar and would start an (incomplete) group;
 		// with -F it's treated as a literal paren.
-		const result = runMnemexRg(["-F", "isArray(", "source/"], FIXTURE);
+		const result = runMnemexRg(["-F", "isArray(", "source/"], TESTDATA);
 		expect(result.exitCode).toBe(0);
 		expect(result.stdout).toContain("isArray(");
 	});

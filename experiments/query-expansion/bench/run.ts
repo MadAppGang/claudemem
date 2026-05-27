@@ -25,7 +25,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { execSync } from "child_process";
-import { BENCH_MODELS, findModel, getFamily, type BenchModel } from "./models.js";
+import {
+	BENCH_MODELS,
+	findModel,
+	getFamily,
+	type BenchModel,
+} from "./models.js";
 import {
 	scoreExpansion,
 	aggregateModelScores,
@@ -186,7 +191,9 @@ function getLoadedModel(): string | null {
 	try {
 		const output = execSync("lms ps", { encoding: "utf-8", timeout: 10000 });
 		// Parse the ps output to find loaded model
-		const lines = output.split("\n").filter((l) => l.trim() && !l.includes("IDENTIFIER"));
+		const lines = output
+			.split("\n")
+			.filter((l) => l.trim() && !l.includes("IDENTIFIER"));
 		if (lines.length > 0) {
 			// First non-header line contains the model
 			const match = lines[0].trim().split(/\s+/);
@@ -276,7 +283,9 @@ async function benchmarkModel(
 	config: RunConfig,
 ): Promise<ModelScores> {
 	console.log(`\n${"=".repeat(60)}`);
-	console.log(`Benchmarking: ${model.name} (${model.paramsB}B, ${model.family})`);
+	console.log(
+		`Benchmarking: ${model.name} (${model.paramsB}B, ${model.family})`,
+	);
 	console.log(`${"=".repeat(60)}`);
 
 	// Load model — always unload first to avoid "multiple models" error
@@ -289,7 +298,10 @@ async function benchmarkModel(
 		try {
 			execSync("lms unload --all", { stdio: "pipe", timeout: 30000 });
 			execSync(`sleep 1`);
-			execSync(`lms load "${model.lmsKey}" --yes`, { stdio: "pipe", timeout: 120000 });
+			execSync(`lms load "${model.lmsKey}" --yes`, {
+				stdio: "pipe",
+				timeout: 120000,
+			});
 			execSync(`sleep ${MODEL_LOAD_WAIT_MS / 1000}`);
 		} catch {
 			console.log(`  Warning: could not reload model, continuing anyway`);
@@ -315,7 +327,13 @@ async function benchmarkModel(
 				config.retries,
 			);
 
-			const score = scoreExpansion(q.id, q.query, model.name, output, latencyMs);
+			const score = scoreExpansion(
+				q.id,
+				q.query,
+				model.name,
+				output,
+				latencyMs,
+			);
 			scores.push(score);
 			rawResults.push({
 				queryId: q.id,
@@ -334,7 +352,9 @@ async function benchmarkModel(
 		} catch (error) {
 			failCount++;
 			const msg = error instanceof Error ? error.message : String(error);
-			console.log(`  ${progress} "${q.query.slice(0, 40)}..." → FAILED: ${msg.slice(0, 60)}`);
+			console.log(
+				`  ${progress} "${q.query.slice(0, 40)}..." → FAILED: ${msg.slice(0, 60)}`,
+			);
 			rawResults.push({
 				queryId: q.id,
 				query: q.query,
@@ -352,11 +372,11 @@ async function benchmarkModel(
 	if (scores.length > 0) {
 		console.log(
 			`  Avg scores: format=${modelScores.avg.format.toFixed(3)} ` +
-			`kw=${modelScores.avg.keyword.toFixed(3)} ` +
-			`sem=${modelScores.avg.semantic.toFixed(3)} ` +
-			`hyde=${modelScores.avg.hyde.toFixed(3)} ` +
-			`speed=${modelScores.avg.latencyMs.toFixed(0)}ms ` +
-			`total=${modelScores.avg.total.toFixed(3)}`,
+				`kw=${modelScores.avg.keyword.toFixed(3)} ` +
+				`sem=${modelScores.avg.semantic.toFixed(3)} ` +
+				`hyde=${modelScores.avg.hyde.toFixed(3)} ` +
+				`speed=${modelScores.avg.latencyMs.toFixed(0)}ms ` +
+				`total=${modelScores.avg.total.toFixed(3)}`,
 		);
 	}
 
@@ -476,9 +496,7 @@ async function main() {
 	console.log(`\n${"=".repeat(60)}`);
 	console.log(`Benchmark Complete (${totalTime}s total)`);
 	console.log(`${"=".repeat(60)}`);
-	console.log(
-		`\nRun report.ts to generate comparison table:`,
-	);
+	console.log(`\nRun report.ts to generate comparison table:`);
 	console.log(`  bun run experiments/query-expansion/bench/report.ts`);
 }
 

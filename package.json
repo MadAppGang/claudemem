@@ -24,7 +24,9 @@
 		"format": "biome format --write .",
 		"test": "bun test",
 		"test:integration": "bun test test/integration",
-		"test:watch": "bun test --watch"
+		"test:watch": "bun test --watch",
+		"eval:rg:promptfoo": "cd eval/rg && promptfoo eval --no-cache",
+		"eval:rg:inspect": "inspect eval eval/rg/inspect_eval.py@rg_plugin"
 	},
 	"dependencies": {
 		"@inquirer/prompts": "^7.0.0",

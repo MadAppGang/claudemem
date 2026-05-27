@@ -113,7 +113,9 @@ function parseArgs(): {
 function loadResults(): ResultFile[] {
 	if (!existsSync(RESULTS_DIR)) {
 		console.error(`No results directory found: ${RESULTS_DIR}`);
-		console.error("Run the benchmark first: bun run experiments/query-expansion/bench/run.ts");
+		console.error(
+			"Run the benchmark first: bun run experiments/query-expansion/bench/run.ts",
+		);
 		process.exit(1);
 	}
 
@@ -242,9 +244,7 @@ function formatMarkdown(rows: ReportRow[]): string {
 	lines.push("## Score Dimensions");
 	lines.push("");
 	lines.push("### Format Compliance (weight: 0.20)");
-	lines.push(
-		"_Does the model output valid `lex:`, `vec:`, `hyde:` lines?_",
-	);
+	lines.push("_Does the model output valid `lex:`, `vec:`, `hyde:` lines?_");
 	lines.push("");
 	for (const row of rows) {
 		const bar = "█".repeat(Math.round(row.format * 20));
@@ -294,10 +294,14 @@ function formatMarkdown(rows: ReportRow[]): string {
 		lines.push("");
 
 		const best = rows[0];
-		const bestSmall = rows.filter((r) => r.paramsB <= 2).sort((a, b) => b.total - a.total)[0];
+		const bestSmall = rows
+			.filter((r) => r.paramsB <= 2)
+			.sort((a, b) => b.total - a.total)[0];
 		const fastest = [...rows].sort((a, b) => a.latencyMs - b.latencyMs)[0];
 
-		lines.push(`- **Best overall**: ${best.name} (score: ${best.total.toFixed(3)})`);
+		lines.push(
+			`- **Best overall**: ${best.name} (score: ${best.total.toFixed(3)})`,
+		);
 		if (bestSmall && bestSmall.name !== best.name) {
 			lines.push(
 				`- **Best small (≤2B)**: ${bestSmall.name} (score: ${bestSmall.total.toFixed(3)})`,
@@ -314,7 +318,8 @@ function formatMarkdown(rows: ReportRow[]): string {
 }
 
 function formatCsv(rows: ReportRow[]): string {
-	const header = "rank,model,family,params_b,format,keyword,semantic,hyde,latency_ms,total,success_rate";
+	const header =
+		"rank,model,family,params_b,format,keyword,semantic,hyde,latency_ms,total,success_rate";
 	const lines = rows.map(
 		(row, i) =>
 			`${i + 1},${row.name},${row.family},${row.paramsB},${row.format.toFixed(3)},${row.keyword.toFixed(3)},${row.semantic.toFixed(3)},${row.hyde.toFixed(3)},${row.latencyMs.toFixed(0)},${row.total.toFixed(3)},${row.successRate.toFixed(3)}`,
@@ -384,16 +389,13 @@ function formatCategoryBreakdown(results: ResultFile[]): string {
 			if (catScores.length === 0) continue;
 
 			const avg = {
-				format:
-					catScores.reduce((s, x) => s + x.format, 0) / catScores.length,
+				format: catScores.reduce((s, x) => s + x.format, 0) / catScores.length,
 				keyword:
 					catScores.reduce((s, x) => s + x.keyword, 0) / catScores.length,
 				semantic:
 					catScores.reduce((s, x) => s + x.semantic, 0) / catScores.length,
-				hyde:
-					catScores.reduce((s, x) => s + x.hyde, 0) / catScores.length,
-				total:
-					catScores.reduce((s, x) => s + x.total, 0) / catScores.length,
+				hyde: catScores.reduce((s, x) => s + x.hyde, 0) / catScores.length,
+				total: catScores.reduce((s, x) => s + x.total, 0) / catScores.length,
 			};
 
 			lines.push(

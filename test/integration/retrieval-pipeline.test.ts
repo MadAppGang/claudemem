@@ -24,7 +24,7 @@ import type {
 	QueryIntent,
 } from "../../src/types.js";
 
-const FIXTURES_DIR = join(import.meta.dir, "../fixtures");
+const TESTDATA_DIR = join(import.meta.dir, "../testdata");
 const TEST_INDEX_DIR = join(import.meta.dir, "../.test-index");
 
 // Mock LLM client for testing
@@ -85,12 +85,12 @@ describe("Retrieval Pipeline Integration", () => {
 		// Parser manager initializes lazily
 		extractor = new CodeUnitExtractor();
 
-		// Extract units from all fixture files
+		// Extract units from all testdata files
 		allUnits = [];
 
 		// TypeScript
 		const tsSource = readFileSync(
-			join(FIXTURES_DIR, "sample-typescript.ts"),
+			join(TESTDATA_DIR, "sample-typescript.ts"),
 			"utf-8",
 		);
 		const tsHash = createHash("sha256")
@@ -99,7 +99,7 @@ describe("Retrieval Pipeline Integration", () => {
 			.slice(0, 16);
 		const tsUnits = await extractor.extractUnits(
 			tsSource,
-			"test/fixtures/sample-typescript.ts",
+			"test/testdata/sample-typescript.ts",
 			"typescript",
 			tsHash,
 		);
@@ -107,7 +107,7 @@ describe("Retrieval Pipeline Integration", () => {
 
 		// Python
 		const pySource = readFileSync(
-			join(FIXTURES_DIR, "sample-python.py"),
+			join(TESTDATA_DIR, "sample-python.py"),
 			"utf-8",
 		);
 		const pyHash = createHash("sha256")
@@ -116,21 +116,21 @@ describe("Retrieval Pipeline Integration", () => {
 			.slice(0, 16);
 		const pyUnits = await extractor.extractUnits(
 			pySource,
-			"test/fixtures/sample-python.py",
+			"test/testdata/sample-python.py",
 			"python",
 			pyHash,
 		);
 		allUnits.push(...pyUnits);
 
 		// Go
-		const goSource = readFileSync(join(FIXTURES_DIR, "sample-go.go"), "utf-8");
+		const goSource = readFileSync(join(TESTDATA_DIR, "sample-go.go"), "utf-8");
 		const goHash = createHash("sha256")
 			.update(goSource)
 			.digest("hex")
 			.slice(0, 16);
 		const goUnits = await extractor.extractUnits(
 			goSource,
-			"test/fixtures/sample-go.go",
+			"test/testdata/sample-go.go",
 			"go",
 			goHash,
 		);
@@ -138,7 +138,7 @@ describe("Retrieval Pipeline Integration", () => {
 	});
 
 	describe("Multi-language extraction", () => {
-		test("extracts units from all fixture files", () => {
+		test("extracts units from all testdata files", () => {
 			expect(allUnits.length).toBeGreaterThan(20);
 		});
 

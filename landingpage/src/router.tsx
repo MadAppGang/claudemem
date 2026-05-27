@@ -199,9 +199,9 @@ const Footer: React.FC = () => {
 							Research Acknowledgements
 						</h4>
 						<p className="text-gray-500 text-xs leading-relaxed font-mono">
-							mnemex is built on the shoulders of giants. We are grateful to
-							the authors of the Meta-RAG study (JP Morgan 2025), the Aider repo
-							map architecture, and the tree-sitter team.
+							mnemex is built on the shoulders of giants. We are grateful to the
+							authors of the Meta-RAG study (JP Morgan 2025), the Aider repo map
+							architecture, and the tree-sitter team.
 						</p>
 						<div className="text-[10px] text-claude-ish font-black tracking-widest uppercase">
 							Brokk's depth + claude-context's accessibility
@@ -211,7 +211,7 @@ const Footer: React.FC = () => {
 
 				<div className="pt-20 border-t border-gray-900 flex flex-col md:flex-row justify-between items-center gap-8">
 					<div className="text-[10px] text-gray-700 uppercase tracking-[0.5em] font-mono">
-						© 2025 • Made with research and care
+						© 2026 • Made with research and care
 					</div>
 					<div className="flex gap-10 text-[10px] text-gray-600 font-mono uppercase tracking-widest font-black">
 						<a href="#" className="hover:text-white transition-colors">

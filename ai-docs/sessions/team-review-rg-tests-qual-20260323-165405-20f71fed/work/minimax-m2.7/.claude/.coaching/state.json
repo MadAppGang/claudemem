@@ -1,0 +1,15 @@
+{
+  "_session_count": 1,
+  "rules": {
+    "grep-instead-of-mnemex": {
+      "last_shown_session": 1,
+      "shown_count": 1,
+      "suppress_until_count": 11
+    },
+    "no-mnemex-during-investigation": {
+      "last_shown_session": 1,
+      "shown_count": 1,
+      "suppress_until_count": 8
+    }
+  }
+}

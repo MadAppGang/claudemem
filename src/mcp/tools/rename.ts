@@ -34,8 +34,16 @@ export function registerRenameTools(server: McpServer, deps: ToolDeps): void {
 				.string()
 				.optional()
 				.describe("File containing the symbol (for LSP position-based rename)"),
-			line: z.coerce.number().int().optional().describe("Line number (1-indexed)"),
-			column: z.coerce.number().int().optional().describe("Column number (1-indexed)"),
+			line: z.coerce
+				.number()
+				.int()
+				.optional()
+				.describe("Line number (1-indexed)"),
+			column: z.coerce
+				.number()
+				.int()
+				.optional()
+				.describe("Column number (1-indexed)"),
 			dryRun: z
 				.boolean()
 				.default(false)

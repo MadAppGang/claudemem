@@ -154,29 +154,13 @@ function PhaseRow({ phase, animFrame }: PhaseRowProps) {
 	const status = buildStatus(phase);
 	const phaseName = phase.name.padEnd(16).slice(0, 16);
 
-	// Bar color: green when done, primary (orange) while in progress
-	const barColor = phase.isComplete ? theme.success : theme.primary;
-	// Empty-bar portion is always dimmed
-	const emptyStart = phase.isComplete
-		? BAR_WIDTH
-		: Math.round((phase.completed / Math.max(phase.total, 1)) * BAR_WIDTH);
-	const filledPart = bar.slice(0, emptyStart);
-	const emptyPart = bar.slice(emptyStart);
-
-	const statusColor = phase.isComplete ? theme.success : theme.text;
+	// Single <text> per row to avoid OpenTUI multi-<text> overlap issue
+	const line = `⏱ ${elapsed} │ ${bar} ${percent.toString().padStart(3)}% │ ${phaseName} │ ${status}`;
+	const lineColor = phase.isComplete ? theme.success : theme.text;
 
 	return (
-		<box flexDirection="row" height={1}>
-			<text fg={theme.muted}>{"⏱ "}</text>
-			<text fg={theme.muted}>{elapsed}</text>
-			<text fg={theme.dimmed}>{" │ "}</text>
-			<text fg={barColor}>{filledPart}</text>
-			<text fg={theme.dimmed}>{emptyPart}</text>
-			<text fg={theme.muted}>{` ${percent.toString().padStart(3)}%`}</text>
-			<text fg={theme.dimmed}>{" │ "}</text>
-			<text fg={theme.text}>{phaseName}</text>
-			<text fg={theme.dimmed}>{" │ "}</text>
-			<text fg={statusColor}>{status}</text>
+		<box height={1}>
+			<text fg={lineColor}>{line}</text>
 		</box>
 	);
 }

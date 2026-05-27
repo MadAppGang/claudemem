@@ -276,7 +276,7 @@ SEARCH COMMAND:
    → These are the existing tests
 
 4. UNDERSTAND TEST DEPENDENCIES
-   mnemex --agent callees ExistingTest   → See what mocks/fixtures it uses
+   mnemex --agent callees ExistingTest   → See what mocks/testdata it uses
    → Copy patterns for new tests
 
 5. TRACE ERROR PATHS
@@ -294,7 +294,7 @@ COVERAGE GAPS (most important!):
   mnemex test-gaps --min-pagerank 0.05   → Only critical gaps
 
 TEST DISCOVERY:
-  mnemex --agent map "test mock fixture"  mnemex search "test setup beforeEach"
+  mnemex --agent map "test mock testdata"  mnemex search "test setup beforeEach"
 
 COVERAGE ANALYSIS:
   mnemex --agent callers CriticalFunction  → Look for *.test.ts or *.spec.ts in callers

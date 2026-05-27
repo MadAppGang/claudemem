@@ -1132,8 +1132,8 @@ const FeatureLearning = () => (
 		<div>
 			<h3 className="text-2xl font-bold text-white mb-2">Adaptive Learning</h3>
 			<p className="text-gray-400 leading-relaxed max-w-2xl">
-				Mark search results as helpful or unhelpful. mnemex learns which
-				files and document types work best for your codebase using{" "}
+				Mark search results as helpful or unhelpful. mnemex learns which files
+				and document types work best for your codebase using{" "}
 				<span className="text-claude-ish">
 					Exponential Moving Average (EMA)
 				</span>
@@ -1158,7 +1158,7 @@ const FeatureLearning = () => (
 					<div className="text-red-400 text-2xl">👎</div>
 					<div className="flex-1">
 						<div className="text-sm text-white font-mono">
-							test/fixtures/mock.ts
+							test/testdata/mock.ts
 						</div>
 						<div className="text-xs text-red-400">Not relevant</div>
 					</div>
@@ -1237,8 +1237,8 @@ const ContextWinSection = () => {
 						</h2>
 						<p className="text-xl text-gray-400 leading-relaxed">
 							Stop wasting 50% of your context window on "exploration." With
-							mnemex, the AI starts with understanding, leaving the full
-							window for reasoning and code generation.
+							mnemex, the AI starts with understanding, leaving the full window
+							for reasoning and code generation.
 						</p>
 					</div>
 
@@ -1310,9 +1310,8 @@ const ComparisonSection: React.FC = () => {
 						How mnemex Compares
 					</h2>
 					<p className="text-xl text-gray-500 font-mono max-w-2xl mx-auto mb-10">
-						The code understanding landscape has exploded. mnemex is
-						different. You pick the models. You run the benchmarks. You own the
-						stack.
+						The code understanding landscape has exploded. mnemex is different.
+						You pick the models. You run the benchmarks. You own the stack.
 					</p>
 
 					{/* Toggle Controls */}
@@ -1668,15 +1667,15 @@ const ComparisonSection: React.FC = () => {
 											# Search from terminal
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> mnemex
-											search "payment"
+											<span className="text-claude-ish">$</span> mnemex search
+											"payment"
 										</div>
 									</div>
 									<div>
 										<div className="text-gray-500 mb-1"># See dependencies</div>
 										<div>
-											<span className="text-claude-ish">$</span> mnemex
-											callers "validate"
+											<span className="text-claude-ish">$</span> mnemex callers
+											"validate"
 										</div>
 									</div>
 									<div>
@@ -1708,9 +1707,8 @@ const ComparisonSection: React.FC = () => {
 											# Go fully local (Ollama)
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> mnemex
-											config --embeddings ollama/nomic --summarizer
-											ollama/llama3
+											<span className="text-claude-ish">$</span> mnemex config
+											--embeddings ollama/nomic --summarizer ollama/llama3
 										</div>
 									</div>
 									<div>
@@ -1718,8 +1716,8 @@ const ComparisonSection: React.FC = () => {
 											# Or use Claude Code sub
 										</div>
 										<div>
-											<span className="text-claude-ish">$</span> mnemex
-											config --summarizer claude-code
+											<span className="text-claude-ish">$</span> mnemex config
+											--summarizer claude-code
 										</div>
 									</div>
 								</div>
