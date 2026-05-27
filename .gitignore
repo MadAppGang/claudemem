@@ -38,6 +38,7 @@ coverage/
 # Firebase cache
 landingpage/.firebase/
 landingpage/.backup/
+landingpage/.claude/.coaching/
 
 # Local models
 models/
@@ -47,6 +48,12 @@ models
 .worktrees/
 
 .mnemex/
+
+# Local Claude runtime state
+/.claude/.coaching/
+/.claude/gtd/
+/.claude/scheduled_tasks.lock
+/.claude/settings.local.json
 
 # Promptfoo eval per-run artifacts
 eval/rg/logs/cc-*.jsonl
