@@ -6523,9 +6523,7 @@ async function handleDoctor(args: string[]): Promise<void> {
 /**
  * Handle update command - update to latest version from npm
  */
-async function handleUpdate(args: string[]): Promise<void> {
-	const autoApprove = args.includes("--yes") || args.includes("-y");
-
+async function handleUpdate(_args: string[]): Promise<void> {
 	if (!agentMode) {
 		printLogo();
 	}
@@ -6547,16 +6545,12 @@ async function handleUpdate(args: string[]): Promise<void> {
 			`mnemex v${check.currentVersion} - Update available: v${check.latestVersion}`,
 		);
 
-		if (!autoApprove) {
-			console.log("Use --yes flag to auto-approve");
-			return;
-		}
-
 		console.log("Updating...");
 		const result = await updater.performUpdate({ verbose: false });
 
 		if (result.success) {
 			console.log(`Updated to v${result.newVersion}`);
+			await printUpdateChangelog(check.currentVersion, check.latestVersion);
 		} else {
 			console.log(`Update failed: ${result.error}`);
 			process.exit(1);
@@ -6580,20 +6574,12 @@ async function handleUpdate(args: string[]): Promise<void> {
 		}
 		console.log();
 
-		const shouldUpdate =
-			autoApprove || (await confirm({ message: "Update now?", default: true }));
-
-		if (!shouldUpdate) {
-			console.log("Update cancelled.");
-			return;
-		}
-
 		console.log("\nUpdating mnemex...");
 		const result = await updater.performUpdate({ verbose: true });
 
 		if (result.success) {
 			console.log(`\n✓ Successfully updated to v${result.newVersion}`);
-			console.log("Run 'mnemex --version' to verify.");
+			await printUpdateChangelog(check.currentVersion, check.latestVersion);
 		} else {
 			console.error(`\n✗ Update failed: ${result.error}`);
 
@@ -6621,6 +6607,21 @@ async function handleUpdate(args: string[]): Promise<void> {
 			process.exit(1);
 		}
 	}
+}
+
+async function printUpdateChangelog(
+	currentVersion: string,
+	latestVersion: string,
+): Promise<void> {
+	const { displayChangelog, fetchChangelog } = await import(
+		"./updater/changelog.js"
+	);
+	const changelog = await fetchChangelog(currentVersion, latestVersion);
+	displayChangelog(changelog, {
+		compact: agentMode,
+		productName: "mnemex",
+		showEmptyMessage: true,
+	});
 }
 
 function printHelp(): void {
@@ -6671,7 +6672,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}benchmark-list${c.reset}         List all benchmark runs
   ${c.green}benchmark-show${c.reset}         Show results for a specific run
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
-  ${c.green}update${c.reset}                 Update to latest version from npm
+  ${c.green}update${c.reset}                 Update to latest version and show changelog
 
 ${c.yellow}${c.bold}SYMBOL GRAPH COMMANDS${c.reset} ${c.dim}(use --agent for compact output)${c.reset}
   ${c.green}map${c.reset} [query]            Get repo structure ${c.dim}(optionally filtered by query)${c.reset}
