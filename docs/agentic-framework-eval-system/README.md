@@ -110,8 +110,8 @@ shim and `MNEMEX_HIT` from the wrapper that delegates to `mnemex rg`.
 
 ## The Driver
 
-`eval/rg/driver.py` is the shared runner used by Promptfoo, Inspect, and the
-HTML report. It does four jobs:
+`eval/rg/driver.ts` is the shared runner used by Promptfoo and the HTML report.
+It does four jobs:
 
 1. Validate preconditions: built CLI, bundled rg, Claude CLI, and indexed
    testdata.
@@ -121,56 +121,61 @@ HTML report. It does four jobs:
 
 The shim is intentionally small:
 
-```python
-mnemex_wrapper.write_text(
-    "\n".join(
-        [
-            "#!/bin/sh",
-            "# MNEMEX_RG_EVAL_MNEMEX_SHIM",
-            'TRACE="${MNEMEX_SHIM_TRACE:-/tmp/mnemex-rg-eval-mnemex.log}"',
-            'echo "[$(date +%H:%M:%S)] MNEMEX_HIT pid=$$ ppid=$PPID args=$*" >> "$TRACE"',
-            f"exec bun {shell_quote(DIST_CLI)} \"$@\"",
-            "",
-        ]
-    ),
-    encoding="utf-8",
-)
+```ts
+writeFileSync(
+	mnemexWrapper,
+	[
+		"#!/bin/sh",
+		"# MNEMEX_RG_EVAL_MNEMEX_SHIM",
+		'TRACE="${MNEMEX_SHIM_TRACE:-/tmp/mnemex-rg-eval-mnemex.log}"',
+		'echo "[$(date +%H:%M:%S)] MNEMEX_HIT pid=$$ ppid=$PPID args=$*" >> "$TRACE"',
+		`exec bun ${shellQuote(DIST_CLI)} "$@"`,
+		"",
+	].join("\n"),
+	"utf8",
+);
 
-RG_SHIM_PATH.write_text(
-    "\n".join(
-        [
-            "#!/bin/sh",
-            "# MNEMEX_RG_EVAL_RG_SHIM",
-            'TRACE="${RG_SHIM_TRACE:-/tmp/mnemex-rg-eval-rg.log}"',
-            'echo "[$(date +%H:%M:%S)] SHIM_HIT pid=$$ ppid=$PPID args=$*" >> "$TRACE"',
-            'exec mnemex rg "$@"',
-            "",
-        ]
-    ),
-    encoding="utf-8",
-)
+writeFileSync(
+	RG_SHIM_PATH,
+	[
+		"#!/bin/sh",
+		"# MNEMEX_RG_EVAL_RG_SHIM",
+		'TRACE="${RG_SHIM_TRACE:-/tmp/mnemex-rg-eval-rg.log}"',
+		'echo "[$(date +%H:%M:%S)] SHIM_HIT pid=$$ ppid=$PPID args=$*" >> "$TRACE"',
+		'exec mnemex rg "$@"',
+		"",
+	].join("\n"),
+	"utf8",
+);
 ```
 
 The Claude Code invocation is locked down so the model cannot silently route
 around the test:
 
-```python
-command = [
-    "claude",
-    "-p",
-    prompt,
-    "--allowedTools",
-    "Grep",
-    "--disallowedTools",
-    "Bash",
-    "--permission-mode",
-    "acceptEdits",
-    "--model",
-    model,
-    "--output-format",
-    "stream-json",
-    "--verbose",
-]
+```ts
+const command = [
+	"-p",
+	prompt,
+	"--allowedTools",
+	"Grep",
+	"--disallowedTools",
+	"Bash",
+	"--permission-mode",
+	"acceptEdits",
+	"--model",
+	options.model,
+	"--output-format",
+	"stream-json",
+	"--verbose",
+];
+
+const proc = spawnSync("claude", command, {
+	cwd: TESTDATA,
+	env,
+	encoding: "utf8",
+	timeout: options.timeout * 1000,
+	maxBuffer: 20 * 1024 * 1024,
+});
 ```
 
 That gives us enough information to distinguish "the answer looked right" from
@@ -219,37 +224,53 @@ Run it with:
 bun run eval:rg:promptfoo
 ```
 
-## Inspect as the Rich Eval Layer
+## Bun Report as the Rich Eval Layer
 
-Promptfoo is excellent for quick feedback. Inspect gives us a richer eval object
-with per-case scoring, metadata, and rescore support.
+Promptfoo is excellent for quick feedback. The Bun report gives us a richer eval
+object with per-case scoring, metadata, raw logs, and a self-contained HTML UI.
 
-The Inspect task uses the same driver, so it does not create a second truth
-surface:
+The report uses the same driver, so it does not create a second truth surface:
 
-```python
-@task
-def rg_plugin(model: str = "haiku", timeout: int = 120) -> Task:
-    return Task(
-        dataset=CASES,
-        solver=claude_code_rg(model=model, timeout=timeout),
-        scorer=rg_contract(),
-    )
+```ts
+function runCase(testCase: EvalCase, model: string, timeout: number): JsonObject {
+	const proc = spawnSync(
+		"bun",
+		[DRIVER, "--model", model, "--timeout", String(timeout), testCase.prompt],
+		{
+			cwd: REPO_ROOT,
+			encoding: "utf8",
+			timeout: (timeout + 20) * 1000,
+			maxBuffer: 20 * 1024 * 1024,
+		},
+	);
+
+	return JSON.parse(proc.stdout ?? "{}") as JsonObject;
+}
 ```
 
 The scorer turns the driver JSON into named checks:
 
-```python
-checks: dict[str, bool] = {
-    "driver_exit_zero": result.get("exit_code") == 0,
-    "grep_tool_called": int(result.get("grep_tool_call_count", 0)) >= 1,
-    "rg_shim_hit": int(result.get("shim_grep_hits", 0)) >= 1,
-    "mnemex_rg_hit": int(result.get("mnemex_rg_hits", 0)) >= 1
-    and result.get("shim_reaches_mnemex_rg") is True,
-    "no_absolute_path_leak": result.get("result_has_absolute_paths") is False,
-    "not_timed_out": result.get("timed_out") is not True,
-    "no_forbidden_tools": int(result.get("forbidden_tool_call_count", 0)) == 0,
-}
+```ts
+addCheck(checks, "Driver exit", result.exit_code === 0, `exit_code=${result.exit_code}`);
+addCheck(
+	checks,
+	"Grep tool used",
+	Number(result.grep_tool_call_count ?? 0) >= 1,
+	`grep_tool_call_count=${result.grep_tool_call_count ?? 0}`,
+);
+addCheck(
+	checks,
+	"mnemex rg hit",
+	Number(result.mnemex_rg_hits ?? 0) >= 1 &&
+		result.shim_reaches_mnemex_rg === true,
+	`mnemex_rg_hits=${result.mnemex_rg_hits ?? 0}`,
+);
+addCheck(
+	checks,
+	"No absolute path leak",
+	result.result_has_absolute_paths === false,
+	`result_has_absolute_paths=${String(result.result_has_absolute_paths)}`,
+);
 ```
 
 That means a failure is diagnosable. We can tell whether the model stopped using

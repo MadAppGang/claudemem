@@ -6,16 +6,16 @@
  * and handles HTTP error codes properly.
  */
 
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
-	ThinCloudClient,
 	CloudApiError,
+	ThinCloudClient,
 	createThinCloudClient,
 } from "../../../src/cloud/thin-client.js";
 import type {
-	UploadIndexRequest,
 	CloudSearchRequest,
 	RegisterRepoRequest,
+	UploadIndexRequest,
 } from "../../../src/cloud/types.js";
 
 // ============================================================================
@@ -63,9 +63,14 @@ function mockFetchThrows(error: Error): ReturnType<typeof mock> {
 }
 
 let client: ThinCloudClient;
+const realFetch = globalThis.fetch;
 
 beforeEach(() => {
 	client = new ThinCloudClient({ endpoint: ENDPOINT, token: TOKEN });
+});
+
+afterEach(() => {
+	globalThis.fetch = realFetch;
 });
 
 // ============================================================================
@@ -113,7 +118,7 @@ describe("ThinCloudClient — request headers", () => {
 		await client.checkChunks(REPO, ["hash1"]);
 		const [, options] = fetchMock.mock.calls[0] as [string, RequestInit];
 		const headers = options.headers as Record<string, string>;
-		expect(headers["Authorization"]).toBe(`Bearer ${TOKEN}`);
+		expect(headers.Authorization).toBe(`Bearer ${TOKEN}`);
 	});
 
 	test("includes X-Mnemex-Version header (default 1)", async () => {

@@ -59,3 +59,8 @@ models
 eval/rg/logs/cc-*.jsonl
 eval/rg/logs/shim-*.log
 eval/rg/logs/last-*
+
+# Added by claudeup
+.claude/cache/
+.claude/.statusline-worktree-*
+gtd/sessions/

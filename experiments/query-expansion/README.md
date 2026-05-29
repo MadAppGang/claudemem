@@ -30,7 +30,7 @@ experiments/query-expansion/
 │   ├── scorer.ts                 ← Scoring functions
 │   ├── models.ts                 ← Model registry (LM Studio keys)
 │   ├── run.ts                    ← Runner: base models via LM Studio
-│   ├── run-finetuned.py          ← Runner: fine-tuned via transformers+peft
+│   ├── run-finetuned.ts          ← Runner: fine-tuned via HF inference API
 │   └── report.ts                 ← Comparison table generator
 ├── results/                      ← All benchmark results
 │   ├── base/                     ← 16 base model results
@@ -70,8 +70,8 @@ bun run experiments/query-expansion/bench/run.ts --family qwen3.5
 ### Benchmark a fine-tuned model
 
 ```bash
-uv run experiments/query-expansion/bench/run-finetuned.py --model qwen3-1.7b
-uv run experiments/query-expansion/bench/run-finetuned.py --all
+HF_TOKEN=... bun experiments/query-expansion/bench/run-finetuned.ts --model qwen3-1.7b
+HF_TOKEN=... bun experiments/query-expansion/bench/run-finetuned.ts --all
 ```
 
 ### Generate training data
@@ -89,8 +89,10 @@ bun run experiments/query-expansion/training/scripts/validate-dataset.ts --fix -
 ### Train a model (HF Jobs)
 
 ```bash
-hf jobs uv run --flavor a10g-large --secrets HF_TOKEN --timeout 2h \
-    experiments/query-expansion/training/jobs/sft.py --model qwen3-1.7b
+HF_TOKEN=... bun experiments/query-expansion/training/jobs/sft.ts --model qwen3-1.7b
+
+# Preview the uv/PyTorch command without starting training:
+bun experiments/query-expansion/training/jobs/sft.ts --model qwen3-1.7b --dry-run
 ```
 
 ## Scoring

@@ -8,12 +8,13 @@
  * - Metadata extraction
  */
 
-import { describe, test, expect, beforeAll } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createHash } from "node:crypto";
 import { CodeUnitExtractor } from "../../src/core/ast/code-unit-extractor.js";
 import type { CodeUnit, SupportedLanguage } from "../../src/types.js";
+import { samplePythonSource } from "../testdata/sample-python-source.ts";
 
 const TESTDATA_DIR = join(import.meta.dir, "../testdata");
 
@@ -176,7 +177,10 @@ describe("CodeUnitExtractor", () => {
 				if (unit.parentId !== null) {
 					const parent = unitMap.get(unit.parentId);
 					expect(parent).toBeDefined();
-					expect(unit.depth).toBe(parent!.depth + 1);
+					if (!parent) {
+						throw new Error(`Expected parent unit ${unit.parentId} to exist`);
+					}
+					expect(unit.depth).toBe(parent.depth + 1);
 				}
 			}
 		});
@@ -201,10 +205,13 @@ describe("CodeUnitExtractor", () => {
 				(u) => u.unitType === "class" && u.name === "UserService",
 			);
 			expect(classUnit).toBeDefined();
+			if (!classUnit) {
+				throw new Error("Expected UserService class unit to exist");
+			}
 
-			const children = extractor.getChildren(units, classUnit!.id);
+			const children = extractor.getChildren(units, classUnit.id);
 			expect(children.length).toBeGreaterThan(0);
-			expect(children.every((c) => c.parentId === classUnit!.id)).toBe(true);
+			expect(children.every((c) => c.parentId === classUnit.id)).toBe(true);
 		});
 	});
 
@@ -213,10 +220,7 @@ describe("CodeUnitExtractor", () => {
 		const filePath = "test/testdata/sample-python.py";
 
 		beforeAll(async () => {
-			const source = readFileSync(
-				join(TESTDATA_DIR, "sample-python.py"),
-				"utf-8",
-			);
+			const source = samplePythonSource;
 			const fileHash = createHash("sha256")
 				.update(source)
 				.digest("hex")

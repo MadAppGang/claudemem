@@ -1,16 +1,17 @@
-# `eval/rg` — Claude Code × mnemex rg end-to-end eval
+# `eval/rg` — Claude Code x mnemex rg end-to-end eval
 
-Promptfoo + Inspect AI harnesses that validate the full integration chain:
+Promptfoo plus a Bun/TypeScript dashboard harness validate the full integration
+chain:
 
-```
+```text
 user prompt
-  → Claude Code (Haiku 4.5)
-    → Grep tool
-      → temporary ~/.local/bin/rg logging shim
-        → temporary mnemex wrapper
-          → bun dist/index.js rg ...
-            → bundled ripgrep + mnemex semantic search
-          → testdata corpus with committed `.mnemex/` index
+  -> Claude Code (Haiku)
+    -> Grep tool
+      -> temporary ~/.local/bin/rg logging shim
+        -> temporary mnemex wrapper
+          -> bun dist/index.js rg ...
+            -> bundled ripgrep + mnemex semantic search
+          -> testdata corpus with committed `.mnemex/` index
 ```
 
 The suite exists because the rest of the rg test coverage (`tests/rg.test.ts`,
@@ -25,19 +26,17 @@ our shim, which was non-obvious to set up and documented incorrectly at first
 |---|---|---|
 | Binary/e2e | `bun test tests/rg.test.ts tests/rg.e2e.test.ts` | Proves `mnemex rg` keeps rg-compatible output and preserves vanilla rg matches |
 | Promptfoo smoke | `bun run eval:rg:promptfoo` | Fast YAML matrix for Claude Code Grep routing |
-| Inspect eval | `inspect eval eval/rg/inspect_eval.py@rg_plugin` | Rich eval logs with per-case contract scoring and rescore support |
 | HTML report | `bun run eval:rg:report` | Static dashboard with case status, route checks, tool calls, logs, and raw JSON |
 
 ## Prerequisites
 
 1. `bun run build` has produced `dist/index.js`.
-2. The testdata corpus at `tests/testdata/rg-corpus/` is in the repo (it is).
+2. The testdata corpus at `tests/testdata/rg-corpus/` is in the repo.
 3. `claude` CLI is on PATH and authenticated.
 4. `ANTHROPIC_API_KEY` or equivalent auth for the Haiku driver if your Claude
    Code setup requires it.
 5. For promptfoo: `promptfoo` installed (`bun install -g promptfoo` or use
    `npx promptfoo`).
-6. For Inspect: `pip install -r eval/rg/requirements.txt`.
 
 The eval driver writes a temporary logging shim to `~/.local/bin/rg`, puts a
 temporary `mnemex` wrapper at the front of PATH, sets `USE_BUILTIN_RIPGREP=0`
@@ -51,21 +50,14 @@ after each case. This means the eval does not require a permanent
 bun run eval:rg:promptfoo
 ```
 
-To view results interactively:
+To view promptfoo results interactively:
 
 ```bash
 promptfoo view
 ```
 
-Each run takes ~2 minutes (6 cases × ~20s Haiku sessions, sequential).
-
-For Inspect:
-
-```bash
-pip install -r eval/rg/requirements.txt
-inspect eval eval/rg/inspect_eval.py@rg_plugin
-inspect view
-```
+Each full run takes about two minutes (6 cases x ~20s Haiku sessions,
+sequential).
 
 For the local dashboard:
 
@@ -74,13 +66,13 @@ bun run eval:rg:report
 open eval/rg/report/index.html
 ```
 
-The report command runs the same six cases through `driver.py` and writes a
+The report command runs the same six cases through `driver.ts` and writes a
 self-contained HTML file. It is useful when you want to inspect the contract
 evidence without reading raw JSON or Promptfoo's table output.
 
 Logs from each driver invocation land in `eval/rg/logs/`.
 
-## What each test case proves
+## What Each Test Case Proves
 
 | # | Case | Contract evidence |
 |---|------|---------------------|
@@ -91,22 +83,22 @@ Logs from each driver invocation land in `eval/rg/logs/`.
 | 5 | Regex pattern | Pattern with metacharacters flows through unbroken |
 | 6 | No-match pattern | Wrapper's exit-code-1 handling doesn't break the chain |
 
-All cases share three baseline assertions:
-- `exit_code === 0` — the driver script + claude session completed
-- `grep_tool_call_count >= 1` — the model chose Grep (prompt isn't misworded)
+All cases share these baseline assertions:
+
+- `exit_code === 0` — the driver script and Claude session completed
+- `grep_tool_call_count >= 1` — the model chose Grep
 - `forbidden_tool_call_count === 0` — the model did not recover through Bash
-- `shim_grep_hits >= 1` — a Grep-shaped invocation actually reached the shim
+- `shim_grep_hits >= 1` — a Grep-shaped invocation reached the shim
 - `mnemex_rg_hits >= 1` — the shim delegated to `mnemex rg`
 - `result_has_absolute_paths === false` — output stayed rg-compatible
 
 ## Files
 
-- `driver.py` — shared runner. Installs temporary shims, spawns `claude -p`,
-  parses stream-json and trace logs, emits one JSON line.
-- `drive.sh` — tiny promptfoo wrapper around `driver.py`.
+- `driver.ts` — shared runner. Installs temporary shims, spawns `claude -p`,
+  parses stream JSON and trace logs, emits one JSON line.
+- `drive.sh` — tiny promptfoo wrapper around `driver.ts`.
 - `promptfooconfig.yaml` — suite definition: provider, tests, assertions.
-- `inspect_eval.py` — Inspect AI task, solver, and scorer.
-- `report.py` — static report generator for local visual review.
+- `report.ts` — static report generator for local visual review.
 - `report/index.html` — generated dashboard from the latest report run.
 - `logs/*.jsonl`, `logs/*.log` — written on every run for post-mortem
   debugging. Safe to delete.
@@ -114,10 +106,8 @@ All cases share three baseline assertions:
 ## Extending
 
 To add a test case, append to `tests:` in `promptfooconfig.yaml`. The prompt
-needs to clearly instruct Haiku to use the Grep tool — the model is cheap and
-follows direct instructions well, but vague prompts ("find isArray") cause it
-to reach for Bash or give up.
+needs to clearly instruct Haiku to use the Grep tool; vague prompts like
+"find isArray" cause it to reach for Bash or give up.
 
-To switch the driver model (e.g. to measure how Sonnet routes tools
-differently), pass `-T model=sonnet` to Inspect or edit the promptfoo provider
-wrapper to pass `--model sonnet` through to `driver.py`.
+To switch the driver model, pass `--model <name>` to `report.ts` or update
+`drive.sh` to forward the desired model into `driver.ts`.

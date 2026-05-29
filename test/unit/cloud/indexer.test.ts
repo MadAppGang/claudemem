@@ -16,34 +16,92 @@
  * 10. correct CloudIndexResult returned
  */
 
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import * as fs from "node:fs";
+import { LocalCloudStub } from "../../../src/cloud/stub.js";
 import type {
-	IChangeDetector,
 	ChangedFile,
 	DirtyFile,
+	IChangeDetector,
 } from "../../../src/cloud/types.js";
-import type { IEmbeddingsClient, EmbedResult } from "../../../src/types.js";
-import { LocalCloudStub } from "../../../src/cloud/stub.js";
 import type { TeamConfig } from "../../../src/cloud/types.js";
+import type { EmbedResult, IEmbeddingsClient } from "../../../src/types.js";
+
+const realFs = {
+	readFileSync: fs.readFileSync.bind(fs),
+	existsSync: fs.existsSync.bind(fs),
+	mkdirSync: fs.mkdirSync.bind(fs),
+	writeFileSync: fs.writeFileSync.bind(fs),
+	chmodSync: fs.chmodSync.bind(fs),
+	statSync: fs.statSync.bind(fs),
+	readdirSync: fs.readdirSync.bind(fs),
+};
 
 // ============================================================================
 // Module mocks
 // ============================================================================
 
 // Mock node:fs so we can control file reading without a real filesystem
+const MOCK_PROJECT_PATH = "/project";
+const isMockProjectPath = (path: unknown): path is string =>
+	typeof path === "string" && path.startsWith(MOCK_PROJECT_PATH);
+
 const mockReadFileSync = mock((_path: unknown, _enc: unknown): string => {
+	if (!isMockProjectPath(_path)) {
+		return realFs.readFileSync(
+			_path as fs.PathOrFileDescriptor,
+			_enc as BufferEncoding,
+		);
+	}
 	return 'function hello() { return "hello world"; }';
 });
 
 mock.module("node:fs", () => ({
+	...fs,
 	readFileSync: mockReadFileSync,
-	existsSync: mock(() => true),
-	mkdirSync: mock(() => {}),
-	writeFileSync: mock(() => {}),
-	chmodSync: mock(() => {}),
-	statSync: mock(() => ({ isDirectory: () => false, size: 100 })),
-	readdirSync: mock(() => []),
+	existsSync: mock((path: unknown) =>
+		isMockProjectPath(path) ? true : realFs.existsSync(path as fs.PathLike),
+	),
+	mkdirSync: mock((path: unknown, options?: fs.MakeDirectoryOptions) => {
+		if (!isMockProjectPath(path)) {
+			return realFs.mkdirSync(path as fs.PathLike, options);
+		}
+	}),
+	writeFileSync: mock(
+		(
+			path: unknown,
+			data: string | NodeJS.ArrayBufferView,
+			options?: fs.WriteFileOptions,
+		) => {
+			if (!isMockProjectPath(path)) {
+				return realFs.writeFileSync(
+					path as fs.PathOrFileDescriptor,
+					data,
+					options,
+				);
+			}
+		},
+	),
+	chmodSync: mock((path: unknown, mode: fs.Mode) => {
+		if (!isMockProjectPath(path)) {
+			return realFs.chmodSync(path as fs.PathLike, mode);
+		}
+	}),
+	statSync: mock((path: unknown, options?: fs.StatSyncOptions) =>
+		isMockProjectPath(path)
+			? ({ isDirectory: () => false, size: 100 } as fs.Stats)
+			: realFs.statSync(path as fs.PathLike, options),
+	),
+	readdirSync: mock((path: unknown, options?: fs.ObjectEncodingOptions) =>
+		isMockProjectPath(path)
+			? []
+			: realFs.readdirSync(path as fs.PathLike, options),
+	),
 }));
+
+afterAll(() => {
+	mock.restore();
+});
 
 // Mock the chunker to avoid needing real tree-sitter parsers in unit tests
 mock.module("../../../src/core/chunker.js", () => ({
@@ -69,15 +127,6 @@ mock.module("../../../src/core/chunker.js", () => ({
 	canChunkFile: mock(() => true),
 }));
 
-// Mock parser manager initialize
-mock.module("../../../src/parsers/parser-manager.js", () => ({
-	getParserManager: mock(() => ({
-		initialize: mock(async () => {}),
-		isSupported: mock(() => true),
-		getLanguage: mock(() => "typescript"),
-	})),
-}));
-
 // Import after mocking
 const { CloudAwareIndexer, createCloudIndexer } = await import(
 	"../../../src/cloud/indexer.js"
@@ -87,7 +136,7 @@ const { CloudAwareIndexer, createCloudIndexer } = await import(
 // Testdata and helpers
 // ============================================================================
 
-const PROJECT_PATH = "/project";
+const PROJECT_PATH = MOCK_PROJECT_PATH;
 const COMMIT_SHA = "aaaa1111bbbb2222cccc3333dddd4444eeee5555";
 const PARENT_SHA = "bbbb2222cccc3333dddd4444eeee5555ffff6666";
 const REPO = "acme-corp/my-repo";
@@ -287,7 +336,10 @@ describe("CloudAwareIndexer — normal indexing flow", () => {
 
 		const record = stub.getCommitRecord(REPO, COMMIT_SHA);
 		expect(record).toBeDefined();
-		expect(record!.commitSha).toBe(COMMIT_SHA);
+		if (!record) {
+			throw new Error("Expected commit record to be stored");
+		}
+		expect(record.commitSha).toBe(COMMIT_SHA);
 	});
 
 	test("durationMs is non-negative", async () => {
@@ -400,7 +452,10 @@ describe("CloudAwareIndexer — deleted files", () => {
 
 		const record = stub.getCommitRecord(REPO, COMMIT_SHA);
 		expect(record).toBeDefined();
-		expect(record!.deletedFiles).toContain("src/removed.ts");
+		if (!record) {
+			throw new Error("Expected commit record to be stored");
+		}
+		expect(record.deletedFiles).toContain("src/removed.ts");
 	});
 });
 

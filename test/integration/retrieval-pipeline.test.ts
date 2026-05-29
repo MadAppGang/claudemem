@@ -7,14 +7,14 @@
  * - Reranking (mocked)
  */
 
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { readFileSync, rmSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { CodeUnitExtractor } from "../../src/core/ast/code-unit-extractor.js";
 import { ContextFormatter } from "../../src/retrieval/formatting/context-formatter.js";
-import { QueryRouter } from "../../src/retrieval/routing/query-router.js";
 import { LLMReranker } from "../../src/retrieval/reranking/llm-reranker.js";
+import { QueryRouter } from "../../src/retrieval/routing/query-router.js";
 import type {
 	CodeUnit,
 	ILLMClient,
@@ -23,6 +23,7 @@ import type {
 	LLMUsageStats,
 	QueryIntent,
 } from "../../src/types.js";
+import { samplePythonSource } from "../testdata/sample-python-source.ts";
 
 const TESTDATA_DIR = join(import.meta.dir, "../testdata");
 const TEST_INDEX_DIR = join(import.meta.dir, "../.test-index");
@@ -106,10 +107,7 @@ describe("Retrieval Pipeline Integration", () => {
 		allUnits.push(...tsUnits);
 
 		// Python
-		const pySource = readFileSync(
-			join(TESTDATA_DIR, "sample-python.py"),
-			"utf-8",
-		);
+		const pySource = samplePythonSource;
 		const pyHash = createHash("sha256")
 			.update(pySource)
 			.digest("hex")

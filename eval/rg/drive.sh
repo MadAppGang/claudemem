@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Promptfoo exec provider wrapper for one mnemex rg x Claude Code eval case.
 #
-# The implementation lives in driver.py so promptfoo and Inspect AI score the
-# same telemetry: Claude stream-json, rg shim hits, and mnemex-rg invocations.
+# The implementation lives in driver.ts so promptfoo and the HTML report score
+# the same telemetry: Claude stream-json, rg shim hits, and mnemex-rg invocations.
 
 set -u
 set -o pipefail
@@ -14,4 +14,4 @@ if [ -z "$PROMPT" ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec python3 "$SCRIPT_DIR/driver.py" "$PROMPT"
+exec bun "$SCRIPT_DIR/driver.ts" "$PROMPT"

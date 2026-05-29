@@ -9,7 +9,7 @@
  *  - Inherits all other methods unchanged from ThinCloudClient
  */
 
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
 	SmartCloudClient,
 	createSmartCloudClient,
@@ -25,6 +25,11 @@ const ENDPOINT = "https://api.mnemex.dev";
 const TOKEN = "test-token-smart";
 const REPO = "acme-corp/my-repo";
 const COMMIT_SHA = "abc123def456abc123def456abc123def456abc1";
+const realFetch = globalThis.fetch;
+
+afterEach(() => {
+	globalThis.fetch = realFetch;
+});
 
 // ============================================================================
 // Fetch mock helpers (mirrors thin-client.test.ts)
@@ -320,6 +325,6 @@ describe("SmartCloudClient — inherited methods", () => {
 		await client.checkChunks(REPO, ["h"]);
 		const [, options] = fetchMock.mock.calls[0] as [string, RequestInit];
 		const headers = options.headers as Record<string, string>;
-		expect(headers["Authorization"]).toBe(`Bearer ${TOKEN}`);
+		expect(headers.Authorization).toBe(`Bearer ${TOKEN}`);
 	});
 });

@@ -1,4 +1,4 @@
-"""
+export const samplePythonSource = `"""
 Sample Python file for integration testing
 Tests hierarchical extraction and Python-specific features
 """
@@ -87,3 +87,4 @@ async def calculate_discount(price: float, discount_percent: float) -> float:
 def _internal_helper(data: dict) -> str:
     """Internal helper function (not exported)"""
     return str(data)
+`;

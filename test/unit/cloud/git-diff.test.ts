@@ -5,7 +5,8 @@
  * Each test injects the raw stdout string that the mocked exec will resolve.
  */
 
-import { describe, test, expect, mock, beforeEach } from "bun:test";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import * as childProcess from "node:child_process";
 
 // ============================================================================
 // Module mock setup
@@ -24,11 +25,23 @@ let mockExecImpl: (
 ) => Promise<{ stdout: string; stderr: string }>;
 
 mock.module("node:child_process", () => ({
+	...childProcess,
 	exec: (
 		cmd: string,
 		opts: unknown,
 		cb: (err: Error | null, result: { stdout: string; stderr: string }) => void,
 	) => {
+		if (
+			!opts ||
+			typeof opts !== "object" ||
+			(opts as { cwd?: string }).cwd !== "/fake/project"
+		) {
+			return childProcess.exec(
+				cmd,
+				opts as childProcess.ExecOptions,
+				cb as childProcess.ExecCallback,
+			);
+		}
 		// exec is callback-based; promisify wraps it — we simulate that callback
 		mockExecImpl(cmd, opts)
 			.then((result) => cb(null, result))
@@ -37,6 +50,10 @@ mock.module("node:child_process", () => ({
 		return { unref: () => {} };
 	},
 }));
+
+afterAll(() => {
+	mock.restore();
+});
 
 // Import AFTER mocking
 const { GitDiffChangeDetector } = await import(

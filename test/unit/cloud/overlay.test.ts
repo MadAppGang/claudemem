@@ -2,7 +2,7 @@
  * Unit tests for OverlayIndex
  *
  * Uses real LanceDB in a temporary directory (deleted after each test).
- * Mocks node:fs and the chunker to avoid needing real files or tree-sitter.
+ * Mocks the chunker to avoid needing tree-sitter for deterministic chunks.
  *
  * Tests cover:
  *  - isStale with no fingerprint → true
@@ -13,13 +13,21 @@
  *  - close() releases resources
  */
 
-import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
 import {
+	afterAll,
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	mock,
+	test,
+} from "bun:test";
+import {
+	existsSync,
+	mkdirSync,
 	mkdtempSync,
 	rmSync,
 	writeFileSync,
-	mkdirSync,
-	existsSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -29,15 +37,6 @@ import type { EmbedResult } from "../../../src/types.js";
 // ============================================================================
 // Module mocks (must come before imports that use them)
 // ============================================================================
-
-// Mock parser manager to avoid loading WASM in unit tests
-mock.module("../../../src/parsers/parser-manager.js", () => ({
-	getParserManager: mock(() => ({
-		initialize: mock(async () => {}),
-		isSupported: mock(() => true),
-		getLanguage: mock(() => "typescript"),
-	})),
-}));
 
 // Mock chunker to return deterministic chunks without needing tree-sitter
 mock.module("../../../src/core/chunker.js", () => ({
@@ -64,6 +63,10 @@ mock.module("../../../src/core/chunker.js", () => ({
 const { OverlayIndex, createOverlayIndex } = await import(
 	"../../../src/cloud/overlay.js"
 );
+
+afterAll(() => {
+	mock.restore();
+});
 
 // ============================================================================
 // Helpers

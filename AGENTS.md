@@ -133,8 +133,7 @@ The following directories intentionally retain `claudemem` references — they a
 - **`src/cloud/**`** — contains intentional `X-ClaudeMem-*` header fallback reads (legacy client compatibility). See gotcha #11.
 - **`docs/adr/**`** — architecture decision records are historical. Rewriting them falsifies the record.
 - **`ai-docs/sessions/**`, `ai-docs/seo-research-claudemem-positioning.md`, `ai-docs/design-reviews/**`, `ai-docs/research-paper-*/**`** — frozen session records, research artifacts, design reviews.
-- **`experiments/query-expansion/results/**`** — frozen experiment JSON outputs from benchmark runs.
-- **`experiments/query-expansion/training/**`, `experiments/query-expansion/bench/run-finetuned.py`** — training scripts that reference HuggingFace model names like `jackrudenko/claudemem-expansion-*`. These are **external identifiers** on HuggingFace — renaming here would point at non-existent repos.
+- **`experiments/query-expansion/results/**`** — frozen experiment JSON outputs from benchmark runs. They may mention HuggingFace model names like `jackrudenko/claudemem-expansion-*`; these are **external identifiers** on HuggingFace, so renaming those identifiers would point at non-existent repos.
 - **`eval/mnemex-search-steps-evaluation/runs/**`** — frozen eval run outputs.
 - **`.agents/skills/agentbench-eval/SKILL.md`** — agentbench skill doc; references in it describe the repo at a point in time.
 - **Lockfiles** (`package-lock.json`, `bun.lock`, `vscode-extension/*-lock.json`) — regenerate on next install.

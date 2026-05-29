@@ -59,7 +59,7 @@ Key insight: **SFT teaches FORMAT, not domain knowledge.** Models with strong co
 
 ## Implementation Notes
 
-### sft.py Changes Needed
+### sft.ts Changes Needed
 1. Add new model configs to `MODELS` dict
 2. For Qwen3.5: verify `load_in_4bit=True` works (new architecture)
 3. For MiMo-7B: investigate chat template format
@@ -75,28 +75,22 @@ Key insight: **SFT teaches FORMAT, not domain knowledge.** Models with strong co
 ### HF Jobs Commands (when ready)
 ```bash
 # Priority 1: Qwen3.5-9B
-hf jobs uv run --flavor a10g-large --secrets HF_TOKEN --timeout 3h \
-    experiments/query-expansion/training/jobs/sft.py --model qwen3.5-9b
+HF_TOKEN=... bun experiments/query-expansion/training/jobs/sft.ts --model qwen3.5-9b
 
 # Priority 2: Qwen3.5-4B
-hf jobs uv run --flavor a10g-large --secrets HF_TOKEN --timeout 2h \
-    experiments/query-expansion/training/jobs/sft.py --model qwen3.5-4b
+HF_TOKEN=... bun experiments/query-expansion/training/jobs/sft.ts --model qwen3.5-4b
 
 # Priority 3: MiMo-7B
-hf jobs uv run --flavor a10g-large --secrets HF_TOKEN --timeout 3h \
-    experiments/query-expansion/training/jobs/sft.py --model mimo-7b
+HF_TOKEN=... bun experiments/query-expansion/training/jobs/sft.ts --model mimo-7b
 
 # Priority 4: Phi-4-mini
-hf jobs uv run --flavor a10g-large --secrets HF_TOKEN --timeout 2h \
-    experiments/query-expansion/training/jobs/sft.py --model phi4-mini
+HF_TOKEN=... bun experiments/query-expansion/training/jobs/sft.ts --model phi4-mini
 
 # Priority 5: Qwen3.5-2B
-hf jobs uv run --flavor a10g-large --secrets HF_TOKEN --timeout 2h \
-    experiments/query-expansion/training/jobs/sft.py --model qwen3.5-2b
+HF_TOKEN=... bun experiments/query-expansion/training/jobs/sft.ts --model qwen3.5-2b
 
 # Priority 6: Qwen3-14B
-hf jobs uv run --flavor a100-large --secrets HF_TOKEN --timeout 4h \
-    experiments/query-expansion/training/jobs/sft.py --model qwen3-14b
+HF_TOKEN=... bun experiments/query-expansion/training/jobs/sft.ts --model qwen3-14b
 ```
 
 ## Current Results (Round 1)
