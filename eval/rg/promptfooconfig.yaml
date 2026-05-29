@@ -91,10 +91,12 @@ tests:
   # ---- Case 4: symbol that only exists in tests/, to validate glob paths ---
   - description: "Grep restricted by glob still reaches the shim"
     vars:
-      prompt: "Use only the Grep tool with path `.` and glob set to `test/*.ts` to find where 'isBigint' is tested."
+      prompt: "Use only the Grep tool with path `test` and glob set to `*.ts` to find where the regex `is\\.bigint` is tested."
     assert:
       - type: javascript
-        value: "output.shim_trace_tail.includes('isBigint') || output.grep_tool_result_preview.includes('test/test.ts')"
+        value: "output.grep_tool_calls.some(c => c.pattern === 'is\\\\.bigint' && c.glob === '*.ts')"
+      - type: contains
+        value: "test/test.ts"
 
   # ---- Case 5: pattern with regex metacharacters ---------------------------
   - description: "Regex pattern works end-to-end through the shim"
