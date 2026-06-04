@@ -10,6 +10,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { createCodeAnalyzer } from "../../core/analysis/analyzer.js";
+import { buildIndexState } from "../index-state.js";
 import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
@@ -72,6 +73,8 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 					reason: r.reason,
 				}));
 
+				const indexState = await buildIndexState(deps, startTime);
+
 				return {
 					content: [
 						{
@@ -80,6 +83,7 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 								deadSymbols,
 								totalAnalyzed: deadSymbols.length,
 								...buildFreshness(stateManager, startTime),
+								...indexState,
 							}),
 						},
 					],
@@ -152,6 +156,8 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 							)
 						: 100;
 
+				const indexState = await buildIndexState(deps, startTime);
+
 				return {
 					content: [
 						{
@@ -164,6 +170,7 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 									coveragePercent,
 								},
 								...buildFreshness(stateManager, startTime),
+								...indexState,
 							}),
 						},
 					],
@@ -194,6 +201,7 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 			try {
 				const { tracker } = await cache.get();
 				const analyzer = createCodeAnalyzer(tracker);
+				const indexState = await buildIndexState(deps, startTime);
 
 				const target = analyzer.findSymbolForImpact(symbolName);
 				if (!target) {
@@ -204,6 +212,7 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 								text: JSON.stringify({
 									error: `Symbol "${symbolName}" not found in index.`,
 									...buildFreshness(stateManager, startTime),
+									...indexState,
 								}),
 							},
 						],
@@ -222,6 +231,7 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 								text: JSON.stringify({
 									error: `Could not analyze impact for "${symbolName}".`,
 									...buildFreshness(stateManager, startTime),
+									...indexState,
 								}),
 							},
 						],
@@ -255,6 +265,7 @@ export function registerAnalysisTools(server: McpServer, deps: ToolDeps): void {
 								impactedSymbols,
 								riskLevel,
 								...buildFreshness(stateManager, startTime),
+								...indexState,
 							}),
 						},
 					],

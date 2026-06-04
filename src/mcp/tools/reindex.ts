@@ -7,8 +7,16 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { buildIndexState } from "../index-state.js";
 import type { ToolDeps } from "./deps.js";
 import { errorResponse } from "./deps.js";
+
+/**
+ * Cap blocking reindex waits BELOW the MCP client tool timeout (~60s) so we can
+ * return structured diagnostics before the client aborts. waitForCompletion's
+ * own default is 300s — far too long for a blocking tool call.
+ */
+const REINDEX_BLOCKING_TIMEOUT_MS = 45000;
 
 export function registerReindexTools(server: McpServer, deps: ToolDeps): void {
 	const { reindexer, completionDetector, logger } = deps;
@@ -51,30 +59,62 @@ export function registerReindexTools(server: McpServer, deps: ToolDeps): void {
 				if (reindexer.isRunning()) {
 					if (blocking && completionDetector) {
 						logger.info("reindex: lock held, waiting for completion");
-						const completed = await completionDetector.waitForCompletion();
+						const completed = await completionDetector.waitForCompletion(
+							REINDEX_BLOCKING_TIMEOUT_MS,
+						);
+						if (completed) {
+							return {
+								content: [
+									{
+										type: "text" as const,
+										text: JSON.stringify({
+											status: "completed",
+											durationMs: Date.now() - startTime,
+											message: "Reindex completed (was already in progress)",
+										}),
+									},
+								],
+							};
+						}
+						// Timed out: return structured diagnostics instead of a bare
+						// "timed out" string. status stays distinguishable ("timeout",
+						// NOT spread from indexState.status — A7).
+						const st = await buildIndexState(deps, startTime);
 						return {
 							content: [
 								{
 									type: "text" as const,
 									text: JSON.stringify({
-										status: completed ? "completed" : "failed",
+										status: "timeout",
 										durationMs: Date.now() - startTime,
-										message: completed
-											? "Reindex completed (was already in progress)"
-											: "Timed out waiting for reindex",
+										message: `Reindex still running after ${
+											REINDEX_BLOCKING_TIMEOUT_MS / 1000
+										}s; returning diagnostics.`,
+										indexing: st.indexing,
+										index: st.index,
+										canReturnCachedResults: st.canReturnCachedResults,
+										recommendations: st.recommendations,
 									}),
 								},
 							],
 						};
 					}
 
+					// Enrich already_running with the structured indexing/index/recommendations
+					// block. Keep the "already_running" discriminator (do NOT spread ...st
+					// whole, which would clobber status with st.status — A7).
+					const st = await buildIndexState(deps, startTime);
 					return {
 						content: [
 							{
 								type: "text" as const,
 								text: JSON.stringify({
 									status: "already_running",
-									message: "A reindex is already in progress.",
+									message: st.message,
+									indexing: st.indexing,
+									index: st.index,
+									canReturnCachedResults: st.canReturnCachedResults,
+									recommendations: st.recommendations,
 								}),
 							},
 						],
@@ -89,17 +129,39 @@ export function registerReindexTools(server: McpServer, deps: ToolDeps): void {
 
 				if (blocking && completionDetector) {
 					logger.info("reindex: waiting for completion");
-					const completed = await completionDetector.waitForCompletion();
+					const completed = await completionDetector.waitForCompletion(
+						REINDEX_BLOCKING_TIMEOUT_MS,
+					);
+					if (completed) {
+						return {
+							content: [
+								{
+									type: "text" as const,
+									text: JSON.stringify({
+										status: "completed",
+										durationMs: Date.now() - startTime,
+										message: "Reindex completed successfully",
+									}),
+								},
+							],
+						};
+					}
+					// Timed out: structured diagnostics, distinguishable "timeout" status (A7).
+					const st = await buildIndexState(deps, startTime);
 					return {
 						content: [
 							{
 								type: "text" as const,
 								text: JSON.stringify({
-									status: completed ? "completed" : "failed",
+									status: "timeout",
 									durationMs: Date.now() - startTime,
-									message: completed
-										? "Reindex completed successfully"
-										: "Timed out waiting for reindex to complete",
+									message: `Reindex still running after ${
+										REINDEX_BLOCKING_TIMEOUT_MS / 1000
+									}s; returning diagnostics.`,
+									indexing: st.indexing,
+									index: st.index,
+									canReturnCachedResults: st.canReturnCachedResults,
+									recommendations: st.recommendations,
 								}),
 							},
 						],
