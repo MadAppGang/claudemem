@@ -112,6 +112,88 @@ function isLockStale(lock: LockData, staleTimeout: number): boolean {
 }
 
 // ============================================================================
+// Read-only inspection
+// ============================================================================
+
+/**
+ * Full read-only snapshot of the index lock. Does NOT mutate or remove the lock.
+ *
+ * Modeled as a discriminated union on `present` so callers can narrow once
+ * (`if (!inspect.present) ... else { use fields }`) and access the holder fields
+ * without `number | undefined` noise.
+ */
+export type LockInspection =
+	| { present: false }
+	| {
+			/** A parseable, complete lock file is present. */
+			present: true;
+			/** Holder PID from the lock file. */
+			pid: number;
+			/** Human-readable start time string from the lock. */
+			startedAt: string;
+			/** Lock acquisition epoch ms. */
+			startTime: number;
+			/** Last heartbeat epoch ms. */
+			heartbeat: number;
+			/** ms since startTime (Date.now() - startTime). */
+			elapsedMs: number;
+			/** Whether the holder PID is alive (process.kill(pid, 0) liveness probe). */
+			pidAlive: boolean;
+			/** Whether the heartbeat is within staleTimeout of now. Informational only. */
+			isHeartbeatFresh: boolean;
+	  };
+
+/**
+ * Inspect the index lock WITHOUT mutating or removing it (distinct from acquire(),
+ * whose stale-lock cleanup is intentionally left unchanged). Strictly read-only:
+ * no unlink, no write, and only a `process.kill(pid, 0)` liveness probe — never a
+ * real signal.
+ *
+ * @param indexDir      ABSOLUTE path to the index directory (e.g. config.indexDir).
+ *                      The lock file is resolved as join(indexDir, ".indexing.lock").
+ *                      This is the SOLE signature — no (projectPath, indexDir) form —
+ *                      because config.indexDir is already absolute and is the only
+ *                      thing the caller has; taking it directly avoids a path.join
+ *                      double-join bug under MNEMEX_INDEX_DIR.
+ * @param staleTimeout  Window (ms) for the informational isHeartbeatFresh flag.
+ *                      Default DEFAULT_STALE_TIMEOUT (10000); the sole caller
+ *                      (index-state.ts) passes HEARTBEAT_FRESH_TIMEOUT (30000).
+ */
+export function inspectLock(
+	indexDir: string,
+	staleTimeout: number = DEFAULT_STALE_TIMEOUT,
+): LockInspection {
+	const lockPath = join(indexDir, LOCK_FILENAME);
+	const lock = readLockFile(lockPath);
+
+	// readLockFile returns null for an absent file OR corrupt/partial JSON.
+	// Additionally guard against well-formed JSON missing the required numeric
+	// fields (e.g. `{}`), which would otherwise produce a process.kill(undefined,0)
+	// TypeError or NaN elapsed/heartbeat values. Treat all of these as "no lock"
+	// so the classification decision tree is total.
+	if (
+		!lock ||
+		typeof lock.pid !== "number" ||
+		typeof lock.startTime !== "number" ||
+		typeof lock.heartbeat !== "number"
+	) {
+		return { present: false };
+	}
+
+	const now = Date.now();
+	return {
+		present: true,
+		pid: lock.pid,
+		startedAt: lock.startedAt,
+		startTime: lock.startTime,
+		heartbeat: lock.heartbeat,
+		elapsedMs: now - lock.startTime,
+		pidAlive: isProcessRunning(lock.pid),
+		isHeartbeatFresh: now - lock.heartbeat <= staleTimeout,
+	};
+}
+
+// ============================================================================
 // IIndexLock Interface
 // ============================================================================
 

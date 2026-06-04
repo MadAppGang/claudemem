@@ -5,9 +5,10 @@
  * when it was last updated, server uptime, and watcher state.
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { buildIndexState } from "../index-state.js";
 import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
@@ -47,6 +48,7 @@ export function registerStatusTools(server: McpServer, deps: ToolDeps): void {
 				}
 
 				const freshness = buildFreshness(stateManager, startTime);
+				const indexState = await buildIndexState(deps, startTime);
 
 				return {
 					content: [
@@ -55,12 +57,17 @@ export function registerStatusTools(server: McpServer, deps: ToolDeps): void {
 							text: JSON.stringify({
 								initialized,
 								indexPath: config.indexDir,
+								// CONTRACT (A9): index.lastIndexed (from stateManager, in the
+								// spread ...indexState) is authoritative. indexDbLastIndexed is
+								// the legacy tracker-derived value, retained for back-compat; it
+								// may diverge from index.lastIndexed (tracker vs stateManager).
 								indexDbLastIndexed,
 								indexSizeBytes,
 								indexedFileCount,
 								fileWatcherActive: watcherActive,
 								serverUptime: Date.now() - serverStartTime,
 								...freshness,
+								...indexState,
 							}),
 						},
 					],

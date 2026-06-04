@@ -18,14 +18,16 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { appendFileSync } from "node:fs";
-import { join } from "node:path";
-import { createIndexer } from "../../core/indexer.js";
+import { join, resolve } from "node:path";
+import { createIndexer, IndexLockError } from "../../core/indexer.js";
 import { FileTracker } from "../../core/tracker.js";
 import { existsSync } from "node:fs";
 import { discoverEmbeddingModels } from "../../models/model-discovery.js";
 import { createLearningSystem } from "../../learning/index.js";
 import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
+import { buildIndexState, type IndexState } from "../index-state.js";
+import type { FreshnessMetadata } from "../types.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -37,6 +39,33 @@ function getFileTracker(projectPath: string): FileTracker | null {
 		return null;
 	}
 	return new FileTracker(dbPath, projectPath);
+}
+
+/**
+ * Serialize an IndexState into a non-error MCP text response. Used by
+ * index_codebase to return structured, actionable indexing state instead of
+ * throwing when a live indexer holds the lock (or a stale lock is detected).
+ */
+function structuredIndexingResponse(
+	state: IndexState,
+	freshness: FreshnessMetadata,
+): { content: Array<{ type: "text"; text: string }> } {
+	return {
+		content: [
+			{
+				type: "text" as const,
+				text: JSON.stringify({
+					status: state.status,
+					message: state.message,
+					indexing: state.indexing,
+					index: state.index,
+					canReturnCachedResults: state.canReturnCachedResults,
+					recommendations: state.recommendations,
+					...freshness,
+				}),
+			},
+		],
+	};
 }
 
 function appendActivityNotification(
@@ -62,7 +91,7 @@ function appendActivityNotification(
 // ---------------------------------------------------------------------------
 
 export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
-	const { stateManager } = deps;
+	const { stateManager, config } = deps;
 
 	// =========================================================================
 	// index_codebase
@@ -91,13 +120,54 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 			try {
 				const projectPath = path ?? process.cwd();
 
+				// CRITICAL-1: buildIndexState inspects the SERVER workspace's lock
+				// (config.indexDir / config.workspaceRoot), which is only meaningful for
+				// THIS path when the caller omitted `path` or asked to index the server's
+				// own workspace. For a different target path, an unguarded pre-check /
+				// IndexLockError translate would wrongly refuse to index path B just
+				// because workspace A is busy. So gate BOTH the pre-check and the catch
+				// translate on this comparison; otherwise fall through untouched.
+				const isWorkspacePath =
+					!path || resolve(projectPath) === resolve(config.workspaceRoot);
+
+				// Pre-check the live lock. Only short-circuit for a LIVE indexer
+				// (indexing_in_progress). A stale_lock (dead pid) must fall through so
+				// the indexer's own acquire() can clean it up and proceed.
+				if (isWorkspacePath) {
+					const pre = await buildIndexState(deps, startTime);
+					if (pre.status === "indexing_in_progress") {
+						return structuredIndexingResponse(
+							pre,
+							buildFreshness(stateManager, startTime),
+						);
+					}
+				}
+
 				const indexer = createIndexer({
 					projectPath,
 					model,
 					enableEnrichment: enableEnrichment !== false,
 				});
 
-				const result = await indexer.index(force ?? false);
+				let result: Awaited<ReturnType<typeof indexer.index>>;
+				try {
+					result = await indexer.index(force ?? false);
+				} catch (err) {
+					// Race: a lock was acquired between the pre-check and index().
+					// Translate a late IndexLockError into the same structured shape —
+					// but ONLY for the server workspace (CRITICAL-1). For a different
+					// target path the lock error refers to that path's own lock and must
+					// surface untranslated.
+					await indexer.close();
+					if (isWorkspacePath && err instanceof IndexLockError) {
+						const st = await buildIndexState(deps, startTime);
+						return structuredIndexingResponse(
+							st,
+							buildFreshness(stateManager, startTime),
+						);
+					}
+					throw err;
+				}
 				await indexer.close();
 
 				// Activity recording
@@ -265,11 +335,20 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 				await indexer.close();
 
 				if (results.length === 0) {
+					// A10: every search_code path carries the structured state as ONE
+					// trailing JSON object (buildFreshness + indexState merged), including
+					// the no-results early return.
+					const indexState = await buildIndexState(deps, startTime);
+					const trailer = JSON.stringify({
+						...buildFreshness(stateManager, startTime),
+						...indexState,
+					});
+					const emptyResponse = `No results found for "${query}". Make sure the codebase is indexed using \`index_codebase\`.\n${trailer}`;
 					return {
 						content: [
 							{
 								type: "text" as const,
-								text: `No results found for "${query}". Make sure the codebase is indexed using \`index_codebase\`.`,
+								text: emptyResponse,
 							},
 						],
 					};
@@ -304,8 +383,14 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 
 				response += `---\n`;
 				response += `*Chunk IDs: ${chunkIds.map((id) => id.slice(0, 8)).join(", ")}*\n`;
-				response +=
-					`\n` + JSON.stringify(buildFreshness(stateManager, startTime));
+				// A10: ONE trailing JSON object combining freshness + structured state
+				// (do not append two bare JSON lines).
+				const indexState = await buildIndexState(deps, startTime);
+				const trailer = JSON.stringify({
+					...buildFreshness(stateManager, startTime),
+					...indexState,
+				});
+				response += `\n${trailer}`;
 
 				return { content: [{ type: "text" as const, text: response }] };
 			} catch (err) {
@@ -360,20 +445,35 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 				.describe("Project path (default: current directory)"),
 		},
 		async ({ path }) => {
+			const startTime = Date.now();
 			try {
 				const projectPath = path ?? process.cwd();
+
+				// buildIndexState inspects the SERVER workspace (config.indexDir /
+				// config.workspaceRoot), so the structured block is only meaningful
+				// when this tool targets that same workspace (path omitted or equal).
+				// For a different caller `path`, omit it rather than report state for
+				// the wrong directory — mirrors the index_codebase cross-path guard.
+				const isWorkspacePath =
+					!path || resolve(projectPath) === resolve(config.workspaceRoot);
+				const indexState = isWorkspacePath
+					? await buildIndexState(deps, startTime)
+					: null;
+
 				const indexer = createIndexer({ projectPath });
 				const status = await indexer.getStatus();
 				await indexer.close();
 
 				if (!status.exists) {
+					// Surface the structured state here too: "Files: 0, Chunks: 0" with
+					// no index is exactly when the agent needs no_index + a recommendation
+					// instead of a bare sentence.
+					let noIndexText = `No index found for ${projectPath}. Run \`index_codebase\` to create one.`;
+					if (indexState) {
+						noIndexText += `\n${JSON.stringify(indexState)}`;
+					}
 					return {
-						content: [
-							{
-								type: "text" as const,
-								text: `No index found for ${projectPath}. Run \`index_codebase\` to create one.`,
-							},
-						],
+						content: [{ type: "text" as const, text: noIndexText }],
 					};
 				}
 
@@ -403,6 +503,12 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 					} finally {
 						statusTracker.close();
 					}
+				}
+
+				// Append the structured state block (when targeting the workspace) so
+				// agents get freshness + indexing diagnostics without a second call.
+				if (indexState) {
+					response += `\n---\n${JSON.stringify(indexState)}`;
 				}
 
 				return { content: [{ type: "text" as const, text: response }] };

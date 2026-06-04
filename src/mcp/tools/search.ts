@@ -28,6 +28,7 @@ import { TreeSitterBackend } from "../../retrieval/backends/tree-sitter.js";
 import { loadPipelineConfig } from "../../retrieval/pipeline/config.js";
 import { PipelineOrchestrator } from "../../retrieval/pipeline/orchestrator.js";
 import { QueryRouter } from "../../retrieval/routing/query-router.js";
+import { buildIndexState } from "../index-state.js";
 import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";
 
@@ -113,6 +114,10 @@ export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
 							source: (r as { source?: string }).source ?? "cloud",
 						}));
 
+						// Compute index state at the return point (A2), after any
+						// state-mutating work above, immediately before stringify.
+						const indexState = await buildIndexState(deps, startTime);
+
 						return {
 							content: [
 								{
@@ -122,6 +127,7 @@ export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
 										totalMatches: resultItems.length,
 										autoIndexed: 0,
 										...buildFreshness(stateManager, startTime),
+										...indexState,
 									}),
 								},
 							],
@@ -249,6 +255,10 @@ export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
 					backend: r.backends.join("+"),
 				}));
 
+				// Compute index state AFTER the indexer.index(false) auto-index above,
+				// at the return point (A2) — auto-index can change freshness.
+				const indexState = await buildIndexState(deps, startTime);
+
 				return {
 					content: [
 						{
@@ -258,6 +268,7 @@ export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
 								totalMatches: resultItems.length,
 								autoIndexed,
 								...buildFreshness(stateManager, startTime),
+								...indexState,
 							}),
 						},
 					],
