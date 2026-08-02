@@ -5,7 +5,13 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+	unlinkSync,
+} from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { confirm, input, select } from "@inquirer/prompts";
@@ -316,16 +322,7 @@ export async function runCli(args: string[]): Promise<void> {
 			await handleModels(args.slice(1));
 			break;
 		case "benchmark":
-			await handleBenchmark(args.slice(1));
-			break;
-		case "benchmark-llm":
-			await handleBenchmarkLLM(args.slice(1));
-			break;
-		case "benchmark-list":
-			await handleBenchmarkList(args.slice(1));
-			break;
-		case "benchmark-show":
-			await handleBenchmarkShow(args.slice(1));
+			await handleBenchmarkRouter(args.slice(1));
 			break;
 		case "ai":
 			handleAiInstructions(args.slice(1));
@@ -3061,6 +3058,157 @@ async function discoverAndChunkFilesWithPaths(
 	}
 
 	return allChunks;
+}
+
+// ============================================================================
+// Benchmark Subcommand Router
+// ============================================================================
+
+/**
+ * Result of resolving a benchmark subcommand into an action + remaining args.
+ * Pure decision logic, extracted so it can be unit-tested without spawning the CLI.
+ */
+export type BenchmarkSubcommandResolution =
+	| { kind: "help" }
+	| { kind: "action"; action: BenchmarkAction; rest: string[] }
+	| { kind: "error"; message: string };
+
+export type BenchmarkAction =
+	| "list"
+	| "show"
+	| "llm"
+	| "embedding"
+	| "delete";
+
+/**
+ * Decide which benchmark subcommand (if any) to run for a given arg list.
+ *
+ * Rules:
+ * - No subcommand, or an explicit help token -> { kind: "help" } (RUN NOTHING).
+ * - A token that starts with "-" -> error with a hint (the footgun fix:
+ *   `mnemex benchmark --list` must NOT launch the embedding benchmark).
+ * - A known subcommand (with aliases) -> { kind: "action", action, rest }
+ *   where `rest` is the args WITHOUT the subcommand token, so each handler's
+ *   own flag parsing keeps working.
+ * - Anything else -> error.
+ */
+export function resolveBenchmarkSubcommand(
+	args: string[],
+): BenchmarkSubcommandResolution {
+	const sub = args[0];
+
+	if (
+		sub === undefined ||
+		sub === "help" ||
+		sub === "--help" ||
+		sub === "-h"
+	) {
+		return { kind: "help" };
+	}
+
+	if (sub.startsWith("-")) {
+		return {
+			kind: "error",
+			message: `Unknown flag '${sub}'. Did you mean a subcommand? Run 'mnemex benchmark help'.`,
+		};
+	}
+
+	const rest = args.slice(1);
+
+	switch (sub) {
+		case "list":
+			return { kind: "action", action: "list", rest };
+		case "show":
+			return { kind: "action", action: "show", rest };
+		case "llm":
+			return { kind: "action", action: "llm", rest };
+		case "embedding":
+		case "run":
+			return { kind: "action", action: "embedding", rest };
+		case "delete":
+		case "rm":
+			return { kind: "action", action: "delete", rest };
+		default:
+			return {
+				kind: "error",
+				message: `Unknown benchmark subcommand '${sub}'. Run 'mnemex benchmark help'.`,
+			};
+	}
+}
+
+/**
+ * Print benchmark subcommand help. Runs nothing.
+ */
+function printBenchmarkHelp(): void {
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+	};
+
+	console.log(`
+${c.yellow}${c.bold}mnemex benchmark${c.reset} — benchmarking tools ${c.dim}(no subcommand runs nothing)${c.reset}
+
+${c.yellow}${c.bold}USAGE${c.reset}
+  ${c.cyan}mnemex benchmark <subcommand> [options]${c.reset}
+
+${c.yellow}${c.bold}SUBCOMMANDS${c.reset}
+  ${c.green}help${c.reset}                   Show this help ${c.dim}(default when no subcommand given)${c.reset}
+  ${c.green}list${c.reset}                   List all benchmark runs
+  ${c.green}show${c.reset} <run-id>          Show results for a specific run
+  ${c.green}llm${c.reset} [options]          Comprehensive LLM summary evaluation ${c.dim}(4 methods, resumable)${c.reset}
+  ${c.green}embedding${c.reset} [options]    Compare embedding models ${c.dim}(index, search quality, cost; alias: run)${c.reset}
+  ${c.green}delete${c.reset} <run-id>        Delete a run + its report files ${c.dim}(alias: rm)${c.reset}
+
+${c.yellow}${c.bold}EXAMPLES${c.reset}
+  ${c.dim}mnemex benchmark list${c.reset}
+  ${c.dim}mnemex benchmark show <run-id>${c.reset}
+  ${c.dim}mnemex benchmark llm --cases=20${c.reset}
+  ${c.dim}mnemex benchmark embedding --models=voyage-code-3,openai/text-embedding-3-small${c.reset}
+  ${c.dim}mnemex benchmark delete <run-id>${c.reset}
+`);
+}
+
+/**
+ * Route `mnemex benchmark <subcommand>` to the right handler.
+ *
+ * Crucially: an unknown FLAG (e.g. `benchmark --list`) prints an error/hint and
+ * runs NOTHING — it must never silently launch the expensive embedding benchmark.
+ */
+async function handleBenchmarkRouter(args: string[]): Promise<void> {
+	const resolution = resolveBenchmarkSubcommand(args);
+
+	if (resolution.kind === "help") {
+		printBenchmarkHelp();
+		return;
+	}
+
+	if (resolution.kind === "error") {
+		const c = { reset: "\x1b[0m", red: "\x1b[31m" };
+		console.log(`${c.red}${resolution.message}${c.reset}`);
+		return;
+	}
+
+	switch (resolution.action) {
+		case "list":
+			await handleBenchmarkList(resolution.rest);
+			return;
+		case "show":
+			await handleBenchmarkShow(resolution.rest);
+			return;
+		case "llm":
+			await handleBenchmarkLLM(resolution.rest);
+			return;
+		case "embedding":
+			await handleBenchmark(resolution.rest);
+			return;
+		case "delete":
+			await handleBenchmarkDelete(resolution.rest);
+			return;
+	}
 }
 
 async function handleBenchmark(args: string[]): Promise<void> {
@@ -6667,10 +6815,7 @@ ${c.yellow}${c.bold}COMMANDS${c.reset}
   ${c.green}clear${c.reset} [path]           Clear the index
   ${c.green}init${c.reset}                   Interactive setup wizard
   ${c.green}models${c.reset}                 List available embedding models
-  ${c.green}benchmark${c.reset}              Compare embedding models (index, search quality, cost)
-  ${c.green}benchmark-llm${c.reset}          Comprehensive LLM evaluation (4 methods, resumable)
-  ${c.green}benchmark-list${c.reset}         List all benchmark runs
-  ${c.green}benchmark-show${c.reset}         Show results for a specific run
+  ${c.green}benchmark${c.reset} <subcommand>  Benchmarking tools ${c.dim}(list|show|llm|embedding|delete; run 'benchmark help')${c.reset}
   ${c.green}ai${c.reset} <role>             Print AI agent instructions (architect|developer|tester|debugger)
   ${c.green}update${c.reset}                 Update to latest version and show changelog
 
@@ -6742,7 +6887,7 @@ ${c.yellow}${c.bold}BENCHMARK OPTIONS${c.reset} ${c.dim}(embedding benchmark)${c
   ${c.cyan}--auto${c.reset}                 Auto-generate queries from docstrings (any codebase)
   ${c.cyan}--verbose${c.reset}              Show detailed per-query results
 
-${c.yellow}${c.bold}BENCHMARK-LLM OPTIONS${c.reset} ${c.dim}(comprehensive LLM evaluation)${c.reset}
+${c.yellow}${c.bold}BENCHMARK LLM OPTIONS${c.reset} ${c.dim}(mnemex benchmark llm — comprehensive LLM evaluation)${c.reset}
   ${c.cyan}--generators=${c.reset}<list>    LLM providers/models to test (comma-separated)
                           ${c.dim}Examples: openrouter/openai/gpt-4o, anthropic/claude-3-5-sonnet${c.reset}
   ${c.cyan}--judges=${c.reset}<list>        LLM models for LLM-as-Judge evaluation
@@ -6753,8 +6898,8 @@ ${c.yellow}${c.bold}BENCHMARK-LLM OPTIONS${c.reset} ${c.dim}(comprehensive LLM e
   ${c.cyan}--list${c.reset}, ${c.cyan}-l${c.reset}              List all benchmark runs
   ${c.cyan}--verbose${c.reset}, ${c.cyan}-v${c.reset}           Show detailed progress
 
-${c.yellow}${c.bold}BENCHMARK-LLM SUBCOMMANDS${c.reset}
-  ${c.green}benchmark-llm upload${c.reset} <run-id>  Upload a specific run to Firebase
+${c.yellow}${c.bold}BENCHMARK LLM SUBCOMMANDS${c.reset}
+  ${c.green}benchmark llm upload${c.reset} <run-id>  Upload a specific run to Firebase
   ${c.dim}Evaluation methods: LLM-as-Judge, Contrastive, Retrieval (P@K/MRR), Downstream${c.reset}
   ${c.dim}Outputs: JSON, Markdown, HTML reports${c.reset}
 
@@ -6995,7 +7140,7 @@ async function handleBenchmarkList(args: string[]): Promise<void> {
 	}
 
 	console.log(
-		`\n${c.dim}Use: mnemex benchmark-show <run-id> to view results${c.reset}\n`,
+		`\n${c.dim}Use: mnemex benchmark show <run-id> to view results${c.reset}\n`,
 	);
 }
 
@@ -7019,10 +7164,10 @@ async function handleBenchmarkShow(args: string[]): Promise<void> {
 	const runId = args.find((a) => !a.startsWith("--"));
 	if (!runId) {
 		console.log(`${c.red}Error: Please provide a run ID${c.reset}`);
-		console.log("Usage: mnemex benchmark-show <run-id>");
-		console.log("       mnemex benchmark-show <run-id> --json");
+		console.log("Usage: mnemex benchmark show <run-id>");
+		console.log("       mnemex benchmark show <run-id> --json");
 		console.log(
-			"       mnemex benchmark-show <run-id> --project=/path/to/project",
+			"       mnemex benchmark show <run-id> --project=/path/to/project",
 		);
 		return;
 	}
@@ -7257,6 +7402,85 @@ async function handleBenchmarkShow(args: string[]): Promise<void> {
 			clearInterval(keepalive);
 		}
 	}
+}
+
+/**
+ * Delete a benchmark run: removes the DB row and its on-disk report files.
+ *
+ * Usage:
+ *   mnemex benchmark delete <run-id> [--project=/path] [--yes|-y]
+ *
+ * Non-interactive by design: there is no confirmation prompt (which would hang
+ * in --agent mode). The `--yes`/`-y` flag is accepted for symmetry but the
+ * command always just deletes and reports.
+ */
+async function handleBenchmarkDelete(args: string[]): Promise<void> {
+	const { BenchmarkDatabase } = await import(
+		"./benchmark-v2/storage/benchmark-db.js"
+	);
+
+	const c = {
+		reset: "\x1b[0m",
+		bold: "\x1b[1m",
+		dim: "\x1b[2m",
+		cyan: "\x1b[36m",
+		green: "\x1b[38;5;78m",
+		yellow: "\x1b[33m",
+		red: "\x1b[31m",
+	};
+
+	const runId = args.find((a) => !a.startsWith("-"));
+	if (!runId) {
+		console.log(`${c.red}Error: Please provide a run ID${c.reset}`);
+		console.log("Usage: mnemex benchmark delete <run-id>");
+		console.log("       mnemex benchmark delete <run-id> --project=/path");
+		return;
+	}
+
+	const projectPath =
+		args.find((a) => a.startsWith("--project="))?.split("=")[1] ||
+		process.cwd();
+	const dbPath = join(projectPath, ".mnemex", "benchmark.db");
+	if (!existsSync(dbPath)) {
+		console.log(
+			`${c.yellow}No benchmark database found at ${dbPath}${c.reset}`,
+		);
+		return;
+	}
+
+	const db = new BenchmarkDatabase(dbPath);
+
+	// Verify the run exists before deleting. getRun throws RunNotFoundError when
+	// the id is unknown, so translate that into a clean message.
+	try {
+		db.getRun(runId);
+	} catch {
+		console.log(`${c.red}Error: Run not found: ${runId}${c.reset}`);
+		return;
+	}
+
+	// Delete the DB row.
+	db.deleteRun(runId);
+
+	// Delete on-disk report files written by the reporters:
+	//   <outputDir>/<runId>.json|.md|.html  where outputDir = .mnemex/benchmark-reports
+	const outputDir = join(projectPath, ".mnemex", "benchmark-reports");
+	let filesDeleted = 0;
+	for (const ext of ["json", "md", "html"]) {
+		const filePath = join(outputDir, `${runId}.${ext}`);
+		if (existsSync(filePath)) {
+			try {
+				unlinkSync(filePath);
+				filesDeleted++;
+			} catch {
+				// Ignore-if-absent / unremovable; non-fatal.
+			}
+		}
+	}
+
+	console.log(
+		`${c.green}Deleted run ${runId} (DB row + ${filesDeleted} report file${filesDeleted === 1 ? "" : "s"}).${c.reset}`,
+	);
 }
 
 // ============================================================================

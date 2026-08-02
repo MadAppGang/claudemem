@@ -2,7 +2,7 @@
  * Benchmark Results Display Module
  *
  * Reusable display functions for benchmark results.
- * Used by both `benchmark` command (after run) and `benchmark-show` command.
+ * Used by both `benchmark embedding` command (after run) and `benchmark show` command.
  */
 
 import type { BenchmarkDatabase } from "./storage/benchmark-db.js";

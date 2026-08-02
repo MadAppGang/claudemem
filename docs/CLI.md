@@ -360,12 +360,40 @@ mnemex impact parseConfig --max-depth 5
 
 ## Benchmark Commands
 
-### `benchmark` - Embedding Model Benchmark
+### `benchmark` - Benchmarking Tools
 
-Compare embedding models for index speed, search quality, and cost.
+`benchmark` is a parent command with subcommands. Running it with no subcommand
+prints help and **runs nothing** — unknown flags (e.g. `mnemex benchmark --list`)
+are rejected with a hint rather than silently launching a benchmark.
 
 ```bash
-mnemex benchmark [options]
+mnemex benchmark <subcommand> [options]
+```
+
+| Subcommand | Description |
+|------------|-------------|
+| `help` | Show benchmark help (default when no subcommand given) |
+| `list` | List all benchmark runs |
+| `show <run-id>` | Show results for a specific run |
+| `llm [options]` | Comprehensive LLM summary evaluation (4 methods, resumable) |
+| `embedding [options]` | Compare embedding models (index, search quality, cost; alias: `run`) |
+| `delete <run-id>` | Delete a run and its report files (alias: `rm`) |
+
+```bash
+mnemex benchmark              # prints help, runs nothing
+mnemex benchmark list
+mnemex benchmark show <run-id>
+mnemex benchmark llm --cases=20
+mnemex benchmark embedding --auto
+mnemex benchmark delete <run-id>
+```
+
+#### `benchmark embedding` - Embedding Model Benchmark
+
+Compare embedding models for index speed, search quality, and cost. (Alias: `benchmark run`.)
+
+```bash
+mnemex benchmark embedding [options]
 ```
 
 **Options:**
@@ -379,21 +407,21 @@ mnemex benchmark [options]
 **Examples:**
 ```bash
 # Run on mnemex's test queries
-mnemex benchmark
+mnemex benchmark embedding
 
 # Auto-generate queries (any codebase)
-mnemex benchmark --auto
+mnemex benchmark embedding --auto
 
 # Specific models
-mnemex benchmark --models=voyage-code-3,openai/text-embedding-3-small
+mnemex benchmark embedding --models=voyage-code-3,openai/text-embedding-3-small
 ```
 
-### `benchmark-llm` - LLM Summary Benchmark
+#### `benchmark llm` - LLM Summary Benchmark
 
 Comprehensive evaluation of LLM summary quality.
 
 ```bash
-mnemex benchmark-llm [options]
+mnemex benchmark llm [options]
 ```
 
 **Options:**
@@ -411,25 +439,25 @@ mnemex benchmark-llm [options]
 **Subcommands:**
 ```bash
 # List previous runs
-mnemex benchmark-llm --list
+mnemex benchmark llm --list
 
 # Upload a specific run to Firebase
-mnemex benchmark-llm upload <run-id>
+mnemex benchmark llm upload <run-id>
 ```
 
 **Examples:**
 ```bash
 # Compare multiple generators
-mnemex benchmark-llm --generators=openrouter/openai/gpt-4o,cc/haiku
+mnemex benchmark llm --generators=openrouter/openai/gpt-4o,cc/haiku
 
 # Resume interrupted run
-mnemex benchmark-llm --resume=abc123-def456
+mnemex benchmark llm --resume=abc123-def456
 
 # Local only (no Firebase)
-mnemex benchmark-llm --no-upload
+mnemex benchmark llm --no-upload
 
 # Use Gemini as judge
-mnemex benchmark-llm --judges=google/gemini-2.0-flash-001
+mnemex benchmark llm --judges=google/gemini-2.0-flash-001
 ```
 
 **Evaluation Methods:**
@@ -443,12 +471,12 @@ mnemex benchmark-llm --judges=google/gemini-2.0-flash-001
 - Markdown report (human-readable)
 - HTML report (visual dashboard)
 
-### `benchmark-list` - List Benchmark Runs
+#### `benchmark list` - List Benchmark Runs
 
 List all benchmark runs in the database.
 
 ```bash
-mnemex benchmark-list [options]
+mnemex benchmark list [options]
 ```
 
 **Options:**
@@ -458,13 +486,35 @@ mnemex benchmark-list [options]
 | `--status=<s>` | Filter by status: completed, failed, running |
 | `--project=<path>` | Project path |
 
-### `benchmark-show` - Show Benchmark Results
+#### `benchmark show` - Show Benchmark Results
 
 Display detailed results for a specific run.
 
 ```bash
-mnemex benchmark-show <run-id> [options]
+mnemex benchmark show <run-id> [options]
 ```
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--json` | Output raw JSON instead of the interactive view |
+| `--project=<path>` | Project path |
+
+#### `benchmark delete` - Delete a Benchmark Run
+
+Delete a run's database row and its on-disk report files
+(`<run-id>.json`, `.md`, `.html` under `.mnemex/benchmark-reports`). Non-interactive
+(no confirmation prompt) so it's safe in `--agent` mode.
+
+```bash
+mnemex benchmark delete <run-id> [options]
+```
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--project=<path>` | Project path |
+| `--yes, -y` | Accepted for symmetry; the command always just deletes |
 
 ---
 
