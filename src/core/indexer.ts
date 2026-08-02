@@ -359,6 +359,7 @@ export class Indexer {
 		}
 
 		// Discover files
+		this.indexLock?.setPhase("discovering");
 		const allFiles = this.discoverFiles();
 
 		// Get changes
@@ -591,6 +592,7 @@ export class Indexer {
 
 					try {
 						// Pass progress callback to track embedding progress
+						this.indexLock?.setPhase("embedding");
 						embedResult = await this.embeddingsClient!.embed(
 							texts,
 							(completed, total, inProgress) => {
@@ -622,6 +624,9 @@ export class Indexer {
 							`Embedding count mismatch: expected ${texts.length}, got ${embedResult.embeddings.length}`,
 						);
 					}
+
+					// Forward progress: an embed batch completed.
+					this.indexLock?.recordProgress();
 
 					// Map embeddings back to chunks
 					newlyEmbeddedChunks = chunksNeedingEmbedding
@@ -662,7 +667,13 @@ export class Indexer {
 					`[storing]${batchInfo} ${chunksWithEmbeddings.length} chunks...`,
 				);
 			}
+			// Phase marker placed IMMEDIATELY before the (un-cancellable) LanceDB
+			// write so a hang here is attributable to "writing:lance" in the report.
+			this.indexLock?.setPhase("writing:lance");
 			await this.vectorStore!.addChunks(chunksWithEmbeddings);
+
+			// Forward progress: a batch of chunks was written to the vector store.
+			this.indexLock?.recordProgress();
 
 			// Report storing completion
 			if (this.onProgress) {
@@ -767,6 +778,9 @@ export class Indexer {
 						if (unitEmbedResult.totalTokens)
 							totalTokens += unitEmbedResult.totalTokens;
 
+						// Forward progress: a unit embed batch completed.
+						this.indexLock?.recordProgress();
+
 						const unitsWithEmbeddings: CodeUnitWithEmbedding[] =
 							batchUnitsToEmbed
 								.map(({ unit }, idx) => ({
@@ -776,8 +790,12 @@ export class Indexer {
 								.filter((u) => u.vector.length > 0);
 
 						if (unitsWithEmbeddings.length > 0) {
+							this.indexLock?.setPhase("writing:lance");
 							await this.vectorStore!.addCodeUnits(unitsWithEmbeddings);
 							totalCodeUnitsCreated += unitsWithEmbeddings.length;
+
+							// Forward progress: code units were written to the vector store.
+							this.indexLock?.recordProgress();
 
 							if (this.onProgress) {
 								this.onProgress(
@@ -792,8 +810,12 @@ export class Indexer {
 					// BM25-only mode: store units with placeholder vector
 					const unitsWithPlaceholder: CodeUnitWithEmbedding[] =
 						batchUnitsToEmbed.map(({ unit }) => ({ ...unit, vector: [0] }));
+					this.indexLock?.setPhase("writing:lance");
 					await this.vectorStore!.addCodeUnits(unitsWithPlaceholder);
 					totalCodeUnitsCreated += unitsWithPlaceholder.length;
+
+					// Forward progress: BM25-only code units were written.
+					this.indexLock?.recordProgress();
 				}
 			}
 
@@ -927,6 +949,7 @@ export class Indexer {
 			}
 		};
 
+		this.indexLock?.setPhase("enriching");
 		if (canParallelizeEnrichment) {
 			// Parallel: AST extraction and enrichment run concurrently
 			// AST uses CPU, enrichment uses cloud LLM - no contention
@@ -946,6 +969,7 @@ export class Indexer {
 		// Only run if manifest files changed (or force reindex), to avoid unnecessary network calls
 		if (this.docsFetcher?.isEnabled() && manifestFilesChanged) {
 			try {
+				this.indexLock?.setPhase("fetching:docs");
 				const docsResult = await this.fetchExternalDocs();
 				if (docsResult.cost) {
 					totalCost += docsResult.cost;
@@ -959,6 +983,7 @@ export class Indexer {
 		}
 
 		// Save metadata
+		this.indexLock?.setPhase("finalizing");
 		this.fileTracker!.setMetadata("embeddingModel", this.model);
 		this.fileTracker!.setMetadata("lastIndexed", new Date().toISOString());
 
@@ -1379,6 +1404,9 @@ export class Indexer {
 				const texts = chunks.map((c) => c.content);
 				const embedResult = await this.embeddingsClient!.embed(texts);
 
+				// Forward progress: a docs embed batch completed.
+				this.indexLock?.recordProgress();
+
 				if (embedResult.cost) {
 					totalCost += embedResult.cost;
 				}
@@ -1402,7 +1430,11 @@ export class Indexer {
 						signature: chunk.sourceUrl,
 					}));
 
+				this.indexLock?.setPhase("writing:lance");
 				await this.vectorStore!.addChunks(chunksWithEmbeddings);
+
+				// Forward progress: docs chunks were written to the vector store.
+				this.indexLock?.recordProgress();
 
 				// Mark as indexed in tracker
 				this.fileTracker!.markDocsIndexed(

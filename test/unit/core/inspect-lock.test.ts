@@ -22,23 +22,32 @@ function makeTempDir(): string {
 	return dir;
 }
 
-/** Write a lock file with the canonical { pid, startTime, heartbeat, startedAt } shape. */
+/**
+ * Write a lock file with the canonical
+ * { pid, startTime, heartbeat, lastProgressAt, startedAt } shape. Pass
+ * `omitLastProgressAt: true` to simulate a lock written by an OLDER binary.
+ */
 function writeLock(
 	indexDir: string,
 	overrides: Partial<{
 		pid: number;
 		startTime: number;
 		heartbeat: number;
+		lastProgressAt: number;
 		startedAt: string;
+		omitLastProgressAt: boolean;
 	}> = {},
 ): string {
 	const now = Date.now();
-	const data = {
+	const data: Record<string, unknown> = {
 		pid: overrides.pid ?? process.pid,
 		startTime: overrides.startTime ?? now,
 		heartbeat: overrides.heartbeat ?? now,
 		startedAt: overrides.startedAt ?? new Date(now).toISOString(),
 	};
+	if (!overrides.omitLastProgressAt) {
+		data.lastProgressAt = overrides.lastProgressAt ?? now;
+	}
 	const lockPath = join(indexDir, LOCK_FILENAME);
 	writeFileSync(lockPath, JSON.stringify(data, null, 2));
 	return lockPath;
@@ -129,6 +138,59 @@ describe("inspectLock", () => {
 		if (result.present) {
 			expect(result.pidAlive).toBe(true);
 			expect(result.isHeartbeatFresh).toBe(false);
+		}
+	});
+
+	// R7: exposes lastProgressAt + isProgressing for a fresh, progressing lock
+	test("R7: exposes lastProgressAt + isProgressing=true for fresh progress", () => {
+		const dir = makeTempDir();
+		writeLock(dir, { pid: process.pid });
+		const result = inspectLock(dir);
+		expect(result.present).toBe(true);
+		if (result.present) {
+			expect(typeof result.lastProgressAt).toBe("number");
+			expect(result.lastProgressAt).toBeGreaterThan(0);
+			expect(result.isProgressing).toBe(true);
+		}
+	});
+
+	// R7b: stalled progress (fresh heartbeat) => isProgressing=false (the hang signal)
+	test("R7b: old lastProgressAt + fresh heartbeat => isProgressing false", () => {
+		const dir = makeTempDir();
+		writeLock(dir, {
+			pid: process.pid,
+			heartbeat: Date.now(), // timer still stamping (looks alive)
+			lastProgressAt: Date.now() - 600_000, // no real work for 10 min
+		});
+		const result = inspectLock(dir, 30_000, 300_000);
+		expect(result.present).toBe(true);
+		if (result.present) {
+			expect(result.pidAlive).toBe(true);
+			expect(result.isHeartbeatFresh).toBe(true); // heartbeat masks the hang
+			expect(result.isProgressing).toBe(false); // progress reveals it
+		}
+	});
+
+	// R7c: backward compat — old-binary lock (no lastProgressAt) falls back to heartbeat
+	test("R7c: missing lastProgressAt falls back to heartbeat (not Invalid Date / NaN)", () => {
+		const dir = makeTempDir();
+		const now = Date.now();
+		writeLock(dir, {
+			pid: process.pid,
+			heartbeat: now,
+			omitLastProgressAt: true,
+		});
+		const result = inspectLock(dir);
+		expect(result.present).toBe(true);
+		if (result.present) {
+			// lastProgressAt mirrors heartbeat, so it is a usable timestamp.
+			expect(result.lastProgressAt).toBe(now);
+			// Fresh heartbeat => treated as progressing (not instantly hung).
+			expect(result.isProgressing).toBe(true);
+			// ISO conversion of the fallback value must be valid (no Invalid Date).
+			expect(new Date(result.lastProgressAt).toISOString()).not.toContain(
+				"Invalid",
+			);
 		}
 	});
 

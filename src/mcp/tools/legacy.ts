@@ -130,9 +130,10 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 				const isWorkspacePath =
 					!path || resolve(projectPath) === resolve(config.workspaceRoot);
 
-				// Pre-check the live lock. Only short-circuit for a LIVE indexer
-				// (indexing_in_progress). A stale_lock (dead pid) must fall through so
-				// the indexer's own acquire() can clean it up and proceed.
+				// Pre-check the live lock. Only short-circuit for a LIVE, PROGRESSING
+				// indexer (indexing_in_progress). A stale_lock (dead pid) OR an
+				// indexing_hung holder (alive but no forward progress) must fall through
+				// so the indexer's own acquire() can reclaim the lock and proceed.
 				if (isWorkspacePath) {
 					const pre = await buildIndexState(deps, startTime);
 					if (pre.status === "indexing_in_progress") {
