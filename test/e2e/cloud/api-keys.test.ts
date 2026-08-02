@@ -26,8 +26,9 @@ const MASTER_KEY = "test-master-key-12345";
 const PORT = 4516;
 const BASE_URL = `http://localhost:${PORT}`;
 
-const NEON_DB_URL =
-	"postgresql://neondb_owner:npg_EI36BnzJUaAl@ep-broad-frog-a7tco5g6-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+// Read from the environment — never hardcode a real connection string in a
+// committed test (it leaks the credential to git history and every fork).
+const NEON_DB_URL = process.env.NEON_DB_URL ?? process.env.DATABASE_URL ?? "";
 
 const PROJECT_ROOT = join(import.meta.dir, "../../..");
 const SCHEMA_PATH = join(PROJECT_ROOT, "src/cloud/server/schema.sql");

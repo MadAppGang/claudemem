@@ -17,11 +17,18 @@ export interface ServerConfig {
  * Load server config from environment variables with defaults.
  */
 export function loadConfig(): ServerConfig {
+	const databaseUrl = process.env.DATABASE_URL;
+	if (!databaseUrl) {
+		// No hardcoded fallback: a real connection string must never live in
+		// source (it would leak the credential to git history and every fork).
+		throw new Error(
+			"DATABASE_URL is required. Set it in the environment; there is no default.",
+		);
+	}
+
 	return {
 		port: Number.parseInt(process.env.PORT ?? "4510", 10),
-		databaseUrl:
-			process.env.DATABASE_URL ??
-			"postgresql://neondb_owner:npg_EI36BnzJUaAl@ep-broad-frog-a7tco5g6-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+		databaseUrl,
 		embeddingDim: Number.parseInt(process.env.EMBEDDING_DIM ?? "8", 10),
 		masterApiKey: process.env.MASTER_API_KEY || undefined,
 	};

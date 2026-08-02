@@ -14,8 +14,9 @@ import { startServer, stopServer } from "../../../src/cloud/server/index.js";
 // Constants
 // ============================================================================
 
-export const NEON_DB_URL =
-	"postgresql://neondb_owner:npg_EI36BnzJUaAl@ep-broad-frog-a7tco5g6-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+// Read from the environment — never hardcode a real connection string in a
+// committed test (it leaks the credential to git history and every fork).
+export const NEON_DB_URL = process.env.NEON_DB_URL ?? process.env.DATABASE_URL ?? "";
 
 export const TEST_ORG_SLUG = "test-org";
 
