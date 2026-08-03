@@ -5,8 +5,15 @@
  * Detects stale locks from dead processes to avoid infinite waits.
  */
 
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	unlinkSync,
+	writeFileSync,
+} from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 
 /** Lock file data structure */
 interface LockData {
@@ -372,6 +379,20 @@ export class IndexLock implements IIndexLock {
 	}
 
 	/**
+	 * Construct an IndexLock from an EXPLICIT absolute lock-file path instead of
+	 * deriving it from (projectPath, indexDir). Used by the machine-global lock,
+	 * whose lock file lives under the user's home dir rather than inside any single
+	 * project. Routes through the real constructor (throwaway projectPath) so the
+	 * private field initializers run, then overrides `lockPath` with the exact path.
+	 * The (projectPath, indexDir) constructor signature is left untouched.
+	 */
+	static fromLockPath(lockPath: string): IndexLock {
+		const lock = new IndexLock("");
+		lock.lockPath = lockPath;
+		return lock;
+	}
+
+	/**
 	 * Try to acquire the lock
 	 *
 	 * @param options Lock options
@@ -609,4 +630,44 @@ export function createIndexLock(
 	indexDir?: string,
 ): IIndexLock {
 	return new IndexLock(projectPath, indexDir);
+}
+
+/** Filename of the machine-global indexing lock (lives under ~/.mnemex). */
+const GLOBAL_LOCK_FILENAME = ".global-indexing.lock";
+
+/**
+ * Resolve the path to the MACHINE-GLOBAL indexing lock. There is exactly one per
+ * machine (under the user's home dir), NOT one per project — this is precisely what
+ * serializes indexers across DIFFERENT repos, so N Claude Code sessions cannot run
+ * N concurrent detached indexers that compete for the one machine + one shared
+ * embeddings API quota (OPENROUTER_API_KEY rate limit).
+ *
+ * Overridable via `MNEMEX_GLOBAL_LOCK_PATH` (used by tests for isolation).
+ */
+export function getGlobalLockPath(): string {
+	const override = process.env.MNEMEX_GLOBAL_LOCK_PATH;
+	if (override && override.length > 0) {
+		return override;
+	}
+	return join(homedir(), ".mnemex", GLOBAL_LOCK_FILENAME);
+}
+
+/**
+ * Create the machine-global index lock. Reuses the full IndexLock machinery
+ * (heartbeat, lastProgressAt/recordProgress, setPhase, progress-based staleness,
+ * inspectLock) exactly as the per-project lock — so a WEDGED global holder is
+ * auto-reclaimed after DEFAULT_PROGRESS_TIMEOUT by the next acquire(), the same
+ * "reclaim + retry, never mark broken" recovery as the per-project lock.
+ *
+ * Ensures the parent directory exists before the lock is written.
+ *
+ * NOTE (v2, out of scope): this is the single-indexer MVP. A cross-session
+ * coalescing queue (so waiters merge into one reindex instead of each running in
+ * turn) is deliberately NOT built here.
+ */
+export function createGlobalIndexLock(): IIndexLock {
+	const lockPath = getGlobalLockPath();
+	// Ensure ~/.mnemex (or the override's parent) exists before first write.
+	mkdirSync(dirname(lockPath), { recursive: true });
+	return IndexLock.fromLockPath(lockPath);
 }

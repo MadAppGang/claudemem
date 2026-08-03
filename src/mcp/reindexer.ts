@@ -106,7 +106,12 @@ export class DebounceReindexer {
 		this.logger.info("DebounceReindexer: starting background reindex");
 
 		try {
-			const child = spawn("mnemex", ["index", "--quiet"], {
+			// --if-idle: request machine-global try-acquire-bail. If a machine-wide
+			// index is already running (any repo, any session), this background
+			// reindex exits cleanly instead of piling up as an idle waiter competing
+			// for the one shared embeddings API quota. The next debounce trigger
+			// re-fires later.
+			const child = spawn("mnemex", ["index", "--quiet", "--if-idle"], {
 				cwd: this.workspaceRoot,
 				detached: true,
 				stdio: "ignore",

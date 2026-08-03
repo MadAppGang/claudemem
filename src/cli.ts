@@ -54,6 +54,7 @@ import {
 	getModelContextLength,
 	truncateForModel,
 } from "./core/embeddings.js";
+import { parseIndexLockFlags } from "./core/index-lock-flags.js";
 import { createReferenceGraphManager } from "./core/reference-graph.js";
 // Note: createVectorStore is imported lazily to avoid loading LanceDB on startup
 // Use: const { createVectorStore } = await import("./core/store.js");
@@ -706,7 +707,10 @@ async function handleIndex(args: string[]): Promise<void> {
 	const force = args.includes("--force") || args.includes("-f");
 	const noLlm = args.includes("--no-llm") || args.includes("--no-enrichment");
 	const forceUnlock = args.includes("--force-unlock");
-	const wait = args.includes("--wait") || args.includes("-w");
+	// --wait: wait for the per-project lock. --if-idle: try-acquire-bail on the
+	// machine-global lock (used by the MCP background reindexer so N sessions don't
+	// pile up idle waiters). See parseIndexLockFlags.
+	const { wait, ifIdle, globalLockOptions } = parseIndexLockFlags(args);
 	const pathArg = args.find((a) => !a.startsWith("-"));
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
 
@@ -784,10 +788,21 @@ async function handleIndex(args: string[]): Promise<void> {
 		enableEnrichment: !noLlm,
 		enrichmentConcurrency: concurrency,
 		lockOptions: wait ? { waitTimeout } : undefined,
+		// --if-idle => try-acquire-bail on the machine-global lock (waitTimeout:0).
+		// Otherwise the global lock defaults to WAIT (see Indexer).
+		globalLockOptions,
 		onWaitingForLock: (holderPid, waitedMs) => {
 			if (!waitingMessageShown) {
 				console.log(
 					`⏳ Waiting for another indexing process (PID ${holderPid}) to finish...`,
+				);
+				waitingMessageShown = true;
+			}
+		},
+		onWaitingForGlobalLock: (holderPid) => {
+			if (!waitingMessageShown) {
+				console.log(
+					`⏳ Waiting for a machine-wide index (PID ${holderPid}) to finish...`,
 				);
 				waitingMessageShown = true;
 			}
@@ -915,6 +930,15 @@ async function handleIndex(args: string[]): Promise<void> {
 		if (progress) progress.stop();
 
 		if (error instanceof IndexLockError) {
+			// Background try-acquire-bail (--if-idle): a machine-wide index is already
+			// running. Expected, not a failure — exit cleanly (0) so the next
+			// file-change/debounce trigger can retry later. Do NOT print an error.
+			if (ifIdle && error.scope === "global") {
+				if (!agentMode) {
+					console.log(`ℹ️  ${error.message}`);
+				}
+				return;
+			}
 			console.error(`\n❌ ${error.message}`);
 			process.exit(1);
 		}
@@ -6864,6 +6888,9 @@ ${c.yellow}${c.bold}SELF-LEARNING SYSTEM${c.reset} ${c.dim}(enabled by default, 
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
+  ${c.cyan}-w, --wait${c.reset}             Wait for another indexer to finish instead of failing
+  ${c.cyan}--if-idle${c.reset}              Skip if a machine-wide index is already running ${c.dim}(background reindex)${c.reset}
+  ${c.cyan}--force-unlock${c.reset}         Clear a stale/held index lock
   ${c.cyan}--no-llm${c.reset}               Disable LLM enrichment (summaries, idioms, etc.)
   ${c.cyan}--cloud${c.reset}                Upload to cloud API ${c.dim}(requires team config + authentication)${c.reset}
 
