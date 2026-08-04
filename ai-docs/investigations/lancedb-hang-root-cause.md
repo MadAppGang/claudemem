@@ -60,8 +60,33 @@ path (store.ts table.add/createTable — now wrapped by our watchdog).
    integrity check — a rare path, not the main event. Do NOT mark broken on a
    timeout/wedge.
 
+## LanceDB upgrade trial (2026-08-04) — REVERTED, but found the real blocker
+Trialed @lancedb/lancedb 0.13.0 -> 0.33.0 (latest stable). 0.33 CAN connect,
+list tables, and countRows (23459) on a 0.13-written table, but query() FAILS:
+
+  LanceError(Schema): Field "vector" contains a FixedSizeList with dimension 0;
+  dimension must be a positive integer (lance-core 9.0.0)
+
+This is NOT a plain format-version bump — it is a DATA-MODEL constraint change.
+mnemex writes dimension-0 PLACEHOLDER vectors (indexer.ts unitsWithPlaceholder
+path — code units stored before enrichment / when embeddings are skipped).
+LanceDB 0.13 tolerated empty FixedSizeList; 0.33 rejects dimension-0 as invalid
+schema and refuses to read the table.
+
+=> Upgrading LanceDB is a TWO-PART job, not a version bump:
+   1. Change the write path to stop emitting dimension-0 placeholder vectors
+      (use a real zero-filled vector of the model dim, or a separate non-vector
+      placeholder table, or omit the row until it has a real embedding).
+   2. Force a reindex for existing users (their tables already contain the
+      now-illegal rows).
+Reverted to 0.13.0 (clean; real table never touched — tested on a /tmp copy).
+The hang is already mitigated (global serialization + write watchdog), so the
+upgrade is deferred to its own PR gated on removing dimension-0 vectors.
+
 ## Still open (not done)
 - Web/changelog confirm of LanceDB 0.13.0 concurrency hang + fixed-in version.
+- The dimension-0 placeholder-vector removal (prerequisite for any LanceDB
+  upgrade past ~0.13). Its own future PR.
 - Whether the hung process's 21 connections are live embedding waits or dead
   keepalives (would distinguish "starved on rate-limited API" from "LanceDB hang
   after embeddings").
