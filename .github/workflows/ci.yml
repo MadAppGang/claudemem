@@ -54,7 +54,7 @@ jobs:
         run: bun test
 
   lint:
-    name: lint (non-blocking)
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,10 +67,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Reports only. There is a known backlog of style findings
-      # (noNonNullAssertion, useTemplate, noExplicitAny, unused symbols) that
-      # needs human judgement rather than an autofix. Flip continue-on-error
-      # to false once that backlog is burned down, so lint becomes a real gate.
+      # Now a real gate: `bun run lint` exits 0 (zero errors). What remains is
+      # warning-level only (noNonNullAssertion, noExplicitAny, useTemplate,
+      # unused symbols, and the two React heuristics) and does not fail the run.
       - name: Lint
-        continue-on-error: true
         run: bun run lint
