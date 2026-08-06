@@ -73,6 +73,8 @@ gtd/sessions/
 ai-docs/sessions/
 # Local agent workspaces and runtime artifacts should stay out of team history.
 .agents/
+# Local git worktrees created by agent worktree-isolation (may hold WIP; never track).
+.claude/worktrees/
 
 # Added by claudeup
 # Local claudemem indexes are generated from the repo and should not be committed.
