@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: typecheck + test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # better-sqlite3 and @opentui/core ship per-platform native binaries,
+        # so a Linux-only run would not catch macOS resolution breakage.
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Grammars are gitignored and fetched at build time, partly from GitHub
+      # Releases. GITHUB_TOKEN lifts the anonymous 60 req/hr rate limit that
+      # otherwise fails the download with HTTP 403.
+      - name: Download grammars
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun run download-grammars
+
+      # Must precede tests: several e2e suites spawn the built CLI at
+      # dist/index.js and fail their preconditions when it is stale or absent.
+      - name: Build
+        run: bun run build
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun test
+
+  lint:
+    name: lint (non-blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Reports only. There is a known backlog of style findings
+      # (noNonNullAssertion, useTemplate, noExplicitAny, unused symbols) that
+      # needs human judgement rather than an autofix. Flip continue-on-error
+      # to false once that backlog is burned down, so lint becomes a real gate.
+      - name: Lint
+        continue-on-error: true
+        run: bun run lint
