@@ -702,6 +702,13 @@ export class Indexer {
 						embedResult = await this.embeddingsClient!.embed(
 							texts,
 							(completed, total, inProgress) => {
+								// Stamp the lock per item, not just once per batch below.
+								// A single batch against a network embedding provider can run
+								// for minutes; stamping only at batch end left
+								// `lastProgressAt` untouched past the 5-minute hung threshold
+								// (measured: 363s) on a perfectly healthy run, making the
+								// lock reclaimable mid-index.
+								this.reportProgress();
 								if (this.onProgress) {
 									const reuseInfo =
 										reusedCount > 0 ? ` (${reusedCount} reused)` : "";
@@ -796,6 +803,10 @@ export class Indexer {
 			// Phase 2b: Extract code units with AST metadata (once per file, not per chunk)
 			// Runs in same batch loop, produces code_unit records in addition to code_chunk records
 			if (this.codeUnitExtractor) {
+				// Re-label: this block does AST extraction and a second embedding pass.
+				// It previously inherited the "writing:lance" label from the chunk write
+				// above, which misattributed stalls here to the LanceDB write path.
+				this.reportPhase("code-units");
 				const filesProcessedForUnits = new Set<string>();
 				const batchUnitsToEmbed: Array<{
 					unit: CodeUnit;
@@ -860,6 +871,11 @@ export class Indexer {
 						unitEmbedResult = await this.embeddingsClient.embed(
 							unitTexts,
 							(completed, total, inProgress) => {
+								// Same reason as the chunk embed above: this call runs while
+								// the phase is still labelled "writing:lance", and without a
+								// per-item stamp the lock sat untouched for 351s here on a
+								// healthy run — past the 5-minute hung threshold.
+								this.reportProgress();
 								if (this.onProgress) {
 									this.onProgress(
 										completed,
@@ -1030,6 +1046,13 @@ export class Indexer {
 					{
 						concurrency: this.enrichmentConcurrency,
 						onProgress: (completed, total, phase, status, inProgress) => {
+							// Stamp the lock as well as the UI. Without this the whole
+							// enrichment phase advances `heartbeat` but never
+							// `lastProgressAt`, so a long (but healthy) enrichment run
+							// looks hung: past DEFAULT_PROGRESS_TIMEOUT (5 min) the next
+							// acquire() reclaims the lock and a second indexer can run
+							// concurrently against the same store.
+							this.reportProgress();
 							if (this.onProgress) {
 								this.onProgress(
 									completed,
@@ -1055,7 +1078,16 @@ export class Indexer {
 			}
 		};
 
-		this.reportPhase("enriching");
+		// Label the phase for what actually runs. This block always does AST
+		// extraction and only sometimes enrichment, so reporting "enriching"
+		// unconditionally made a stall here look like an LLM problem even with
+		// enrichment disabled.
+		const enrichmentWillRun =
+			this.enableEnrichment &&
+			!!this.enricher &&
+			fileChunksForEnrichment.length > 0;
+		this.reportPhase(enrichmentWillRun ? "analyzing+enriching" : "analyzing");
+
 		if (canParallelizeEnrichment) {
 			// Parallel: AST extraction and enrichment run concurrently
 			// AST uses CPU, enrichment uses cloud LLM - no contention
@@ -1280,7 +1312,7 @@ export class Indexer {
 					}
 
 					// Get file extension and check if supported by parser
-					const ext = "." + entry.name.split(".").pop()?.toLowerCase();
+					const ext = `.${entry.name.split(".").pop()?.toLowerCase()}`;
 					if (supportedExtensions.has(ext)) {
 						files.push(fullPath);
 					}
@@ -1365,26 +1397,35 @@ export class Indexer {
 			}
 
 			processedFiles++;
-			if (this.onProgress && processedFiles % 50 === 0) {
-				this.onProgress(
-					processedFiles,
-					filesToIndex.length,
-					`[analyzing] ${processedFiles}/${filesToIndex.length} files`,
-				);
+			if (processedFiles % 50 === 0) {
+				// Keep `lastProgressAt` advancing through symbol extraction too — on a
+				// large repo this loop alone can exceed the 5-minute hung threshold
+				// and get the lock reclaimed out from under us.
+				this.reportProgress();
+				if (this.onProgress) {
+					this.onProgress(
+						processedFiles,
+						filesToIndex.length,
+						`[analyzing] ${processedFiles}/${filesToIndex.length} files`,
+					);
+				}
 			}
 		}
 
 		// Resolve cross-file references
+		this.reportProgress();
 		if (this.onProgress) {
 			this.onProgress(0, 1, "[analyzing] resolving references...");
 		}
 		const resolvedCount = await graphManager.resolveReferences();
 
 		// Compute PageRank scores
+		this.reportProgress();
 		if (this.onProgress) {
 			this.onProgress(0, 1, "[analyzing] computing importance scores...");
 		}
 		await graphManager.computeAndStorePageRank();
+		this.reportProgress();
 
 		// Generate and cache repo map
 		const repoMapGen = createRepoMapGenerator(this.fileTracker!);
@@ -1508,7 +1549,12 @@ export class Indexer {
 
 				// Embed the chunks
 				const texts = chunks.map((c) => c.content);
-				const embedResult = await this.embeddingsClient!.embed(texts);
+				const embedResult = await this.embeddingsClient!.embed(
+					texts,
+					// Per-item stamp so a long docs-embedding batch cannot outlast the
+					// hung threshold; the batch-end stamp below alone is not enough.
+					() => this.reportProgress(),
+				);
 
 				// Forward progress: a docs embed batch completed.
 				this.reportProgress();

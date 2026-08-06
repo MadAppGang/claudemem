@@ -172,7 +172,7 @@ async function printVersionWarning(projectPath: string): Promise<void> {
 		const { checkIndexVersion } = await import("./core/index-version.js");
 		const warning = checkIndexVersion(projectPath);
 		if (warning) {
-			process.stderr.write(warning + "\n");
+			process.stderr.write(`${warning}\n`);
 		}
 	} catch {
 		// Version check failure is non-fatal - silently ignore
@@ -763,7 +763,12 @@ async function handleIndex(args: string[]): Promise<void> {
 	const { createIndexer, IndexLockError } = await import("./core/indexer.js");
 	const indexer = createIndexer({
 		projectPath,
-		enableEnrichment: !noLlm,
+		// Only force enrichment OFF when --no-llm was actually passed. Passing a
+		// boolean unconditionally (`!noLlm`) made this an explicit override on
+		// every run, so the `?? isEnrichmentEnabled(projectPath)` fallback in the
+		// Indexer never ran and `enableEnrichment: false` in config was silently
+		// ignored. Leaving it undefined lets project/global config decide.
+		enableEnrichment: noLlm ? false : undefined,
 		enrichmentConcurrency: concurrency,
 		lockOptions: wait ? { waitTimeout } : undefined,
 		// --if-idle => try-acquire-bail on the machine-global lock (waitTimeout:0).
@@ -1257,7 +1262,7 @@ async function handleTeam(args: string[]): Promise<void> {
 			// Resolve API key: --key flag, then env var
 			const keyIdx = args.indexOf("--key");
 			const keyArg = keyIdx >= 0 ? args[keyIdx + 1] : undefined;
-			const apiKey = keyArg ?? process.env["MNEMEX_ORG_API_KEY"];
+			const apiKey = keyArg ?? process.env.MNEMEX_ORG_API_KEY;
 
 			if (!apiKey) {
 				console.error(
@@ -3015,7 +3020,7 @@ async function discoverAndChunkFilesWithPaths(
 	// Prioritize core source files for meaningful benchmark coverage.
 	// Score by depth from project root's src/ — shallower files first
 	// (e.g. src/core/store.ts before src/core/analysis/analyzer.ts)
-	const srcPrefix = projectPath + "/src/";
+	const srcPrefix = `${projectPath}/src/`;
 	files.sort((a, b) => {
 		const aInSrc = a.startsWith(srcPrefix);
 		const bInSrc = b.startsWith(srcPrefix);
@@ -3726,7 +3731,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	const tableSep = (colWidths: number[]) => {
 		// Build: ── ─────... ──────... ...
 		const segments = colWidths.map((w) => "─".repeat(w));
-		const line = " " + segments.join(" ") + " ";
+		const line = ` ${segments.join(" ")} `;
 		const padded = line.padEnd(inner);
 		return `${bdr}│${bc.dimText}${padded}${bdr}│${rst}`;
 	};
@@ -7596,7 +7601,7 @@ async function handlePack(args: string[]): Promise<void> {
 		if (!stdout) {
 			// Clear progress line
 			if (!agentMode) {
-				process.stderr.write("\r" + " ".repeat(60) + "\r");
+				process.stderr.write(`\r${" ".repeat(60)}\r`);
 			}
 		}
 
