@@ -4,15 +4,15 @@
  * Diagnostic tool for context file health analysis
  */
 
-export { scanForContextFiles } from "./scanner.js";
-export { analyzeContextFile, aggregateDiagnoses } from "./analyzer.js";
-export { aggregateScore, classifySeverity } from "./scorer.js";
+export { aggregateDiagnoses, analyzeContextFile } from "./analyzer.js";
 export {
-	formatDoctorReport,
-	formatDoctorJSON,
 	formatDoctorCompact,
+	formatDoctorJSON,
+	formatDoctorReport,
 } from "./formatter.js";
 export { runGenerator, runGeneratorAgent } from "./generator.js";
+export { scanForContextFiles } from "./scanner.js";
+export { aggregateScore, classifySeverity } from "./scorer.js";
 export {
 	gatherProjectContext,
 	generateSmartQuestions,

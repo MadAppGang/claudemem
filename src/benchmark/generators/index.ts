@@ -9,7 +9,7 @@ export { BatchSummaryGenerator, isBatchGenerator } from "./batch.js";
 export {
 	createGenerator,
 	createGenerators,
-	parseGeneratorSpec,
 	DEFAULT_GENERATORS,
 	POPULAR_GENERATORS,
+	parseGeneratorSpec,
 } from "./factory.js";

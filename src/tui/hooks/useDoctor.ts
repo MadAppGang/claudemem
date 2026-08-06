@@ -4,14 +4,14 @@
  * Manages doctor diagnostics state for context file analysis.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-	scanForContextFiles,
 	analyzeContextFile,
+	scanForContextFiles,
 } from "../../core/doctor/index.js";
 import type {
-	ContextFileDiagnosis,
 	ContextFile,
+	ContextFileDiagnosis,
 } from "../../core/doctor/types.js";
 
 // ============================================================================

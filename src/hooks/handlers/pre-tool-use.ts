@@ -9,9 +9,9 @@
  * - All tools: Log tool start for interaction monitoring
  */
 
+import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
 import type { HookInput, HookOutput, IndexStatus } from "../types.js";
 import { logToolStart } from "./interaction-logger.js";
 

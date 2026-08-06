@@ -15,15 +15,15 @@
  */
 
 import type {
-	ICloudIndexClient,
 	ChunkCheckResult,
-	CloudCallerResult,
 	CloudCalleeResult,
+	CloudCallerResult,
 	CloudGraphResult,
 	CloudSearchRequest,
 	CloudSearchResult,
 	CloudSymbol,
 	CommitStatus,
+	ICloudIndexClient,
 	RegisterRepoRequest,
 	RegisterRepoResponse,
 	UploadChunk,

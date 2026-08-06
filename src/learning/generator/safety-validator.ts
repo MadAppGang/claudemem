@@ -13,9 +13,9 @@
  */
 
 import type { Improvement, ImprovementData } from "../interaction/types.js";
+import type { PromptOptimization } from "./prompt-optimizer.js";
 import type { GeneratedSkill } from "./skill-generator.js";
 import type { GeneratedSubagent } from "./subagent-composer.js";
-import type { PromptOptimization } from "./prompt-optimizer.js";
 
 // ============================================================================
 // Types
@@ -46,7 +46,7 @@ export const DEFAULT_SAFETY_CONFIG: SafetyValidatorConfig = {
 		/rm\s+-rf/i,
 	],
 	dangerousPatterns: [
-		/rm\s+-rf\s+[\/~]/i, // Recursive delete from root or home
+		/rm\s+-rf\s+[/~]/i, // Recursive delete from root or home
 		/>\s*\/dev\/sd[a-z]/i, // Write to disk device
 		/mkfs\./i, // Format filesystem
 		/dd\s+if=/i, // Disk dump
@@ -134,7 +134,7 @@ export class SafetyValidator {
 	 */
 	validate(improvement: Improvement): ValidationResult {
 		const issues: ValidationIssue[] = [];
-		let baseScore = improvement.safetyScore ?? 0.8;
+		const baseScore = improvement.safetyScore ?? 0.8;
 
 		// Run validation checks based on improvement type
 		switch (improvement.improvementType) {
@@ -174,7 +174,7 @@ export class SafetyValidator {
 	 */
 	validateSkill(skill: GeneratedSkill): ValidationResult {
 		const issues: ValidationIssue[] = [];
-		let baseScore = skill.confidence * 0.8 + 0.2;
+		const baseScore = skill.confidence * 0.8 + 0.2;
 
 		// Check implementation steps
 		for (const step of skill.implementation) {

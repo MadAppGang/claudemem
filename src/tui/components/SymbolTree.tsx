@@ -6,8 +6,8 @@
  */
 
 import type { RepoMapEntry } from "../../types.js";
-import { ScoreBar } from "./ScoreBar.js";
 import { theme } from "../theme.js";
+import { ScoreBar } from "./ScoreBar.js";
 
 // ============================================================================
 // Props

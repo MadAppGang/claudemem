@@ -4,7 +4,7 @@
 // These are cross-cutting scenario tests that exercise real indexing +
 // SymbolEditor edit and restore together.
 
-import { describe, test, expect, afterEach } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { TestWorkspace } from "../../helpers/test-workspace.js";

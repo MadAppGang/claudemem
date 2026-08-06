@@ -7,12 +7,12 @@
  */
 
 export {
-	ASTMetadataExtractor,
-	createASTMetadataExtractor,
-	type ExtractionContext,
-} from "./metadata-extractor.js";
-export {
 	CodeUnitExtractor,
 	createCodeUnitExtractor,
 	type ExtractionOptions,
 } from "./code-unit-extractor.js";
+export {
+	ASTMetadataExtractor,
+	createASTMetadataExtractor,
+	type ExtractionContext,
+} from "./metadata-extractor.js";

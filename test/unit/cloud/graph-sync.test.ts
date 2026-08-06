@@ -9,18 +9,18 @@
  *  - Missing commits return zero counts without throwing
  */
 
-import { describe, test, expect, beforeEach } from "bun:test";
-import { LocalCloudStub } from "../../../src/cloud/stub.js";
-import {
-	GraphSyncer,
-	createGraphSyncer,
-} from "../../../src/cloud/graph-sync.js";
+import { beforeEach, describe, expect, test } from "bun:test";
 import type { GraphSyncOptions } from "../../../src/cloud/graph-sync.js";
-import type { IFileTracker } from "../../../src/core/tracker.js";
+import {
+	createGraphSyncer,
+	GraphSyncer,
+} from "../../../src/cloud/graph-sync.js";
+import { LocalCloudStub } from "../../../src/cloud/stub.js";
 import type {
-	UploadIndexRequest,
 	UploadChunk,
+	UploadIndexRequest,
 } from "../../../src/cloud/types.js";
+import type { IFileTracker } from "../../../src/core/tracker.js";
 
 // ============================================================================
 // Testdata

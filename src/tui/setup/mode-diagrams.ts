@@ -464,7 +464,7 @@ function comparison() {
 // EXPORTS
 // ════════════════════════════════════════════════════════════
 
-export { mode1, mode2, mode3, comparison };
+export { comparison, mode1, mode2, mode3 };
 
 // Capture console.log output as line array
 const captureLines = (fn: () => void): string[] => {

@@ -5,9 +5,9 @@
  * Tab/arrow navigation between fields. Auto-detects repoSlug from git remote.
  */
 
-import { useState, useEffect } from "react";
-import { useKeyboard } from "@opentui/react";
 import { spawnSync } from "node:child_process";
+import { useKeyboard } from "@opentui/react";
+import { useEffect, useState } from "react";
 import { theme } from "../../theme.js";
 import type { ScreenProps } from "../types.js";
 

@@ -9,8 +9,8 @@
  * are inherited from ThinCloudClient unchanged.
  */
 
-import { ThinCloudClient } from "./thin-client.js";
 import type { ThinCloudClientOptions } from "./thin-client.js";
+import { ThinCloudClient } from "./thin-client.js";
 import type {
 	ICloudIndexClient,
 	UploadIndexRequest,

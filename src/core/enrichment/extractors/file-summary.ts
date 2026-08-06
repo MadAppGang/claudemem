@@ -6,20 +6,20 @@
  * Supports both single-file and batched extraction for efficiency.
  */
 
+import {
+	BATCHED_FILE_SUMMARY_SYSTEM_PROMPT,
+	type BatchFileInfo,
+	buildBatchedFileSummaryPrompt,
+	buildFileSummaryPrompt,
+	getSystemPrompt,
+} from "../../../llm/prompts/enrichment.js";
 import type {
 	BaseDocument,
+	CodeChunk,
 	ExtractionContext,
 	FileSummary,
 	ILLMClient,
-	CodeChunk,
 } from "../../../types.js";
-import {
-	buildFileSummaryPrompt,
-	buildBatchedFileSummaryPrompt,
-	BATCHED_FILE_SUMMARY_SYSTEM_PROMPT,
-	getSystemPrompt,
-	type BatchFileInfo,
-} from "../../../llm/prompts/enrichment.js";
 import { BaseExtractor } from "./base.js";
 
 // ============================================================================

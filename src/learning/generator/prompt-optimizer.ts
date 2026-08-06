@@ -13,8 +13,8 @@
  */
 
 import type {
-	DetectedPattern,
 	CorrectionEvent,
+	DetectedPattern,
 	Improvement,
 	ImprovementData,
 } from "../interaction/types.js";

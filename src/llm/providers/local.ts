@@ -5,13 +5,13 @@
  * Supports Ollama, LM Studio, and other local inference servers.
  */
 
-import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
-import { combineAbortSignals } from "../abort.js";
 import type {
 	LLMGenerateOptions,
 	LLMMessage,
 	LLMResponse,
 } from "../../types.js";
+import { combineAbortSignals } from "../abort.js";
+import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
 
 // ============================================================================
 // LMStudio Model Contention Handler
@@ -92,9 +92,17 @@ async function getOllamaModelInfo(
 	baseEndpoint: string,
 ): Promise<LocalModelInfo | undefined> {
 	try {
+		// Hosted Ollama (ollama.com) requires auth; local Ollama ignores the header.
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		if (process.env.OLLAMA_API_KEY) {
+			headers.Authorization = `Bearer ${process.env.OLLAMA_API_KEY}`;
+		}
+
 		const response = await fetch(`${baseEndpoint}/api/show`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers,
 			body: JSON.stringify({ name: modelName }),
 			signal: AbortSignal.timeout(5000),
 		});
@@ -300,6 +308,14 @@ interface LocalOptions {
 	model?: string;
 	/** Request timeout in ms */
 	timeout?: number;
+	/**
+	 * Bearer token for hosted OpenAI-compatible endpoints.
+	 *
+	 * Local Ollama and LM Studio need no auth, but Ollama Cloud
+	 * (`https://ollama.com/v1`) rejects unauthenticated requests with HTTP 401.
+	 * Falls back to `OLLAMA_API_KEY` when not passed explicitly.
+	 */
+	apiKey?: string;
 }
 
 interface OpenAIMessage {
@@ -332,6 +348,7 @@ const DEFAULT_ENDPOINT = "http://localhost:11434/v1";
 
 export class LocalLLMClient extends BaseLLMClient {
 	private endpoint: string;
+	private apiKey?: string;
 
 	constructor(options: LocalOptions = {}) {
 		super(
@@ -341,11 +358,26 @@ export class LocalLLMClient extends BaseLLMClient {
 		);
 
 		this.endpoint = options.endpoint || DEFAULT_ENDPOINT;
+		this.apiKey = options.apiKey || process.env.OLLAMA_API_KEY || undefined;
 
 		// Ensure endpoint ends without slash
 		if (this.endpoint.endsWith("/")) {
 			this.endpoint = this.endpoint.slice(0, -1);
 		}
+	}
+
+	/**
+	 * Request headers, adding Bearer auth only when a key is configured so
+	 * local Ollama / LM Studio keep working without one.
+	 */
+	private buildHeaders(): Record<string, string> {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		if (this.apiKey) {
+			headers.Authorization = `Bearer ${this.apiKey}`;
+		}
+		return headers;
 	}
 
 	async complete(
@@ -392,9 +424,7 @@ export class LocalLLMClient extends BaseLLMClient {
 			const url = `${this.endpoint}/chat/completions`;
 			const response = await fetch(url, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: this.buildHeaders(),
 				body: JSON.stringify(body),
 				signal,
 			});

@@ -9,17 +9,16 @@
 
 import { Database } from "bun:sqlite";
 import type {
-	RecordedSession,
-	ValidationExperiment,
-	ExperimentResults,
 	AggregateResults,
-	ScenarioResults,
-	StatisticalComparison,
 	ExperimentDecision,
-	SessionMetrics,
-	ExperimentStatus,
 	ExperimentGroup,
+	ExperimentResults,
+	ExperimentStatus,
+	RecordedSession,
+	ScenarioResults,
 	SessionOutcome,
+	StatisticalComparison,
+	ValidationExperiment,
 } from "./types.js";
 
 // ============================================================================

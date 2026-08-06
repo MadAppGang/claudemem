@@ -8,7 +8,7 @@
  * - Enable pattern matching without revealing specifics
  */
 
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes } from "node:crypto";
 import type { DetectedPattern, PatternData } from "../interaction/types.js";
 
 // ============================================================================

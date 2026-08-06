@@ -32,7 +32,7 @@ export async function startAdminTUI(options: AdminOptions): Promise<void> {
 
 	const renderer = await createCliRenderer({
 		exitOnCtrlC: true,
-		useAlternateScreen: false,
+		screenMode: "main-screen",
 		useMouse: false,
 		onDestroy: () => {
 			process.exit(0);

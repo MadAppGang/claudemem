@@ -7,13 +7,11 @@
  */
 
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { IndexLock } from "../core/lock.js";
-import type { Logger } from "./logger.js";
-import type { IndexStateManager } from "./state-manager.js";
 import type { IndexCache } from "./cache.js";
 import type { CompletionDetector } from "./completion-detector.js";
+import type { Logger } from "./logger.js";
+import type { IndexStateManager } from "./state-manager.js";
 
 /**
  * Schedules and executes background reindex operations.

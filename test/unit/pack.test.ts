@@ -8,16 +8,16 @@
  * assert on output string or PackResult fields.
  */
 
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import {
-	mkdtempSync,
-	writeFileSync,
 	mkdirSync,
-	rmSync,
+	mkdtempSync,
 	readFileSync,
-} from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
+	rmSync,
+	writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { packCommand } from "../../src/pack/index.js";
 import type { PackOptions } from "../../src/pack/types.js";
 
@@ -306,7 +306,7 @@ describe("Markdown: triple backtick fence escaping", () => {
 		// We validate structure integrity: every opening ``` for a file block has a close.
 		const lines = output.split("\n");
 		let depth = 0;
-		let structureOk = true;
+		const structureOk = true;
 		for (const line of lines) {
 			if (line.startsWith("```") && line.trim() === "```") {
 				depth = depth === 0 ? 1 : 0;
@@ -522,7 +522,10 @@ describe("Filtering: binary files", () => {
 			0x52, // IHDR chunk length + type
 		]);
 		mkdirSync(join(tempDir, "assets"), { recursive: true });
-		require("fs").writeFileSync(join(tempDir, "assets", "logo.png"), pngMagic);
+		require("node:fs").writeFileSync(
+			join(tempDir, "assets", "logo.png"),
+			pngMagic,
+		);
 	});
 
 	afterAll(() => {
@@ -692,7 +695,7 @@ describe("Edge cases: PackResult fileCount accuracy", () => {
 		const pngMagic = Buffer.from([
 			0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 		]);
-		require("fs").writeFileSync(join(tempDir, "image.png"), pngMagic);
+		require("node:fs").writeFileSync(join(tempDir, "image.png"), pngMagic);
 	});
 
 	afterAll(() => {
@@ -737,7 +740,7 @@ describe("Edge cases: outputPath written correctly", () => {
 			outputPath: outFile,
 			stdout: false,
 		});
-		const exists = require("fs").existsSync(outFile);
+		const exists = require("node:fs").existsSync(outFile);
 		expect(exists).toBe(true);
 	});
 });

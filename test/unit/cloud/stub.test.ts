@@ -5,14 +5,14 @@
  * used for testing cloud-dependent code without hitting a real API.
  */
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import {
-	LocalCloudStub,
 	createLocalCloudStub,
+	LocalCloudStub,
 } from "../../../src/cloud/stub.js";
 import type {
-	UploadIndexRequest,
 	UploadChunk,
+	UploadIndexRequest,
 } from "../../../src/cloud/types.js";
 
 // ============================================================================

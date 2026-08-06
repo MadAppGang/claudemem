@@ -3,8 +3,8 @@
  * Uses Bun.serve() for HTTP handling. No authentication.
  */
 
-import { type ServerConfig, loadConfig } from "./config.js";
-import { type Sql, createDatabase } from "./db.js";
+import { loadConfig, type ServerConfig } from "./config.js";
+import { createDatabase, type Sql } from "./db.js";
 import {
 	authMiddleware,
 	runMiddleware,

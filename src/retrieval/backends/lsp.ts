@@ -11,8 +11,8 @@ import { resolve } from "node:path";
 import type { ReferenceGraphManager } from "../../core/reference-graph.js";
 import type { LspManager } from "../../lsp/manager.js";
 import {
-	LSP_METHODS,
 	type Location,
+	LSP_METHODS,
 	pathToUri,
 	uriToPath,
 } from "../../lsp/protocol.js";

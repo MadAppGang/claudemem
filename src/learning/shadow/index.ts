@@ -37,27 +37,26 @@
  * ```
  */
 
-// Shadow Predictor
-export {
-	ShadowPredictor,
-	createShadowPredictor,
-	DEFAULT_SHADOW_CONFIG,
-	type ShadowPredictorConfig,
-	type ToolPrediction,
-	type PredictionResult,
-	type NGramModel,
-} from "./shadow-predictor.js";
-
 // Deviation Detector
 export {
-	DeviationDetector,
 	createDeviationDetector,
 	DEFAULT_DEVIATION_CONFIG,
-	type DeviationDetectorConfig,
 	type Deviation,
 	type DeviationAlert,
 	type DeviationAnalysis,
+	DeviationDetector,
+	type DeviationDetectorConfig,
+	type DeviationSeverity,
 	type DeviationStatistics,
 	type DeviationType,
-	type DeviationSeverity,
 } from "./deviation-detector.js";
+// Shadow Predictor
+export {
+	createShadowPredictor,
+	DEFAULT_SHADOW_CONFIG,
+	type NGramModel,
+	type PredictionResult,
+	ShadowPredictor,
+	type ShadowPredictorConfig,
+	type ToolPrediction,
+} from "./shadow-predictor.js";

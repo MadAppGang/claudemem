@@ -12,16 +12,15 @@
  *   using only its own summaries?
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ILLMClient } from "../../../types.js";
+import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
 import type {
 	BenchmarkCodeUnit,
-	GeneratedSummary,
-	GeneratedQuery,
 	EvaluationResult,
-	SelfEvalTaskType,
+	GeneratedQuery,
+	GeneratedSummary,
 } from "../../types.js";
-import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
 
 // ============================================================================
 // Self-Retrieval Evaluator

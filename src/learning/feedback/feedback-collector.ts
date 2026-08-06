@@ -8,16 +8,15 @@
  * - Track search sessions
  */
 
-import { createHash } from "crypto";
-import type { FeedbackStore } from "./feedback-store.js";
+import { createHash } from "node:crypto";
+import type { SearchUseCase } from "../../types.js";
 import type {
-	SearchFeedbackEvent,
-	ImplicitFeedbackEvent,
 	FeedbackSource,
+	ImplicitFeedbackEvent,
 	LearningConfig,
 } from "../types.js";
 import { DEFAULT_LEARNING_CONFIG } from "../types.js";
-import type { SearchUseCase } from "../../types.js";
+import type { FeedbackStore } from "./feedback-store.js";
 
 // ============================================================================
 // FeedbackCollector Class

@@ -1,10 +1,10 @@
-import readline from "node:readline";
 import { resolve } from "node:path";
+import readline from "node:readline";
 import { AutocompleteEngine } from "./engine.js";
 import type {
+	AutocompleteCompleteParams,
 	AutocompleteRequest,
 	AutocompleteResponse,
-	AutocompleteCompleteParams,
 } from "./protocol.js";
 
 function writeResponse(res: AutocompleteResponse): void {
@@ -49,7 +49,7 @@ export async function startAutocompleteServer(
 
 				case "complete": {
 					const params = req.params as AutocompleteCompleteParams;
-					if (!params || !params.filePath) {
+					if (!params?.filePath) {
 						writeResponse(errorResponse(id, "Invalid complete params"));
 						break;
 					}

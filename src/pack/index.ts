@@ -20,18 +20,18 @@ import {
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
-import { basename, dirname, extname, join, resolve } from "node:path";
+import { basename, dirname, extname, resolve } from "node:path";
 import { getExcludePatterns } from "../config.js";
-import { walkFiles } from "../shared/file-walker.js";
 import {
 	extensionToLanguage,
 	isBinaryFile,
 } from "../shared/binary-detector.js";
-import { buildTree } from "./tree-builder.js";
-import { annotateTokenEstimates, buildTokenReport } from "./token-counter.js";
-import { formatXml } from "./formats/xml.js";
+import { walkFiles } from "../shared/file-walker.js";
 import { formatMarkdown } from "./formats/markdown.js";
 import { formatPlain } from "./formats/plain.js";
+import { formatXml } from "./formats/xml.js";
+import { annotateTokenEstimates, buildTokenReport } from "./token-counter.js";
+import { buildTree } from "./tree-builder.js";
 import type { FileEntry, PackMeta, PackOptions, PackResult } from "./types.js";
 
 // ============================================================================

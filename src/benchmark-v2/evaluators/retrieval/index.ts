@@ -9,25 +9,21 @@
  * - Mean Reciprocal Rank (MRR): 1/rank of target
  */
 
-import { randomUUID } from "crypto";
-import type {
-	IEmbeddingsClient,
-	LLMMessage,
-	ILLMClient,
-} from "../../../types.js";
-import type {
-	BenchmarkCodeUnit,
-	GeneratedSummary,
-	GeneratedQuery,
-	EvaluationResult,
-	RetrievalResults,
-	EvaluatorContext,
-	QueryType,
-} from "../../types.js";
-import { BaseEvaluator } from "../base.js";
+import { randomUUID } from "node:crypto";
+import type { IEmbeddingsClient, ILLMClient } from "../../../types.js";
 import { RetrievalError } from "../../errors.js";
 import { createQueryGenerator } from "../../extractors/query-generator.js";
 import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
+import type {
+	BenchmarkCodeUnit,
+	EvaluationResult,
+	EvaluatorContext,
+	GeneratedQuery,
+	GeneratedSummary,
+	QueryType,
+	RetrievalResults,
+} from "../../types.js";
+import { BaseEvaluator } from "../base.js";
 
 // ============================================================================
 // Vector Index (Simple In-Memory)

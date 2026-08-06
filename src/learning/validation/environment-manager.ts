@@ -7,8 +7,8 @@
  * @module learning/validation/environment-manager
  */
 
-import { existsSync, mkdirSync, rmSync, cpSync } from "node:fs";
-import { join, basename } from "node:path";
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { $ } from "bun";
 
 // ============================================================================

@@ -7,8 +7,8 @@
 import { join } from "node:path";
 import {
 	DEFAULT_PIPELINE_CONFIG,
-	type PipelineConfig,
 	loadPipelineConfig,
+	type PipelineConfig,
 } from "../retrieval/pipeline/config.js";
 import type { LogLevel } from "./logger.js";
 

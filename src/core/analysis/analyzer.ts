@@ -7,12 +7,12 @@
  * - Change impact analysis
  */
 
-import type { IFileTracker } from "../tracker.js";
 import type { SymbolDefinition } from "../../types.js";
 import {
 	createReferenceGraphManager,
 	type ReferenceGraphManager,
 } from "../reference-graph.js";
+import type { IFileTracker } from "../tracker.js";
 import {
 	createTestFileDetector,
 	type TestFileDetector,

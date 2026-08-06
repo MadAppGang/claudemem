@@ -8,25 +8,20 @@
 import {
 	// Scenario Library
 	createScenarioLibrary,
-	PERSONAS,
-	KNOWLEDGE_BASES,
-	// Session Recording
-	SessionRecorder,
-	CriteriaEvaluator,
-	// Validation Store
-	ValidationStore,
-	// Environment Manager
-	TempEnvironmentManager,
-	MockEnvironmentManager,
 	// Synthetic Agent
 	createSyntheticAgent,
-	// Statistics
-	StatisticsEngine,
 	// Experiment Engine
 	DecisionEngine,
+	MockEnvironmentManager,
+	// Session Recording
+	SessionRecorder,
+	// Statistics
+	StatisticsEngine,
+	// Validation Store
+	ValidationStore,
 } from "./index.js";
 
-import type { RecordedSession, StatisticalComparison } from "./types.js";
+import type { RecordedSession } from "./types.js";
 
 // ============================================================================
 // Demo: Scenario Library

@@ -5,7 +5,7 @@
  * Each document type has a specific prompt designed to extract the right information.
  */
 
-import type { DocumentType, CodeChunk } from "../../types.js";
+import type { CodeChunk, DocumentType } from "../../types.js";
 
 // ============================================================================
 // System Prompts

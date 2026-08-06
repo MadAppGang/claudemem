@@ -4,19 +4,19 @@
  * Exports for the quality judges.
  */
 
-export { LLMJudge } from "./llm-judge.js";
-export { ConsensusJudge, type AggregationMethod } from "./consensus-judge.js";
 export {
-	BlindJudge,
-	evaluateBlindly,
-	type EvaluationCandidate,
 	type BatchBlindResult,
+	BlindJudge,
+	type EvaluationCandidate,
+	evaluateBlindly,
 } from "./blind-judge.js";
+export { type AggregationMethod, ConsensusJudge } from "./consensus-judge.js";
 export {
-	createJudge,
-	createConsensusJudge,
 	createBlindJudge,
-	parseAndCreateJudge,
+	createConsensusJudge,
+	createJudge,
 	DEFAULT_JUDGE_MODEL,
 	POPULAR_JUDGES,
+	parseAndCreateJudge,
 } from "./factory.js";
+export { LLMJudge } from "./llm-judge.js";

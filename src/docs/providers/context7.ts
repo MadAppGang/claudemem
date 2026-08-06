@@ -12,8 +12,8 @@
 
 import { CONTEXT7_API_URL, getContext7ApiKey } from "../../config.js";
 import type { DocProviderType } from "../../types.js";
-import type { FetchedDoc, FetchOptions } from "../types.js";
 import { LIBRARY_SOURCES } from "../registry.js";
+import type { FetchedDoc, FetchOptions } from "../types.js";
 import {
 	AuthenticationError,
 	BaseDocProvider,
@@ -230,7 +230,7 @@ export class Context7Provider extends BaseDocProvider {
 			const sourceUrl = sourceMatch ? sourceMatch[1].trim() : undefined;
 
 			// Remove title and source lines from content
-			let content = section
+			const content = section
 				.replace(/^###\s+.+?$/m, "")
 				.replace(/^Source:\s+.+?$/m, "")
 				.trim();

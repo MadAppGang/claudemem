@@ -6,8 +6,8 @@
  * Keyboard: j/k, 1/2/3, Enter, Esc, q
  */
 
-import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
+import { useState } from "react";
 import { theme } from "../../theme.js";
 import type { ConfigScope, ScreenProps } from "../types.js";
 

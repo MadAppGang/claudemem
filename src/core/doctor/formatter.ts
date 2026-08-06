@@ -4,12 +4,12 @@
  * Human-readable and machine-parseable output formats
  */
 
-import type { DoctorResult, ContextFileDiagnosis } from "./types.js";
 import {
 	classifySeverity,
 	formatHealthBar,
 	getHealthSymbol,
 } from "./scorer.js";
+import type { DoctorResult } from "./types.js";
 
 /**
  * Color constants for terminal output

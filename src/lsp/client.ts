@@ -7,15 +7,15 @@
  * State machine: Unstarted → Initializing → Ready → Crashed → Dead
  */
 
-import { spawn, type ChildProcess } from "node:child_process";
-import { LspTransport } from "./transport.js";
+import { type ChildProcess, spawn } from "node:child_process";
 import {
-	LSP_METHODS,
-	pathToUri,
 	type ClientCapabilities,
 	type InitializeResult,
+	LSP_METHODS,
+	pathToUri,
 	type TextDocumentContentChangeEvent,
 } from "./protocol.js";
+import { LspTransport } from "./transport.js";
 
 export type LspState =
 	| "unstarted"

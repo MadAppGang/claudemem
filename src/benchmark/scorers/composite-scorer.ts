@@ -168,14 +168,11 @@ export class CompositeScorer implements IScorer {
 // Factory Function
 // ============================================================================
 
-import { CorrectnessScorer } from "./correctness-scorer.js";
 import { CompletenessScorer } from "./completeness-scorer.js";
-import { UsefulnessScorer, ConcisenessScorer } from "./quality-scorer.js";
-import {
-	PerformanceScorer,
-	createPerformanceScorer,
-} from "./performance-scorer.js";
-import { CostScorer, createCostScorer } from "./cost-scorer.js";
+import { CorrectnessScorer } from "./correctness-scorer.js";
+import { createCostScorer } from "./cost-scorer.js";
+import { createPerformanceScorer } from "./performance-scorer.js";
+import { ConcisenessScorer, UsefulnessScorer } from "./quality-scorer.js";
 
 /**
  * Create a default composite scorer with all criteria.

@@ -7,18 +7,17 @@
  *   3. Impact      - transitive callers of a symbol
  */
 
-import { useState, useCallback, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
-import { useAppContext } from "../context.js";
-import { useAnalysis } from "../hooks/useAnalysis.js";
-import { ScoreBar } from "../components/ScoreBar.js";
-import { theme } from "../theme.js";
-import type { AnalysisTab } from "../hooks/useAnalysis.js";
+import { useCallback, useEffect, useState } from "react";
 import type {
 	DeadCodeResult,
-	TestGapResult,
 	ImpactAnalysis,
+	TestGapResult,
 } from "../../core/analysis/analyzer.js";
+import { useAppContext } from "../context.js";
+import type { AnalysisTab } from "../hooks/useAnalysis.js";
+import { useAnalysis } from "../hooks/useAnalysis.js";
+import { theme } from "../theme.js";
 
 // ============================================================================
 // Dead Code Sub-view

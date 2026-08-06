@@ -22,22 +22,22 @@
  * 10. (smart mode) waitForCommit() — not implemented yet
  */
 
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createHash } from "node:crypto";
-import type { IEmbeddingsClient } from "../types.js";
 import { chunkFileByPath } from "../core/chunker.js";
-import { getParserManager } from "../parsers/parser-manager.js";
 import type { IVectorStore } from "../core/store.js";
+import { getParserManager } from "../parsers/parser-manager.js";
+import type { IEmbeddingsClient } from "../types.js";
 import type {
-	ICloudIndexClient,
-	IChangeDetector,
 	ChangedFile,
 	CloudEnrichmentDoc,
+	IChangeDetector,
+	ICloudIndexClient,
+	TeamConfig,
 	UploadChunk,
 	UploadIndexRequest,
 } from "./types.js";
-import type { TeamConfig } from "./types.js";
 
 // ============================================================================
 // Result type

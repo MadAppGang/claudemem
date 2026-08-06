@@ -162,7 +162,7 @@ export class ABTestManager {
 	 */
 	startExperiment(experimentId: string): boolean {
 		const experiment = this.experiments.get(experimentId);
-		if (!experiment || experiment.status !== "pending") {
+		if (experiment?.status !== "pending") {
 			return false;
 		}
 
@@ -179,7 +179,7 @@ export class ABTestManager {
 		experimentId: string,
 	): "treatment" | "control" {
 		const experiment = this.experiments.get(experimentId);
-		if (!experiment || experiment.status !== "running") {
+		if (experiment?.status !== "running") {
 			return "control";
 		}
 
@@ -220,7 +220,7 @@ export class ABTestManager {
 		metrics: Partial<ExperimentMetrics>,
 	): void {
 		const experiment = this.experiments.get(experimentId);
-		if (!experiment || experiment.status !== "running") {
+		if (experiment?.status !== "running") {
 			return;
 		}
 
@@ -327,7 +327,7 @@ export class ABTestManager {
 		reason?: string,
 	): boolean {
 		const experiment = this.experiments.get(experimentId);
-		if (!experiment || experiment.status !== "running") {
+		if (experiment?.status !== "running") {
 			return false;
 		}
 

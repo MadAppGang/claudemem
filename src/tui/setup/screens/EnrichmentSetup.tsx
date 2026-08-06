@@ -5,8 +5,8 @@
  * API key input appears for Anthropic and OpenRouter options.
  */
 
-import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
+import { useState } from "react";
 import { theme } from "../../theme.js";
 import type { ScreenProps } from "../types.js";
 

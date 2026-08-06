@@ -232,7 +232,6 @@ export class GitDiffChangeDetector implements IChangeDetector {
 			// Modified (staged or working tree)
 			if (indexStatus === "M" || workStatus === "M") {
 				results.push({ filePath: rawPath, status: "modified" });
-				continue;
 			}
 		}
 

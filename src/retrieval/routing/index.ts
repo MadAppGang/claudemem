@@ -5,9 +5,9 @@
  */
 
 export {
-	QueryRouter,
 	createQueryRouter,
+	QueryRouter,
 	type QueryRouterOptions,
-	type RouteResult,
 	type RetrievalStrategy,
+	type RouteResult,
 } from "./query-router.js";

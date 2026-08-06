@@ -11,8 +11,8 @@
  */
 
 import { useKeyboard } from "@opentui/react";
-import type { ApiKey } from "./AdminApiClient.js";
 import { theme } from "../theme.js";
+import type { ApiKey } from "./AdminApiClient.js";
 
 // ============================================================================
 // Types

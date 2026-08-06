@@ -6,9 +6,9 @@
  */
 
 import { useKeyboard } from "@opentui/react";
+import { GLOBAL_CONFIG_PATH } from "../../../config.js";
 import { theme } from "../../theme.js";
 import type { ScreenProps } from "../types.js";
-import { GLOBAL_CONFIG_PATH } from "../../../config.js";
 
 // ============================================================================
 // Component

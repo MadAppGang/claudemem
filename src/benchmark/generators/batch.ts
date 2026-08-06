@@ -7,19 +7,14 @@
  * 50% cheaper than regular API, ideal for benchmarks.
  */
 
-import type {
-	CodeChunk,
-	FileSummary,
-	ILLMClient,
-	SymbolSummary,
-} from "../../types.js";
+import type { AnthropicBatchLLMClient } from "../../llm/providers/anthropic-batch.js";
+import type { CodeChunk, FileSummary, SymbolSummary } from "../../types.js";
 import type {
 	GenerationResult,
 	GeneratorInfo,
 	ISummaryGenerator,
 	UsageStats,
 } from "../types.js";
-import { AnthropicBatchLLMClient } from "../../llm/providers/anthropic-batch.js";
 
 // ============================================================================
 // Types

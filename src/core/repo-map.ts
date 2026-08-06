@@ -18,13 +18,12 @@
  *     async search(query, vector): Promise<SearchResult[]>
  */
 
-import type { IFileTracker } from "./tracker.js";
 import type {
-	SymbolDefinition,
-	SymbolKind,
-	RepoMapOptions,
 	RepoMapEntry,
+	RepoMapOptions,
+	SymbolDefinition,
 } from "../types.js";
+import type { IFileTracker } from "./tracker.js";
 
 // ============================================================================
 // Constants

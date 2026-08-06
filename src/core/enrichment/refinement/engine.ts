@@ -13,11 +13,11 @@
 
 import type { ILLMClient } from "../../../types.js";
 import type {
-	RefinementContext,
-	RefinementResult,
-	RefinementAttempt,
-	RefinementOptions,
 	QualityTestResult,
+	RefinementAttempt,
+	RefinementContext,
+	RefinementOptions,
+	RefinementResult,
 } from "./types.js";
 import { calculateRefinementScore } from "./types.js";
 

@@ -8,8 +8,8 @@
  * This is the single search path used by CLI, TUI, and MCP.
  */
 
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { rmSync, mkdirSync } from "node:fs";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { VectorStore } from "../../src/core/store.js";
 import type {
@@ -311,23 +311,19 @@ describe("Unified Search", () => {
 	});
 
 	test("pathPattern filter works", async () => {
+		// Previously wrapped in try/catch that swallowed every error, on the
+		// belief that LanceDB could not filter backtick-quoted camelCase columns
+		// (`filePath`). Verified working on @lancedb/lancedb 0.33; the catch made
+		// this test pass unconditionally and would have hidden a real regression.
 		const queryVector = makeVector(1);
-		try {
-			const results = await store.search("function", queryVector, {
-				limit: 10,
-				pathPattern: "auth",
-			});
+		const results = await store.search("function", queryVector, {
+			limit: 10,
+			pathPattern: "auth",
+		});
 
-			// All results should be from auth path
-			for (const r of results) {
-				expect(r.chunk.filePath).toContain("auth");
-			}
-		} catch {
-			// LanceDB may not support camelCase column filters in all versions
-			// The filter works in production but may fail in test with fresh DB
-			console.log(
-				"Skipping: LanceDB camelCase filter not supported in this version",
-			);
+		// All results should be from auth path
+		for (const r of results) {
+			expect(r.chunk.filePath).toContain("auth");
 		}
 	});
 

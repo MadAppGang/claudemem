@@ -44,43 +44,42 @@
  * ```
  */
 
-// Red Team - Attack generated improvements
-export {
-	RedTeam,
-	createRedTeam,
-	DEFAULT_RED_CONFIG,
-	type RedTeamConfig,
-	type AttackType,
-	type AttackResult,
-	type Attack,
-	type AttackPayload,
-	type AttackOutcome,
-	type RedTeamReport,
-} from "./red-team.js";
-
 // Blue Team - Defend and validate
 export {
 	BlueTeam,
+	type BlueTeamConfig,
 	createBlueTeam,
 	DEFAULT_BLUE_CONFIG,
-	type BlueTeamConfig,
-	type MitigationType,
+	type DefenseReport,
 	type Mitigation,
 	type MitigationApplication,
-	type DefenseReport,
-	type ValidationRule,
+	type MitigationType,
 	type ValidationResult,
+	type ValidationRule,
 } from "./blue-team.js";
+// Red Team - Attack generated improvements
+export {
+	type Attack,
+	type AttackOutcome,
+	type AttackPayload,
+	type AttackResult,
+	type AttackType,
+	createRedTeam,
+	DEFAULT_RED_CONFIG,
+	RedTeam,
+	type RedTeamConfig,
+	type RedTeamReport,
+} from "./red-team.js";
 
 // Safety Scorer - Final deployment decision
 export {
-	SafetyScorer,
 	createSafetyScorer,
 	DEFAULT_SCORER_CONFIG,
-	type SafetyScorerConfig,
 	type DeploymentDecision,
-	type SafetyScoreResult,
-	type SafetyFactor,
 	type HistoricalData,
+	type SafetyFactor,
+	type SafetyScoreResult,
+	SafetyScorer,
+	type SafetyScorerConfig,
 	type ScoringContext,
 } from "./safety-scorer.js";

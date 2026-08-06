@@ -5,7 +5,7 @@
  * Extracted from Indexer to be reusable across modules (indexer, pack, etc.).
  */
 
-import { readdirSync, statSync, type Dirent } from "node:fs";
+import { type Dirent, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { shouldExclude, shouldInclude } from "./pattern-matcher.js";
 

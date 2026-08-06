@@ -5,16 +5,16 @@
  * Extracts: pattern description, bad example, reason, alternative, severity.
  */
 
+import {
+	buildAntiPatternPrompt,
+	getSystemPrompt,
+} from "../../../llm/prompts/enrichment.js";
 import type {
 	AntiPattern,
 	BaseDocument,
 	ExtractionContext,
 	ILLMClient,
 } from "../../../types.js";
-import {
-	buildAntiPatternPrompt,
-	getSystemPrompt,
-} from "../../../llm/prompts/enrichment.js";
 import { BaseExtractor } from "./base.js";
 
 // ============================================================================

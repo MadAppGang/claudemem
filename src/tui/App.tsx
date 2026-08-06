@@ -6,17 +6,17 @@
  */
 
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
-import { AppProvider, useAppContext, type TabId } from "./context.js";
-import { TabBar } from "./components/TabBar.js";
-import { StatusBar } from "./components/StatusBar.js";
-import { HelpOverlay } from "./components/HelpOverlay.js";
 import { ErrorBanner } from "./components/ErrorBanner.js";
-import { SearchView } from "./views/SearchView.js";
-import { MapView } from "./views/MapView.js";
-import { GraphView } from "./views/GraphView.js";
+import { HelpOverlay } from "./components/HelpOverlay.js";
+import { StatusBar } from "./components/StatusBar.js";
+import { TabBar } from "./components/TabBar.js";
+import { AppProvider, type TabId, useAppContext } from "./context.js";
 import { AnalysisView } from "./views/AnalysisView.js";
 import { DoctorView } from "./views/DoctorView.js";
+import { GraphView } from "./views/GraphView.js";
 import { IndexNeededView } from "./views/IndexNeededView.js";
+import { MapView } from "./views/MapView.js";
+import { SearchView } from "./views/SearchView.js";
 
 // ============================================================================
 // App Props

@@ -25,30 +25,26 @@
  * ```
  */
 
-// Types
-export type {
-	QualityTestResult,
-	RefinementContext,
-	RefinementResult,
-	RefinementAttempt,
-	RefinementOptions,
-	IRefinementStrategy,
-	IterativeRefinementConfig,
-	IterativeRefinementResults,
-} from "./types.js";
-
-export { calculateRefinementScore, DEFAULT_ITERATIVE_CONFIG } from "./types.js";
-
 // Engine
-export { RefinementEngine, createRefinementEngine } from "./engine.js";
-
+export { createRefinementEngine, RefinementEngine } from "./engine.js";
+export type { RetrievalStrategyOptions } from "./strategies/index.js";
 // Strategies
 export {
 	BaseRefinementStrategy,
-	RetrievalRefinementStrategy,
-	createRetrievalStrategy,
 	cosineSimilarity,
+	createRetrievalStrategy,
+	RetrievalRefinementStrategy,
 	rankBySimilarity,
 } from "./strategies/index.js";
-
-export type { RetrievalStrategyOptions } from "./strategies/index.js";
+// Types
+export type {
+	IRefinementStrategy,
+	IterativeRefinementConfig,
+	IterativeRefinementResults,
+	QualityTestResult,
+	RefinementAttempt,
+	RefinementContext,
+	RefinementOptions,
+	RefinementResult,
+} from "./types.js";
+export { calculateRefinementScore, DEFAULT_ITERATIVE_CONFIG } from "./types.js";

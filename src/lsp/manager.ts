@@ -7,11 +7,11 @@
 
 import { extname } from "node:path";
 import { LspClient, type LspClientConfig } from "./client.js";
+import { pathToUri } from "./protocol.js";
 import {
 	LANGUAGE_SERVER_CONFIGS,
 	type LanguageServerConfig,
 } from "./registry.js";
-import { pathToUri } from "./protocol.js";
 
 export interface LspManagerConfig {
 	/** Whether LSP is enabled (MNEMEX_LSP, default false) */

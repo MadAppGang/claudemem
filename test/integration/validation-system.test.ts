@@ -5,42 +5,32 @@
  * scenarios, sessions, statistics, and experiment orchestration.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { existsSync, rmSync } from "node:fs";
 
 import {
-	// Types
-	type ValidationScenario,
-	type RecordedSession,
-	type StatisticalComparison,
-	// Scenario Library
-	ScenarioLibrary,
-	createScenarioLibrary,
-	ScenarioBuilder,
-	scenario,
-	PERSONAS,
-	KNOWLEDGE_BASES,
-	// Session Recorder
-	SessionRecorder,
-	CriteriaEvaluator,
-	// Validation Store
-	ValidationStore,
-	createValidationStore,
-	// Environment Manager
-	TempEnvironmentManager,
-	MockEnvironmentManager,
-	createEnvironmentManager,
-	// Synthetic Agent
-	SyntheticAgent,
-	QueryHandler,
 	CorrectionInjector,
-	createSyntheticAgent,
-	// Statistics
-	StatisticsEngine,
+	createEnvironmentManager,
+	createScenarioLibrary,
 	createStatisticsEngine,
+	createSyntheticAgent,
 	// Experiment Engine
 	DecisionEngine,
-	ParallelExecutor,
+	KNOWLEDGE_BASES,
+	MockEnvironmentManager,
+	PERSONAS,
+	QueryHandler,
+	type RecordedSession,
+	// Scenario Library
+	type ScenarioLibrary,
+	// Session Recorder
+	SessionRecorder,
+	type StatisticalComparison,
+	// Statistics
+	type StatisticsEngine,
+	scenario,
+	// Validation Store
+	ValidationStore,
 } from "../../src/learning/validation/index.js";
 
 // ============================================================================

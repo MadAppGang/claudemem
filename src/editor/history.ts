@@ -1,11 +1,9 @@
 import {
-	mkdirSync,
-	writeFileSync,
-	readFileSync,
 	existsSync,
-	readdirSync,
+	mkdirSync,
+	readFileSync,
 	rmSync,
-	statSync,
+	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
 

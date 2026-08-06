@@ -16,13 +16,13 @@
  * updated imperatively by the indexer's onProgress callbacks outside React.
  */
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import type {
-	ProgressStore,
 	PhaseState,
+	ProgressStore,
 } from "../../../output/progress-store.js";
-import { theme } from "../../theme.js";
 import { formatElapsed } from "../../../ui/progress.js";
+import { theme } from "../../theme.js";
 
 // ============================================================================
 // Constants

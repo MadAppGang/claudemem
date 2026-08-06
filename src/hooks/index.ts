@@ -7,12 +7,12 @@
 
 export { handleHook } from "./dispatcher.js";
 export type {
-	HookInput,
-	HookOutput,
-	HookOptions,
 	HookHandler,
+	HookInput,
+	HookOptions,
+	HookOutput,
+	IndexStatus,
+	PreToolUseOutput,
 	ToolInput,
 	ToolResponse,
-	PreToolUseOutput,
-	IndexStatus,
 } from "./types.js";

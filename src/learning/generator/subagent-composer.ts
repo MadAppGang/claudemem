@@ -12,12 +12,12 @@
  * - Safety constraints
  */
 
+import type { ErrorCluster } from "../analysis/error-clusterer.js";
 import type {
 	DetectedPattern,
 	Improvement,
 	ImprovementData,
 } from "../interaction/types.js";
-import type { ErrorCluster } from "../analysis/error-clusterer.js";
 
 // ============================================================================
 // Types

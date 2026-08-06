@@ -9,8 +9,8 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
 	CloudApiError,
-	ThinCloudClient,
 	createThinCloudClient,
+	ThinCloudClient,
 } from "../../../src/cloud/thin-client.js";
 import type {
 	CloudSearchRequest,

@@ -5,14 +5,13 @@
  * using LanceDB's embedded database.
  */
 
-import * as lancedb from "@lancedb/lancedb";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import * as lancedb from "@lancedb/lancedb";
+import { getTestFileMode, type TestFileMode } from "../config.js";
 import type {
-	ASTMetadata,
 	BaseDocument,
 	ChunkWithEmbedding,
-	CodeChunk,
 	CodeUnit,
 	CodeUnitWithEmbedding,
 	DocumentType,
@@ -27,7 +26,6 @@ import {
 	createTestFileDetector,
 	type TestFileDetector,
 } from "./analysis/test-detector.js";
-import { getTestFileMode, type TestFileMode } from "../config.js";
 
 // ============================================================================
 // Constants
@@ -54,6 +52,46 @@ const VECTOR_WEIGHT = 0.6;
  * 0% CPU, 0 bytes written, forever), NOT to bound normal latency.
  */
 export const LANCEDB_WRITE_TIMEOUT_MS = 60000;
+
+/**
+ * Thrown when a write batch carries zero-dimension vectors.
+ *
+ * LanceDB infers the table schema from the first batch, so a batch whose
+ * vectors are empty arrays creates a `vector` column typed
+ * `FixedSizeList[0]<Float32>`. That column is permanently unusable: the table
+ * opens and `countRows()` succeeds, but every read that touches `vector`
+ * fails — LanceDB >= 0.20 raises `LanceError(Schema): dimension must be a
+ * positive integer`, and 0.13 panics in Rust with "attempt to divide by zero".
+ *
+ * The schema is fixed at creation, so there is no repair short of a full
+ * reindex. Failing the write is strictly better than silently producing an
+ * index that can never answer a query.
+ *
+ * Empty vectors in practice mean the embedding provider returned nothing —
+ * e.g. the configured Ollama endpoint is not running.
+ */
+export class ZeroDimensionVectorError extends Error {
+	constructor(readonly label: string) {
+		super(
+			`Refusing to write '${label}': embedding vectors are empty (0 dimensions). ` +
+				"This would create an unqueryable index. Check that the configured " +
+				"embedding provider is reachable, then reindex.",
+		);
+		this.name = "ZeroDimensionVectorError";
+	}
+}
+
+/**
+ * Guard a batch's inferred vector dimension before it reaches LanceDB.
+ * Exported for tests.
+ * @returns the validated, non-zero dimension
+ */
+export function assertVectorDimension(dimension: number, label: string): number {
+	if (!Number.isFinite(dimension) || dimension <= 0) {
+		throw new ZeroDimensionVectorError(label);
+	}
+	return dimension;
+}
 
 /**
  * Thrown by `withTimeout` when a wrapped LanceDB write does not settle in time.
@@ -303,7 +341,7 @@ export class VectorStore implements IVectorStore {
 				const vectorField = schema.fields.find(
 					(f: { name: string }) => f.name === "vector",
 				);
-				if (vectorField && vectorField.type && "listSize" in vectorField.type) {
+				if (vectorField?.type && "listSize" in vectorField.type) {
 					this.tableDimension = (
 						vectorField.type as { listSize: number }
 					).listSize;
@@ -375,7 +413,10 @@ export class VectorStore implements IVectorStore {
 		let table = await this.ensureTableOpen();
 
 		// Check for dimension mismatch with existing table
-		const incomingDimension = data[0].vector.length;
+		const incomingDimension = assertVectorDimension(
+			data[0].vector.length,
+			"addChunks",
+		);
 		if (
 			table &&
 			this.tableDimension &&
@@ -782,7 +823,10 @@ export class VectorStore implements IVectorStore {
 		let table = await this.ensureTableOpen();
 
 		// Check for dimension mismatch with existing table
-		const incomingDimension = data[0].vector.length;
+		const incomingDimension = assertVectorDimension(
+			data[0].vector.length,
+			"addDocuments",
+		);
 		if (
 			table &&
 			this.tableDimension &&
@@ -1083,7 +1127,10 @@ export class VectorStore implements IVectorStore {
 		let table = await this.ensureTableOpen();
 
 		// Check for dimension mismatch
-		const incomingDimension = data[0].vector.length;
+		const incomingDimension = assertVectorDimension(
+			data[0].vector.length,
+			"addCodeUnits",
+		);
 		if (
 			table &&
 			this.tableDimension &&

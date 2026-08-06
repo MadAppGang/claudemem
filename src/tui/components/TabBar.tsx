@@ -5,7 +5,7 @@
  * Active tab highlighted with primary orange color.
  */
 
-import { useAppContext, type TabId } from "../context.js";
+import { type TabId, useAppContext } from "../context.js";
 import { theme } from "../theme.js";
 
 // ============================================================================

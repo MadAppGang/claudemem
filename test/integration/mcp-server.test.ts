@@ -7,23 +7,23 @@
  * These tests exercise real component wiring rather than mocking internals.
  */
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-	mkdtempSync,
-	mkdirSync,
-	writeFileSync,
 	existsSync,
+	mkdirSync,
+	mkdtempSync,
 	rmSync,
+	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { IndexStateManager } from "../../src/mcp/state-manager.js";
-import { FileWatcher } from "../../src/mcp/watcher.js";
-import { DebounceReindexer } from "../../src/mcp/reindexer.js";
-import { CompletionDetector } from "../../src/mcp/completion-detector.js";
-import { buildFreshness } from "../../src/mcp/tools/deps.js";
 import type { IndexCache } from "../../src/mcp/cache.js";
+import { CompletionDetector } from "../../src/mcp/completion-detector.js";
 import type { Logger } from "../../src/mcp/logger.js";
+import { DebounceReindexer } from "../../src/mcp/reindexer.js";
+import { IndexStateManager } from "../../src/mcp/state-manager.js";
+import { buildFreshness } from "../../src/mcp/tools/deps.js";
+import { FileWatcher } from "../../src/mcp/watcher.js";
 
 // ---------------------------------------------------------------------------
 // Helpers

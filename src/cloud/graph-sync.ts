@@ -9,8 +9,8 @@
  * Full graph sync (symbols + references into SQLite) is a future enhancement.
  */
 
-import type { ICloudIndexClient } from "./types.js";
 import type { IFileTracker } from "../core/tracker.js";
+import type { ICloudIndexClient } from "./types.js";
 
 // ============================================================================
 // Types

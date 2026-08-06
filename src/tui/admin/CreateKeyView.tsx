@@ -6,9 +6,9 @@
  *   "secret" — shows the secret once; Enter or Escape to return to list
  */
 
-import { useState, useEffect } from "react";
-import { useKeyboard } from "@opentui/react";
 import { execSync } from "node:child_process";
+import { useKeyboard } from "@opentui/react";
+import { useEffect, useState } from "react";
 import { theme } from "../theme.js";
 
 function copyToClipboard(text: string): boolean {

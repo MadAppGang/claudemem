@@ -290,7 +290,7 @@ export class QueryRouter {
 
 		// Extract file paths
 		const pathMatches = query.match(
-			/[\w\/.-]+\.(ts|js|py|go|rs|java|cpp|c|h)\b/g,
+			/[\w/.-]+\.(ts|js|py|go|rs|java|cpp|c|h)\b/g,
 		);
 		if (pathMatches) entities.push(...pathMatches);
 

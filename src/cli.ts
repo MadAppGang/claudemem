@@ -8,31 +8,24 @@ import { createHash } from "node:crypto";
 import {
 	existsSync,
 	mkdirSync,
-	readFileSync,
 	readdirSync,
+	readFileSync,
 	unlinkSync,
 } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { confirm, input, select } from "@inquirer/prompts";
 import inquirerSearch from "@inquirer/search";
+import { type AgentRole, VALID_ROLES } from "./ai-instructions.js";
 import {
-	type AgentRole,
-	VALID_ROLES,
-	getCompactInstructions,
-	getInstructions,
-	listRoles,
-} from "./ai-instructions.js";
-import {
+	getCompactSkillWithRole,
+	getFullSkillWithRole,
 	MNEMEX_MCP_SKILL,
 	MNEMEX_QUICK_REF,
 	MNEMEX_SKILL,
 	MNEMEX_SKILL_COMPACT,
-	getCompactSkillWithRole,
-	getFullSkillWithRole,
 } from "./ai-skill.js";
 import {
-	ENV,
 	getAnthropicApiKey,
 	getApiKey,
 	getContext7ApiKey,
@@ -62,33 +55,18 @@ import { createRepoMapGenerator } from "./core/repo-map.js";
 import { FileTracker } from "./core/tracker.js";
 import {
 	CURATED_PICKS,
-	RECOMMENDED_MODELS,
 	discoverEmbeddingModels,
 	formatModelInfo,
+	RECOMMENDED_MODELS,
 } from "./models/model-discovery.js";
+import { agentOutput } from "./output/agent.js";
 // Note: learning module is imported lazily to avoid startup errors
 // Use: const { createLearningSystem } = await import("./learning/index.js");
 import {
-	type CellValue,
-	type TableColumn,
 	createBenchmarkProgress,
-	formatContextLength,
-	formatCost,
-	formatDuration,
 	formatElapsed,
-	formatPercent,
-	getHighlight,
-	getLogo,
 	printLogo as printLogoUI,
-	renderError,
-	renderHeader,
-	renderInfo,
-	renderSuccess,
-	renderSummary,
-	renderTable,
-	truncate,
 } from "./ui/index.js";
-import { agentOutput } from "./output/agent.js";
 
 // ============================================================================
 // Version & Branding
@@ -995,9 +973,7 @@ async function handleCloudIndex(args: string[]): Promise<void> {
 	const authManager = getDefaultAuthManager();
 	if (!authManager.isAuthenticated(orgSlug)) {
 		console.error(`Error: Not authenticated for org '${orgSlug}'.`);
-		console.error(
-			`Run 'mnemex team login --org ${orgSlug}' to authenticate.`,
-		);
+		console.error(`Run 'mnemex team login --org ${orgSlug}' to authenticate.`);
 		process.exit(1);
 	}
 
@@ -1141,9 +1117,7 @@ async function handleSync(args: string[]): Promise<void> {
 	const authManager = getDefaultAuthManager();
 	if (!authManager.isAuthenticated(orgSlug)) {
 		console.error(`Error: Not authenticated for org '${orgSlug}'.`);
-		console.error(
-			`Run 'mnemex team login --org ${orgSlug}' to authenticate.`,
-		);
+		console.error(`Run 'mnemex team login --org ${orgSlug}' to authenticate.`);
 		process.exit(1);
 	}
 
@@ -1257,7 +1231,7 @@ async function handleTeam(args: string[]): Promise<void> {
 
 	// Helper: resolve org slug from --org flag or project config
 	function resolveOrgSlug(cmdArgs: string[]): string | undefined {
-		const orgIdx = cmdArgs.findIndex((a) => a === "--org");
+		const orgIdx = cmdArgs.indexOf("--org");
 		if (orgIdx >= 0 && cmdArgs[orgIdx + 1]) {
 			return cmdArgs[orgIdx + 1];
 		}
@@ -1281,7 +1255,7 @@ async function handleTeam(args: string[]): Promise<void> {
 			}
 
 			// Resolve API key: --key flag, then env var
-			const keyIdx = args.findIndex((a) => a === "--key");
+			const keyIdx = args.indexOf("--key");
 			const keyArg = keyIdx >= 0 ? args[keyIdx + 1] : undefined;
 			const apiKey = keyArg ?? process.env["MNEMEX_ORG_API_KEY"];
 
@@ -1394,7 +1368,7 @@ async function handleSearch(args: string[]): Promise<void> {
 	const autoYes = args.includes("-y") || args.includes("--yes");
 
 	// Search use case (fim, search, navigation)
-	const useCaseIdx = args.findIndex((a) => a === "--use-case");
+	const useCaseIdx = args.indexOf("--use-case");
 	const useCase =
 		useCaseIdx >= 0
 			? (args[useCaseIdx + 1] as "fim" | "search" | "navigation")
@@ -3097,12 +3071,7 @@ export type BenchmarkSubcommandResolution =
 	| { kind: "action"; action: BenchmarkAction; rest: string[] }
 	| { kind: "error"; message: string };
 
-export type BenchmarkAction =
-	| "list"
-	| "show"
-	| "llm"
-	| "embedding"
-	| "delete";
+export type BenchmarkAction = "list" | "show" | "llm" | "embedding" | "delete";
 
 /**
  * Decide which benchmark subcommand (if any) to run for a given arg list.
@@ -3121,12 +3090,7 @@ export function resolveBenchmarkSubcommand(
 ): BenchmarkSubcommandResolution {
 	const sub = args[0];
 
-	if (
-		sub === undefined ||
-		sub === "help" ||
-		sub === "--help" ||
-		sub === "-h"
-	) {
+	if (sub === undefined || sub === "help" || sub === "--help" || sub === "-h") {
 		return { kind: "help" };
 	}
 
@@ -3263,7 +3227,7 @@ async function handleBenchmark(args: string[]): Promise<void> {
 	const modelsArgNoEquals = args.find(
 		(a) => a.startsWith("--models") && a.length > 8 && !a.includes("="),
 	);
-	const modelsArgIndex = args.findIndex((a) => a === "--models");
+	const modelsArgIndex = args.indexOf("--models");
 
 	if (modelsArgEquals) {
 		// --models=model1,model2
@@ -4374,7 +4338,7 @@ function getFileTracker(projectPath: string): FileTracker | null {
 async function handleMap(args: string[]): Promise<void> {
 	// Parse --tokens flag
 	let maxTokens = 2000;
-	const tokensIdx = args.findIndex((a) => a === "--tokens");
+	const tokensIdx = args.indexOf("--tokens");
 	if (tokensIdx !== -1 && args[tokensIdx + 1]) {
 		maxTokens = Number.parseInt(args[tokensIdx + 1], 10) || 2000;
 	}
@@ -4514,7 +4478,7 @@ async function handleSymbol(args: string[]): Promise<void> {
 
 	// Get file hint
 	let fileHint: string | undefined;
-	const fileIdx = args.findIndex((a) => a === "--file");
+	const fileIdx = args.indexOf("--file");
 	if (fileIdx !== -1 && args[fileIdx + 1]) {
 		fileHint = args[fileIdx + 1];
 	}
@@ -4874,9 +4838,7 @@ async function handleContext(args: string[]): Promise<void> {
 		if (agentMode) {
 			agentOutput.error("Usage: mnemex context <name>");
 		} else {
-			console.error(
-				"Usage: mnemex context <name> [--callers N] [--callees N]",
-			);
+			console.error("Usage: mnemex context <name> [--callers N] [--callees N]");
 		}
 		process.exit(1);
 	}
@@ -4884,11 +4846,11 @@ async function handleContext(args: string[]): Promise<void> {
 	// Parse limits
 	let maxCallers = 10;
 	let maxCallees = 15;
-	const callersIdx = args.findIndex((a) => a === "--callers");
+	const callersIdx = args.indexOf("--callers");
 	if (callersIdx !== -1 && args[callersIdx + 1]) {
 		maxCallers = Number.parseInt(args[callersIdx + 1], 10) || 10;
 	}
-	const calleesIdx = args.findIndex((a) => a === "--callees");
+	const calleesIdx = args.indexOf("--callees");
 	if (calleesIdx !== -1 && args[calleesIdx + 1]) {
 		maxCallees = Number.parseInt(args[calleesIdx + 1], 10) || 15;
 	}
@@ -4985,7 +4947,7 @@ async function handleDeadCode(args: string[]): Promise<void> {
 
 	// Parse --max-pagerank flag
 	let maxPageRank = 0.001;
-	const prIdx = args.findIndex((a) => a === "--max-pagerank");
+	const prIdx = args.indexOf("--max-pagerank");
 	if (prIdx !== -1 && args[prIdx + 1]) {
 		maxPageRank = Number.parseFloat(args[prIdx + 1]) || 0.001;
 	}
@@ -5058,7 +5020,7 @@ async function handleTestGaps(args: string[]): Promise<void> {
 
 	// Parse --min-pagerank flag
 	let minPageRank = 0.01;
-	const prIdx = args.findIndex((a) => a === "--min-pagerank");
+	const prIdx = args.indexOf("--min-pagerank");
 	if (prIdx !== -1 && args[prIdx + 1]) {
 		minPageRank = Number.parseFloat(args[prIdx + 1]) || 0.01;
 	}
@@ -5143,14 +5105,14 @@ async function handleImpact(args: string[]): Promise<void> {
 
 	// Parse --max-depth flag
 	let maxDepth = 10;
-	const depthIdx = args.findIndex((a) => a === "--max-depth");
+	const depthIdx = args.indexOf("--max-depth");
 	if (depthIdx !== -1 && args[depthIdx + 1]) {
 		maxDepth = Number.parseInt(args[depthIdx + 1], 10) || 10;
 	}
 
 	// Parse --file flag for disambiguation
 	let fileHint: string | undefined;
-	const fileIdx = args.findIndex((a) => a === "--file");
+	const fileIdx = args.indexOf("--file");
 	if (fileIdx !== -1 && args[fileIdx + 1]) {
 		fileHint = args[fileIdx + 1];
 	}
@@ -5269,7 +5231,7 @@ async function handleWatch(args: string[]): Promise<void> {
 
 	// Parse --debounce flag
 	let debounceMs = 1000;
-	const debounceIdx = args.findIndex((a) => a === "--debounce");
+	const debounceIdx = args.indexOf("--debounce");
 	if (debounceIdx !== -1 && args[debounceIdx + 1]) {
 		debounceMs = Number.parseInt(args[debounceIdx + 1], 10) || 1000;
 	}
@@ -5980,7 +5942,7 @@ async function handleObserve(args: string[]): Promise<void> {
 	const projectPath = pathIdx >= 0 ? resolve(args[pathIdx + 1]) : process.cwd();
 
 	// Parse --content or positional text
-	const contentIdx = args.findIndex((a) => a === "--content");
+	const contentIdx = args.indexOf("--content");
 	let content: string;
 	if (contentIdx >= 0) {
 		content = args[contentIdx + 1];
@@ -6006,15 +5968,15 @@ async function handleObserve(args: string[]): Promise<void> {
 	}
 
 	// Parse --file (comma-separated)
-	const fileIdx = args.findIndex((a) => a === "--file");
+	const fileIdx = args.indexOf("--file");
 	const affectedFiles = fileIdx >= 0 ? args[fileIdx + 1].split(",") : [];
 
 	// Parse --type (default: "pattern")
-	const typeIdx = args.findIndex((a) => a === "--type");
+	const typeIdx = args.indexOf("--type");
 	const observationType = typeIdx >= 0 ? args[typeIdx + 1] : "pattern";
 
 	// Parse --confidence (default: 0.7)
-	const confIdx = args.findIndex((a) => a === "--confidence");
+	const confIdx = args.indexOf("--confidence");
 	const confidence = confIdx >= 0 ? Number.parseFloat(args[confIdx + 1]) : 0.7;
 
 	const { createIndexer } = await import("./core/indexer.js");
@@ -6101,7 +6063,7 @@ async function handleFeedback(args: string[]): Promise<void> {
 	const query = queryIdx >= 0 ? args[queryIdx + 1] : undefined;
 
 	// Parse --helpful flag (comma-separated chunk IDs)
-	const helpfulIdx = args.findIndex((a) => a === "--helpful");
+	const helpfulIdx = args.indexOf("--helpful");
 	const helpfulIds =
 		helpfulIdx >= 0 && args[helpfulIdx + 1]
 			? args[helpfulIdx + 1]
@@ -6111,7 +6073,7 @@ async function handleFeedback(args: string[]): Promise<void> {
 			: [];
 
 	// Parse --unhelpful flag (comma-separated chunk IDs)
-	const unhelpfulIdx = args.findIndex((a) => a === "--unhelpful");
+	const unhelpfulIdx = args.indexOf("--unhelpful");
 	const unhelpfulIds =
 		unhelpfulIdx >= 0 && args[unhelpfulIdx + 1]
 			? args[unhelpfulIdx + 1]
@@ -6121,7 +6083,7 @@ async function handleFeedback(args: string[]): Promise<void> {
 			: [];
 
 	// Parse --results flag (all result IDs from the search)
-	const resultsIdx = args.findIndex((a) => a === "--results");
+	const resultsIdx = args.indexOf("--results");
 	const resultIds =
 		resultsIdx >= 0 && args[resultsIdx + 1]
 			? args[resultsIdx + 1]
@@ -6536,13 +6498,9 @@ function handleAiInstructions(args: string[]): void {
 		console.log(`  ${c.cyan}-m, --mcp-format${c.reset}    MCP tools format\n`);
 		console.log(`${c.yellow}${c.bold}EXAMPLES${c.reset}`);
 		console.log(`  ${c.dim}# Full skill document for CLAUDE.md${c.reset}`);
-		console.log(
-			`  ${c.cyan}mnemex --agent ai skill >> CLAUDE.md${c.reset}\n`,
-		);
+		console.log(`  ${c.cyan}mnemex --agent ai skill >> CLAUDE.md${c.reset}\n`);
 		console.log(`  ${c.dim}# Compact skill + role for system prompt${c.reset}`);
-		console.log(
-			`  ${c.cyan}mnemex --agent ai developer --compact${c.reset}\n`,
-		);
+		console.log(`  ${c.cyan}mnemex --agent ai developer --compact${c.reset}\n`);
 		console.log(`  ${c.dim}# MCP tools reference${c.reset}`);
 		console.log(`  ${c.cyan}mnemex ai skill -m${c.reset}\n`);
 		console.log(`  ${c.dim}# Quick reference (minimal tokens)${c.reset}`);
@@ -7042,7 +7000,7 @@ ${c.yellow}${c.bold}EXAMPLES${c.reset}
   ${c.cyan}mnemex watch${c.reset}                           ${c.dim}# auto-reindex on changes${c.reset}
 
   ${c.dim}# Cloud / team indexing${c.reset}
-  ${c.cyan}mnemex team login --org myorg --key \$API_KEY${c.reset}  ${c.dim}# store credentials${c.reset}
+  ${c.cyan}mnemex team login --org myorg --key $API_KEY${c.reset}  ${c.dim}# store credentials${c.reset}
   ${c.cyan}mnemex index --cloud${c.reset}                   ${c.dim}# upload diff to cloud API${c.reset}
   ${c.cyan}mnemex team status${c.reset}                     ${c.dim}# show cloud config${c.reset}
   ${c.cyan}mnemex team logout --org myorg${c.reset}         ${c.dim}# remove credentials${c.reset}

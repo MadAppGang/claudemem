@@ -1,33 +1,33 @@
 // test/helpers/test-workspace.ts
 
+import { createHash } from "node:crypto";
 import {
-	mkdtempSync,
 	mkdirSync,
-	writeFileSync,
-	rmSync,
+	mkdtempSync,
 	readdirSync,
 	readFileSync,
+	rmSync,
+	writeFileSync,
 } from "node:fs";
-import { join, relative, extname, dirname } from "node:path";
 import { tmpdir } from "node:os";
-import { createHash } from "node:crypto";
+import { dirname, extname, join, relative } from "node:path";
+import {
+	createReferenceGraphManager,
+	type ReferenceGraphManager,
+} from "../../src/core/reference-graph.js";
+import { createSymbolExtractor } from "../../src/core/symbol-extractor.js";
 import {
 	createFileTracker,
 	type IFileTracker,
 } from "../../src/core/tracker.js";
-import {
-	ReferenceGraphManager,
-	createReferenceGraphManager,
-} from "../../src/core/reference-graph.js";
-import { createSymbolExtractor } from "../../src/core/symbol-extractor.js";
+import { SymbolEditor } from "../../src/editor/editor.js";
+import type { CachedIndex, IndexCache } from "../../src/mcp/cache.js";
+import type { McpConfig } from "../../src/mcp/config.js";
+import { MemoryStore } from "../../src/memory/store.js";
 import {
 	getParserManager,
 	type ParserManager,
 } from "../../src/parsers/parser-manager.js";
-import type { IndexCache, CachedIndex } from "../../src/mcp/cache.js";
-import type { McpConfig } from "../../src/mcp/config.js";
-import { SymbolEditor } from "../../src/editor/editor.js";
-import { MemoryStore } from "../../src/memory/store.js";
 
 export interface IndexedWorkspace {
 	tracker: IFileTracker;

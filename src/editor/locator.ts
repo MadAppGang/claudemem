@@ -7,8 +7,8 @@
 
 import type { ReferenceGraphManager } from "../core/reference-graph.js";
 import type { IFileTracker } from "../core/tracker.js";
-import type { SymbolDefinition } from "../types.js";
 import type { LspManager } from "../lsp/manager.js";
+import type { SymbolDefinition } from "../types.js";
 
 export interface SymbolLocation {
 	filePath: string;

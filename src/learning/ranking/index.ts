@@ -5,7 +5,7 @@
 export {
 	AdaptiveRanker,
 	createAdaptiveRanker,
-	type RankingResult,
 	type RankingContext,
 	type RankingDiagnostics,
+	type RankingResult,
 } from "./adaptive-ranker.js";

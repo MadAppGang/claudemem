@@ -3,8 +3,8 @@
  * Supports Markdown, RST, AsciiDoc, and Org formats.
  */
 
-import type { CodeChunk } from "../types.js";
 import crypto from "node:crypto";
+import type { CodeChunk } from "../types.js";
 
 // ============================================================================
 // Constants
@@ -577,11 +577,12 @@ function buildHeaderSignature(
 			return `${"=".repeat(level)} ${text}`;
 		case "org":
 			return `${"*".repeat(level)} ${text}`;
-		case "rst":
+		case "rst": {
 			// RST uses underlines - use most common convention
 			const underlineChars = ["=", "-", "`", ":", ".", "'"];
 			const char = underlineChars[level - 1] || "=";
 			return `${text}\n${char.repeat(text.length)}`;
+		}
 	}
 }
 

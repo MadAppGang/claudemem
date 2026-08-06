@@ -17,8 +17,8 @@
  *   q         - quit
  */
 
-import { useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
+import { useState } from "react";
 import { theme } from "../../theme.js";
 
 // ============================================================================

@@ -5,7 +5,7 @@
  * rg-compatible output with mnemex-ranked results first.
  */
 
-import { relative as pathRelative, isAbsolute } from "node:path";
+import { isAbsolute, relative as pathRelative } from "node:path";
 import type { SearchResult } from "../types.js";
 import type { MatchFlags, OutputMode } from "./parser.js";
 

@@ -90,7 +90,7 @@ function buildPattern(
 	}
 
 	// Try to extract path fragment from query
-	const pathMatch = query.match(/[\w\/.-]+\.(ts|js|py|go|rs|java|cpp|c|h)\b/);
+	const pathMatch = query.match(/[\w/.-]+\.(ts|js|py|go|rs|java|cpp|c|h)\b/);
 	if (pathMatch) return `*${pathMatch[0]}*`;
 
 	// Use the query as a folder/name fragment

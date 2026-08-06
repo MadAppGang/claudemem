@@ -6,12 +6,12 @@
  */
 
 import {
+	chmodSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
 	unlinkSync,
 	writeFileSync,
-	chmodSync,
 } from "node:fs";
 import { join } from "node:path";
 

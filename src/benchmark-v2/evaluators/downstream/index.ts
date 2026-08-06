@@ -7,22 +7,21 @@
  * 3. Function Selection - Select right function for a task
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ILLMClient, LLMMessage } from "../../../types.js";
-import type {
-	BenchmarkCodeUnit,
-	GeneratedSummary,
-	EvaluationResult,
-	DownstreamResults,
-	DownstreamTaskType,
-	CompletionTask,
-	BugLocalizationTask,
-	FunctionSelectionTask,
-	EvaluatorContext,
-} from "../../types.js";
-import { BaseEvaluator } from "../base.js";
 import { DownstreamError } from "../../errors.js";
 import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
+import type {
+	BenchmarkCodeUnit,
+	BugLocalizationTask,
+	CompletionTask,
+	DownstreamResults,
+	EvaluationResult,
+	EvaluatorContext,
+	FunctionSelectionTask,
+	GeneratedSummary,
+} from "../../types.js";
+import { BaseEvaluator } from "../base.js";
 
 // ============================================================================
 // Prompts

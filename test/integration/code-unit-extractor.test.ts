@@ -13,7 +13,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { CodeUnitExtractor } from "../../src/core/ast/code-unit-extractor.js";
-import type { CodeUnit, SupportedLanguage } from "../../src/types.js";
+import type { CodeUnit } from "../../src/types.js";
 import { samplePythonSource } from "../testdata/sample-python-source.ts";
 
 const TESTDATA_DIR = join(import.meta.dir, "../testdata");

@@ -8,8 +8,8 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import {
 	CACHE_MAX_AGE_DAYS,
-	OPENROUTER_EMBEDDING_MODELS_URL,
 	getModelsCachePath,
+	OPENROUTER_EMBEDDING_MODELS_URL,
 } from "../config.js";
 import type { EmbeddingModel } from "../types.js";
 

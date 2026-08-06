@@ -16,22 +16,22 @@
  *   5xx → CloudApiError (server-side error)
  */
 
+import { getMachineId } from "./machine-id.js";
 import type {
-	ICloudIndexClient,
 	ChunkCheckResult,
-	CloudCallerResult,
 	CloudCalleeResult,
+	CloudCallerResult,
 	CloudGraphResult,
 	CloudSearchRequest,
 	CloudSearchResult,
 	CloudSymbol,
 	CommitStatus,
+	ICloudIndexClient,
 	RegisterRepoRequest,
 	RegisterRepoResponse,
 	UploadIndexRequest,
 	UploadIndexResponse,
 } from "./types.js";
-import { getMachineId } from "./machine-id.js";
 
 // ============================================================================
 // Error class

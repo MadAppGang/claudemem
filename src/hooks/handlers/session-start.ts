@@ -8,18 +8,18 @@
  * - Returns context about available features
  */
 
+import { spawnSync } from "node:child_process";
 import {
 	existsSync,
 	readdirSync,
-	statSync,
-	rmSync,
 	readFileSync,
+	rmSync,
+	statSync,
 } from "node:fs";
-import { join, dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 import type { HookInput, HookOutput, IndexStatus } from "../types.js";
-import { logSessionStart, cleanupStaleSessions } from "./interaction-logger.js";
+import { cleanupStaleSessions, logSessionStart } from "./interaction-logger.js";
 
 // ============================================================================
 // Version Utilities

@@ -11,15 +11,14 @@
  *   Architecture §3.1: DEFAULT_WIZARD_STATE initial values
  */
 
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
-	STEP_LISTS,
-	DEFAULT_WIZARD_STATE,
-	getStepLabel,
-	type WizardStep,
-	type DeploymentMode,
 	type ConfigScope,
-	type WizardState,
+	DEFAULT_WIZARD_STATE,
+	type DeploymentMode,
+	getStepLabel,
+	STEP_LISTS,
+	type WizardStep,
 } from "../../src/tui/setup/types.js";
 
 // ============================================================================

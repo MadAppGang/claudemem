@@ -10,12 +10,7 @@
  * information in the middle of long contexts is often overlooked.
  */
 
-import type {
-	CodeUnit,
-	FormattedContext,
-	QueryIntent,
-	RerankedSearchResult,
-} from "../../types.js";
+import type { CodeUnit, FormattedContext, QueryIntent } from "../../types.js";
 
 // ============================================================================
 // Types

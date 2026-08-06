@@ -4,43 +4,42 @@
  * Public API for document extractors.
  */
 
-// Base classes
-export {
-	BaseExtractor,
-	ExtractorRegistry,
-	createExtractorRegistry,
-} from "./base.js";
-
-// Extractors
-export {
-	FileSummaryExtractor,
-	createFileSummaryExtractor,
-} from "./file-summary.js";
-export {
-	SymbolSummaryExtractor,
-	createSymbolSummaryExtractor,
-} from "./symbol-summary.js";
-export { IdiomExtractor, createIdiomExtractor } from "./idiom.js";
-export {
-	UsageExampleExtractor,
-	createUsageExampleExtractor,
-} from "./usage-example.js";
 export {
 	AntiPatternExtractor,
 	createAntiPatternExtractor,
 } from "./anti-pattern.js";
+// Base classes
 export {
-	ProjectDocExtractor,
+	BaseExtractor,
+	createExtractorRegistry,
+	ExtractorRegistry,
+} from "./base.js";
+// Extractors
+export {
+	createFileSummaryExtractor,
+	FileSummaryExtractor,
+} from "./file-summary.js";
+export { createIdiomExtractor, IdiomExtractor } from "./idiom.js";
+export {
 	createProjectDocExtractor,
+	ProjectDocExtractor,
 } from "./project-doc.js";
+export {
+	createSymbolSummaryExtractor,
+	SymbolSummaryExtractor,
+} from "./symbol-summary.js";
+export {
+	createUsageExampleExtractor,
+	UsageExampleExtractor,
+} from "./usage-example.js";
 
+import { createAntiPatternExtractor } from "./anti-pattern.js";
 // Import for internal use
 import { createFileSummaryExtractor } from "./file-summary.js";
-import { createSymbolSummaryExtractor } from "./symbol-summary.js";
 import { createIdiomExtractor } from "./idiom.js";
-import { createUsageExampleExtractor } from "./usage-example.js";
-import { createAntiPatternExtractor } from "./anti-pattern.js";
 import { createProjectDocExtractor } from "./project-doc.js";
+import { createSymbolSummaryExtractor } from "./symbol-summary.js";
+import { createUsageExampleExtractor } from "./usage-example.js";
 
 // Factory to create all default extractors
 export function createDefaultExtractors() {

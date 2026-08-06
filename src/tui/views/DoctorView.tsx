@@ -10,11 +10,11 @@
  */
 
 import { useKeyboard } from "@opentui/react";
+import type { CriterionResult } from "../../core/doctor/types.js";
+import { ScoreBar } from "../components/ScoreBar.js";
 import { useAppContext } from "../context.js";
 import { useDoctor } from "../hooks/useDoctor.js";
-import { ScoreBar } from "../components/ScoreBar.js";
-import { theme, getScoreColor } from "../theme.js";
-import type { CriterionResult } from "../../core/doctor/types.js";
+import { getScoreColor, theme } from "../theme.js";
 
 // ============================================================================
 // Criterion Row Component

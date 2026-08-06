@@ -9,11 +9,11 @@
  *   Main:  SymbolTree (scrollable)
  */
 
-import { useState, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
+import { useEffect, useState } from "react";
+import { SymbolTree } from "../components/SymbolTree.js";
 import { useAppContext } from "../context.js";
 import { useRepoMap } from "../hooks/useRepoMap.js";
-import { SymbolTree } from "../components/SymbolTree.js";
 import { theme } from "../theme.js";
 
 // ============================================================================

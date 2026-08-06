@@ -7,7 +7,7 @@
  * and cursor-up count must match the number of \n-terminated lines.
  */
 
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 // Minimal re-implementation of the progress renderer logic for testing
 // (extracted from cli.ts createProgressRenderer)

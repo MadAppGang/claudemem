@@ -10,8 +10,8 @@
 
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
-import { BenchmarkResultsApp } from "../tui/components/command/BenchmarkResults.js";
 import type { BenchmarkResultsData } from "../tui/components/command/BenchmarkResults.js";
+import { BenchmarkResultsApp } from "../tui/components/command/BenchmarkResults.js";
 
 // Re-export the data type so callers don't need to import from the TUI module directly
 export type { BenchmarkResultsData };
@@ -36,7 +36,7 @@ export async function renderBenchmarkResultsTui(
 	}
 
 	const renderer = await createCliRenderer({
-		useAlternateScreen: true, // FULL SCREEN - takes over the terminal
+		screenMode: "alternate-screen", // FULL SCREEN - takes over the terminal
 		exitOnCtrlC: true,
 		onDestroy: () => {
 			// Renderer destroyed - don't call process.exit here so the

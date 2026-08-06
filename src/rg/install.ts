@@ -100,7 +100,6 @@ export function patchClaudeSettings(
 	install: boolean,
 	settingsPath = getClaudeSettingsPath(),
 ): void {
-
 	let settings: Record<string, unknown> = {};
 
 	if (existsSync(settingsPath)) {

@@ -5,9 +5,9 @@
  * Uses Node.js built-in fs.watch for cross-platform support.
  */
 
-import { watch, type FSWatcher } from "node:fs";
-import { stat, readdir } from "node:fs/promises";
-import { join, relative, extname } from "node:path";
+import { type FSWatcher, watch } from "node:fs";
+import { readdir, stat } from "node:fs/promises";
+import { extname, join, relative } from "node:path";
 import { createIndexer } from "../indexer.js";
 
 // ============================================================================

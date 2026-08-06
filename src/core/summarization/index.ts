@@ -8,21 +8,20 @@
  */
 
 export {
+	buildClassSummaryPrompt,
+	buildFileSummaryPrompt,
+	buildFunctionSummaryPrompt,
+	buildGoFunctionSummaryPrompt,
+	type ClassSummaryInput,
+	type FileSummaryInput,
+	type FunctionSummaryInput,
+	type GoFunctionSummaryInput,
+	SUMMARY_SYSTEM_PROMPT,
+} from "./prompts.js";
+export {
 	BottomUpSummarizer,
 	createBottomUpSummarizer,
 	type SummarizationOptions,
 	type SummarizationResult,
 	type SummaryResult,
 } from "./summarizer.js";
-
-export {
-	SUMMARY_SYSTEM_PROMPT,
-	buildFunctionSummaryPrompt,
-	buildClassSummaryPrompt,
-	buildFileSummaryPrompt,
-	buildGoFunctionSummaryPrompt,
-	type FunctionSummaryInput,
-	type ClassSummaryInput,
-	type FileSummaryInput,
-	type GoFunctionSummaryInput,
-} from "./prompts.js";

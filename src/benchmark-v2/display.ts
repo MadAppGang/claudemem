@@ -6,7 +6,6 @@
  */
 
 import type { BenchmarkDatabase } from "./storage/benchmark-db.js";
-import type { NormalizedScores } from "./types.js";
 
 // Colors for output
 const c = {

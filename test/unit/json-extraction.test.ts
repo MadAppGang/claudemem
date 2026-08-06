@@ -8,7 +8,7 @@
  * - Prefix/suffix text around JSON
  */
 
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 // Re-implement the extractJSON logic from client.ts for isolated testing
 function findAllTopLevelJSON(content: string): string[] {

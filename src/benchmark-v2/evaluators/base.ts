@@ -7,9 +7,9 @@
 import type { ILLMClient } from "../../types.js";
 import type {
 	BenchmarkCodeUnit,
-	GeneratedSummary,
 	EvaluationType,
 	EvaluatorContext,
+	GeneratedSummary,
 	IEvaluator,
 } from "../types.js";
 

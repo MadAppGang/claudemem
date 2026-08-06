@@ -8,9 +8,9 @@
  * Currently a placeholder for future extensions.
  */
 
+import type { DocumentType } from "../../types.js";
 import type { LearnedWeights, LearningConfig } from "../types.js";
 import { DEFAULT_LEARNING_CONFIG } from "../types.js";
-import type { DocumentType } from "../../types.js";
 
 // ============================================================================
 // WeightOptimizer Class

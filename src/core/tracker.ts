@@ -9,15 +9,15 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, relative } from "node:path";
 import type {
-	DocumentType,
 	DocProviderType,
+	DocumentType,
 	EnrichmentState,
 	FileState,
-	SymbolDefinition,
-	SymbolReference,
-	SymbolKind,
 	ReferenceKind,
+	SymbolDefinition,
 	SymbolGraphStats,
+	SymbolKind,
+	SymbolReference,
 } from "../types.js";
 import { createDatabaseSync, type SQLiteDatabase } from "./sqlite.js";
 
@@ -581,7 +581,7 @@ export class FileTracker implements IFileTracker {
 			| { enrichment_state: string }
 			| undefined;
 
-		if (!row || !row.enrichment_state) {
+		if (!row?.enrichment_state) {
 			return {};
 		}
 

@@ -6,12 +6,12 @@
  * Keyboard: j/k, 1/2/3, Enter, Esc, q
  */
 
-import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
-import { theme } from "../../theme.js";
+import { useState } from "react";
 import type { EmbeddingProvider } from "../../../types.js";
-import type { ScreenProps } from "../types.js";
+import { theme } from "../../theme.js";
 import type { HardwareProfile } from "../hardware.js";
+import type { ScreenProps } from "../types.js";
 
 // ============================================================================
 // Sub-components

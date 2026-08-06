@@ -137,7 +137,7 @@ export class ScoreNormalizer {
 		if (values.length === 1) return [0];
 
 		const mean = values.reduce((a, b) => a + b, 0) / values.length;
-		const squaredDiffs = values.map((v) => Math.pow(v - mean, 2));
+		const squaredDiffs = values.map((v) => (v - mean) ** 2);
 		const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
 		const stdDev = Math.sqrt(variance);
 
@@ -185,7 +185,7 @@ export function calculateConfidenceInterval(
 	}
 
 	const mean = values.reduce((a, b) => a + b, 0) / values.length;
-	const squaredDiffs = values.map((v) => Math.pow(v - mean, 2));
+	const squaredDiffs = values.map((v) => (v - mean) ** 2);
 	const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
 	const stdDev = Math.sqrt(variance);
 	const stdError = stdDev / Math.sqrt(values.length);
@@ -220,10 +220,10 @@ export function calculateEffectSize(
 	const mean2 = group2.reduce((a, b) => a + b, 0) / group2.length;
 
 	const var1 =
-		group1.map((v) => Math.pow(v - mean1, 2)).reduce((a, b) => a + b, 0) /
+		group1.map((v) => (v - mean1) ** 2).reduce((a, b) => a + b, 0) /
 		group1.length;
 	const var2 =
-		group2.map((v) => Math.pow(v - mean2, 2)).reduce((a, b) => a + b, 0) /
+		group2.map((v) => (v - mean2) ** 2).reduce((a, b) => a + b, 0) /
 		group2.length;
 
 	// Pooled standard deviation

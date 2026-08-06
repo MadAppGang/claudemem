@@ -2,8 +2,8 @@
  * Feedback module - Captures and stores search feedback.
  */
 
-export { FeedbackStore, createFeedbackStore } from "./feedback-store.js";
 export {
-	FeedbackCollector,
 	createFeedbackCollector,
+	FeedbackCollector,
 } from "./feedback-collector.js";
+export { createFeedbackStore, FeedbackStore } from "./feedback-store.js";

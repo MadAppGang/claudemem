@@ -42,26 +42,26 @@
 
 // Pattern Hasher
 export {
-	PatternHasher,
+	type AnonymizedPatternData,
 	createPatternHasher,
 	DEFAULT_HASHER_CONFIG,
-	type PatternHasherConfig,
 	type HashedPattern,
-	type AnonymizedPatternData,
 	type HashingResult,
+	PatternHasher,
+	type PatternHasherConfig,
 	type PrivacyReport,
 } from "./pattern-hasher.js";
 
 // Sync Coordinator
 export {
-	SyncCoordinator,
+	type AggregatedPatternData,
 	createSyncCoordinator,
 	DEFAULT_SYNC_CONFIG,
-	type SyncCoordinatorConfig,
-	type SyncPeer,
-	type SyncPacket,
-	type SyncMetadata,
-	type SyncResult,
 	type MergedPattern,
-	type AggregatedPatternData,
+	SyncCoordinator,
+	type SyncCoordinatorConfig,
+	type SyncMetadata,
+	type SyncPacket,
+	type SyncPeer,
+	type SyncResult,
 } from "./sync-coordinator.js";

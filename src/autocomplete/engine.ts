@@ -1,5 +1,5 @@
-import { performance } from "node:perf_hooks";
 import { basename } from "node:path";
+import { performance } from "node:perf_hooks";
 import {
 	ensureProjectDir,
 	getIndexDbPath,
@@ -8,13 +8,14 @@ import {
 import { createEmbeddingsClient } from "../core/embeddings.js";
 import { createVectorStore, type IVectorStore } from "../core/store.js";
 import { createFileTracker, type IFileTracker } from "../core/tracker.js";
+import { createLLMClient, type ILLMClient } from "../llm/client.js";
+import { getParserManager } from "../parsers/parser-manager.js";
 import {
 	createEnrichedRetriever,
 	type EnrichedRetriever,
 } from "../retrieval/index.js";
-import { createLLMClient, type ILLMClient } from "../llm/client.js";
-import { getParserManager } from "../parsers/parser-manager.js";
 import type { SupportedLanguage } from "../types.js";
+import { loadProjectFacts } from "./project-context.js";
 import {
 	buildAutocompletePrompt,
 	inferStyleHints,
@@ -22,7 +23,6 @@ import {
 	trimPrefixOverlap,
 	truncateAtSuffixHint,
 } from "./prompt.js";
-import { loadProjectFacts } from "./project-context.js";
 import type {
 	AutocompleteCompleteParams,
 	AutocompleteCompleteResult,
@@ -111,7 +111,7 @@ function extractAstContext(args: {
 		]);
 
 		let cur = node;
-		while (cur && cur.parent) {
+		while (cur?.parent) {
 			if (interestingTypes.has(cur.type)) break;
 			cur = cur.parent;
 		}

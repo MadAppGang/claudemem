@@ -10,9 +10,9 @@
 
 import { DEVDOCS_API_URL } from "../../config.js";
 import type { DocProviderType } from "../../types.js";
+import { LIBRARY_SOURCES } from "../registry.js";
 import type { FetchedDoc, FetchOptions, LibrarySource } from "../types.js";
 import { BaseDocProvider, LibraryNotFoundError, withRetry } from "./base.js";
-import { LIBRARY_SOURCES } from "../registry.js";
 
 // ============================================================================
 // Types

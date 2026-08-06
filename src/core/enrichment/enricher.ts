@@ -20,16 +20,18 @@ import type { IFileTracker } from "../tracker.js";
 import {
 	createDefaultExtractors,
 	createExtractorRegistry,
-	ExtractorRegistry,
-	FileSummaryExtractor,
+	type ExtractorRegistry,
+	type FileSummaryExtractor,
 } from "./extractors/index.js";
-import { createEnrichmentPipeline, EnrichmentPipeline } from "./pipeline.js";
 import {
+	createEnrichmentPipeline,
+	type EnrichmentPipeline,
+} from "./pipeline.js";
+import {
+	calculateRefinementScore,
 	createRefinementEngine,
 	createRetrievalStrategy,
 	type RefinementContext,
-	type IterativeRefinementResults,
-	calculateRefinementScore,
 } from "./refinement/index.js";
 
 // ============================================================================
@@ -153,7 +155,7 @@ export class Enricher {
 	): Promise<EnrichmentResult> {
 		const startTime = Date.now();
 		let documentsCreated = 0;
-		let documentsUpdated = 0;
+		const documentsUpdated = 0;
 		const errors: EnrichmentResult["errors"] = [];
 
 		try {
@@ -264,7 +266,7 @@ export class Enricher {
 		const total = files.length;
 
 		let totalCreated = 0;
-		let totalUpdated = 0;
+		const totalUpdated = 0;
 		const allErrors: EnrichmentResult["errors"] = [];
 
 		// Cost and call tracking per phase

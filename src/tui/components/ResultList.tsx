@@ -9,12 +9,12 @@
  *   - Manual scroll windowing for j/k navigation
  */
 
-import { useMemo } from "react";
 import { useTerminalDimensions } from "@opentui/react";
-import type { SearchResult, ASTMetadata } from "../../types.js";
+import { useMemo } from "react";
+import type { ASTMetadata, SearchResult } from "../../types.js";
+import { theme } from "../theme.js";
 import { CodePreview } from "./CodePreview.js";
-import { theme, getScoreColor } from "../theme.js";
-import { SyntaxLine, detectLang } from "./SyntaxLine.js";
+import { detectLang, SyntaxLine } from "./SyntaxLine.js";
 
 // ============================================================================
 // Constants

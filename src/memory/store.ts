@@ -5,16 +5,16 @@
  * in .mnemex/memories/. Maintains a memories.json index for fast listing.
  */
 
+import { randomBytes } from "node:crypto";
 import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
-	writeFileSync,
-	unlinkSync,
 	renameSync,
+	unlinkSync,
+	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { randomBytes } from "node:crypto";
 
 export interface Memory {
 	key: string;

@@ -13,14 +13,13 @@
  * Black-box: tests are written against the public API only.
  */
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-	mkdtempSync,
-	mkdirSync,
-	writeFileSync,
-	unlinkSync,
 	existsSync,
+	mkdtempSync,
+	unlinkSync,
 	utimesSync,
+	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

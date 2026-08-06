@@ -5,20 +5,19 @@
  */
 
 export {
-	PipelineStateMachine,
+	createOrchestrator,
+	type OrchestratorOptions,
+	type PhaseContext,
+	type PhaseExecutor,
+	type PhaseResult,
+	PipelineOrchestrator,
+} from "./orchestrator.js";
+export {
 	createPipelineStateMachine,
-	PHASES,
 	PHASE_DEPENDENCIES,
 	PHASE_NAMES,
+	PHASES,
 	type PhaseState,
 	type PipelineState,
+	PipelineStateMachine,
 } from "./state.js";
-
-export {
-	PipelineOrchestrator,
-	createOrchestrator,
-	type PhaseContext,
-	type PhaseResult,
-	type PhaseExecutor,
-	type OrchestratorOptions,
-} from "./orchestrator.js";

@@ -18,13 +18,13 @@
  * - PaymentError: 402, no retry
  */
 
-import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
-import { combineAbortSignals } from "../abort.js";
 import type {
 	LLMGenerateOptions,
 	LLMMessage,
 	LLMResponse,
 } from "../../types.js";
+import { combineAbortSignals } from "../abort.js";
+import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
 
 // ============================================================================
 // Types
@@ -693,7 +693,7 @@ export class OpenRouterLLMClient extends BaseLLMClient {
 						: undefined;
 
 					const baseDelay = isRateLimit ? RATE_LIMIT_BASE_DELAY_MS : 1000;
-					const exponentialDelay = baseDelay * Math.pow(2, attempt);
+					const exponentialDelay = baseDelay * 2 ** attempt;
 					const delay = this.addJitter(retryAfterMs || exponentialDelay);
 
 					if (process.env.DEBUG_OPENROUTER) {

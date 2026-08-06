@@ -4,9 +4,9 @@
  * ASCII art and branding for CLI tools.
  */
 
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { readFileSync, existsSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { colors as c } from "./colors.js";
 
 /** Cached version */

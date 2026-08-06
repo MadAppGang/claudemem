@@ -5,8 +5,8 @@
  */
 
 export {
-	LLMReranker,
 	createLLMReranker,
-	type RerankerOptions,
+	LLMReranker,
 	type RerankableResult,
+	type RerankerOptions,
 } from "./llm-reranker.js";

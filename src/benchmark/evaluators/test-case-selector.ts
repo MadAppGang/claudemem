@@ -5,14 +5,12 @@
  * for benchmark testing.
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createHash } from "node:crypto";
-import type { CodeChunk } from "../../types.js";
-import type { ASTGroundTruth, TestCase, TestCaseType } from "../types.js";
 import { chunkFileByPath } from "../../core/chunker.js";
 import { FileTracker } from "../../core/tracker.js";
-import { getParserManager } from "../../parsers/parser-manager.js";
+import type { CodeChunk } from "../../types.js";
+import type { ASTGroundTruth, TestCase, TestCaseType } from "../types.js";
 
 // ============================================================================
 // Types

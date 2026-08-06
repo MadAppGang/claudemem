@@ -8,11 +8,11 @@
  * - Provide weight information for debugging
  */
 
+import type { DocumentType, SearchUseCase } from "../../types.js";
 import type { LearningEngine } from "../engine/learning-engine.js";
 import type { WeightOptimizer } from "../engine/weight-optimizer.js";
 import type { LearnedWeights, LearningConfig } from "../types.js";
 import { DEFAULT_LEARNING_CONFIG } from "../types.js";
-import type { DocumentType, SearchUseCase } from "../../types.js";
 
 // ============================================================================
 // Constants

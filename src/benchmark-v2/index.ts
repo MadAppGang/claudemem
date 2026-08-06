@@ -12,63 +12,61 @@
  *   const result = await runBenchmarkV2({ projectPath: '.' });
  */
 
-import { randomUUID } from "crypto";
-import { join } from "path";
-import { existsSync, mkdirSync } from "fs";
-
-// Re-export core types (avoid module conflicts)
-export type {
-	BenchmarkCodeUnit,
-	GeneratedSummary,
-	EvaluationResult,
-	BenchmarkRun,
-	BenchmarkConfig,
-	BenchmarkPhase,
-	BenchmarkStatus,
-	ModelConfig,
-	SamplingConfig,
-	JudgeEvaluationConfig,
-	ContrastiveEvaluationConfig,
-	RetrievalEvaluationConfig,
-	DownstreamEvaluationConfig,
-	AggregatedScore,
-	PairwiseResult,
-	QueryType,
-	GeneratedQuery,
-} from "./types.js";
+import { existsSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
 
 // Re-export errors
 export * from "./errors.js";
+// Re-export core types (avoid module conflicts)
+export type {
+	AggregatedScore,
+	BenchmarkCodeUnit,
+	BenchmarkConfig,
+	BenchmarkPhase,
+	BenchmarkRun,
+	BenchmarkStatus,
+	ContrastiveEvaluationConfig,
+	DownstreamEvaluationConfig,
+	EvaluationResult,
+	GeneratedQuery,
+	GeneratedSummary,
+	JudgeEvaluationConfig,
+	ModelConfig,
+	PairwiseResult,
+	QueryType,
+	RetrievalEvaluationConfig,
+	SamplingConfig,
+} from "./types.js";
 
+import { withLatencyTracking } from "../core/embeddings.js";
+import type { IEmbeddingsClient, ILLMClient } from "../types.js";
+import { createContrastivePhaseExecutor } from "./evaluators/contrastive/index.js";
+import { createDownstreamPhaseExecutor } from "./evaluators/downstream/index.js";
+import { createIterativePhaseExecutor } from "./evaluators/iterative/index.js";
+import { createJudgePhaseExecutor } from "./evaluators/judge/index.js";
+import { createRetrievalPhaseExecutor } from "./evaluators/retrieval/index.js";
+import { createSelfEvaluationPhaseExecutor } from "./evaluators/self/index.js";
+import { createExtractionPhaseExecutor } from "./extractors/index.js";
+import { createGenerationPhaseExecutor } from "./generators/index.js";
+import type { PhaseResult } from "./pipeline/orchestrator.js";
+import { PipelineOrchestrator } from "./pipeline/orchestrator.js";
+import { createReportingPhaseExecutor } from "./reporters/index.js";
+import { createScoringPhaseExecutor } from "./scorers/index.js";
+import { BenchmarkDatabase } from "./storage/benchmark-db.js";
 // Import types for internal use
 import type {
 	BenchmarkConfig,
-	BenchmarkRun,
 	BenchmarkPhase,
-	ModelConfig,
-	ModelProvider,
-	SamplingConfig,
-	JudgeEvaluationConfig,
+	BenchmarkRun,
 	ContrastiveEvaluationConfig,
-	RetrievalEvaluationConfig,
 	DownstreamEvaluationConfig,
 	EvaluationWeights,
+	JudgeEvaluationConfig,
+	ModelConfig,
+	ModelProvider,
+	RetrievalEvaluationConfig,
+	SamplingConfig,
 } from "./types.js";
-import { BenchmarkDatabase } from "./storage/benchmark-db.js";
-import { PipelineOrchestrator } from "./pipeline/orchestrator.js";
-import { createExtractionPhaseExecutor } from "./extractors/index.js";
-import { createGenerationPhaseExecutor } from "./generators/index.js";
-import { createJudgePhaseExecutor } from "./evaluators/judge/index.js";
-import { createContrastivePhaseExecutor } from "./evaluators/contrastive/index.js";
-import { createRetrievalPhaseExecutor } from "./evaluators/retrieval/index.js";
-import { createDownstreamPhaseExecutor } from "./evaluators/downstream/index.js";
-import { createSelfEvaluationPhaseExecutor } from "./evaluators/self/index.js";
-import { createIterativePhaseExecutor } from "./evaluators/iterative/index.js";
-import { createScoringPhaseExecutor } from "./scorers/index.js";
-import { createReportingPhaseExecutor } from "./reporters/index.js";
-import type { ILLMClient, IEmbeddingsClient } from "../types.js";
-import { withLatencyTracking } from "../core/embeddings.js";
-import type { PhaseResult } from "./pipeline/orchestrator.js";
 
 // ============================================================================
 // Configuration Defaults
@@ -692,21 +690,13 @@ export async function runBenchmarkV2(
 
 import {
 	c,
-	printLogo,
-	printBenchmarkHeader,
 	createBenchmarkProgress,
 	createSimpleProgress,
-	renderTable,
-	renderSummary,
-	renderInfo,
-	renderSuccess,
-	renderError,
-	formatPercent,
 	formatDuration,
-	truncate,
-	getHighlight,
-	type TableColumn,
-	type CellValue,
+	printBenchmarkHeader,
+	printLogo,
+	renderError,
+	renderInfo,
 } from "../ui/index.js";
 
 /**
@@ -935,7 +925,7 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 	const getFlag = (name: string): string | undefined => {
 		const idx = args.findIndex((a) => a.startsWith(`--${name}=`));
 		if (idx !== -1) return args[idx].split("=")[1];
-		const idxSpace = args.findIndex((a) => a === `--${name}`);
+		const idxSpace = args.indexOf(`--${name}`);
 		if (
 			idxSpace !== -1 &&
 			args[idxSpace + 1] &&

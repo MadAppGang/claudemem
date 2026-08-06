@@ -11,21 +11,20 @@
  */
 
 import type {
+	ASTMetadata,
 	CodeUnit,
 	ILLMClient,
-	UnitType,
-	ASTMetadata,
 	LLMMessage,
 } from "../../types.js";
 import type { VectorStore } from "../store.js";
 import {
-	SUMMARY_SYSTEM_PROMPT,
-	buildFunctionSummaryPrompt,
 	buildClassSummaryPrompt,
 	buildFileSummaryPrompt,
-	type FunctionSummaryInput,
+	buildFunctionSummaryPrompt,
 	type ClassSummaryInput,
 	type FileSummaryInput,
+	type FunctionSummaryInput,
+	SUMMARY_SYSTEM_PROMPT,
 } from "./prompts.js";
 
 // ============================================================================

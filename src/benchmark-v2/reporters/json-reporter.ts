@@ -4,23 +4,23 @@
  * Outputs benchmark results in machine-readable JSON format.
  */
 
-import { writeFileSync } from "fs";
+import { writeFileSync } from "node:fs";
 import type {
-	BenchmarkRun,
-	BenchmarkConfig,
-	GeneratedSummary,
-	EvaluationResult,
-	AggregatedScore,
-	PairwiseResult,
-} from "../types.js";
-import type {
-	ModelAggregation,
 	CriterionStats,
+	ModelAggregation,
 } from "../scorers/aggregator.js";
 import type {
 	CorrelationMatrix,
 	InterRaterAgreement,
 } from "../scorers/statistics.js";
+import type {
+	AggregatedScore,
+	BenchmarkConfig,
+	BenchmarkRun,
+	EvaluationResult,
+	GeneratedSummary,
+	PairwiseResult,
+} from "../types.js";
 
 // ============================================================================
 // Types

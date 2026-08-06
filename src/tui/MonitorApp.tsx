@@ -8,17 +8,17 @@
  * Usage: mnemex monitor [path]
  */
 
-import { useState, useCallback } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
-import { AppProvider, useAppContext } from "./context.js";
+import { useCallback, useState } from "react";
+import type { SearchResult } from "../types.js";
 import { ResultDetailView } from "./components/ResultDetailView.js";
 import { StatusBar } from "./components/StatusBar.js";
+import { AppProvider, useAppContext } from "./context.js";
 import {
 	type ActivityRecord,
 	useActivityMonitor,
 } from "./hooks/useActivityMonitor.js";
 import { theme } from "./theme.js";
-import type { SearchResult } from "../types.js";
 
 // ============================================================================
 // Monitor Inner (inside AppContext)
@@ -45,7 +45,7 @@ function MonitorInner() {
 
 		if (record.type === "search_code" && record.metadata.topResult) {
 			const top = record.metadata.topResult as any;
-			if (top && top.chunk) {
+			if (top?.chunk) {
 				setCurrentResult({
 					chunk: top.chunk,
 					score: top.score ?? 0,
@@ -75,6 +75,7 @@ function MonitorInner() {
 				{currentResult ? (
 					<ResultDetailView
 						result={currentResult}
+						allResults={[currentResult]}
 						onClose={() => setCurrentResult(null)}
 					/>
 				) : (

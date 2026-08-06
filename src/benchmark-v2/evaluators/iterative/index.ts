@@ -14,27 +14,26 @@
  * 4. Score using Brokk-style formula: 1.0 / log2(rounds + 2)
  */
 
-import { randomUUID } from "crypto";
-import type { ILLMClient, IEmbeddingsClient } from "../../../types.js";
-import type {
-	BenchmarkCodeUnit,
-	GeneratedSummary,
-	EvaluationResult,
-	IterativeResults,
-} from "../../types.js";
-import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
+import { randomUUID } from "node:crypto";
 import {
 	createRefinementEngine,
 	createRetrievalStrategy,
 	type RefinementContext,
 	type RefinementResult,
-	calculateRefinementScore,
 } from "../../../core/enrichment/refinement/index.js";
 import {
-	MaxTokensError,
 	ContentFilterError,
+	MaxTokensError,
 	RateLimitError,
 } from "../../../llm/providers/openrouter.js";
+import type { IEmbeddingsClient, ILLMClient } from "../../../types.js";
+import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
+import type {
+	BenchmarkCodeUnit,
+	EvaluationResult,
+	GeneratedSummary,
+	IterativeResults,
+} from "../../types.js";
 
 // ============================================================================
 // Pre-computed Embeddings Cache
@@ -527,7 +526,7 @@ export function createIterativePhaseExecutor(
 								summary: result.finalSummary,
 								generationMetadata: {
 									...summary.generationMetadata,
-									// @ts-ignore - extending metadata
+									// @ts-expect-error - extending metadata
 									refinementRound: result.rounds,
 								},
 							});

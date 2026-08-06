@@ -8,13 +8,13 @@
  */
 
 import type {
-	ValidationScenario,
+	CorrectionPoint,
 	ScenarioCategory,
 	ScenarioDifficulty,
-	UserPersona,
 	ScenarioKnowledgeBase,
-	CorrectionPoint,
 	SuccessCriterion,
+	UserPersona,
+	ValidationScenario,
 } from "./types.js";
 
 // ============================================================================

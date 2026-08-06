@@ -7,8 +7,8 @@
 
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
-import { SetupApp } from "./SetupApp.js";
 import { selectMode } from "./mode-diagrams.js";
+import { SetupApp } from "./SetupApp.js";
 
 // ============================================================================
 // Entry
@@ -25,7 +25,7 @@ export async function startSetupWizard(): Promise<void> {
 	// Phase 2: Launch OpenTUI wizard starting after mode-select
 	const renderer = await createCliRenderer({
 		exitOnCtrlC: true,
-		useAlternateScreen: true,
+		screenMode: "alternate-screen",
 		useMouse: false,
 		onDestroy: () => {
 			process.exit(0);

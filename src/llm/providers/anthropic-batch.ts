@@ -7,12 +7,12 @@
  * @see https://docs.anthropic.com/en/docs/build-with-claude/batch-processing
  */
 
-import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
 import type {
 	LLMGenerateOptions,
 	LLMMessage,
 	LLMResponse,
 } from "../../types.js";
+import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
 
 // ============================================================================
 // Types

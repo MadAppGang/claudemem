@@ -9,12 +9,12 @@
  * Python methods had no parentId set.
  */
 
-import { describe, it, expect, afterEach } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { FileTracker } from "../../../src/core/tracker.js";
 import { ReferenceGraphManager } from "../../../src/core/reference-graph.js";
+import { FileTracker } from "../../../src/core/tracker.js";
 import type { SymbolDefinition } from "../../../src/types.js";
 
 // ---------------------------------------------------------------------------

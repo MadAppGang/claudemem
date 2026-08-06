@@ -5,19 +5,19 @@
  * Uses prompts from /docs/prompts.md for consistency.
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ILLMClient, LLMMessage, LLMUsageStats } from "../../types.js";
 import {
 	GenerationError,
-	ModelTimeoutError,
 	InvalidResponseError,
+	ModelTimeoutError,
 } from "../errors.js";
 import type {
 	BenchmarkCodeUnit,
 	GeneratedSummary,
 	GenerationMetadata,
-	ModelConfig,
 	ISummaryGenerator,
+	ModelConfig,
 } from "../types.js";
 
 // ============================================================================

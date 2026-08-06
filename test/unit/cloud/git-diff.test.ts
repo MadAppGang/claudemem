@@ -5,7 +5,7 @@
  * Each test injects the raw stdout string that the mocked exec will resolve.
  */
 
-import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, describe, expect, mock, test } from "bun:test";
 import * as childProcess from "node:child_process";
 
 // ============================================================================

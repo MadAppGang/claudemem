@@ -5,12 +5,8 @@
  * embedding generation, and storage.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import {
-	shouldExclude as sharedShouldExclude,
-	shouldInclude as sharedShouldInclude,
-} from "../shared/pattern-matcher.js";
 import {
 	ensureProjectDir,
 	getDocsConfig,
@@ -23,14 +19,13 @@ import {
 	isVectorEnabled,
 	loadProjectConfig,
 } from "../config.js";
+import { createDocsFetcher, type DocsFetcher } from "../docs/index.js";
 import { createLLMClient } from "../llm/client.js";
-import type { ILLMClient } from "../types.js";
-import {
-	createEnricher,
-	type Enricher,
-	type FileToEnrich,
-} from "./enrichment/index.js";
 import { getParserManager } from "../parsers/parser-manager.js";
+import {
+	shouldExclude as sharedShouldExclude,
+	shouldInclude as sharedShouldInclude,
+} from "../shared/pattern-matcher.js";
 import type {
 	ChunkWithEmbedding,
 	CodeChunk,
@@ -39,6 +34,7 @@ import type {
 	EnrichedIndexResult,
 	EnrichmentResult,
 	IEmbeddingsClient,
+	ILLMClient,
 	IndexResult,
 	IndexStatus,
 	SearchOptions,
@@ -46,29 +42,33 @@ import type {
 	SupportedLanguage,
 } from "../types.js";
 import {
-	createCodeUnitExtractor,
 	type CodeUnitExtractor,
+	createCodeUnitExtractor,
 } from "./ast/code-unit-extractor.js";
-import { setIndexVersion, CURRENT_INDEX_VERSION } from "./index-version.js";
 import { chunkFileByPath } from "./chunker.js";
 import { createEmbeddingsClient } from "./embeddings.js";
-import { createVectorStore, type IVectorStore } from "./store.js";
 import {
-	computeFileHash,
-	createFileTracker,
-	type IFileTracker,
-} from "./tracker.js";
-import { createSymbolExtractor } from "./symbol-extractor.js";
-import { createReferenceGraphManager } from "./reference-graph.js";
-import { createRepoMapGenerator } from "./repo-map.js";
+	createEnricher,
+	type Enricher,
+	type FileToEnrich,
+} from "./enrichment/index.js";
+import { CURRENT_INDEX_VERSION, setIndexVersion } from "./index-version.js";
 import {
 	createGlobalIndexLock,
 	createIndexLock,
 	type IIndexLock,
 	type LockOptions,
 } from "./lock.js";
-import { createDocsFetcher, type DocsFetcher } from "../docs/index.js";
-import { computeHash } from "./tracker.js";
+import { createReferenceGraphManager } from "./reference-graph.js";
+import { createRepoMapGenerator } from "./repo-map.js";
+import { createVectorStore, type IVectorStore } from "./store.js";
+import { createSymbolExtractor } from "./symbol-extractor.js";
+import {
+	computeFileHash,
+	computeHash,
+	createFileTracker,
+	type IFileTracker,
+} from "./tracker.js";
 
 // ============================================================================
 // Errors

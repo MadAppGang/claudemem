@@ -5,16 +5,16 @@
  * Extracts: pattern category, example code, rationale, applicability.
  */
 
+import {
+	buildIdiomPrompt,
+	getSystemPrompt,
+} from "../../../llm/prompts/enrichment.js";
 import type {
 	BaseDocument,
 	ExtractionContext,
 	Idiom,
 	ILLMClient,
 } from "../../../types.js";
-import {
-	buildIdiomPrompt,
-	getSystemPrompt,
-} from "../../../llm/prompts/enrichment.js";
 import { BaseExtractor } from "./base.js";
 
 // ============================================================================

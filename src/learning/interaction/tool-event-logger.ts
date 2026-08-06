@@ -8,17 +8,17 @@
  * - Track code changes for Correction Gap analysis
  */
 
+import { createHash } from "node:crypto";
 import type { InteractionStore } from "./interaction-store.js";
 import type { SessionTracker } from "./session-tracker.js";
 import type {
-	ToolEvent,
 	CodeChange,
-	ToolErrorType,
 	CorrectionType,
 	InteractionConfig,
+	ToolErrorType,
+	ToolEvent,
 } from "./types.js";
 import { DEFAULT_INTERACTION_CONFIG } from "./types.js";
-import { createHash } from "node:crypto";
 
 // ============================================================================
 // ToolEventLogger Class

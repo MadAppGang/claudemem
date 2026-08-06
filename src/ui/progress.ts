@@ -269,7 +269,7 @@ export function createBenchmarkProgress(itemIds: string[]) {
 		/** Get elapsed time for an item in milliseconds */
 		getElapsedMs(itemId: string): number {
 			const state = itemState.get(itemId);
-			if (!state || !state.started) return 0;
+			if (!state?.started) return 0;
 			return (state.endTime || Date.now()) - state.startTime;
 		},
 	};

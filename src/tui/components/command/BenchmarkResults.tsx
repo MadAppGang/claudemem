@@ -19,10 +19,11 @@
  *   o         - open report (on Summary tab)
  */
 
-import { useState, useEffect } from "react";
+import { TextAttributes } from "@opentui/core";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
+import { useEffect, useState } from "react";
 import type { NormalizedScores } from "../../../benchmark-v2/types.js";
-import { theme, getScoreColor, scoreBarChars } from "../../theme.js";
+import { getScoreColor, scoreBarChars, theme } from "../../theme.js";
 
 // ============================================================================
 // Data Types (public interface - kept stable)
@@ -293,7 +294,7 @@ function Sidebar({ sections, activeIndex, height, showBack }: SidebarProps) {
 								width="100%"
 								backgroundColor={theme.primary}
 							>
-								<text fg="#000000" bold>
+								<text fg="#000000" attributes={TextAttributes.BOLD}>
 									{padded}
 								</text>
 							</box>
@@ -1036,7 +1037,7 @@ function SummarySectionContent({
 		<box flexDirection="column" paddingY={0} paddingX={1}>
 			{codebaseLabel && (
 				<box height={1} marginBottom={1}>
-					<text fg={theme.info} bold>
+					<text fg={theme.info} attributes={TextAttributes.BOLD}>
 						{"\u2500\u2500 Codebase: " + codebaseLabel + " \u2500\u2500"}
 					</text>
 				</box>
@@ -1061,7 +1062,7 @@ function SummarySectionContent({
 
 					return (
 						<box key={s.modelId} height={1}>
-							<text fg={color} bold>
+							<text fg={color} attributes={TextAttributes.BOLD}>
 								{" " +
 									icon +
 									" " +
@@ -1372,7 +1373,7 @@ function ErrorsSectionContent({ errors }: { errors: BenchmarkError[] }) {
 									</box>
 									{/* Show full error - wrap long lines */}
 									<box paddingLeft={2}>
-										<text fg={theme.muted} wrap="wrap">
+										<text fg={theme.muted} wrapMode="word">
 											{err.error}
 										</text>
 									</box>
@@ -1595,7 +1596,11 @@ export function BenchmarkResultsApp({
 			{/* Status bar at bottom */}
 			<box flexDirection="row" width="100%" height={1}>
 				<box>
-					<text backgroundColor={theme.primary} fg="#000000" bold>
+					<text
+						bg={theme.primary}
+						fg="#000000"
+						attributes={TextAttributes.BOLD}
+					>
 						{" " + activeSection.icon + " " + activeSection.label + " "}
 					</text>
 				</box>

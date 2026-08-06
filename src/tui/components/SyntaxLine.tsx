@@ -3,9 +3,9 @@
  * Used by ResultList (search results) and ResultDetailView (detail code).
  */
 
+import { extname } from "node:path";
 import { useMemo } from "react";
 import { theme } from "../theme.js";
-import { extname } from "node:path";
 
 // ============================================================================
 // Syntax color palette
@@ -236,7 +236,11 @@ export function SyntaxLine({
 	line,
 	terms,
 	lang,
-}: { line: string; terms?: string[]; lang: string }) {
+}: {
+	line: string;
+	terms?: string[];
+	lang: string;
+}) {
 	const segments = useMemo(() => {
 		const syntaxSegs = syntaxColorLine(line, lang);
 		return terms && terms.length > 0

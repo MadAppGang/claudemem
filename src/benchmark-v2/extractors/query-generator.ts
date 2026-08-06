@@ -5,7 +5,7 @@
  * can be retrieved using semantic search.
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ILLMClient, LLMMessage } from "../../types.js";
 import type { BenchmarkCodeUnit, GeneratedQuery, QueryType } from "../types.js";
 

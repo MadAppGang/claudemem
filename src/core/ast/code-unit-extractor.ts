@@ -12,7 +12,7 @@
  */
 
 import { createHash } from "node:crypto";
-import type { Node, Tree } from "web-tree-sitter";
+import type { Node } from "web-tree-sitter";
 import {
 	getParserManager,
 	type ParserManager,
@@ -634,7 +634,7 @@ export class CodeUnitExtractor {
 	 */
 	getParent(units: CodeUnit[], childId: string): CodeUnit | undefined {
 		const child = units.find((u) => u.id === childId);
-		if (!child || !child.parentId) return undefined;
+		if (!child?.parentId) return undefined;
 		return units.find((u) => u.id === child.parentId);
 	}
 

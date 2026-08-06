@@ -5,12 +5,12 @@
  */
 
 export {
-	TestCaseSelector,
+	BenchmarkEvaluator,
+	type BenchmarkRunResult,
+	runBenchmark,
+} from "./evaluator.js";
+export {
 	createTestCaseSelector,
 	type TestCaseSelectionOptions,
+	TestCaseSelector,
 } from "./test-case-selector.js";
-export {
-	BenchmarkEvaluator,
-	runBenchmark,
-	type BenchmarkRunResult,
-} from "./evaluator.js";

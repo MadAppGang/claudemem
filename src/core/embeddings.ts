@@ -10,13 +10,13 @@
 
 import {
 	DEFAULT_EMBEDDING_MODEL,
+	getApiKey,
+	getVoyageApiKey,
 	LOCAL_EMBEDDING_PROVIDERS,
+	loadGlobalConfig,
 	OPENROUTER_EMBEDDINGS_URL,
 	OPENROUTER_HEADERS,
 	VOYAGE_EMBEDDINGS_URL,
-	getApiKey,
-	getVoyageApiKey,
-	loadGlobalConfig,
 } from "../config.js";
 import type {
 	EmbeddingProgressCallback,
@@ -307,7 +307,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 				if (attempt < maxRetries - 1) {
 					const delay = lastError.message.includes("JSON")
 						? 2000 // Longer delay for parse errors
-						: BASE_RETRY_DELAY * Math.pow(2, attempt);
+						: BASE_RETRY_DELAY * 2 ** attempt;
 					await this.sleep(delay);
 				}
 			}
@@ -572,7 +572,7 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 				if (attempt < maxRetries - 1) {
 					const delay = lastError.message.includes("JSON Parse error")
 						? 3000 // Longer delay for model-loading race condition
-						: BASE_RETRY_DELAY * Math.pow(2, attempt);
+						: BASE_RETRY_DELAY * 2 ** attempt;
 					await this.sleep(delay);
 				}
 			}
@@ -765,7 +765,7 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 				if (attempt < maxRetries - 1) {
 					const delay = lastError.message.includes("JSON Parse error")
 						? 3000 // Longer delay for model-loading race condition
-						: BASE_RETRY_DELAY * Math.pow(2, attempt);
+						: BASE_RETRY_DELAY * 2 ** attempt;
 					await this.sleep(delay);
 				}
 			}
@@ -957,7 +957,7 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 				if (attempt < maxRetries - 1) {
 					const delay = lastError.message.includes("JSON")
 						? 2000
-						: BASE_RETRY_DELAY * Math.pow(2, attempt);
+						: BASE_RETRY_DELAY * 2 ** attempt;
 					await this.sleep(delay);
 				}
 			}

@@ -4,17 +4,17 @@
  * Orchestrates diagnosis of context files
  */
 
-import type { ContextFile, ContextFileDiagnosis } from "./types.js";
 import type { FileTracker } from "../tracker.js";
 import {
-	analyzeTokenCount,
-	analyzeSpecificity,
-	analyzeInstructionDensity,
 	analyzeDuplication,
-	analyzeStaleness,
+	analyzeInstructionDensity,
 	analyzeSkillsBenchCompliance,
+	analyzeSpecificity,
+	analyzeStaleness,
+	analyzeTokenCount,
 } from "./criteria.js";
 import { aggregateScore } from "./scorer.js";
+import type { ContextFile, ContextFileDiagnosis } from "./types.js";
 
 /**
  * Analyze a single context file

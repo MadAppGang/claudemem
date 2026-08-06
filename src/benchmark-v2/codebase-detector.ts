@@ -6,8 +6,8 @@
  * (e.g., comparing models on React codebases vs Node.js backends).
  */
 
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 // ============================================================================
 // Codebase Type Definitions
@@ -173,7 +173,7 @@ async function buildDetectionContext(
 
 	// Get top-level files and directories
 	try {
-		const { readdirSync, statSync } = await import("fs");
+		const { readdirSync, statSync } = await import("node:fs");
 		const entries = readdirSync(projectPath);
 		for (const entry of entries) {
 			try {

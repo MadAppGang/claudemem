@@ -4,10 +4,10 @@
  * Used as X-Mnemex-Machine-ID header for server-side device tracking.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { randomUUID } from "node:crypto";
 
 const MACHINE_ID_DIR = join(homedir(), ".mnemex");
 const MACHINE_ID_FILE = join(MACHINE_ID_DIR, "machine-id");

@@ -5,19 +5,19 @@
  * Each summary is evaluated independently on 5 criteria (1-5 scale).
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ILLMClient, LLMMessage } from "../../../types.js";
+import { JudgeError } from "../../errors.js";
 import type {
 	BenchmarkCodeUnit,
-	GeneratedSummary,
 	EvaluationResult,
+	EvaluatorContext,
+	GeneratedSummary,
 	JudgeResults,
 	JudgeScores,
-	EvaluatorContext,
 } from "../../types.js";
-import { BaseEvaluator } from "../base.js";
-import { JudgeError } from "../../errors.js";
 import { JUDGE_SCORE_WEIGHTS } from "../../types.js";
+import { BaseEvaluator } from "../base.js";
 
 // ============================================================================
 // Prompts

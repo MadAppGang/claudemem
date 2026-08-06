@@ -5,16 +5,16 @@
  * Extracts: architecture, getting started, API, contributing, standards docs.
  */
 
+import {
+	buildProjectDocPrompt,
+	getSystemPrompt,
+} from "../../../llm/prompts/enrichment.js";
 import type {
 	BaseDocument,
 	ExtractionContext,
 	ILLMClient,
 	ProjectDoc,
 } from "../../../types.js";
-import {
-	buildProjectDocPrompt,
-	getSystemPrompt,
-} from "../../../llm/prompts/enrichment.js";
 import { BaseExtractor } from "./base.js";
 
 // ============================================================================

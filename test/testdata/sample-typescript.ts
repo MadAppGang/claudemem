@@ -3,7 +3,7 @@
  * Tests hierarchical extraction: file -> class -> method
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 // Type definitions
 export type UserRole = "admin" | "user" | "guest";

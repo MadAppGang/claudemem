@@ -15,19 +15,18 @@
  *   get_learning_stats   - Learning system stats
  */
 
+import { appendFileSync, existsSync } from "node:fs";
+import { join, resolve } from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { appendFileSync } from "node:fs";
-import { join, resolve } from "node:path";
 import { createIndexer, IndexLockError } from "../../core/indexer.js";
 import { FileTracker } from "../../core/tracker.js";
-import { existsSync } from "node:fs";
-import { discoverEmbeddingModels } from "../../models/model-discovery.js";
 import { createLearningSystem } from "../../learning/index.js";
-import type { ToolDeps } from "./deps.js";
-import { buildFreshness, errorResponse } from "./deps.js";
+import { discoverEmbeddingModels } from "../../models/model-discovery.js";
 import { buildIndexState, type IndexState } from "../index-state.js";
 import type { FreshnessMetadata } from "../types.js";
+import type { ToolDeps } from "./deps.js";
+import { buildFreshness, errorResponse } from "./deps.js";
 
 // ---------------------------------------------------------------------------
 // Helpers

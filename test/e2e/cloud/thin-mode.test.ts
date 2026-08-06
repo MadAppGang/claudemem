@@ -15,7 +15,7 @@ import {
 } from "bun:test";
 import { createThinCloudClient } from "../../../src/cloud/thin-client.js";
 import type { UploadChunk } from "../../../src/cloud/types.js";
-import { TEST_ORG_SLUG, type TestContext, startTestInfra } from "./setup.js";
+import { startTestInfra, TEST_ORG_SLUG, type TestContext } from "./setup.js";
 
 // ============================================================================
 // Helpers

@@ -5,17 +5,16 @@
  * Provides both symbol-level and line-level editing with per-file locking.
  */
 
-import { readFileSync, writeFileSync, renameSync } from "node:fs";
-import { randomBytes } from "node:crypto";
-import { dirname, join, resolve } from "node:path";
 import { spawn } from "node:child_process";
-
-import { SymbolLocator } from "./locator.js";
-import { EditValidator } from "./validator.js";
-import { EditHistory } from "./history.js";
+import { randomBytes } from "node:crypto";
+import { readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import type { LspManager } from "../lsp/manager.js";
 import type { IndexCache } from "../mcp/cache.js";
 import type { McpConfig } from "../mcp/config.js";
-import type { LspManager } from "../lsp/manager.js";
+import { EditHistory } from "./history.js";
+import { SymbolLocator } from "./locator.js";
+import { EditValidator } from "./validator.js";
 
 export type InsertMode = "replace" | "before" | "after";
 

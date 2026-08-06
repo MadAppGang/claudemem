@@ -5,15 +5,14 @@
  */
 
 export {
-	SummaryGenerator,
-	createSummaryGenerator,
-	type SummaryGeneratorOptions,
-} from "./summary-generator.js";
-
-export {
+	type BatchGenerationOptions,
+	type BatchGenerationResult,
 	BatchGenerator,
 	createBatchGenerator,
 	createGenerationPhaseExecutor,
-	type BatchGenerationOptions,
-	type BatchGenerationResult,
 } from "./batch-generator.js";
+export {
+	createSummaryGenerator,
+	SummaryGenerator,
+	type SummaryGeneratorOptions,
+} from "./summary-generator.js";

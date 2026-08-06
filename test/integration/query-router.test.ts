@@ -7,7 +7,7 @@
  * - Entity extraction
  */
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { QueryRouter } from "../../src/retrieval/routing/query-router.js";
 
 describe("QueryRouter", () => {

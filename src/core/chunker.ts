@@ -7,11 +7,11 @@
 
 import { createHash } from "node:crypto";
 import type { Node, Tree } from "web-tree-sitter";
-import { getParserManager } from "../parsers/parser-manager.js";
 import {
-	isDocumentFormat,
 	chunkDocument,
+	isDocumentFormat,
 } from "../parsers/document-chunker.js";
+import { getParserManager } from "../parsers/parser-manager.js";
 import type {
 	ChunkType,
 	CodeChunk,

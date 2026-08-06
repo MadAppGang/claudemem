@@ -5,7 +5,7 @@
  * Includes significance testing, correlation analysis, and ranking stability.
  */
 
-import type { AggregatedScore, PairwiseResult } from "../types.js";
+import type { PairwiseResult } from "../types.js";
 import type { ModelAggregation } from "./aggregator.js";
 
 // ============================================================================
@@ -95,7 +95,7 @@ export function calculateStatistics(values: number[]): StatisticalSummary {
 			: sorted[Math.floor(n / 2)];
 
 	// Variance and standard deviation
-	const squaredDiffs = values.map((v) => Math.pow(v - mean, 2));
+	const squaredDiffs = values.map((v) => (v - mean) ** 2);
 	const variance = squaredDiffs.reduce((a, b) => a + b, 0) / n;
 	const stdDev = Math.sqrt(variance);
 
@@ -107,14 +107,14 @@ export function calculateStatistics(values: number[]): StatisticalSummary {
 	// Skewness (Fisher's)
 	let skewness = 0;
 	if (stdDev > 0) {
-		const cubedDiffs = values.map((v) => Math.pow((v - mean) / stdDev, 3));
+		const cubedDiffs = values.map((v) => ((v - mean) / stdDev) ** 3);
 		skewness = cubedDiffs.reduce((a, b) => a + b, 0) / n;
 	}
 
 	// Kurtosis (excess kurtosis)
 	let kurtosis = 0;
 	if (stdDev > 0) {
-		const fourthDiffs = values.map((v) => Math.pow((v - mean) / stdDev, 4));
+		const fourthDiffs = values.map((v) => ((v - mean) / stdDev) ** 4);
 		kurtosis = fourthDiffs.reduce((a, b) => a + b, 0) / n - 3;
 	}
 
@@ -271,7 +271,7 @@ export function pairedTTest(
 		return { tStatistic: 0, pValue: 1 };
 	}
 
-	const squaredDiffs = differences.map((d) => Math.pow(d - meanDiff, 2));
+	const squaredDiffs = differences.map((d) => (d - meanDiff) ** 2);
 	const variance = squaredDiffs.reduce((a, b) => a + b, 0) / (n - 1);
 	const stdError = Math.sqrt(variance / n);
 
@@ -495,7 +495,7 @@ export function analyzeRankingStability(
 		// Calculate score variance
 		const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
 		const variance =
-			scores.map((s) => Math.pow(s - mean, 2)).reduce((a, b) => a + b, 0) /
+			scores.map((s) => (s - mean) ** 2).reduce((a, b) => a + b, 0) /
 			scores.length;
 
 		results.push({

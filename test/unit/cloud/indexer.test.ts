@@ -23,8 +23,8 @@ import type {
 	ChangedFile,
 	DirtyFile,
 	IChangeDetector,
+	TeamConfig,
 } from "../../../src/cloud/types.js";
-import type { TeamConfig } from "../../../src/cloud/types.js";
 import type { EmbedResult, IEmbeddingsClient } from "../../../src/types.js";
 
 const realFs = {

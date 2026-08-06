@@ -18,25 +18,25 @@ import {
 	expect,
 	it,
 } from "bun:test";
-import { createThinCloudClient } from "../../../src/cloud/thin-client.js";
 import { createCloudAwareSearch } from "../../../src/cloud/search.js";
+import { createThinCloudClient } from "../../../src/cloud/thin-client.js";
 import type { SearchResult } from "../../../src/types.js";
-import { TEST_ORG_SLUG, type TestContext, startTestInfra } from "./setup.js";
-import { TraceCollector } from "./helpers/trace-collector.js";
 import { MockChangeDetector } from "./helpers/mock-change-detector.js";
 import { MockEmbeddingsClient } from "./helpers/mock-embeddings.js";
 import { MockOverlayIndex } from "./helpers/mock-overlay-index.js";
 import {
-	registerAndIndex,
-	makeChunks,
-	fakeSha,
-	fakeHash,
-	syntheticVector,
-	cloudToMerged,
-	REPO_SLUG,
-	ORG_SLUG,
 	BARE_REPO_SLUG,
+	cloudToMerged,
+	fakeHash,
+	fakeSha,
+	makeChunks,
+	ORG_SLUG,
+	REPO_SLUG,
+	registerAndIndex,
+	syntheticVector,
 } from "./helpers/multi-user-factory.js";
+import { TraceCollector } from "./helpers/trace-collector.js";
+import { startTestInfra, type TestContext } from "./setup.js";
 
 // ============================================================================
 // Test suite

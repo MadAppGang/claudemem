@@ -11,9 +11,9 @@
  * Goal: Find weaknesses before deployment.
  */
 
-import type { Improvement } from "../interaction/types.js";
 import type { GeneratedSkill } from "../generator/skill-generator.js";
 import type { GeneratedSubagent } from "../generator/subagent-composer.js";
+import type { Improvement } from "../interaction/types.js";
 
 // ============================================================================
 // Types

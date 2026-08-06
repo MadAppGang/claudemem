@@ -10,8 +10,8 @@ export {
 	rankBySimilarity,
 	truncateForFeedback,
 } from "./base.js";
-export {
-	RetrievalRefinementStrategy,
-	createRetrievalStrategy,
-} from "./retrieval.js";
 export type { RetrievalStrategyOptions } from "./retrieval.js";
+export {
+	createRetrievalStrategy,
+	RetrievalRefinementStrategy,
+} from "./retrieval.js";

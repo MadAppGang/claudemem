@@ -12,9 +12,9 @@
  * - Calculates correction metrics (adoption rate, modification rate)
  */
 
+import { createHash } from "node:crypto";
 import type { InteractionStore } from "../interaction/interaction-store.js";
 import type { CodeChange, CorrectionType } from "../interaction/types.js";
-import { createHash } from "node:crypto";
 
 // ============================================================================
 // Types

@@ -10,7 +10,7 @@
  * Black-box: tests exercise the public Logger API only.
  */
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { Logger } from "../../../src/mcp/logger.js";
 
 // ---------------------------------------------------------------------------

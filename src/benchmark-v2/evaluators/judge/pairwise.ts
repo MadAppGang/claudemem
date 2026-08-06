@@ -6,15 +6,15 @@
  */
 
 import type { ILLMClient, LLMMessage } from "../../../types.js";
+import { JudgeError } from "../../errors.js";
 import type {
 	BenchmarkCodeUnit,
+	EvaluatorContext,
 	GeneratedSummary,
 	PairwiseResult,
-	EvaluatorContext,
 	TournamentScore,
 } from "../../types.js";
-import { BaseEvaluator, selectJudges } from "../base.js";
-import { JudgeError } from "../../errors.js";
+import { BaseEvaluator } from "../base.js";
 
 // ============================================================================
 // Prompts

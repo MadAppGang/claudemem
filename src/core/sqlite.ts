@@ -36,7 +36,6 @@ export interface SQLiteDatabase {
 export function createDatabaseSync(path: string): SQLiteDatabase {
 	if (isBun) {
 		// Use Bun's built-in SQLite
-		// @ts-ignore - bun:sqlite is only available in Bun
 		const { Database } = require("bun:sqlite");
 		const db = new Database(path);
 
@@ -75,7 +74,6 @@ export function createDatabaseSync(path: string): SQLiteDatabase {
 		};
 	} else {
 		// Use better-sqlite3 for Node.js
-		// @ts-ignore - dynamic require
 		const BetterSqlite3 = require("better-sqlite3");
 		const db = new BetterSqlite3(path);
 

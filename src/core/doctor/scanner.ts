@@ -4,7 +4,7 @@
  * Discovers CLAUDE.md, AGENTS.md, .cursorrules, and other context files
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import type { ContextFile, ContextFileType } from "./types.js";
 
