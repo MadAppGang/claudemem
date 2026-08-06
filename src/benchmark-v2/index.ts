@@ -508,7 +508,7 @@ export async function runBenchmarkV2(
 		// Always show run ID so users can resume if needed
 		console.log(`\x1b[36mRun ID: ${run.id}\x1b[0m`);
 		console.log(
-			`\x1b[2m  To resume: mnemex benchmark-llm --resume=${run.id} ...\x1b[0m`,
+			`\x1b[2m  To resume: mnemex benchmark llm --resume=${run.id} ...\x1b[0m`,
 		);
 		console.log();
 	}
@@ -721,7 +721,7 @@ async function handleListRuns(): Promise<void> {
 
 	if (!existsSync(dbPath)) {
 		console.log(`${c.yellow}No benchmark database found.${c.reset}`);
-		console.log(`Run a benchmark first: mnemex benchmark-llm`);
+		console.log(`Run a benchmark first: mnemex benchmark llm`);
 		return;
 	}
 
@@ -760,7 +760,7 @@ async function handleListRuns(): Promise<void> {
 		}
 
 		console.log(
-			`${c.dim}To upload a run: mnemex benchmark-llm upload <runId>${c.reset}`,
+			`${c.dim}To upload a run: mnemex benchmark llm upload <runId>${c.reset}`,
 		);
 	} finally {
 		db.close();
@@ -776,9 +776,9 @@ async function handleUploadSubcommand(args: string[]): Promise<void> {
 
 	if (!runId) {
 		console.log(`${c.red}Error:${c.reset} Missing run ID`);
-		console.log(`\nUsage: mnemex benchmark-llm upload <runId>`);
+		console.log(`\nUsage: mnemex benchmark llm upload <runId>`);
 		console.log(`\nTo list available runs:`);
-		console.log(`  mnemex benchmark-llm --list`);
+		console.log(`  mnemex benchmark llm --list`);
 		return;
 	}
 
@@ -791,7 +791,7 @@ async function handleUploadSubcommand(args: string[]): Promise<void> {
 		console.log(
 			`${c.red}Error:${c.reset} No benchmark database found at ${dbPath}`,
 		);
-		console.log(`Run a benchmark first: mnemex benchmark-llm`);
+		console.log(`Run a benchmark first: mnemex benchmark llm`);
 		return;
 	}
 
@@ -914,7 +914,7 @@ async function handleUploadSubcommand(args: string[]): Promise<void> {
 }
 
 /**
- * CLI command handler for benchmark-llm-v2
+ * CLI command handler for `mnemex benchmark llm` (v2)
  */
 export async function runBenchmarkCLI(args: string[]): Promise<void> {
 	// Handle subcommands first

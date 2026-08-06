@@ -19,10 +19,11 @@ import { join } from "node:path";
 import { inspectLock } from "../core/lock.js";
 import type { ToolDeps } from "./tools/deps.js";
 
-/** One of five mutually-exclusive index situations. */
+/** One of six mutually-exclusive index situations. */
 export type IndexStatus =
-	| "indexing_in_progress" // live lock, pid alive (regardless of heartbeat freshness)
-	| "stale_lock" // lock present but pid DEAD (conservative: only pid-dead)
+	| "indexing_in_progress" // live lock, pid alive AND making forward progress
+	| "indexing_hung" // live lock, pid alive but NO forward progress (LanceDB write hang); auto-reclaimed by next index
+	| "stale_lock" // lock present but pid DEAD
 	| "no_index" // no index.db
 	| "stale" // index.db present, freshness=stale, no live lock
 	| "fresh"; // index.db present, freshness=fresh, no live lock
@@ -63,8 +64,31 @@ export interface IndexingInfo {
 	lastHeartbeat: string;
 	/** heartbeat within HEARTBEAT_FRESH_TIMEOUT of now. Informational only. */
 	isHeartbeatFresh: boolean;
+	/**
+	 * ISO timestamp of the lock's last forward progress (real indexing work).
+	 * Falls back to the heartbeat timestamp for locks written by an older binary.
+	 */
+	lastProgressAt: string;
+	/**
+	 * forward progress within the progress timeout of now. A live pid with
+	 * isProgressing=false is the hung-indexer signal (=> status indexing_hung).
+	 */
+	isProgressing: boolean;
 	/** Whether the holder PID is alive (process.kill(pid, 0)). */
 	pidAlive: boolean;
+	/**
+	 * Short label of WHAT the holder is doing (e.g. "writing:lance"), set by the
+	 * indexer at phase transitions. undefined for locks written by an older binary
+	 * (or before the first setPhase). Reporting only — never affects the status
+	 * decision (which is driven by isProgressing / lastProgressAt).
+	 */
+	phase?: string;
+	/**
+	 * ms the holder has been in the current phase (now - phaseStartedAt). Present
+	 * only when the lock carries a phase timestamp; undefined otherwise. Lets the
+	 * report say "hung in phase 'writing:lance' for 6m".
+	 */
+	phaseStuckMs?: number;
 	/**
 	 * Command that started the indexer. The lock file does NOT carry this today
 	 * ({ pid, startTime, heartbeat, startedAt } only). Always null in this refactor;
@@ -174,19 +198,39 @@ export async function buildIndexState(
 	let message: string;
 
 	if (inspect.present) {
-		// A lock file exists (live or stale).
+		// A lock file exists (live, hung, or stale).
 		indexing = {
 			pid: inspect.pid,
 			startedAt: inspect.startedAt,
 			elapsedMs: inspect.elapsedMs,
 			lastHeartbeat: new Date(inspect.heartbeat).toISOString(),
 			isHeartbeatFresh: inspect.isHeartbeatFresh,
+			lastProgressAt: new Date(inspect.lastProgressAt).toISOString(),
+			isProgressing: inspect.isProgressing,
 			pidAlive: inspect.pidAlive,
+			// Phase fields are surfaced as-is (no fallback): undefined for older locks.
+			phase: inspect.phase,
+			phaseStuckMs: inspect.phaseStuckMs,
 			command: null,
 		};
 
-		if (inspect.pidAlive) {
-			// CONSERVATIVE: pid-alive => indexing_in_progress regardless of heartbeat.
+		if (!inspect.pidAlive) {
+			// pid is dead => the lock is definitively stale (holder gone).
+			status = "stale_lock";
+			recommendations.push(
+				`Lock file present but holder PID ${inspect.pid} is not running — the lock appears stale.`,
+			);
+			recommendations.push(
+				`This is informational; no lock was removed. If you are sure no indexer is running, clear it manually (e.g. run 'mnemex index --force-unlock' or delete ${config.indexDir}/.indexing.lock).`,
+			);
+			if (canReturnCachedResults) {
+				recommendations.push(
+					"Cached results from the previous index are still available.",
+				);
+			}
+			message = `Stale lock detected (PID ${inspect.pid} not running).`;
+		} else if (inspect.isProgressing) {
+			// pid alive AND advancing lastProgressAt => genuinely indexing.
 			status = "indexing_in_progress";
 			const elapsedSec = Math.round(inspect.elapsedMs / 1000);
 			recommendations.push(
@@ -204,20 +248,31 @@ export async function buildIndexState(
 				inspect.isHeartbeatFresh ? "fresh" : "stale"
 			}).`;
 		} else {
-			// CONSERVATIVE: only pid-dead => stale_lock.
-			status = "stale_lock";
+			// pid alive but NO forward progress within the progress timeout =>
+			// hung (e.g. wedged in a LanceDB write). The heartbeat may still look
+			// fresh, which is exactly why heartbeat alone misses this.
+			status = "indexing_hung";
+			const sinceProgressSec = Math.max(
+				0,
+				Math.round((Date.now() - inspect.lastProgressAt) / 1000),
+			);
+			// Phase enrichment is ADDITIVE and conditional: only mention the phase
+			// when the lock carries one (older locks have none). The literal
+			// substrings "HUNG"/"reclaimed automatically" are preserved on BOTH
+			// paths so the report stays stable and the hung decision is unchanged.
+			const inPhase = inspect.phase ? ` in phase '${inspect.phase}'` : "";
 			recommendations.push(
-				`Lock file present but holder PID ${inspect.pid} is not running — the lock appears stale.`,
+				`Indexer (PID ${inspect.pid}) appears HUNG${inPhase}: it is alive but has made no indexing progress for ~${sinceProgressSec}s.`,
 			);
 			recommendations.push(
-				`This is informational; no lock was removed. If you are sure no indexer is running, clear it manually (e.g. run 'mnemex index --force-unlock' or delete ${config.indexDir}/.indexing.lock).`,
+				`It will be reclaimed automatically by the next index run; or force-unlock now (run 'mnemex index --force-unlock' or delete ${config.indexDir}/.indexing.lock).`,
 			);
 			if (canReturnCachedResults) {
 				recommendations.push(
-					"Cached results from the previous index are still available.",
+					"Cached results from the previous index are still available in the meantime.",
 				);
 			}
-			message = `Stale lock detected (PID ${inspect.pid} not running).`;
+			message = `Indexer appears hung (PID ${inspect.pid}${inPhase}, no progress for ~${sinceProgressSec}s).`;
 		}
 	} else {
 		// No (parseable) lock file.

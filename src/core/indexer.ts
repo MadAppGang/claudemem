@@ -61,7 +61,12 @@ import {
 import { createSymbolExtractor } from "./symbol-extractor.js";
 import { createReferenceGraphManager } from "./reference-graph.js";
 import { createRepoMapGenerator } from "./repo-map.js";
-import { createIndexLock, type IIndexLock, type LockOptions } from "./lock.js";
+import {
+	createGlobalIndexLock,
+	createIndexLock,
+	type IIndexLock,
+	type LockOptions,
+} from "./lock.js";
 import { createDocsFetcher, type DocsFetcher } from "../docs/index.js";
 import { computeHash } from "./tracker.js";
 
@@ -91,37 +96,62 @@ export class EmbeddingModelMismatchError extends Error {
 }
 
 /**
- * Error thrown when indexing is already in progress by another process
+ * Error thrown when indexing is already in progress by another process.
+ *
+ * `scope` distinguishes the PER-PROJECT lock ("project", default) from the
+ * MACHINE-GLOBAL single-indexer lock ("global"). The 4th constructor arg is
+ * optional and defaults to "project" so existing 3-arg call sites/tests are
+ * unaffected.
  */
 export class IndexLockError extends Error {
 	constructor(
 		public holderPid: number | undefined,
 		public runningFor: number | undefined,
 		public reason: "already_running" | "timeout" | "error",
+		public scope: "project" | "global" = "project",
 	) {
 		const runningForSec =
 			runningFor !== undefined ? Math.round(runningFor / 1000) : 0;
+		const isGlobal = scope === "global";
 		let message: string;
 		if (reason === "error") {
 			message =
-				`Failed to acquire index lock.\n` +
+				`Failed to acquire ${isGlobal ? "the machine-wide" : "the"} index lock.\n` +
 				`  There may be a filesystem error or permissions issue.\n` +
 				`  Try running with --force-unlock to clear any stale locks.`;
 		} else if (reason === "timeout") {
-			message =
-				`Timed out waiting for indexing to complete.\n` +
-				`  Another process (PID ${holderPid}) has been indexing for ${runningForSec}s.\n` +
-				`  If the process is stuck, use --force-unlock to clear the lock.`;
+			message = isGlobal
+				? `Timed out waiting for a machine-wide index to complete.\n` +
+					`  Another indexer (PID ${holderPid}) has been running for ${runningForSec}s.\n` +
+					`  If it is stuck, use --force-unlock in that repo to clear its lock.`
+				: `Timed out waiting for indexing to complete.\n` +
+					`  Another process (PID ${holderPid}) has been indexing for ${runningForSec}s.\n` +
+					`  If the process is stuck, use --force-unlock to clear the lock.`;
 		} else {
-			message =
-				`Another process (PID ${holderPid}) is currently indexing.\n` +
-				`  It has been running for ${runningForSec}s.\n` +
-				`  Use --wait to wait for it to finish, or --force-unlock if it's stuck.`;
+			message = isGlobal
+				? `A machine-wide index (PID ${holderPid}) is already running.\n` +
+					`  It has been running for ${runningForSec}s.\n` +
+					`  Only one indexer runs at a time across all repos on this machine.`
+				: `Another process (PID ${holderPid}) is currently indexing.\n` +
+					`  It has been running for ${runningForSec}s.\n` +
+					`  Use --wait to wait for it to finish, or --force-unlock if it's stuck.`;
 		}
 		super(message);
 		this.name = "IndexLockError";
 	}
 }
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+/**
+ * Default max time (ms) a FOREGROUND indexer waits for the machine-global lock
+ * before giving up. Generous because a legitimately-running index of a large repo
+ * (embed + LanceDB write, possibly rate-limited) can take many minutes. Background
+ * reindexers override this with `{ waitTimeout: 0 }` (try-acquire-bail).
+ */
+const DEFAULT_GLOBAL_LOCK_WAIT = 15 * 60 * 1000; // 15 minutes
 
 // ============================================================================
 // Types
@@ -149,10 +179,20 @@ interface IndexerOptions {
 	enableEnrichment?: boolean;
 	/** Concurrency for LLM enrichment requests (default: 10) */
 	enrichmentConcurrency?: number;
-	/** Lock options for concurrent access control */
+	/** Lock options for concurrent access control (the PER-PROJECT lock) */
 	lockOptions?: LockOptions;
-	/** Callback when waiting for another process to finish indexing */
+	/**
+	 * Lock options for the MACHINE-GLOBAL single-indexer lock. Defaults to WAIT
+	 * (up to DEFAULT_GLOBAL_LOCK_WAIT). Pass `{ waitTimeout: 0 }` for
+	 * try-acquire-bail — background reindexers (spawned `mnemex index --if-idle`)
+	 * use this so they don't pile up as idle waiters when a machine-wide index is
+	 * already running; they exit cleanly and the next debounce trigger retries.
+	 */
+	globalLockOptions?: LockOptions;
+	/** Callback when waiting for another process to finish indexing (per-project) */
 	onWaitingForLock?: (holderPid: number, waitedMs: number) => void;
+	/** Callback when waiting for the machine-global indexer to finish */
+	onWaitingForGlobalLock?: (holderPid: number, waitedMs: number) => void;
 }
 
 // ============================================================================
@@ -175,7 +215,12 @@ export class Indexer {
 	private enrichmentConcurrency: number;
 	private vectorEnabled: boolean;
 	private lockOptions?: LockOptions;
+	private globalLockOptions?: LockOptions;
 	private onWaitingForLock?: (holderPid: number, waitedMs: number) => void;
+	private onWaitingForGlobalLock?: (
+		holderPid: number,
+		waitedMs: number,
+	) => void;
 
 	private embeddingsClient: IEmbeddingsClient | null = null;
 	private vectorStore: IVectorStore | null = null;
@@ -183,6 +228,7 @@ export class Indexer {
 	private llmClient: ILLMClient | null = null;
 	private enricher: Enricher | null = null;
 	private indexLock: IIndexLock | null = null;
+	private globalLock: IIndexLock | null = null;
 	private docsFetcher: DocsFetcher | null = null;
 	private codeUnitExtractor: CodeUnitExtractor | null = null;
 
@@ -216,7 +262,9 @@ export class Indexer {
 
 		// Lock options for concurrent access control
 		this.lockOptions = options.lockOptions;
+		this.globalLockOptions = options.globalLockOptions;
 		this.onWaitingForLock = options.onWaitingForLock;
+		this.onWaitingForGlobalLock = options.onWaitingForGlobalLock;
 	}
 
 	/**
@@ -303,7 +351,34 @@ export class Indexer {
 		// Ensure project directory exists before acquiring lock
 		ensureProjectDir(this.projectPath);
 
-		// Acquire lock to prevent concurrent indexing
+		// LOCK ORDERING (deadlock-safe): ALWAYS acquire the MACHINE-GLOBAL lock
+		// FIRST, then the PER-PROJECT lock; release in REVERSE (project first, then
+		// global). Because every indexer follows the same global-before-project
+		// order, two indexers can never hold one lock while waiting on the other.
+		//
+		// The global lock serializes indexers across DIFFERENT repos on this machine
+		// so N Claude Code sessions don't run N concurrent detached reindexers all
+		// competing for the one machine + one shared embeddings API quota.
+		this.globalLock = createGlobalIndexLock();
+		const globalResult = await this.globalLock.acquire({
+			waitTimeout: DEFAULT_GLOBAL_LOCK_WAIT,
+			...this.globalLockOptions,
+			onWaiting: this.onWaitingForGlobalLock,
+		});
+
+		if (!globalResult.acquired) {
+			// Bail case (typically background --if-idle, waitTimeout:0): a machine-wide
+			// index is already running. Do NOT proceed to index and do NOT hang.
+			this.globalLock = null;
+			throw new IndexLockError(
+				globalResult.holderPid,
+				globalResult.runningFor,
+				globalResult.reason as "already_running" | "timeout" | "error",
+				"global",
+			);
+		}
+
+		// Acquire per-project lock to prevent concurrent indexing of THIS repo.
 		this.indexLock = createIndexLock(this.projectPath);
 		const lockResult = await this.indexLock.acquire({
 			...this.lockOptions,
@@ -311,6 +386,10 @@ export class Indexer {
 		});
 
 		if (!lockResult.acquired) {
+			// Release the global lock we already hold before bailing (reverse order).
+			this.indexLock = null;
+			this.globalLock.release();
+			this.globalLock = null;
 			throw new IndexLockError(
 				lockResult.holderPid,
 				lockResult.runningFor,
@@ -321,9 +400,36 @@ export class Indexer {
 		try {
 			return await this.indexInternal(force, startTime);
 		} finally {
-			// Always release lock when done
+			// Always release locks when done, in REVERSE acquire order:
+			// per-project first, then machine-global.
 			this.indexLock.release();
 			this.indexLock = null;
+			this.globalLock.release();
+			this.globalLock = null;
+		}
+	}
+
+	/**
+	 * Stamp forward progress on BOTH the per-project and machine-global locks.
+	 * Keeping the global lock's `lastProgressAt` fresh while genuinely working stops
+	 * it from being falsely reclaimed; when the indexer truly wedges, both stop
+	 * advancing and the global holder is correctly reclaimed after the progress
+	 * timeout. No-op on whichever lock this process does not own.
+	 */
+	private reportProgress(): void {
+		for (const lock of [this.indexLock, this.globalLock]) {
+			lock?.recordProgress();
+		}
+	}
+
+	/**
+	 * Record the current phase on BOTH the per-project and machine-global locks so
+	 * a hang is attributable to a phase on either. Reporting only — does NOT affect
+	 * the hung decision (which is driven by lastProgressAt / reportProgress).
+	 */
+	private reportPhase(phase: string): void {
+		for (const lock of [this.indexLock, this.globalLock]) {
+			lock?.setPhase(phase);
 		}
 	}
 
@@ -359,6 +465,7 @@ export class Indexer {
 		}
 
 		// Discover files
+		this.reportPhase("discovering");
 		const allFiles = this.discoverFiles();
 
 		// Get changes
@@ -591,6 +698,7 @@ export class Indexer {
 
 					try {
 						// Pass progress callback to track embedding progress
+						this.reportPhase("embedding");
 						embedResult = await this.embeddingsClient!.embed(
 							texts,
 							(completed, total, inProgress) => {
@@ -622,6 +730,9 @@ export class Indexer {
 							`Embedding count mismatch: expected ${texts.length}, got ${embedResult.embeddings.length}`,
 						);
 					}
+
+					// Forward progress: an embed batch completed.
+					this.reportProgress();
 
 					// Map embeddings back to chunks
 					newlyEmbeddedChunks = chunksNeedingEmbedding
@@ -662,7 +773,13 @@ export class Indexer {
 					`[storing]${batchInfo} ${chunksWithEmbeddings.length} chunks...`,
 				);
 			}
+			// Phase marker placed IMMEDIATELY before the (un-cancellable) LanceDB
+			// write so a hang here is attributable to "writing:lance" in the report.
+			this.reportPhase("writing:lance");
 			await this.vectorStore!.addChunks(chunksWithEmbeddings);
+
+			// Forward progress: a batch of chunks was written to the vector store.
+			this.reportProgress();
 
 			// Report storing completion
 			if (this.onProgress) {
@@ -767,6 +884,9 @@ export class Indexer {
 						if (unitEmbedResult.totalTokens)
 							totalTokens += unitEmbedResult.totalTokens;
 
+						// Forward progress: a unit embed batch completed.
+						this.reportProgress();
+
 						const unitsWithEmbeddings: CodeUnitWithEmbedding[] =
 							batchUnitsToEmbed
 								.map(({ unit }, idx) => ({
@@ -776,8 +896,12 @@ export class Indexer {
 								.filter((u) => u.vector.length > 0);
 
 						if (unitsWithEmbeddings.length > 0) {
+							this.reportPhase("writing:lance");
 							await this.vectorStore!.addCodeUnits(unitsWithEmbeddings);
 							totalCodeUnitsCreated += unitsWithEmbeddings.length;
+
+							// Forward progress: code units were written to the vector store.
+							this.reportProgress();
 
 							if (this.onProgress) {
 								this.onProgress(
@@ -792,8 +916,12 @@ export class Indexer {
 					// BM25-only mode: store units with placeholder vector
 					const unitsWithPlaceholder: CodeUnitWithEmbedding[] =
 						batchUnitsToEmbed.map(({ unit }) => ({ ...unit, vector: [0] }));
+					this.reportPhase("writing:lance");
 					await this.vectorStore!.addCodeUnits(unitsWithPlaceholder);
 					totalCodeUnitsCreated += unitsWithPlaceholder.length;
+
+					// Forward progress: BM25-only code units were written.
+					this.reportProgress();
 				}
 			}
 
@@ -927,6 +1055,7 @@ export class Indexer {
 			}
 		};
 
+		this.reportPhase("enriching");
 		if (canParallelizeEnrichment) {
 			// Parallel: AST extraction and enrichment run concurrently
 			// AST uses CPU, enrichment uses cloud LLM - no contention
@@ -946,6 +1075,7 @@ export class Indexer {
 		// Only run if manifest files changed (or force reindex), to avoid unnecessary network calls
 		if (this.docsFetcher?.isEnabled() && manifestFilesChanged) {
 			try {
+				this.reportPhase("fetching:docs");
 				const docsResult = await this.fetchExternalDocs();
 				if (docsResult.cost) {
 					totalCost += docsResult.cost;
@@ -959,6 +1089,7 @@ export class Indexer {
 		}
 
 		// Save metadata
+		this.reportPhase("finalizing");
 		this.fileTracker!.setMetadata("embeddingModel", this.model);
 		this.fileTracker!.setMetadata("lastIndexed", new Date().toISOString());
 
@@ -1379,6 +1510,9 @@ export class Indexer {
 				const texts = chunks.map((c) => c.content);
 				const embedResult = await this.embeddingsClient!.embed(texts);
 
+				// Forward progress: a docs embed batch completed.
+				this.reportProgress();
+
 				if (embedResult.cost) {
 					totalCost += embedResult.cost;
 				}
@@ -1402,7 +1536,11 @@ export class Indexer {
 						signature: chunk.sourceUrl,
 					}));
 
+				this.reportPhase("writing:lance");
 				await this.vectorStore!.addChunks(chunksWithEmbeddings);
+
+				// Forward progress: docs chunks were written to the vector store.
+				this.reportProgress();
 
 				// Mark as indexed in tracker
 				this.fileTracker!.markDocsIndexed(

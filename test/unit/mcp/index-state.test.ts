@@ -48,16 +48,33 @@ function writeLock(
 		pid: number;
 		startTime: number;
 		heartbeat: number;
+		lastProgressAt: number;
+		phase: string;
+		phaseStartedAt: number;
 		startedAt: string;
+		includeProgress: boolean;
 	}> = {},
 ): void {
 	const now = Date.now();
-	const data = {
+	const data: Record<string, unknown> = {
 		pid: overrides.pid ?? process.pid,
 		startTime: overrides.startTime ?? now,
 		heartbeat: overrides.heartbeat ?? now,
 		startedAt: overrides.startedAt ?? new Date(now).toISOString(),
 	};
+	// Only emit lastProgressAt when asked; by default these locks OMIT it, which
+	// exercises the backward-compat (heartbeat-fallback) path on purpose.
+	if (overrides.includeProgress || overrides.lastProgressAt !== undefined) {
+		data.lastProgressAt = overrides.lastProgressAt ?? now;
+	}
+	// Phase fields are likewise opt-in: omitted by default so existing cases
+	// exercise the no-phase (older-binary) report path.
+	if (overrides.phase !== undefined) {
+		data.phase = overrides.phase;
+	}
+	if (overrides.phaseStartedAt !== undefined) {
+		data.phaseStartedAt = overrides.phaseStartedAt;
+	}
 	writeFileSync(join(indexDir, LOCK_FILENAME), JSON.stringify(data, null, 2));
 }
 
@@ -172,6 +189,119 @@ describe("buildIndexState", () => {
 
 		expect(state.status).toBe("indexing_in_progress");
 		expect(state.indexing?.isHeartbeatFresh).toBe(false);
+	});
+
+	// HUNG: live pid, fresh heartbeat, but lastProgressAt older than progress
+	// timeout => indexing_hung (the LanceDB write-hang case). This is the key new
+	// classification: heartbeat looks fresh, but no real work has happened.
+	test("hung: live pid + fresh heartbeat + stalled lastProgressAt => indexing_hung", async () => {
+		const indexDir = makeIndexDir();
+		writeIndexDb(indexDir);
+		writeLock(indexDir, {
+			pid: process.pid,
+			heartbeat: Date.now(), // timer kept stamping => looks alive
+			lastProgressAt: Date.now() - 600_000, // no progress for 10 min (> 5 min timeout)
+			startTime: Date.now() - 700_000,
+		});
+		const m = await freshManager(indexDir);
+		const state = await buildIndexState(makeDeps(indexDir, m), Date.now());
+
+		expect(state.status).toBe("indexing_hung");
+		expect(state.indexing?.pidAlive).toBe(true);
+		expect(state.indexing?.isProgressing).toBe(false);
+		// Heartbeat can still read fresh — that's exactly why heartbeat alone misses it.
+		expect(state.indexing?.isHeartbeatFresh).toBe(true);
+		// Cached results remain usable; the hung holder will be auto-reclaimed.
+		expect(state.canReturnCachedResults).toBe(true);
+		expect(
+			state.recommendations.some((r) => r.toLowerCase().includes("hung")),
+		).toBe(true);
+		expect(
+			state.recommendations.some((r) => r.includes("reclaimed automatically")),
+		).toBe(true);
+	});
+
+	// HUNG + PHASE: when the lock carries a phase, the hung report attributes the
+	// hang to it (both in the structured field AND a recommendation), WITHOUT
+	// changing the decision logic or dropping the required substrings.
+	test("hung: phase is surfaced in the structured output AND the recommendation", async () => {
+		const indexDir = makeIndexDir();
+		writeIndexDb(indexDir);
+		writeLock(indexDir, {
+			pid: process.pid,
+			heartbeat: Date.now(), // looks alive
+			lastProgressAt: Date.now() - 600_000, // no progress for 10 min
+			startTime: Date.now() - 700_000,
+			phase: "writing:lance",
+			phaseStartedAt: Date.now() - 360_000, // stuck ~6 min in this phase
+		});
+		const m = await freshManager(indexDir);
+		const state = await buildIndexState(makeDeps(indexDir, m), Date.now());
+
+		expect(state.status).toBe("indexing_hung");
+		// Structured field carries the phase + a stuck duration.
+		expect(state.indexing?.phase).toBe("writing:lance");
+		expect(state.indexing?.phaseStuckMs).toBeGreaterThanOrEqual(360_000 - 2000);
+		// The recommendation names the phase…
+		expect(state.recommendations.some((r) => r.includes("writing:lance"))).toBe(
+			true,
+		);
+		// …while STILL preserving the required hung/auto-reclaim substrings.
+		expect(
+			state.recommendations.some((r) => r.toLowerCase().includes("hung")),
+		).toBe(true);
+		expect(
+			state.recommendations.some((r) => r.includes("reclaimed automatically")),
+		).toBe(true);
+		// And the one-line message mentions the phase too.
+		expect(state.message).toContain("writing:lance");
+	});
+
+	// HUNG without phase (older binary): phase undefined, report unchanged from
+	// the pre-phase behaviour (substrings preserved, no phase mentioned).
+	test("hung: no phase => phase undefined and report omits a phase clause", async () => {
+		const indexDir = makeIndexDir();
+		writeIndexDb(indexDir);
+		writeLock(indexDir, {
+			pid: process.pid,
+			heartbeat: Date.now(),
+			lastProgressAt: Date.now() - 600_000,
+			startTime: Date.now() - 700_000,
+			// no phase / phaseStartedAt
+		});
+		const m = await freshManager(indexDir);
+		const state = await buildIndexState(makeDeps(indexDir, m), Date.now());
+
+		expect(state.status).toBe("indexing_hung");
+		expect(state.indexing?.phase).toBeUndefined();
+		expect(state.indexing?.phaseStuckMs).toBeUndefined();
+		// Required substrings still present on the no-phase path.
+		expect(
+			state.recommendations.some((r) => r.toLowerCase().includes("hung")),
+		).toBe(true);
+		expect(
+			state.recommendations.some((r) => r.includes("reclaimed automatically")),
+		).toBe(true);
+		// No "in phase '...'" clause leaks in.
+		expect(state.message).not.toContain("in phase");
+	});
+
+	// BACKWARD COMPAT: a lock written by an OLDER binary has no lastProgressAt.
+	// With a fresh heartbeat it must classify as indexing_in_progress (NOT hung):
+	// the progress check falls back to heartbeat.
+	test("backward compat: live pid + fresh heartbeat + NO lastProgressAt => indexing_in_progress", async () => {
+		const indexDir = makeIndexDir();
+		writeIndexDb(indexDir);
+		// includeProgress omitted => no lastProgressAt field on disk.
+		writeLock(indexDir, { pid: process.pid });
+		const m = await freshManager(indexDir);
+		const state = await buildIndexState(makeDeps(indexDir, m), Date.now());
+
+		expect(state.status).toBe("indexing_in_progress");
+		expect(state.indexing?.isProgressing).toBe(true);
+		// lastProgressAt is surfaced (mirrors heartbeat) and is a valid ISO string.
+		expect(state.indexing?.lastProgressAt).toBeTruthy();
+		expect(state.indexing?.lastProgressAt).not.toContain("Invalid");
 	});
 
 	// Case 3: no index.db, no lock => no_index

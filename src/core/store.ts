@@ -45,6 +45,69 @@ const BM25_WEIGHT = 0.4;
 /** Vector weight in hybrid search */
 const VECTOR_WEIGHT = 0.6;
 
+/**
+ * Watchdog timeout (ms) for LanceDB write operations (table.add / createTable).
+ *
+ * Generous on purpose: a legitimate write of a large batch can take a while, so
+ * this is an upper bound on "one write should never exceed this" — it exists to
+ * catch the LanceDB 0.13.0 deadlock (all tokio threads park in Condvar::wait,
+ * 0% CPU, 0 bytes written, forever), NOT to bound normal latency.
+ */
+export const LANCEDB_WRITE_TIMEOUT_MS = 60000;
+
+/**
+ * Thrown by `withTimeout` when a wrapped LanceDB write does not settle in time.
+ * Carries the operation label and the timeout so the indexer can fail loudly and
+ * its lock's finally/release can run (instead of the process parking forever).
+ */
+export class LanceWriteTimeoutError extends Error {
+	constructor(
+		readonly label: string,
+		readonly timeoutMs: number,
+	) {
+		super(
+			`LanceDB write '${label}' did not complete within ${timeoutMs}ms — ` +
+				"the native write appears hung (LanceDB 0.13.0 Condvar deadlock).",
+		);
+		this.name = "LanceWriteTimeoutError";
+	}
+}
+
+/**
+ * Race a promise against a timeout.
+ *
+ * IMPORTANT — this CANNOT cancel the underlying operation. LanceDB's
+ * `table.add()` / `createTable()` do NOT accept an AbortSignal, so there is no
+ * way to abort the native call. When `ms` elapses, `withTimeout` only stops
+ * AWAITING `p` and throws `LanceWriteTimeoutError`; the hung tokio thread keeps
+ * running until the process exits. That is the intended, accepted behaviour: the
+ * throw frees the JS process to release its index lock and fail loudly (rather
+ * than parking forever), which pairs with the lock's progress-based auto-reclaim.
+ * Do NOT mistake this for cancellation.
+ *
+ * The `p.finally(clearTimeout)` clears the timer on the normal (fast) path so a
+ * 60s timer does not linger after a quick write; on the hang path `p` never
+ * settles (again: we cannot cancel it), which is exactly the case this guards.
+ */
+export function withTimeout<T>(
+	p: Promise<T>,
+	ms: number,
+	label: string,
+): Promise<T> {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const timeout = new Promise<never>((_, reject) => {
+		timer = setTimeout(() => {
+			reject(new LanceWriteTimeoutError(label, ms));
+		}, ms);
+	});
+	return Promise.race([
+		p.finally(() => {
+			if (timer) clearTimeout(timer);
+		}),
+		timeout,
+	]);
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -333,16 +396,23 @@ export class VectorStore implements IVectorStore {
 		}
 
 		if (table) {
-			// Table exists, add to it
-			await table.add(data);
+			// Table exists, add to it. Wrapped in withTimeout so a hung LanceDB
+			// write throws (and releases the lock) instead of parking forever.
+			await withTimeout(
+				table.add(data),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"addChunks:table.add",
+			);
 		} else {
 			// Create table with the first batch of data
 			if (!this.db) {
 				await this.initialize();
 			}
-			this.table = await this.db!.createTable(CHUNKS_TABLE, data, {
-				mode: "create",
-			});
+			this.table = await withTimeout(
+				this.db!.createTable(CHUNKS_TABLE, data, { mode: "create" }),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"addChunks:createTable",
+			);
 			this.tableDimension = incomingDimension;
 		}
 
@@ -731,14 +801,20 @@ export class VectorStore implements IVectorStore {
 		}
 
 		if (table) {
-			await table.add(data);
+			await withTimeout(
+				table.add(data),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"addDocuments:table.add",
+			);
 		} else {
 			if (!this.db) {
 				await this.initialize();
 			}
-			this.table = await this.db!.createTable(CHUNKS_TABLE, data, {
-				mode: "create",
-			});
+			this.table = await withTimeout(
+				this.db!.createTable(CHUNKS_TABLE, data, { mode: "create" }),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"addDocuments:createTable",
+			);
 			this.tableDimension = incomingDimension;
 		}
 
@@ -1026,14 +1102,20 @@ export class VectorStore implements IVectorStore {
 		}
 
 		if (table) {
-			await table.add(data);
+			await withTimeout(
+				table.add(data),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"addCodeUnits:table.add",
+			);
 		} else {
 			if (!this.db) {
 				await this.initialize();
 			}
-			this.table = await this.db!.createTable(CHUNKS_TABLE, data, {
-				mode: "create",
-			});
+			this.table = await withTimeout(
+				this.db!.createTable(CHUNKS_TABLE, data, { mode: "create" }),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"addCodeUnits:createTable",
+			);
 			this.tableDimension = incomingDimension;
 		}
 
@@ -1063,8 +1145,12 @@ export class VectorStore implements IVectorStore {
 			// Delete old record
 			await table.delete(`id = '${escapeFilterValue(unitId)}'`);
 
-			// Insert updated record
-			await table.add([{ ...existing, summary }]);
+			// Insert updated record (watchdog-wrapped: same native write path)
+			await withTimeout(
+				table.add([{ ...existing, summary }]),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"updateUnitSummary:table.add",
+			);
 		} catch (error) {
 			console.warn(`Failed to update summary for unit ${unitId}:`, error);
 		}
@@ -1095,14 +1181,19 @@ export class VectorStore implements IVectorStore {
 			await table.delete(`id = '${escapeFilterValue(documentId)}'`);
 
 			// Insert updated record with new content and vector
-			await table.add([
-				{
-					...existing,
-					content: newContent,
-					vector: newVector,
-					enrichedAt: new Date().toISOString(),
-				},
-			]);
+			// (watchdog-wrapped: same native write path)
+			await withTimeout(
+				table.add([
+					{
+						...existing,
+						content: newContent,
+						vector: newVector,
+						enrichedAt: new Date().toISOString(),
+					},
+				]),
+				LANCEDB_WRITE_TIMEOUT_MS,
+				"updateDocumentContent:table.add",
+			);
 
 			return true;
 		} catch (error) {

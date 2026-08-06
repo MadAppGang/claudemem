@@ -64,3 +64,15 @@ eval/rg/logs/last-*
 .claude/cache/
 .claude/.statusline-worktree-*
 gtd/sessions/
+
+# Added by claudeup
+
+# Added by claudeup
+# Local claudemem indexes are generated from the repo and should not be committed.
+# Session transcripts and scratch notes are local working artifacts.
+ai-docs/sessions/
+# Local agent workspaces and runtime artifacts should stay out of team history.
+.agents/
+
+# Added by claudeup
+# Local claudemem indexes are generated from the repo and should not be committed.
