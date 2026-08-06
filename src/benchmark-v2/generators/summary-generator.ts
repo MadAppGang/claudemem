@@ -333,7 +333,7 @@ export class SummaryGenerator implements ISummaryGenerator {
 	private truncateCode(code: string): string {
 		const maxLength = 4000;
 		if (code.length > maxLength) {
-			return code.slice(0, maxLength) + "\n// ... (truncated)";
+			return `${code.slice(0, maxLength)}\n// ... (truncated)`;
 		}
 		return code;
 	}

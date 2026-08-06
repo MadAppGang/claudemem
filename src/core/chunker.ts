@@ -149,7 +149,7 @@ function processChildren(
 		if (chunkType && tokens <= MAX_CHUNK_TOKENS && tokens >= MIN_CHUNK_TOKENS) {
 			// Fits in one chunk AND big enough — emit with any buffered JSDoc/comments
 			const fullContent =
-				gapLines.length > 0 ? gapLines.join("\n") + "\n" + content : content;
+				gapLines.length > 0 ? `${gapLines.join("\n")}\n${content}` : content;
 			const startLine =
 				gapStartLine >= 0 ? gapStartLine : child.startPosition.row;
 
@@ -171,7 +171,7 @@ function processChildren(
 		) {
 			// Recognized but too small to stand alone — check if gap + content is big enough
 			const combinedContent =
-				gapLines.length > 0 ? gapLines.join("\n") + "\n" + content : content;
+				gapLines.length > 0 ? `${gapLines.join("\n")}\n${content}` : content;
 			if (estimateTokens(combinedContent) >= MIN_CHUNK_TOKENS) {
 				// Combined with gap, it's big enough — emit
 				const startLine =
@@ -326,7 +326,7 @@ function splitIntoConnectedParts(
 
 		// Prepend JSDoc/comment preamble to first part
 		if (p === 0 && preamble) {
-			partContent = preamble + "\n" + partContent;
+			partContent = `${preamble}\n${partContent}`;
 			if (preambleStartLine != null && preambleStartLine >= 0) {
 				startLine = preambleStartLine;
 			}
@@ -582,10 +582,10 @@ function extractSignature(
 				line.indexOf("{") >= 0 ? line.indexOf("{") : Infinity,
 				line.indexOf(":") >= 0 ? line.indexOf(":") : Infinity,
 			);
-			signature += " " + line.slice(0, braceIdx).trim();
+			signature += ` ${line.slice(0, braceIdx).trim()}`;
 			break;
 		}
-		signature += " " + line;
+		signature += ` ${line}`;
 	}
 
 	// Clean up signature
@@ -593,7 +593,7 @@ function extractSignature(
 
 	// Limit length
 	if (signature.length > 200) {
-		signature = signature.slice(0, 197) + "...";
+		signature = `${signature.slice(0, 197)}...`;
 	}
 
 	return signature || undefined;

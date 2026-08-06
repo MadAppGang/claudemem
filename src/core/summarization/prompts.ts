@@ -90,7 +90,7 @@ export function buildFunctionSummaryPrompt(
 	}
 
 	parts.push("");
-	parts.push("```" + input.language);
+	parts.push(`\`\`\`${input.language}`);
 	parts.push(input.code);
 	parts.push("```");
 	parts.push("");
@@ -159,7 +159,7 @@ export function buildClassSummaryPrompt(input: ClassSummaryInput): string {
 	}
 
 	parts.push("");
-	parts.push("```" + input.language);
+	parts.push(`\`\`\`${input.language}`);
 	parts.push(input.code);
 	parts.push("```");
 	parts.push("");

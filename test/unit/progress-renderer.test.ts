@@ -180,6 +180,7 @@ describe("Progress Renderer", () => {
 
 		// Every render except the first should start with cursor-up
 		for (let i = 1; i < renders.length; i++) {
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: \x1b is intentional — this matches ANSI terminal escape sequences
 			expect(renders[i][0]).toMatch(/^\x1b\[\d+A$/);
 		}
 	});

@@ -147,7 +147,7 @@ export class MarkdownReporter {
 | Code Units | ${run.codebaseInfo?.sampledCodeUnits || "N/A"} |
 | Total Evaluations | ${totalEvaluations} |
 | **Top Model** | **${topModel?.modelId || "N/A"}** |
-| Top Score | ${topModel ? (topModel.overallScore * 100).toFixed(1) + "%" : "N/A"} |`;
+| Top Score | ${topModel ? `${(topModel.overallScore * 100).toFixed(1)}%` : "N/A"} |`;
 	}
 
 	private generateRankingsTable(scores: AggregatedScore[]): string {

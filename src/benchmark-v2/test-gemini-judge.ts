@@ -274,7 +274,7 @@ async function main() {
 	}
 
 	// Also test pairwise
-	console.log("\n\n" + "=".repeat(60));
+	console.log(`\n\n${"=".repeat(60)}`);
 	console.log("PAIRWISE COMPARISON TESTS");
 	console.log("=".repeat(60));
 

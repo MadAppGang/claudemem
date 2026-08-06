@@ -51,9 +51,9 @@ export function TabBar() {
 							paddingRight={2}
 						>
 							{isActive ? (
-								<text fg={theme.tabActive}>{"[" + tab.label + "]"}</text>
+								<text fg={theme.tabActive}>{`[${tab.label}]`}</text>
 							) : (
-								<text fg={theme.tabInactive}>{" " + tab.label + " "}</text>
+								<text fg={theme.tabInactive}>{` ${tab.label} `}</text>
 							)}
 						</box>
 					);

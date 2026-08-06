@@ -298,11 +298,9 @@ export class ThinCloudClient implements ICloudIndexClient {
 		try {
 			const body = (await response.json()) as Record<string, unknown>;
 			message =
-				typeof body["message"] === "string"
-					? body["message"]
-					: `HTTP ${status}`;
+				typeof body.message === "string" ? body.message : `HTTP ${status}`;
 			errorCode =
-				typeof body["errorCode"] === "string" ? body["errorCode"] : undefined;
+				typeof body.errorCode === "string" ? body.errorCode : undefined;
 		} catch {
 			message = `HTTP ${status}: ${response.statusText}`;
 		}

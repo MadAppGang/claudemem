@@ -582,7 +582,7 @@ export class CodeUnitExtractor {
 				i++
 			) {
 				const nextLine = lines[i].trim();
-				sig += " " + nextLine;
+				sig += ` ${nextLine}`;
 				if (sig.includes("{") || sig.endsWith(")") || sig.endsWith(":")) {
 					break;
 				}
@@ -602,7 +602,7 @@ export class CodeUnitExtractor {
 
 		// Limit length
 		if (sig.length > 300) {
-			sig = sig.slice(0, 297) + "...";
+			sig = `${sig.slice(0, 297)}...`;
 		}
 
 		return sig || undefined;

@@ -49,7 +49,7 @@ export class EditValidator {
 		}
 
 		if (
-			!resolvedPath.startsWith(resolvedRoot + "/") &&
+			!resolvedPath.startsWith(`${resolvedRoot}/`) &&
 			resolvedPath !== resolvedRoot
 		) {
 			throw new Error(

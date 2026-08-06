@@ -363,7 +363,7 @@ export class OpenCodeIntegrationManager {
 		// Write updated config
 		writeFileSync(
 			this.configPath,
-			JSON.stringify(config, null, 2) + "\n",
+			`${JSON.stringify(config, null, 2)}\n`,
 			"utf-8",
 		);
 	}
@@ -387,7 +387,7 @@ export class OpenCodeIntegrationManager {
 
 			writeFileSync(
 				this.configPath,
-				JSON.stringify(config, null, 2) + "\n",
+				`${JSON.stringify(config, null, 2)}\n`,
 				"utf-8",
 			);
 		} catch {

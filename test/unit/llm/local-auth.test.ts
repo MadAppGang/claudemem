@@ -26,7 +26,10 @@ function captureHeaders(): { get: () => Record<string, string> } {
 				id: "1",
 				model: "m",
 				choices: [
-					{ message: { role: "assistant", content: "ok" }, finish_reason: "stop" },
+					{
+						message: { role: "assistant", content: "ok" },
+						finish_reason: "stop",
+					},
 				],
 			}),
 			{ status: 200, headers: { "Content-Type": "application/json" } },
@@ -48,7 +51,9 @@ beforeEach(() => {
 describe("LocalLLMClient auth headers", () => {
 	test("sends no Authorization header when no key is configured", async () => {
 		const cap = captureHeaders();
-		const client = new LocalLLMClient({ endpoint: "http://localhost:11434/v1" });
+		const client = new LocalLLMClient({
+			endpoint: "http://localhost:11434/v1",
+		});
 		await client.complete([{ role: "user", content: "hi" }]);
 
 		expect(cap.get()["Content-Type"]).toBe("application/json");

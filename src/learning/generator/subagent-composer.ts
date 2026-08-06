@@ -357,7 +357,6 @@ export class SubagentComposer {
 					"3. Escalate to user if fix requires confirmation",
 				);
 				break;
-			case "assistant":
 			default:
 				lines.push(
 					"1. Monitor for error conditions",

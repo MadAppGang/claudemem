@@ -322,7 +322,7 @@ export function parseGitignore(projectPath: string): string[] {
 
 			// If pattern ends with /, it's a directory - add **
 			if (pattern.endsWith("/")) {
-				pattern = pattern + "**";
+				pattern = `${pattern}**`;
 			}
 			// If pattern doesn't contain /, it matches anywhere
 			else if (!pattern.includes("/")) {

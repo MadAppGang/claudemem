@@ -1066,8 +1066,6 @@ export function createEmbeddingsClient(
 
 		case "voyage":
 			return new VoyageEmbeddingsClient({ ...options, model });
-
-		case "openrouter":
 		default:
 			return new OpenRouterEmbeddingsClient({ ...options, model });
 	}
@@ -1130,7 +1128,7 @@ export function truncateToTokenLimit(text: string, maxTokens: number): string {
 	if (text.length <= maxChars) {
 		return text;
 	}
-	return text.slice(0, maxChars - 3) + "...";
+	return `${text.slice(0, maxChars - 3)}...`;
 }
 
 /**

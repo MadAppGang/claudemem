@@ -8,8 +8,12 @@
 			"complexity": {
 				"noForEach": "off"
 			},
+			"correctness": {
+				"useExhaustiveDependencies": "warn"
+			},
 			"suspicious": {
-				"noExplicitAny": "warn"
+				"noExplicitAny": "warn",
+				"noArrayIndexKey": "warn"
 			},
 			"style": {
 				"noNonNullAssertion": "warn"

@@ -222,10 +222,6 @@ export function generateFunctionSelectionTasks(
 // ============================================================================
 
 export class DownstreamEvaluator extends BaseEvaluator<EvaluationResult> {
-	constructor(llmClient: ILLMClient) {
-		super(llmClient);
-	}
-
 	async evaluate(
 		summary: GeneratedSummary,
 		_codeUnit: BenchmarkCodeUnit,

@@ -138,7 +138,7 @@ export function getUpgradeMessage(projectPath: string): string | null {
 export function warnIfOutdated(projectPath: string): void {
 	const message = getUpgradeMessage(projectPath);
 	if (message) {
-		process.stderr.write(message + "\n");
+		process.stderr.write(`${message}\n`);
 	}
 }
 

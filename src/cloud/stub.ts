@@ -385,7 +385,7 @@ export class LocalCloudStub implements ICloudIndexClient {
 			}
 		}
 
-		return lines.join("\n") + "\n";
+		return `${lines.join("\n")}\n`;
 	}
 
 	// --------------------------------------------------------------------------

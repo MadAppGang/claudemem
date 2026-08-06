@@ -28,6 +28,7 @@ const bgBlue = (s: string) => `\x1b[44m\x1b[97m${s}${R}`;
 const bgAmber = (s: string) => `\x1b[44m\x1b[97m\x1b[1m${s}${R}`;
 const bgGray = (s: string) => `\x1b[48;5;238m\x1b[97m${s}${R}`;
 
+// biome-ignore lint/suspicious/noControlCharactersInRegex: \x1b is intentional — this matches ANSI terminal escape sequences
 const strip = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
 const pad = (s: string, w: number) => {
 	const vis = strip(s).length;
@@ -73,7 +74,7 @@ const gauge = (ms: number): string => {
 function separator(title: string, model: string) {
 	console.log();
 	console.log(bold(`  ${"═".repeat(65)}`));
-	console.log(bold(`  DESIGN ${title}`) + `  ${gray(`by ${model}`)}`);
+	console.log(`${bold(`  DESIGN ${title}`)}  ${gray(`by ${model}`)}`);
 	console.log(bold(`  ${"═".repeat(65)}`));
 }
 
@@ -94,17 +95,17 @@ function designA() {
 		const fill = 42 - label.length - trail.length;
 		return bold(`╭─${label}${"─".repeat(Math.max(0, fill))}${trail}╮`);
 	};
-	const subBot = () => bold("╰" + "─".repeat(42) + "╯");
+	const subBot = () => bold(`╰${"─".repeat(42)}╯`);
 	const subLine = (content: string) => {
-		return bold("│") + `  ${pad(content, 39)}` + bold("│");
+		return `${bold("│")}  ${pad(content, 39)}${bold("│")}`;
 	};
 
 	// Model wing box (dim, appears to the right)
 	const wingTop = dim("╭────────╮");
 	const wingBot = dim("╰────────╯");
 	const wingLine = (l1: string, l2: string) =>
-		dim("│") + ` ${bgAmber(` ${l1} `)} ` + dim("│");
-	const wingAuto = dim("│") + ` ${dim("auto")}   ` + dim("│");
+		`${dim("│")} ${bgAmber(` ${l1} `)} ${dim("│")}`;
+	const wingAuto = `${dim("│")} ${dim("auto")}   ${dim("│")}`;
 
 	console.log();
 	console.log(
@@ -299,13 +300,13 @@ function designB() {
 		`  │ ${green("●")} Storage     ${pad(white("LanceDB (~50MB per 10K files)"), 42)} │`,
 	);
 	console.log(
-		`  │ ${green("●")} Embed       ${pad(bgAmber(" auto-detected ") + " " + dim("274 MB"), 42)} │`,
+		`  │ ${green("●")} Embed       ${pad(`${bgAmber(" auto-detected ")} ${dim("274 MB")}`, 42)} │`,
 	);
 	console.log(
-		`  │ ${green("●")} Rerank      ${pad(bgAmber(" auto-detected ") + " " + dim("(GPU-based)"), 42)} │`,
+		`  │ ${green("●")} Rerank      ${pad(`${bgAmber(" auto-detected ")} ${dim("(GPU-based)")}`, 42)} │`,
 	);
 	console.log(
-		`  │ ${green("●")} Enrich      ${pad(bgAmber(" same LLM ") + " " + dim("(optional)"), 42)} │`,
+		`  │ ${green("●")} Enrich      ${pad(`${bgAmber(" same LLM ")} ${dim("(optional)")}`, 42)} │`,
 	);
 	console.log(
 		`  │ ${green("●")} Privacy     ${pad(bgreen("✓ zero bytes leave machine"), 42)} │`,

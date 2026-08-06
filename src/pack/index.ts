@@ -246,7 +246,7 @@ export async function packCommand(
 		}
 
 		// Atomic write: write to .tmp then rename; clean up on error
-		const tmpPath = outputPath + ".tmp";
+		const tmpPath = `${outputPath}.tmp`;
 		try {
 			writeFileSync(tmpPath, output, "utf-8");
 			renameSync(tmpPath, outputPath);

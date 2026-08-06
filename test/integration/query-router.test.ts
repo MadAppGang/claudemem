@@ -213,7 +213,7 @@ describe("QueryRouter", () => {
 		});
 
 		test("handles very long query", async () => {
-			const longQuery = "how does " + "the system ".repeat(100) + "work";
+			const longQuery = `how does ${"the system ".repeat(100)}work`;
 			const result = await router.route(longQuery);
 			expect(result.classification).toBeDefined();
 		});

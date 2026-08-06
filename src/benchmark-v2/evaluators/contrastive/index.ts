@@ -319,10 +319,6 @@ interface ContrastiveLLMResponse {
 }
 
 export class LLMContrastiveEvaluator extends BaseEvaluator<EvaluationResult> {
-	constructor(llmClient: ILLMClient) {
-		super(llmClient);
-	}
-
 	async evaluate(
 		summary: GeneratedSummary,
 		codeUnit: BenchmarkCodeUnit,

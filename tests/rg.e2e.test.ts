@@ -125,51 +125,59 @@ describe("e2e: testdata corpus precondition", () => {
 	});
 });
 
-describe.skipIf(!HAS_CORPUS_INDEX)("e2e: semantic prepend + rg preservation", () => {
-	// Search for a literal symbol that exists in source/index.ts.
-	// rg alone will find it, mnemex should surface semantically related hits.
-	test("isArray literal search returns hits and preserves all rg results", () => {
-		const mnemexResult = runMnemexRg(["isArray", "source/"], TESTDATA);
+describe.skipIf(!HAS_CORPUS_INDEX)(
+	"e2e: semantic prepend + rg preservation",
+	() => {
+		// Search for a literal symbol that exists in source/index.ts.
+		// rg alone will find it, mnemex should surface semantically related hits.
+		test("isArray literal search returns hits and preserves all rg results", () => {
+			const mnemexResult = runMnemexRg(["isArray", "source/"], TESTDATA);
 
-		expect(mnemexResult.exitCode).toBe(0);
-		expect(mnemexResult.stdout.length).toBeGreaterThan(0);
+			expect(mnemexResult.exitCode).toBe(0);
+			expect(mnemexResult.stdout.length).toBeGreaterThan(0);
 
-		// Every result line should follow the file:line:content format
-		const lines = mnemexResult.stdout
-			.split("\n")
-			.filter((l) => l.length > 0 && l !== "--");
-		for (const line of lines) {
-			// file:line:content or just the file for files-with-matches mode
-			expect(line).toMatch(/^source\/.+?(:\d+:)?/);
-		}
+			// Every result line should follow the file:line:content format
+			const lines = mnemexResult.stdout
+				.split("\n")
+				.filter((l) => l.length > 0 && l !== "--");
+			for (const line of lines) {
+				// file:line:content or just the file for files-with-matches mode
+				expect(line).toMatch(/^source\/.+?(:\d+:)?/);
+			}
 
-		// Must contain the actual isArray definition line
-		expect(mnemexResult.stdout).toContain("source/index.ts");
-		expect(mnemexResult.stdout).toContain("isArray");
-	});
+			// Must contain the actual isArray definition line
+			expect(mnemexResult.stdout).toContain("source/index.ts");
+			expect(mnemexResult.stdout).toContain("isArray");
+		});
 
-	test("mnemex-wrapped output is a superset of vanilla rg results", async () => {
-		// Run both; every line vanilla rg returned must appear somewhere in
-		// the mnemex-wrapped output (order may differ; mnemex hits come first).
-		const pattern = "isBigint";
-		const mnemex = runMnemexRg(["--line-number", pattern, "source/"], TESTDATA);
-		const vanilla = await runVanillaRg(
-			["--line-number", pattern, "source/"],
-			TESTDATA,
-		);
+		test("mnemex-wrapped output is a superset of vanilla rg results", async () => {
+			// Run both; every line vanilla rg returned must appear somewhere in
+			// the mnemex-wrapped output (order may differ; mnemex hits come first).
+			const pattern = "isBigint";
+			const mnemex = runMnemexRg(
+				["--line-number", pattern, "source/"],
+				TESTDATA,
+			);
+			const vanilla = await runVanillaRg(
+				["--line-number", pattern, "source/"],
+				TESTDATA,
+			);
 
-		expect(vanilla.exitCode).toBe(0);
-		expect(mnemex.exitCode).toBe(0);
+			expect(vanilla.exitCode).toBe(0);
+			expect(mnemex.exitCode).toBe(0);
 
-		const vanillaLines = vanilla.stdout.split("\n").filter((l) => l.length > 0);
-		const mnemexLines = mnemex.stdout.split("\n").filter((l) => l.length > 0);
+			const vanillaLines = vanilla.stdout
+				.split("\n")
+				.filter((l) => l.length > 0);
+			const mnemexLines = mnemex.stdout.split("\n").filter((l) => l.length > 0);
 
-		expect(vanillaLines.length).toBeGreaterThan(0);
-		for (const line of vanillaLines) {
-			expect(mnemexLines).toContain(line);
-		}
-	});
-});
+			expect(vanillaLines.length).toBeGreaterThan(0);
+			for (const line of vanillaLines) {
+				expect(mnemexLines).toContain(line);
+			}
+		});
+	},
+);
 
 describe("e2e: fallback without index (byte-identity)", () => {
 	let tmpDir: string;

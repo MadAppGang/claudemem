@@ -318,7 +318,9 @@ export class PairwiseJudgeEvaluator extends BaseEvaluator<PairwiseResult[]> {
 			const batchIndices = batchGroup.map((_, idx) => i + idx);
 
 			// Mark batches as in progress
-			batchIndices.forEach((idx) => inProgressSet.add(idx));
+			batchIndices.forEach((idx) => {
+				inProgressSet.add(idx);
+			});
 			onProgress?.(completed, comparisons.length, getInProgressCount());
 
 			// Run batches in parallel, updating progress as each completes

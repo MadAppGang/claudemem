@@ -306,7 +306,7 @@ export class GitEnvironmentManager implements EnvironmentManager {
 			.toString()
 			.split("\n")
 			.filter(Boolean)
-			.map((f: string) => f.replace(dir + "/", ""));
+			.map((f: string) => f.replace(`${dir}/`, ""));
 	}
 }
 

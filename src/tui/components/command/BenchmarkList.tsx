@@ -104,7 +104,7 @@ function statusDot(status: string): string {
 
 function truncate(s: string, max: number): string {
 	if (s.length <= max) return s;
-	return s.slice(0, max - 1) + "\u2026";
+	return `${s.slice(0, max - 1)}\u2026`;
 }
 
 function formatModels(models: Array<{ id?: string } | string>): string {
@@ -236,7 +236,7 @@ function ErrorDetailPanel({
 										<box height={1}>
 											<text fg={theme.error}>
 												{(err.model !== "unknown"
-													? truncate(err.model, 30) + ": "
+													? `${truncate(err.model, 30)}: `
 													: "") +
 													err.count +
 													" failed"}
@@ -417,10 +417,10 @@ export function BenchmarkListApp({
 					const metaParts = [time];
 					if (run.durationMs != null)
 						metaParts.push(formatDuration(run.durationMs));
-					metaParts.push(run.codeUnitCount + " units");
+					metaParts.push(`${run.codeUnitCount} units`);
 					const metaStr = metaParts.join("  \u00b7  ");
 					const pointer = isSelected ? " \u25b8 " : "   ";
-					const line1Left = pointer + dot + " " + run.projectName;
+					const line1Left = `${pointer + dot} ${run.projectName}`;
 					const line1Pad = Math.max(
 						2,
 						contentWidth - line1Left.length - metaStr.length,
@@ -436,7 +436,7 @@ export function BenchmarkListApp({
 					// Stats line parts
 					const errColor = errCount > 0 ? theme.error : theme.success;
 					const errStr =
-						errCount > 0 ? errCount + " errors" : "\u2713 no errors";
+						errCount > 0 ? `${errCount} errors` : "\u2713 no errors";
 					const bestColor = run.topModel
 						? run.topModel.score >= 0.7
 							? theme.success
@@ -530,7 +530,7 @@ export function BenchmarkListApp({
 
 							{/* Divider */}
 							<box height={1} width="100%">
-								<text fg={theme.border}>{" " + divider}</text>
+								<text fg={theme.border}>{` ${divider}`}</text>
 							</box>
 						</box>
 					);
@@ -549,9 +549,7 @@ export function BenchmarkListApp({
 			<box flexDirection="row" width="100%" height={1}>
 				<box paddingLeft={2} backgroundColor={theme.primary}>
 					<text fg="#000000">
-						<strong>
-							{" " + (selectedIndex + 1) + "/" + runs.length + " "}
-						</strong>
+						<strong>{` ${selectedIndex + 1}/${runs.length} `}</strong>
 					</text>
 				</box>
 				<box paddingLeft={1}>
@@ -564,7 +562,7 @@ export function BenchmarkListApp({
 					<text fg={theme.text}>
 						{"\u2191\u2193/j/k:navigate  Enter:view results" +
 							(selectedHasErrors
-								? "  e:" + (expandedErrors ? "collapse" : "errors")
+								? `  e:${expandedErrors ? "collapse" : "errors"}`
 								: "") +
 							"  q:quit"}
 					</text>

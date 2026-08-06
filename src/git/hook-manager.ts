@@ -89,7 +89,7 @@ export class GitHookManager {
 			}
 
 			// If it's a different hook, append our script
-			const newContent = existingContent + "\n\n" + POST_COMMIT_HOOK;
+			const newContent = `${existingContent}\n\n${POST_COMMIT_HOOK}`;
 			writeFileSync(hookPath, newContent, { mode: 0o755 });
 			return;
 		}
@@ -154,7 +154,7 @@ export class GitHookManager {
 			if (newContent === "#!/bin/sh" || newContent === "") {
 				unlinkSync(hookPath);
 			} else {
-				writeFileSync(hookPath, newContent + "\n", { mode: 0o755 });
+				writeFileSync(hookPath, `${newContent}\n`, { mode: 0o755 });
 			}
 		}
 	}

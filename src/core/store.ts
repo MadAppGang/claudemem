@@ -86,7 +86,10 @@ export class ZeroDimensionVectorError extends Error {
  * Exported for tests.
  * @returns the validated, non-zero dimension
  */
-export function assertVectorDimension(dimension: number, label: string): number {
+export function assertVectorDimension(
+	dimension: number,
+	label: string,
+): number {
 	if (!Number.isFinite(dimension) || dimension <= 0) {
 		throw new ZeroDimensionVectorError(label);
 	}

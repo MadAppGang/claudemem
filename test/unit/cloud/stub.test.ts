@@ -25,7 +25,7 @@ const PARENT_SHA = "parent000parent000parent000parent000par0";
 
 function makeChunk(overrides: Partial<UploadChunk> = {}): UploadChunk {
 	return {
-		contentHash: "hash-" + Math.random().toString(36).slice(2),
+		contentHash: `hash-${Math.random().toString(36).slice(2)}`,
 		filePath: "src/index.ts",
 		startLine: 1,
 		endLine: 10,

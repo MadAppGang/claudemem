@@ -92,8 +92,7 @@ export function walkFiles(root: string, opts: WalkOptions): WalkEntry[] {
 
 				// Check extension filter if specified
 				if (onlyExtensions !== undefined) {
-					const ext =
-						"." + (entry.name as string).split(".").pop()?.toLowerCase();
+					const ext = `.${(entry.name as string).split(".").pop()?.toLowerCase()}`;
 					if (!onlyExtensions.has(ext)) {
 						continue;
 					}

@@ -375,7 +375,7 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 					response += `\n`;
 					response += `Score: ${(r.score * 100).toFixed(1)}% (vector: ${(r.vectorScore * 100).toFixed(0)}%, keyword: ${(r.keywordScore * 100).toFixed(0)}%)\n`;
 					response += `ID: \`${chunk.id.slice(0, 12)}...\`\n\n`;
-					response += "```" + chunk.language + "\n";
+					response += `\`\`\`${chunk.language}\n`;
 					response += chunk.content.slice(0, 1000);
 					if (chunk.content.length > 1000) response += "\n// ... truncated";
 					response += "\n```\n\n";

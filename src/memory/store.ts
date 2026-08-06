@@ -179,7 +179,7 @@ export class MemoryStore {
  * Write a file atomically: write to temp, then rename.
  */
 function atomicWriteFile(filePath: string, content: string): void {
-	const tmpPath = filePath + `.tmp-${randomBytes(6).toString("hex")}`;
+	const tmpPath = `${filePath}.tmp-${randomBytes(6).toString("hex")}`;
 	writeFileSync(tmpPath, content, "utf-8");
 	renameSync(tmpPath, filePath);
 }

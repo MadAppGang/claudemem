@@ -281,22 +281,26 @@ export class TestCaseSelector {
 			// ES imports
 			const importRegex =
 				/import\s+(?:(?:\{[^}]+\}|[^{}\s]+)\s+from\s+)?['"]([^'"]+)['"]/g;
-			let match;
-			while ((match = importRegex.exec(content)) !== null) {
+			let match = importRegex.exec(content);
+			while (match !== null) {
 				imports.push(match[1]);
+				match = importRegex.exec(content);
 			}
 
 			// Require statements
 			const requireRegex = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
-			while ((match = requireRegex.exec(content)) !== null) {
+			match = requireRegex.exec(content);
+			while (match !== null) {
 				imports.push(match[1]);
+				match = requireRegex.exec(content);
 			}
 		} else if (language === "python") {
 			// Python imports
 			const importRegex = /(?:from\s+(\S+)\s+import|import\s+(\S+))/g;
-			let match;
-			while ((match = importRegex.exec(content)) !== null) {
+			let match = importRegex.exec(content);
+			while (match !== null) {
 				imports.push(match[1] || match[2]);
+				match = importRegex.exec(content);
 			}
 		}
 

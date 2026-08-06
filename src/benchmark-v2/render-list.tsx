@@ -8,9 +8,9 @@
  * Extracted into a .tsx file so JSX can be used. Called from cli.ts.
  */
 
+import { join } from "node:path";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
-import { join } from "node:path";
 import type { BenchmarkRunSummary } from "../tui/components/command/BenchmarkList.js";
 import { BenchmarkListApp } from "../tui/components/command/BenchmarkList.js";
 import type { BenchmarkDatabase } from "./storage/benchmark-db.js";

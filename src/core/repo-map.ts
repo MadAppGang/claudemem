@@ -331,7 +331,7 @@ export class RepoMapGenerator {
 
 			// Truncate very long signatures
 			if (sig.length > 100) {
-				sig = sig.slice(0, 97) + "...";
+				sig = `${sig.slice(0, 97)}...`;
 			}
 
 			return `${prefix}${sig}`;

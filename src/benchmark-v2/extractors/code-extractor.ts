@@ -8,8 +8,8 @@
 import { createHash } from "node:crypto";
 import { readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { minimatch } from "minimatch";
 import { extname, join, relative } from "node:path";
+import { minimatch } from "minimatch";
 
 import {
 	type CodeUnitExtractor,

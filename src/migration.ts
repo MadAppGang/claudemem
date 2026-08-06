@@ -164,7 +164,7 @@ function updateGitignore(projectPath: string, silent = false): void {
 	if (changed) {
 		try {
 			// Ensure content ends with a single newline
-			const content = lines.join("\n").replace(/\n+$/, "") + "\n";
+			const content = `${lines.join("\n").replace(/\n+$/, "")}\n`;
 			writeFileSync(gitignorePath, content, "utf-8");
 			if (!silent) {
 				process.stderr.write(

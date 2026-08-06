@@ -312,7 +312,7 @@ export class PatternHasher {
 
 		// Add safe metadata
 		if (data.automationPotential !== undefined) {
-			anonymized.metadata["automationBucket"] = this.bucketPercent(
+			anonymized.metadata.automationBucket = this.bucketPercent(
 				data.automationPotential,
 			);
 		}

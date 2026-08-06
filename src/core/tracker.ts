@@ -1204,16 +1204,15 @@ export class FileTracker implements IFileTracker {
 	 * Get symbols by name (with optional kind filter)
 	 */
 	getSymbolByName(name: string, kind?: SymbolKind): SymbolDefinition[] {
-		let stmt;
 		let rows: Array<Record<string, unknown>>;
 
 		if (kind) {
-			stmt = this.db.prepare(
+			const stmt = this.db.prepare(
 				"SELECT * FROM symbols WHERE name = ? AND kind = ?",
 			);
 			rows = stmt.all(name, kind) as Array<Record<string, unknown>>;
 		} else {
-			stmt = this.db.prepare("SELECT * FROM symbols WHERE name = ?");
+			const stmt = this.db.prepare("SELECT * FROM symbols WHERE name = ?");
 			rows = stmt.all(name) as Array<Record<string, unknown>>;
 		}
 

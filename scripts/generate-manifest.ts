@@ -89,5 +89,5 @@ const checksums = Object.entries(PLATFORM_MAP)
 	)
 	.join("\n");
 
-writeFileSync(checksumsPath, checksums + "\n");
+writeFileSync(checksumsPath, `${checksums}\n`);
 console.log("\nGenerated checksums.txt");

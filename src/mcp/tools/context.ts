@@ -48,7 +48,7 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 				const allSymbols = tracker.getAllSymbols();
 				const atLocation = allSymbols.filter(
 					(s) =>
-						(s.filePath === file || s.filePath.endsWith("/" + file)) &&
+						(s.filePath === file || s.filePath.endsWith(`/${file}`)) &&
 						s.startLine <= (line ?? 1) &&
 						s.endLine >= (line ?? 1),
 				);
@@ -83,7 +83,7 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 
 				// Gather file-level imports by collecting callees from file symbols
 				const fileSymbols = allSymbols.filter(
-					(s) => s.filePath === file || s.filePath.endsWith("/" + file),
+					(s) => s.filePath === file || s.filePath.endsWith(`/${file}`),
 				);
 				const importSet = new Set<string>();
 				for (const sym of fileSymbols) {
@@ -91,7 +91,7 @@ export function registerContextTools(server: McpServer, deps: ToolDeps): void {
 					for (const callee of symCallees) {
 						if (
 							callee.filePath !== file &&
-							!callee.filePath.endsWith("/" + file)
+							!callee.filePath.endsWith(`/${file}`)
 						) {
 							importSet.add(callee.filePath);
 						}

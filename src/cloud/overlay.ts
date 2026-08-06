@@ -265,7 +265,7 @@ export class OverlayIndex implements IOverlayIndex {
 	private writeFingerprint(dirtyFiles: DirtyFile[]): void {
 		const fingerprint = this.computeFingerprint(dirtyFiles);
 		try {
-			writeFileSync(this.fingerprintPath, fingerprint + "\n", "utf8");
+			writeFileSync(this.fingerprintPath, `${fingerprint}\n`, "utf8");
 		} catch {
 			// Non-fatal — next isStale() call will recompute
 		}

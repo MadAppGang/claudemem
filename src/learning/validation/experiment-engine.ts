@@ -294,7 +294,8 @@ export class ExperimentEngine {
 		return items.reduce(
 			(groups, item) => {
 				const key = keyGetter(item);
-				(groups[key] = groups[key] ?? []).push(item);
+				groups[key] = groups[key] ?? [];
+				groups[key].push(item);
 				return groups;
 			},
 			{} as Record<string, T[]>,

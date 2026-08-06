@@ -62,7 +62,7 @@ function SymbolRow({
 				{kind}
 			</text>
 			<text fg={theme.muted} width={8}>
-				{":" + line}
+				{`:${line}`}
 			</text>
 			<ScoreBar score={normalizedScore} width={8} showPercent={false} />
 			<text fg={theme.dimmed}> {formatPageRank(pagerankScore)}</text>
@@ -99,11 +99,11 @@ function FileRow({
 				{filePath}
 			</text>
 			<text fg={theme.muted} width={12}>
-				{symbolCount + " sym"}
+				{`${symbolCount} sym`}
 			</text>
 			<ScoreBar score={normalizedAgg} width={8} showPercent={false} />
 			<text fg={theme.dimmed}>
-				{" agg:" + formatPageRank(aggregatePageRank)}
+				{` agg:${formatPageRank(aggregatePageRank)}`}
 			</text>
 		</box>
 	);
@@ -150,7 +150,7 @@ export function SymbolTree({
 
 						{isExpanded &&
 							entry.symbols.map((sym) => (
-								<box key={entry.filePath + ":" + sym.name + ":" + sym.line}>
+								<box key={`${entry.filePath}:${sym.name}:${sym.line}`}>
 									<SymbolRow
 										name={sym.name}
 										kind={sym.kind}

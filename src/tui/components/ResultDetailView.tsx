@@ -727,7 +727,7 @@ export function ResultDetailView({
 		const lines: Array<{ text: string; fg: string; indent: number }> = [];
 		for (const part of parts) {
 			if (part.label) {
-				lines.push({ text: part.label + ":", fg: theme.info, indent: 4 });
+				lines.push({ text: `${part.label}:`, fg: theme.info, indent: 4 });
 			}
 			for (const line of part.lines) {
 				lines.push({

@@ -223,7 +223,7 @@ export function generateOptimizedContext(
 	];
 	const compactSkill =
 		allItems.length > 0
-			? allItems.join(". ") + "."
+			? `${allItems.join(". ")}.`
 			: "No specific context rules defined.";
 
 	// Calculate scores

@@ -117,12 +117,10 @@ export function MetricsTable({
 	});
 
 	// Build header row string
-	const headerStr =
-		"  " + columns.map((col) => pad(col.header, col.width)).join(" ");
+	const headerStr = `  ${columns.map((col) => pad(col.header, col.width)).join(" ")}`;
 
 	// Build separator row string
-	const separatorStr =
-		"  " + columns.map((col) => "─".repeat(col.width - 1)).join(" ");
+	const separatorStr = `  ${columns.map((col) => "─".repeat(col.width - 1)).join(" ")}`;
 
 	return (
 		<box flexDirection="column">

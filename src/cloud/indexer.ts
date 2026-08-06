@@ -400,7 +400,7 @@ export class CloudAwareIndexer {
 						contentHash: doc.id,
 						docType: doc.documentType,
 						content: doc.content,
-						llmModel: (doc.metadata?.["llmModel"] as string) ?? "unknown",
+						llmModel: (doc.metadata?.llmModel as string) ?? "unknown",
 					});
 				}
 			} catch {

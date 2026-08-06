@@ -453,7 +453,7 @@ export class SymbolExtractor {
 				i++
 			) {
 				const nextLine = lines[i].trim();
-				sig += " " + nextLine;
+				sig += ` ${nextLine}`;
 				if (sig.includes("{") || sig.endsWith(")") || sig.endsWith(":")) {
 					break;
 				}

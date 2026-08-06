@@ -547,13 +547,13 @@ function sanitizeCodeContent(content: string): string {
 		sanitized = sanitized.replace(pattern, (match) => {
 			// Insert a zero-width space to break the pattern without changing appearance much
 			if (match.startsWith("<")) {
-				return "<\u200B" + match.slice(1);
+				return `<\u200B${match.slice(1)}`;
 			}
 			if (match.startsWith("[")) {
-				return "[\u200B" + match.slice(1);
+				return `[\u200B${match.slice(1)}`;
 			}
 			// For role markers, prefix with a comment indicator
-			return "# " + match;
+			return `# ${match}`;
 		});
 	}
 
@@ -573,10 +573,10 @@ function truncateContent(content: string, maxChars: number): string {
 	const lastNewline = truncated.lastIndexOf("\n");
 
 	if (lastNewline > maxChars * 0.8) {
-		return truncated.slice(0, lastNewline) + "\n// ... truncated";
+		return `${truncated.slice(0, lastNewline)}\n// ... truncated`;
 	}
 
-	return truncated + "\n// ... truncated";
+	return `${truncated}\n// ... truncated`;
 }
 
 /**

@@ -62,7 +62,7 @@ function DeadCodePane({ results, selectedIndex }: DeadCodePaneProps) {
 					const { symbol } = item;
 					const filePart =
 						symbol.filePath.length > 30
-							? "..." + symbol.filePath.slice(-27)
+							? `...${symbol.filePath.slice(-27)}`
 							: symbol.filePath;
 					return (
 						<box key={symbol.id} flexDirection="row" paddingLeft={1} height={1}>
@@ -258,11 +258,11 @@ function ImpactPane({
 							.filter((r) => r.depth > 1)
 							.map((r) => (
 								<box
-									key={r.symbol.id + ":" + r.depth}
+									key={`${r.symbol.id}:${r.depth}`}
 									paddingLeft={1}
 									height={1}
 								>
-									<text fg={theme.dimmed}>{"  ".repeat(r.depth) + "--> "}</text>
+									<text fg={theme.dimmed}>{`${"  ".repeat(r.depth)}--> `}</text>
 									<text fg={theme.text} width={28}>
 										{r.symbol.name}
 									</text>

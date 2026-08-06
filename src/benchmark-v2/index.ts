@@ -1039,6 +1039,7 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 	const innerWidth = panelWidth - 4; // borders + padding
 
 	const pad = (s: string) => {
+		// biome-ignore lint/suspicious/noControlCharactersInRegex: \x1b is intentional — this matches ANSI terminal escape sequences
 		const stripped = s.replace(/\x1b\[[0-9;]*m/g, "");
 		const remain = innerWidth - stripped.length;
 		return remain > 0 ? s + " ".repeat(remain) : s;
@@ -1182,7 +1183,7 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 				const label = phaseLabels[currentPhase] || currentPhase;
 				const skipReason = phaseSkipReasons.get(currentPhase);
 				// Clear the "starting..." line and show skipped
-				process.stdout.write("\r" + " ".repeat(60) + "\r"); // Clear line
+				process.stdout.write(`\r${" ".repeat(60)}\r`); // Clear line
 				if (skipReason) {
 					console.log(
 						`${c.dim}⏱ ${elapsedStr} │ ${label}: skipped (${skipReason})${c.reset}`,
@@ -1211,7 +1212,7 @@ export async function runBenchmarkCLI(args: string[]): Promise<void> {
 						}
 						const truncated =
 							errText.length > maxErrWidth
-								? errText.slice(0, maxErrWidth - 1) + "…"
+								? `${errText.slice(0, maxErrWidth - 1)}…`
 								: errText;
 						console.log(`${c.dim}      ${truncated}${c.reset}`);
 					}
