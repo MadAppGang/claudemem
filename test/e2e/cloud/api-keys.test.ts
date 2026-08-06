@@ -30,6 +30,9 @@ const BASE_URL = `http://localhost:${PORT}`;
 // committed test (it leaks the credential to git history and every fork).
 const NEON_DB_URL = process.env.NEON_DB_URL ?? process.env.DATABASE_URL ?? "";
 
+/** See setup.ts — these suites need a real PostgreSQL instance. */
+const HAS_CLOUD_DB = NEON_DB_URL.length > 0;
+
 const PROJECT_ROOT = join(import.meta.dir, "../../..");
 const SCHEMA_PATH = join(PROJECT_ROOT, "src/cloud/server/schema.sql");
 
@@ -97,7 +100,7 @@ function apiRequest(
 		"X-Mnemex-Version": "1",
 		"Content-Type": "application/json",
 	};
-	if (opts.apiKey) headers["Authorization"] = `Bearer ${opts.apiKey}`;
+	if (opts.apiKey) headers.Authorization = `Bearer ${opts.apiKey}`;
 	return fetch(`${BASE_URL}${path}`, {
 		method: opts.method ?? "GET",
 		headers,
@@ -126,7 +129,14 @@ function fakeHash(n: number): string {
 // Test suite
 // ============================================================================
 
-describe("E2E: API key management", () => {
+if (!HAS_CLOUD_DB) {
+	console.warn(
+		'[cloud-e2e] Skipping "E2E: API key management" — no NEON_DB_URL/DATABASE_URL set.\n' +
+			"           Run with: NEON_DB_URL=postgres://… bun test test/e2e/cloud",
+	);
+}
+
+describe.skipIf(!HAS_CLOUD_DB)("E2E: API key management", () => {
 	let ctx: AuthTestContext;
 
 	beforeAll(async () => {

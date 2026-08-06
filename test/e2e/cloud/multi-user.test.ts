@@ -36,13 +36,20 @@ import {
 	syntheticVector,
 } from "./helpers/multi-user-factory.js";
 import { TraceCollector } from "./helpers/trace-collector.js";
-import { startTestInfra, type TestContext } from "./setup.js";
+import {
+	HAS_CLOUD_DB,
+	startTestInfra,
+	type TestContext,
+	warnCloudDbMissing,
+} from "./setup.js";
 
 // ============================================================================
 // Test suite
 // ============================================================================
 
-describe("E2E: Multi-user scenarios", () => {
+if (!HAS_CLOUD_DB) warnCloudDbMissing("E2E: Multi-user scenarios");
+
+describe.skipIf(!HAS_CLOUD_DB)("E2E: Multi-user scenarios", () => {
 	let ctx: TestContext;
 
 	beforeAll(async () => {
