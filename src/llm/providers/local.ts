@@ -65,6 +65,29 @@ let lmsCacheTime = 0;
 const LMS_CACHE_TTL = 60000; // 1 minute TTL
 
 /**
+ * Warn once if the LM Studio SDK cannot be used.
+ *
+ * mnemex pins zod to 4.x, but @lmstudio/sdk declares zod ^3.22.4 and throws on
+ * client construction under zod 4. Only the two model-metadata helpers below
+ * use that SDK — LM Studio chat goes through the OpenAI-compatible endpoint and
+ * is unaffected. The visible consequence is missing model parameter sizes in
+ * benchmark reports. Warn rather than fail silently, so an absent size is not
+ * mistaken for a measurement.
+ */
+let lmsSdkWarned = false;
+function warnLMStudioSdkUnavailable(err: unknown): void {
+	if (process.env.DEBUG_MODEL_SIZE) {
+		console.error(`[lmstudio-sdk] ${err}`);
+	}
+	if (lmsSdkWarned) return;
+	lmsSdkWarned = true;
+	console.warn(
+		"⚠️  LM Studio SDK unavailable — model parameter sizes will be omitted. " +
+			"LM Studio chat is unaffected. Set DEBUG_MODEL_SIZE=1 for details.",
+	);
+}
+
+/**
  * Parse parameter size string to number in billions.
  * E.g., "70B" → 70, "7.6B" → 7.6, "400M" → 0.4
  */
@@ -161,9 +184,7 @@ async function getLMStudioModelSizeMap(): Promise<Map<string, string>> {
 
 		return map;
 	} catch (e) {
-		if (process.env.DEBUG_MODEL_SIZE) {
-			console.error(`[getLMStudioModelSizeMap] SDK error: ${e}`);
-		}
+		warnLMStudioSdkUnavailable(e);
 		return new Map();
 	}
 }
@@ -247,9 +268,7 @@ async function getLMStudioModelInfo(
 
 		return info;
 	} catch (e) {
-		if (process.env.DEBUG_MODEL_SIZE === "1") {
-			console.error(`[getLMStudioModelInfo] Error: ${e}`);
-		}
+		warnLMStudioSdkUnavailable(e);
 		return undefined;
 	}
 }

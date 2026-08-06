@@ -20,8 +20,8 @@
 		"install-global": "bun run build && npm link",
 		"postinstall": "node scripts/postinstall.cjs || true",
 		"typecheck": "tsc --noEmit",
-		"lint": "biome check .",
-		"format": "biome format --write .",
+		"lint": "biome check src test tests scripts",
+		"format": "biome format --write src test tests scripts",
 		"test": "bun test",
 		"test:integration": "bun test test/integration",
 		"test:watch": "bun test --watch",
@@ -43,7 +43,7 @@
 		"postgres": "^3.4.9",
 		"react": "^19.2.8",
 		"web-tree-sitter": "^0.26.11",
-		"zod": "^3.25.76"
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.7",
@@ -92,7 +92,10 @@
 		"ws": "^8.21.2",
 		"fast-uri": "^3.1.5",
 		"ajv": "^8.20.0",
-		"zod": "^3.25.76",
+		"zod": "^4.4.3",
+		"@lmstudio/sdk": {
+			"zod": "^3.25.76"
+		},
 		"sharp": "^0.35.3"
 	}
 }
