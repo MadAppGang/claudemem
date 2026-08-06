@@ -1,7 +1,26 @@
 # ADR-004: Cognitive Codebase Memory with Session Enrichment
 
-**Status:** Proposed
+**Status:** Superseded by [ADR-005](005-retrieval-first-memory.md)
 **Date:** 2026-03-04
+**Superseded:** 2026-08-06
+
+---
+
+> ## ⚠️ Correction notice (2026-08-06)
+>
+> The research basis of this ADR was re-verified against primary sources on 2026-08-06. **The body below is preserved unchanged** as a record of what was believed on 2026-03-04. Four of its numbered findings do not survive verification:
+>
+> | Finding | Status | What the evidence actually says |
+> |---|---|---|
+> | **F1** — no production coding tool learns across sessions | **False as of 2026** | Claude Code ships auto memory on by default; GitHub ships Copilot Memory with code citations re-validated against the current branch; `claude-mem` (46.1K stars) and `agentmemory` (26.6K stars, Node/TS) both ship session-observation memory |
+> | **F2** — arXiv 2602.11988 shows 0.5–8.3pp degradation | **Partly fabricated** | The paper is real (ETH Zurich, *Evaluating AGENTS.md*) and −0.5pp on SWE-bench Lite is confirmed, but **"8.3pp" does not appear in it**. Verified per-model deltas are all within ±1–2pp, and the paper reports no CIs or significance tests. On 300 instances, −0.5pp is 1.5 instances — an honest reading is a null result, not a harm result. The correct citation for quality gating is SkillsBench (arXiv 2602.12670) |
+> | **F4** — ACT-R gives a 37× recency advantage | **Not supported** | The 37× is a worked example from MuninnDB's own benchmarks, not an ablation against a no-decay baseline. Five isolating ablations published since are neutral-to-negative, including Microsoft (arXiv 2605.08538) measuring recency at **AUC 0.51 — chance** as a relevance predictor on a *software issue* corpus. Decay's demonstrated value is store-size control, not ranking quality |
+> | **F5** — Hebbian co-access | **Half supported** | HeLa-Mem (arXiv 2604.16839, ACL 2026) ablates the same mechanism: spreading activation is worth −1.7 to −2.2 F1 when removed (supported), but removing the *forgetting* half **improved** all four categories (contradicted) |
+>
+> Findings 3, 6 and 7 stand. The two-layer framing stands. The cognitive-primitive roadmap (Phases 1, 6, 7) does not.
+>
+> Full re-verification with ~110 primary sources: [`docs/agentic-memory-research-2026.md`](../agentic-memory-research-2026.md).
+> Replacement decision: [ADR-005](005-retrieval-first-memory.md).
 
 ---
 
