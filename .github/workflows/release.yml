@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -112,7 +112,7 @@ jobs:
     # Configure at: https://www.npmjs.com/package/mnemex/access (Trusted Publishers)
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -192,7 +192,7 @@ jobs:
           echo "linux_x64_sha=$LINUX_X64_SHA" >> $GITHUB_OUTPUT
 
       - name: Checkout tap repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: MadAppGang/homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
