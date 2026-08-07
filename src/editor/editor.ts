@@ -264,9 +264,17 @@ export class SymbolEditor {
 				stdio: "ignore",
 				detached: true,
 			});
+			// spawn() reports a missing executable ASYNCHRONOUSLY via an 'error'
+			// event — it does not throw — so the catch below never sees ENOENT.
+			// Without a listener Node re-raises it as an unhandled 'error' and
+			// takes the process down, which defeats the best-effort intent: the
+			// edit itself succeeded and only the follow-up reindex is missing.
+			// Happens whenever mnemex is not on PATH (library use, npx, a dev
+			// checkout without `npm link`, CI).
+			child.on("error", () => {});
 			child.unref();
 		} catch {
-			// Best-effort: if mnemex binary isn't available, skip
+			// Synchronous spawn failures (e.g. unusable cwd) — also best-effort.
 		}
 	}
 }

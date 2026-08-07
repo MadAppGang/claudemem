@@ -115,6 +115,15 @@ export class DebounceReindexer {
 				stdio: "ignore",
 			});
 
+			// A missing `mnemex` on PATH surfaces as an async 'error' event, not a
+			// throw. Unhandled, Node re-raises it and kills the MCP server over a
+			// background reindex that is explicitly best-effort.
+			child.on("error", (err) => {
+				this.logger.debug(
+					`DebounceReindexer: could not spawn mnemex (${err.message}) — skipping background reindex`,
+				);
+			});
+
 			child.unref();
 
 			this.logger.debug(
