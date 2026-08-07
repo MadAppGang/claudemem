@@ -12,8 +12,8 @@
 import { existsSync, mkdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import {
-	type ReactNode,
 	createContext,
+	type ReactNode,
 	useCallback,
 	useContext,
 	useRef,
@@ -21,8 +21,8 @@ import {
 } from "react";
 import { getIndexVersion, needsUpgrade } from "../core/index-version.js";
 import { Indexer } from "../core/indexer.js";
-import { ProgressStore } from "../output/progress-store.js";
 import { FileTracker } from "../core/tracker.js";
+import { ProgressStore } from "../output/progress-store.js";
 import {
 	type ActivityRecord,
 	useActivityMonitor,
@@ -203,9 +203,7 @@ export function AppProvider({
 			.catch((err: unknown) => {
 				store.finish();
 				setIndexing(false);
-				setError(
-					err instanceof Error ? err.message : "Indexing failed",
-				);
+				setError(err instanceof Error ? err.message : "Indexing failed");
 			});
 	}, [indexing, projectPath]);
 

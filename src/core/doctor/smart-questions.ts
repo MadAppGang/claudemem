@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { FileTracker } from "../tracker.js";
-import type { DoctorResult, ContextFileDiagnosis } from "./types.js";
+import type { DoctorResult } from "./types.js";
 
 export interface SmartQuestion {
 	key: "nonDiscoverable" | "gotchas" | "buildCommands" | "neverDo";

@@ -5,7 +5,7 @@
  * Lazy-loads the indexer on first search to avoid startup overhead.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SearchResult } from "../../types.js";
 
 // ============================================================================
@@ -69,7 +69,7 @@ export function useSearch(projectPath: string): UseSearchReturn {
 				});
 
 				// Sort results
-				let sorted = [...rawResults];
+				const sorted = [...rawResults];
 				if (sortOrder === "file") {
 					sorted.sort((a, b) =>
 						a.chunk.filePath.localeCompare(b.chunk.filePath),

@@ -13,34 +13,34 @@
  *  - Respects limit
  */
 
-import { describe, test, expect, beforeEach } from "bun:test";
-import type {
-	ICloudIndexClient,
-	IOverlayIndex,
-	IChangeDetector,
-	ChangedFile,
-	DirtyFile,
-	CloudSearchResult,
-	CloudSearchRequest,
-	ChunkCheckResult,
-	UploadIndexRequest,
-	UploadIndexResponse,
-	CommitStatus,
-	RegisterRepoRequest,
-	RegisterRepoResponse,
-	CloudSymbol,
-	CloudCallerResult,
-	CloudCalleeResult,
-} from "../../../src/cloud/types.js";
-import type {
-	SearchResult,
-	IEmbeddingsClient,
-	EmbedResult,
-} from "../../../src/types.js";
+import { beforeEach, describe, expect, test } from "bun:test";
 import {
 	CloudAwareSearch,
 	createCloudAwareSearch,
 } from "../../../src/cloud/search.js";
+import type {
+	ChangedFile,
+	ChunkCheckResult,
+	CloudCalleeResult,
+	CloudCallerResult,
+	CloudSearchRequest,
+	CloudSearchResult,
+	CloudSymbol,
+	CommitStatus,
+	DirtyFile,
+	IChangeDetector,
+	ICloudIndexClient,
+	IOverlayIndex,
+	RegisterRepoRequest,
+	RegisterRepoResponse,
+	UploadIndexRequest,
+	UploadIndexResponse,
+} from "../../../src/cloud/types.js";
+import type {
+	EmbedResult,
+	IEmbeddingsClient,
+	SearchResult,
+} from "../../../src/types.js";
 
 // ============================================================================
 // Stub helpers

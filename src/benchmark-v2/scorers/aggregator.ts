@@ -5,27 +5,25 @@
  * Handles weighted combinations, normalization, and statistics.
  */
 
-import type {
-	EvaluationResult,
-	JudgeScores,
-	AggregatedScore,
-	ModelScore,
-	BenchmarkConfig,
-	ScoringConfig,
-	GeneratedSummary,
-	PairwiseResult,
-} from "../types.js";
-import type { AggregatedRetrievalMetrics } from "../evaluators/retrieval/index.js";
-import { aggregateRetrievalResults } from "../evaluators/retrieval/index.js";
-import { aggregateTournamentResults } from "../evaluators/judge/pairwise.js";
-import {
-	aggregateSelfEvaluationResults,
-	type SelfEvaluationMetrics,
-} from "../evaluators/self/index.js";
 import {
 	aggregateIterativeResults,
 	type IterativeMetrics,
 } from "../evaluators/iterative/index.js";
+import { aggregateTournamentResults } from "../evaluators/judge/pairwise.js";
+import type { AggregatedRetrievalMetrics } from "../evaluators/retrieval/index.js";
+import { aggregateRetrievalResults } from "../evaluators/retrieval/index.js";
+import {
+	aggregateSelfEvaluationResults,
+	type SelfEvaluationMetrics,
+} from "../evaluators/self/index.js";
+import type {
+	AggregatedScore,
+	BenchmarkConfig,
+	EvaluationResult,
+	GeneratedSummary,
+	PairwiseResult,
+	ScoringConfig,
+} from "../types.js";
 
 // ============================================================================
 // Types
@@ -495,7 +493,7 @@ export class ScoreAggregator {
 					2
 				: sorted[Math.floor(validValues.length / 2)];
 
-		const squaredDiffs = validValues.map((v) => Math.pow(v - mean, 2));
+		const squaredDiffs = validValues.map((v) => (v - mean) ** 2);
 		const variance =
 			squaredDiffs.reduce((a, b) => a + b, 0) / validValues.length;
 		const stdDev = Math.sqrt(variance);

@@ -8,17 +8,15 @@
 export {
 	AuthenticationError,
 	BaseDocProvider,
+	calculateBackoff,
 	LibraryNotFoundError,
 	RateLimitError,
-	calculateBackoff,
 	withRetry,
 } from "./base.js";
 
 // Context7 provider
 export { Context7Provider, createContext7Provider } from "./context7.js";
-
-// llms.txt provider
-export { LlmsTxtProvider, createLlmsTxtProvider } from "./llms-txt.js";
-
 // DevDocs provider
-export { DevDocsProvider, createDevDocsProvider } from "./devdocs.js";
+export { createDevDocsProvider, DevDocsProvider } from "./devdocs.js";
+// llms.txt provider
+export { createLlmsTxtProvider, LlmsTxtProvider } from "./llms-txt.js";

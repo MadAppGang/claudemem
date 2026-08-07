@@ -104,7 +104,7 @@ export function createBenchmarkProgress(itemIds: string[]) {
 			// Short display name (last part after /)
 			const shortName = itemId.split("/").pop() || itemId;
 			const displayName =
-				shortName.length > 25 ? shortName.slice(0, 22) + "..." : shortName;
+				shortName.length > 25 ? `${shortName.slice(0, 22)}...` : shortName;
 
 			// Build progress bar and status
 			const width = 20;
@@ -119,13 +119,13 @@ export function createBenchmarkProgress(itemIds: string[]) {
 				const maxErrLen = maxStatusWidth - 2; // "✗ " prefix
 				const truncatedError =
 					error.length > maxErrLen
-						? error.slice(0, maxErrLen - 1) + "…"
+						? `${error.slice(0, maxErrLen - 1)}…`
 						: error;
 				status = `${c.red}✗ ${truncatedError}${c.reset}`;
 			} else if (done) {
 				bar = `${c.green}${"█".repeat(width)}${c.reset}`;
 				percent = 100;
-				status = `${c.green}${("✓ " + phase).padEnd(20)}${c.reset}`;
+				status = `${c.green}${(`✓ ${phase}`).padEnd(20)}${c.reset}`;
 			} else if (!started) {
 				// Item is waiting to start (sequential queue)
 				bar = `${c.gray}${"░".repeat(width)}${c.reset}`;
@@ -269,7 +269,7 @@ export function createBenchmarkProgress(itemIds: string[]) {
 		/** Get elapsed time for an item in milliseconds */
 		getElapsedMs(itemId: string): number {
 			const state = itemState.get(itemId);
-			if (!state || !state.started) return 0;
+			if (!state?.started) return 0;
 			return (state.endTime || Date.now()) - state.startTime;
 		},
 	};

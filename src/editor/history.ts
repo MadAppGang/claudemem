@@ -1,11 +1,9 @@
 import {
-	mkdirSync,
-	writeFileSync,
-	readFileSync,
 	existsSync,
-	readdirSync,
+	mkdirSync,
+	readFileSync,
 	rmSync,
-	statSync,
+	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
 
@@ -206,7 +204,9 @@ export class EditHistory {
 		if (existingIndex >= 0) {
 			// Update existing session
 			const existingFiles = new Set(sessions[existingIndex].files);
-			newFiles.forEach((f) => existingFiles.add(f));
+			newFiles.forEach((f) => {
+				existingFiles.add(f);
+			});
 			sessions[existingIndex].files = Array.from(existingFiles);
 			sessions[existingIndex].createdAt = new Date().toISOString(); // Update timestamp
 		} else {

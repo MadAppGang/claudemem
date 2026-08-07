@@ -9,14 +9,14 @@
  * Navigation history with back/forward support.
  */
 
-import { useState, useEffect } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
+import { useEffect, useState } from "react";
+import type { SymbolDefinition } from "../../types.js";
+import { CodePreview } from "../components/CodePreview.js";
+import { ScoreBar } from "../components/ScoreBar.js";
 import { useAppContext } from "../context.js";
 import { useGraph } from "../hooks/useGraph.js";
-import { ScoreBar } from "../components/ScoreBar.js";
-import { CodePreview } from "../components/CodePreview.js";
-import { theme, layout } from "../theme.js";
-import type { SymbolDefinition } from "../../types.js";
+import { layout, theme } from "../theme.js";
 
 // ============================================================================
 // Types

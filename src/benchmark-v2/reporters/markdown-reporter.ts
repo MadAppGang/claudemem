@@ -5,18 +5,18 @@
  * Designed for GitHub READMEs and documentation.
  */
 
-import { writeFileSync } from "fs";
-import type {
-	BenchmarkRun,
-	BenchmarkConfig,
-	AggregatedScore,
-} from "../types.js";
+import { writeFileSync } from "node:fs";
+import { detectSameProviderBias } from "../index.js";
 import type { ModelAggregation } from "../scorers/aggregator.js";
 import type {
 	CorrelationMatrix,
 	InterRaterAgreement,
 } from "../scorers/statistics.js";
-import { detectSameProviderBias } from "../index.js";
+import type {
+	AggregatedScore,
+	BenchmarkConfig,
+	BenchmarkRun,
+} from "../types.js";
 
 // ============================================================================
 // Markdown Reporter
@@ -147,7 +147,7 @@ export class MarkdownReporter {
 | Code Units | ${run.codebaseInfo?.sampledCodeUnits || "N/A"} |
 | Total Evaluations | ${totalEvaluations} |
 | **Top Model** | **${topModel?.modelId || "N/A"}** |
-| Top Score | ${topModel ? (topModel.overallScore * 100).toFixed(1) + "%" : "N/A"} |`;
+| Top Score | ${topModel ? `${(topModel.overallScore * 100).toFixed(1)}%` : "N/A"} |`;
 	}
 
 	private generateRankingsTable(scores: AggregatedScore[]): string {

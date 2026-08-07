@@ -7,8 +7,8 @@
  * @module learning/validation/environment-manager
  */
 
-import { existsSync, mkdirSync, rmSync, cpSync } from "node:fs";
-import { join, basename } from "node:path";
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { $ } from "bun";
 
 // ============================================================================
@@ -306,7 +306,7 @@ export class GitEnvironmentManager implements EnvironmentManager {
 			.toString()
 			.split("\n")
 			.filter(Boolean)
-			.map((f: string) => f.replace(dir + "/", ""));
+			.map((f: string) => f.replace(`${dir}/`, ""));
 	}
 }
 

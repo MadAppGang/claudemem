@@ -21,8 +21,8 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-	HEARTBEAT_FRESH_TIMEOUT,
 	buildIndexState,
+	HEARTBEAT_FRESH_TIMEOUT,
 } from "../../../src/mcp/index-state.js";
 import { IndexStateManager } from "../../../src/mcp/state-manager.js";
 import type { ToolDeps } from "../../../src/mcp/tools/deps.js";

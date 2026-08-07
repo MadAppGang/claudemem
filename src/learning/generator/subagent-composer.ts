@@ -12,12 +12,12 @@
  * - Safety constraints
  */
 
+import type { ErrorCluster } from "../analysis/error-clusterer.js";
 import type {
 	DetectedPattern,
 	Improvement,
 	ImprovementData,
 } from "../interaction/types.js";
-import type { ErrorCluster } from "../analysis/error-clusterer.js";
 
 // ============================================================================
 // Types
@@ -357,7 +357,6 @@ export class SubagentComposer {
 					"3. Escalate to user if fix requires confirmation",
 				);
 				break;
-			case "assistant":
 			default:
 				lines.push(
 					"1. Monitor for error conditions",

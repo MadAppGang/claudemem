@@ -8,15 +8,16 @@
 import type {
 	BaseDocument,
 	CodeChunk,
-	Document,
 	DocumentType,
 	EnrichmentProgressCallback,
 	ExtractionContext,
-	IDocumentExtractor,
 	ILLMClient,
 } from "../../types.js";
-import { DependencyGraph, createDependencyGraph } from "./dependency-graph.js";
-import { ExtractorRegistry } from "./extractors/base.js";
+import {
+	createDependencyGraph,
+	type DependencyGraph,
+} from "./dependency-graph.js";
+import type { ExtractorRegistry } from "./extractors/base.js";
 
 // ============================================================================
 // Types

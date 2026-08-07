@@ -15,13 +15,12 @@
  *   Main:  ResultList (scrollable)
  */
 
-import { useState, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
+import { useEffect, useState } from "react";
+import { ResultDetailView } from "../components/ResultDetailView.js";
+import { ResultList } from "../components/ResultList.js";
 import { useAppContext } from "../context.js";
 import { useSearch } from "../hooks/useSearch.js";
-
-import { ResultList } from "../components/ResultList.js";
-import { ResultDetailView } from "../components/ResultDetailView.js";
 import { theme } from "../theme.js";
 
 // ============================================================================

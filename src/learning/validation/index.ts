@@ -12,61 +12,61 @@
 // ============================================================================
 
 export type {
+	AgentConfig,
+	AgentError,
+	// Agent response types
+	AgentResponse,
+	AggregateResults,
+	ComponentStyle,
+	// Correction types
+	CorrectionPoint,
+	CorrectionStyle,
+	CorrectionTrigger,
+	CriteriaResult,
+	ExecutionResult,
+	ExecutionStatus,
+	// Execution types
+	ExecutionTask,
+	ExperimentDecision,
+	ExperimentDecisionAction,
+	ExperimentGroup,
+	ExperimentResults,
+	// Experiment types
+	ExperimentStatus,
+	// User persona types
+	ExpertiseLevel,
+	MetricComparison,
+	PackageManager,
+	PowerAnalysisConfig,
+	// Knowledge base types
+	ProgrammingLanguage,
+	RecordedCorrection,
+	RecordedSession,
+	RunConfig,
 	// Scenario types
 	ScenarioCategory,
 	ScenarioDifficulty,
-	ValidationScenario,
-	// User persona types
-	ExpertiseLevel,
-	Verbosity,
-	CorrectionStyle,
-	UserPersona,
-	// Knowledge base types
-	ProgrammingLanguage,
-	PackageManager,
-	ComponentStyle,
 	ScenarioKnowledgeBase,
-	// Correction types
-	CorrectionPoint,
-	CorrectionTrigger,
-	// Success criteria types
-	SuccessCriterion,
+	ScenarioResults,
+	SessionMetrics,
 	// Session types
 	SessionOutcome,
-	ExperimentGroup,
-	RecordedSession,
-	ToolEvent,
-	RecordedCorrection,
-	UserResponse,
-	CriteriaResult,
-	SessionMetrics,
-	// Experiment types
-	ExperimentStatus,
-	ExperimentDecisionAction,
-	ValidationExperiment,
-	ExperimentResults,
-	AggregateResults,
-	ScenarioResults,
 	// Statistical types
 	StatisticalComparison,
-	MetricComparison,
-	ExperimentDecision,
 	StatisticalConfig,
-	PowerAnalysisConfig,
+	// Success criteria types
+	SuccessCriterion,
+	TierConfig,
+	TokenUsage,
+	ToolCall,
+	ToolEvent,
+	UserPersona,
+	UserResponse,
+	ValidationExperiment,
+	ValidationScenario,
 	// Validation tier types
 	ValidationTier,
-	TierConfig,
-	// Execution types
-	ExecutionTask,
-	RunConfig,
-	ExecutionStatus,
-	ExecutionResult,
-	// Agent response types
-	AgentResponse,
-	ToolCall,
-	AgentError,
-	TokenUsage,
-	AgentConfig,
+	Verbosity,
 } from "./types.js";
 
 export {
@@ -81,20 +81,20 @@ export {
 
 export type {
 	AgentDriver,
-	ToolExecutionResult,
-	DriverStats,
-	LocalDriverConfig,
-	HttpDriverConfig,
-	MockResponse,
-	DriverType,
 	CreateDriverOptions,
+	DriverStats,
+	DriverType,
+	HttpDriverConfig,
+	LocalDriverConfig,
+	MockResponse,
+	ToolExecutionResult,
 } from "./agent-driver.js";
 
 export {
-	LocalAgentDriver,
-	HttpAgentDriver,
-	MockAgentDriver,
 	createAgentDriver,
+	HttpAgentDriver,
+	LocalAgentDriver,
+	MockAgentDriver,
 } from "./agent-driver.js";
 
 // ============================================================================
@@ -107,8 +107,8 @@ export type {
 } from "./session-recorder.js";
 
 export {
-	SessionRecorder,
 	CriteriaEvaluator,
+	SessionRecorder,
 } from "./session-recorder.js";
 
 // ============================================================================
@@ -118,8 +118,8 @@ export {
 export type { SummaryStats } from "./validation-store.js";
 
 export {
-	ValidationStore,
 	createValidationStore,
+	ValidationStore,
 } from "./validation-store.js";
 
 // ============================================================================
@@ -127,20 +127,20 @@ export {
 // ============================================================================
 
 export type {
+	EnvironmentConfig,
+	EnvironmentInfo,
 	EnvironmentManager,
 	EnvironmentType,
-	EnvironmentInfo,
 	SnapshotInfo,
-	EnvironmentConfig,
 } from "./environment-manager.js";
 
 export {
-	TempEnvironmentManager,
-	GitEnvironmentManager,
-	DockerEnvironmentManager,
-	MockEnvironmentManager,
 	createEnvironmentManager,
+	DockerEnvironmentManager,
 	EnvironmentPool,
+	GitEnvironmentManager,
+	MockEnvironmentManager,
+	TempEnvironmentManager,
 } from "./environment-manager.js";
 
 // ============================================================================
@@ -148,12 +148,12 @@ export {
 // ============================================================================
 
 export {
-	ScenarioLibrary,
-	ScenarioBuilder,
 	createScenarioLibrary,
-	scenario,
-	PERSONAS,
 	KNOWLEDGE_BASES,
+	PERSONAS,
+	ScenarioBuilder,
+	ScenarioLibrary,
+	scenario,
 } from "./scenario-library.js";
 
 // ============================================================================
@@ -161,16 +161,16 @@ export {
 // ============================================================================
 
 export type {
-	QueryAnswer,
 	CorrectionResult,
+	QueryAnswer,
 	SyntheticResponse,
 } from "./synthetic-agent.js";
 
 export {
-	SyntheticAgent,
-	QueryHandler,
 	CorrectionInjector,
 	createSyntheticAgent,
+	QueryHandler,
+	SyntheticAgent,
 } from "./synthetic-agent.js";
 
 // ============================================================================
@@ -180,8 +180,8 @@ export {
 export type { EffectSizeInterpretation } from "./statistics-engine.js";
 
 export {
-	StatisticsEngine,
 	createStatisticsEngine,
+	StatisticsEngine,
 } from "./statistics-engine.js";
 
 // ============================================================================
@@ -189,15 +189,15 @@ export {
 // ============================================================================
 
 export type {
-	ExperimentEngineOptions,
-	ExperimentConfig,
-	ExecutorConfig,
 	DriverFactory,
+	ExecutorConfig,
+	ExperimentConfig,
+	ExperimentEngineOptions,
 } from "./experiment-engine.js";
 
 export {
+	createExperimentEngine,
+	DecisionEngine,
 	ExperimentEngine,
 	ParallelExecutor,
-	DecisionEngine,
-	createExperimentEngine,
 } from "./experiment-engine.js";

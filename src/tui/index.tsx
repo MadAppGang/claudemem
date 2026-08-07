@@ -4,9 +4,9 @@
  * Initializes the terminal renderer and mounts the React root.
  */
 
+import { resolve } from "node:path";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
-import { resolve } from "node:path";
 import { App } from "./App.js";
 import { MonitorApp } from "./MonitorApp.js";
 
@@ -36,7 +36,7 @@ export async function startTUI(projectPath?: string): Promise<void> {
 	// is complete, so process.exit(0) here is safe.
 	const renderer = await createCliRenderer({
 		exitOnCtrlC: true,
-		useAlternateScreen: true,
+		screenMode: "alternate-screen",
 		onDestroy: () => {
 			process.exit(0);
 		},
@@ -71,7 +71,7 @@ export async function startMonitor(projectPath?: string): Promise<void> {
 
 	const renderer = await createCliRenderer({
 		exitOnCtrlC: true,
-		useAlternateScreen: true,
+		screenMode: "alternate-screen",
 		onDestroy: () => {
 			process.exit(0);
 		},

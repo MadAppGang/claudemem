@@ -11,11 +11,11 @@ import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
-	writeFileSync,
 	unlinkSync,
+	writeFileSync,
 } from "node:fs";
-import { join, dirname, sep } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 // ============================================================================
 // Types
@@ -363,7 +363,7 @@ export class OpenCodeIntegrationManager {
 		// Write updated config
 		writeFileSync(
 			this.configPath,
-			JSON.stringify(config, null, 2) + "\n",
+			`${JSON.stringify(config, null, 2)}\n`,
 			"utf-8",
 		);
 	}
@@ -387,7 +387,7 @@ export class OpenCodeIntegrationManager {
 
 			writeFileSync(
 				this.configPath,
-				JSON.stringify(config, null, 2) + "\n",
+				`${JSON.stringify(config, null, 2)}\n`,
 				"utf-8",
 			);
 		} catch {

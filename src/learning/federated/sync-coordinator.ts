@@ -447,7 +447,7 @@ export class SyncCoordinator {
 		}
 
 		// Check metadata
-		if (!packet.metadata || !packet.metadata.version) {
+		if (!packet.metadata?.version) {
 			return false;
 		}
 

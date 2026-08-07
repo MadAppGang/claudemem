@@ -41,25 +41,24 @@
  * ```
  */
 
-// Tool Bandit
-export {
-	ToolBandit,
-	createToolBandit,
-	DEFAULT_BANDIT_CONFIG,
-	type ToolBanditConfig,
-	type ToolArm,
-	type ContextualArm,
-	type BanditRecommendation,
-	type BanditStatistics,
-} from "./tool-bandit.js";
-
 // Context Encoder
 export {
 	ContextEncoder,
+	type ContextEncoderConfig,
+	type ContextFeature,
 	createContextEncoder,
 	DEFAULT_ENCODER_CONFIG,
-	type ContextEncoderConfig,
-	type TaskContext,
 	type EncodedContext,
-	type ContextFeature,
+	type TaskContext,
 } from "./context-encoder.js";
+// Tool Bandit
+export {
+	type BanditRecommendation,
+	type BanditStatistics,
+	type ContextualArm,
+	createToolBandit,
+	DEFAULT_BANDIT_CONFIG,
+	type ToolArm,
+	ToolBandit,
+	type ToolBanditConfig,
+} from "./tool-bandit.js";

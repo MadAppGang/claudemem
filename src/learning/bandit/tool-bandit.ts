@@ -462,7 +462,7 @@ export class ToolBandit {
 		if (shape < 1) {
 			// Use transformation for shape < 1
 			const u = Math.random();
-			return this.sampleGamma(1 + shape) * Math.pow(u, 1 / shape);
+			return this.sampleGamma(1 + shape) * u ** (1 / shape);
 		}
 
 		// Marsaglia and Tsang's method

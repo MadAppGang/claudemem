@@ -8,13 +8,13 @@
  */
 
 import type {
-	ValidationScenario,
+	CorrectionPoint,
 	ScenarioCategory,
 	ScenarioDifficulty,
-	UserPersona,
 	ScenarioKnowledgeBase,
-	CorrectionPoint,
 	SuccessCriterion,
+	UserPersona,
+	ValidationScenario,
 } from "./types.js";
 
 // ============================================================================
@@ -740,7 +740,9 @@ export function createScenarioLibrary(
 	const library = new ScenarioLibrary();
 
 	if (customScenarios) {
-		customScenarios.forEach((scenario) => library.register(scenario));
+		customScenarios.forEach((scenario) => {
+			library.register(scenario);
+		});
 	}
 
 	return library;

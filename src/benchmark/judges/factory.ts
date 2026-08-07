@@ -8,9 +8,9 @@
 import { LLMResolver } from "../../llm/resolver.js";
 import type { LLMProvider } from "../../types.js";
 import type { IJudge } from "../types.js";
-import { LLMJudge } from "./llm-judge.js";
-import { ConsensusJudge, type AggregationMethod } from "./consensus-judge.js";
 import { BlindJudge } from "./blind-judge.js";
+import { type AggregationMethod, ConsensusJudge } from "./consensus-judge.js";
+import { LLMJudge } from "./llm-judge.js";
 
 // ============================================================================
 // Factory Functions

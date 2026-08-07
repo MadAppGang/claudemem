@@ -36,37 +36,37 @@
  */
 
 import type { SQLiteDatabase } from "../../core/sqlite.js";
+import {
+	createInteractionStore,
+	type InteractionStore,
+} from "./interaction-store.js";
+import { createSessionTracker, SessionTracker } from "./session-tracker.js";
+import {
+	createToolEventLogger,
+	type ToolEventLogger,
+} from "./tool-event-logger.js";
 import type { InteractionConfig } from "./types.js";
 import { DEFAULT_INTERACTION_CONFIG } from "./types.js";
-import {
-	InteractionStore,
-	createInteractionStore,
-} from "./interaction-store.js";
-import { SessionTracker, createSessionTracker } from "./session-tracker.js";
-import { ToolEventLogger, createToolEventLogger } from "./tool-event-logger.js";
 
 // ============================================================================
 // Re-exports
 // ============================================================================
 
-// Types
-export * from "./types.js";
-
 // Store
 export {
-	InteractionStore,
 	createInteractionStore,
+	InteractionStore,
 } from "./interaction-store.js";
-
 // Session Tracker
 export {
-	SessionTracker,
 	createSessionTracker,
 	type SessionState,
+	SessionTracker,
 } from "./session-tracker.js";
-
 // Tool Event Logger
-export { ToolEventLogger, createToolEventLogger } from "./tool-event-logger.js";
+export { createToolEventLogger, ToolEventLogger } from "./tool-event-logger.js";
+// Types
+export * from "./types.js";
 
 // ============================================================================
 // Convenience Factory
@@ -235,11 +235,11 @@ export function formatImprovementStats(
 
 // Re-export statistics functions from hooks for CLI access
 export {
-	getSessionStatistics,
-	getPatternStatistics,
-	getImprovementStatistics,
-	getRecentCorrections,
-	getCorrectionGapStats,
-	pruneOldData,
 	cleanupStaleSessions,
+	getCorrectionGapStats,
+	getImprovementStatistics,
+	getPatternStatistics,
+	getRecentCorrections,
+	getSessionStatistics,
+	pruneOldData,
 } from "../../hooks/handlers/interaction-logger.js";

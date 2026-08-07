@@ -5,41 +5,41 @@
  */
 
 export {
-	ScoreAggregator,
-	createScoreAggregator,
 	type AggregationInput,
-	type ModelAggregation,
-	type JudgeAggregation,
 	type ContrastiveAggregation,
-	type DownstreamAggregation,
 	type CriterionStats,
+	createScoreAggregator,
+	type DownstreamAggregation,
+	type JudgeAggregation,
+	type ModelAggregation,
 	type OverallScore,
+	ScoreAggregator,
 } from "./aggregator.js";
 
 export {
-	ScoreNormalizer,
-	createScoreNormalizer,
 	calculateConfidenceInterval,
 	calculateEffectSize,
+	createScoreNormalizer,
 	type NormalizationMethod,
 	type NormalizationOptions,
 	type NormalizedScores,
+	ScoreNormalizer,
 } from "./normalizer.js";
 
 export {
-	calculateStatistics,
-	pearsonCorrelation,
-	spearmanCorrelation,
-	calculateCorrelationMatrix,
-	pairedTTest,
-	calculateKappa,
 	analyzeInterRaterAgreement,
 	analyzeRankingStability,
-	type StatisticalSummary,
 	type CorrelationMatrix,
-	type SignificanceTest,
-	type RankingStability,
+	calculateCorrelationMatrix,
+	calculateKappa,
+	calculateStatistics,
 	type InterRaterAgreement,
+	pairedTTest,
+	pearsonCorrelation,
+	type RankingStability,
+	type SignificanceTest,
+	type StatisticalSummary,
+	spearmanCorrelation,
 } from "./statistics.js";
 
 // ============================================================================

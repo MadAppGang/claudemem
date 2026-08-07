@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { LspManager } from "../../../src/lsp/manager.js";
 
 describe("LspManager E2E", () => {

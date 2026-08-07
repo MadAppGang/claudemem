@@ -12,7 +12,7 @@
  */
 
 import { createHash } from "node:crypto";
-import type { Node, Tree } from "web-tree-sitter";
+import type { Node } from "web-tree-sitter";
 import {
 	getParserManager,
 	type ParserManager,
@@ -582,7 +582,7 @@ export class CodeUnitExtractor {
 				i++
 			) {
 				const nextLine = lines[i].trim();
-				sig += " " + nextLine;
+				sig += ` ${nextLine}`;
 				if (sig.includes("{") || sig.endsWith(")") || sig.endsWith(":")) {
 					break;
 				}
@@ -602,7 +602,7 @@ export class CodeUnitExtractor {
 
 		// Limit length
 		if (sig.length > 300) {
-			sig = sig.slice(0, 297) + "...";
+			sig = `${sig.slice(0, 297)}...`;
 		}
 
 		return sig || undefined;
@@ -634,7 +634,7 @@ export class CodeUnitExtractor {
 	 */
 	getParent(units: CodeUnit[], childId: string): CodeUnit | undefined {
 		const child = units.find((u) => u.id === childId);
-		if (!child || !child.parentId) return undefined;
+		if (!child?.parentId) return undefined;
 		return units.find((u) => u.id === child.parentId);
 	}
 

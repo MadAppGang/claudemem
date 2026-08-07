@@ -7,20 +7,19 @@
  */
 
 export {
-	TestFileDetector,
-	createTestFileDetector,
-	type TestPattern,
-	type SupportedLanguage,
-} from "./test-detector.js";
-
-export {
 	CodeAnalyzer,
 	createCodeAnalyzer,
-	type DeadCodeResult,
-	type TestGapResult,
-	type ImpactResult,
-	type ImpactAnalysis,
 	type DeadCodeOptions,
-	type TestGapOptions,
+	type DeadCodeResult,
+	type ImpactAnalysis,
 	type ImpactOptions,
+	type ImpactResult,
+	type TestGapOptions,
+	type TestGapResult,
 } from "./analyzer.js";
+export {
+	createTestFileDetector,
+	type SupportedLanguage,
+	TestFileDetector,
+	type TestPattern,
+} from "./test-detector.js";

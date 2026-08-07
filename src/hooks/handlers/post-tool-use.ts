@@ -6,9 +6,9 @@
  * - All tools: Log tool completion for interaction monitoring
  */
 
-import { existsSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
-import { join, extname } from "node:path";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { extname, join } from "node:path";
 import type { HookInput, HookOutput } from "../types.js";
 import { logToolCompletion } from "./interaction-logger.js";
 

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import {
 	existsSync,
 	mkdirSync,
@@ -8,10 +9,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
-import { ensureLineNumbers, parseRgArgs } from "../src/rg/parser";
-import { matchesPattern, mergeResults } from "../src/rg/merger";
 import { patchClaudeSettings } from "../src/rg/install";
+import { matchesPattern, mergeResults } from "../src/rg/merger";
+import { ensureLineNumbers, parseRgArgs } from "../src/rg/parser";
 import type { SearchResult } from "../src/types";
 
 // ============================================================================
@@ -447,10 +447,16 @@ describe("matchesPattern", () => {
 	test("-F / fixedStrings treats pattern as literal (no regex meta)", () => {
 		// `.` in regex matches any char; with -F it only matches a literal dot
 		expect(
-			matchesPattern("const x = 1.5;", "1.5", { ...noFlags, fixedStrings: true }),
+			matchesPattern("const x = 1.5;", "1.5", {
+				...noFlags,
+				fixedStrings: true,
+			}),
 		).toBe(true);
 		expect(
-			matchesPattern("const x = 125;", "1.5", { ...noFlags, fixedStrings: true }),
+			matchesPattern("const x = 125;", "1.5", {
+				...noFlags,
+				fixedStrings: true,
+			}),
 		).toBe(false); // would match without -F because `.` is any-char
 	});
 
@@ -470,9 +476,9 @@ describe("matchesPattern", () => {
 	});
 
 	test("-x / lineRegexp requires pattern to match entire line", () => {
-		expect(
-			matchesPattern("foo", "foo", { ...noFlags, lineRegexp: true }),
-		).toBe(true);
+		expect(matchesPattern("foo", "foo", { ...noFlags, lineRegexp: true })).toBe(
+			true,
+		);
 		expect(
 			matchesPattern("foo bar", "foo", { ...noFlags, lineRegexp: true }),
 		).toBe(false);
@@ -594,7 +600,7 @@ describe("patchClaudeSettings", () => {
 		patchClaudeSettings(false, path);
 
 		const parsed = JSON.parse(readFileSync(path, "utf-8"));
-		expect(Object.prototype.hasOwnProperty.call(parsed, "env")).toBe(false);
+		expect(Object.hasOwn(parsed, "env")).toBe(false);
 	});
 
 	test("uninstall is a no-op when USE_BUILTIN_RIPGREP not present", () => {
@@ -689,16 +695,13 @@ describe("e2e: handleRgPassthrough", () => {
 
 	test("output format is file:line:content with no ANSI codes", () => {
 		const dir = setupTmpDir({
-			"src/utils.ts":
-				"export function parseQuery(q: string) { return q; }\n",
+			"src/utils.ts": "export function parseQuery(q: string) { return q; }\n",
 		});
 		const { stdout } = runMnemexRg(
 			["--line-number", "--color=never", "parseQuery", "."],
 			dir,
 		);
-		const lines = stdout
-			.split("\n")
-			.filter((l) => l.length > 0 && l !== "--");
+		const lines = stdout.split("\n").filter((l) => l.length > 0 && l !== "--");
 		for (const line of lines) {
 			expect(line).toMatch(/^[^:]+:\d+:.+/);
 			expect(line).not.toContain("\x1b[");
@@ -768,7 +771,14 @@ describe("e2e: handleRgPassthrough", () => {
 				"export function handleSearch(q: string) {\n  return q;\n}\n",
 		});
 		const { exitCode, stdout } = runMnemexRg(
-			["--line-number", "--no-heading", "--color=never", "-i", "handlesearch", "."],
+			[
+				"--line-number",
+				"--no-heading",
+				"--color=never",
+				"-i",
+				"handlesearch",
+				".",
+			],
 			dir,
 		);
 		expect(exitCode).toBe(0);

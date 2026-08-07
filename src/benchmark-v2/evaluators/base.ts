@@ -7,9 +7,9 @@
 import type { ILLMClient } from "../../types.js";
 import type {
 	BenchmarkCodeUnit,
-	GeneratedSummary,
 	EvaluationType,
 	EvaluatorContext,
+	GeneratedSummary,
 	IEvaluator,
 } from "../types.js";
 
@@ -96,15 +96,17 @@ export abstract class BaseEvaluator<TResult> implements IEvaluator<TResult> {
 		let braces = 0;
 		let brackets = 0;
 		let inString = false;
-		let escape = false;
+		// Named `escaped` rather than `escape` — the latter shadows the global
+		// escape() function.
+		let escaped = false;
 
 		for (const char of json) {
-			if (escape) {
-				escape = false;
+			if (escaped) {
+				escaped = false;
 				continue;
 			}
 			if (char === "\\") {
-				escape = true;
+				escaped = true;
 				continue;
 			}
 			if (char === '"') {
@@ -137,7 +139,7 @@ export abstract class BaseEvaluator<TResult> implements IEvaluator<TResult> {
 	 */
 	protected truncateCode(code: string, maxLength: number = 2000): string {
 		if (code.length > maxLength) {
-			return code.slice(0, maxLength) + "\n// ... (truncated)";
+			return `${code.slice(0, maxLength)}\n// ... (truncated)`;
 		}
 		return code;
 	}

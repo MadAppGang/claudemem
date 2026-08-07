@@ -8,13 +8,13 @@
  * Extracted into a .tsx file so JSX can be used. Called from cli.ts.
  */
 
-import { join } from "path";
+import { join } from "node:path";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
-import { BenchmarkListApp } from "../tui/components/command/BenchmarkList.js";
 import type { BenchmarkRunSummary } from "../tui/components/command/BenchmarkList.js";
-import type { BenchmarkRun } from "./types.js";
+import { BenchmarkListApp } from "../tui/components/command/BenchmarkList.js";
 import type { BenchmarkDatabase } from "./storage/benchmark-db.js";
+import type { BenchmarkRun } from "./types.js";
 
 export type { BenchmarkRunSummary };
 
@@ -264,7 +264,7 @@ async function showList(
 	summaries: BenchmarkRunSummary[],
 ): Promise<string | null> {
 	const renderer = await createCliRenderer({
-		useAlternateScreen: true,
+		screenMode: "alternate-screen",
 		exitOnCtrlC: true,
 		onDestroy: () => {},
 	});

@@ -5,12 +5,12 @@
  * Keyboard: Enter to proceed.
  */
 
-import { useState, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
+import { useEffect, useState } from "react";
 import { theme } from "../../theme.js";
-import type { ScreenProps } from "../types.js";
-import { suggestModel, suggestAlternateModel } from "../hardware.js";
 import type { HardwareProfile } from "../hardware.js";
+import { suggestAlternateModel, suggestModel } from "../hardware.js";
+import type { ScreenProps } from "../types.js";
 
 // ============================================================================
 // Sub-components

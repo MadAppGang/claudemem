@@ -3,7 +3,7 @@
  */
 
 export {
-	GitHookManager,
 	createGitHookManager,
+	GitHookManager,
 	type HookStatus,
 } from "./hook-manager.js";

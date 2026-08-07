@@ -5,10 +5,10 @@
  * Supports drill-in navigation with history (back/forward).
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+import { createReferenceGraphManager } from "../../core/reference-graph.js";
 import type { FileTracker } from "../../core/tracker.js";
 import type { SymbolDefinition } from "../../types.js";
-import { createReferenceGraphManager } from "../../core/reference-graph.js";
 
 // ============================================================================
 // Types

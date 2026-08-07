@@ -10,11 +10,11 @@
  */
 
 import { useKeyboard } from "@opentui/react";
+import type { CriterionResult } from "../../core/doctor/types.js";
+import { ScoreBar } from "../components/ScoreBar.js";
 import { useAppContext } from "../context.js";
 import { useDoctor } from "../hooks/useDoctor.js";
-import { ScoreBar } from "../components/ScoreBar.js";
-import { theme, getScoreColor } from "../theme.js";
-import type { CriterionResult } from "../../core/doctor/types.js";
+import { getScoreColor, theme } from "../theme.js";
 
 // ============================================================================
 // Criterion Row Component
@@ -49,10 +49,10 @@ function CriterionRow({ criterion }: CriterionRowProps) {
 				</text>
 				<ScoreBar score={normalizedScore} width={8} showPercent={true} />
 				<text fg={severityColor} width={8}>
-					{"  " + severityLabel}
+					{`  ${severityLabel}`}
 				</text>
 				{criterion.issues.length > 0 && (
-					<text fg={theme.dimmed}>{"  " + criterion.issues[0]}</text>
+					<text fg={theme.dimmed}>{`  ${criterion.issues[0]}`}</text>
 				)}
 			</box>
 		</box>
@@ -80,7 +80,7 @@ function FileRow({
 }: FileRowProps) {
 	const normalizedScore = score / 100;
 	const shortPath =
-		filePath.length > 35 ? "..." + filePath.slice(-32) : filePath;
+		filePath.length > 35 ? `...${filePath.slice(-32)}` : filePath;
 
 	return (
 		<box flexDirection="row" paddingLeft={1} height={1}>
@@ -91,10 +91,10 @@ function FileRow({
 				{type}
 			</text>
 			<text fg={theme.muted} width={10}>
-				{tokenEstimate + " tok"}
+				{`${tokenEstimate} tok`}
 			</text>
 			<ScoreBar score={normalizedScore} width={8} showPercent={false} />
-			<text fg={getScoreColor(normalizedScore)}>{" " + score + "/100"}</text>
+			<text fg={getScoreColor(normalizedScore)}>{` ${score}/100`}</text>
 		</box>
 	);
 }
@@ -228,7 +228,7 @@ export function DoctorView() {
 						>
 							<box paddingLeft={1} height={1}>
 								<text fg={theme.primary}>
-									{"Selected: " + selectedDiagnosis.file.relativePath}
+									{`Selected: ${selectedDiagnosis.file.relativePath}`}
 								</text>
 							</box>
 

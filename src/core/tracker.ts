@@ -9,15 +9,15 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, relative } from "node:path";
 import type {
-	DocumentType,
 	DocProviderType,
+	DocumentType,
 	EnrichmentState,
 	FileState,
-	SymbolDefinition,
-	SymbolReference,
-	SymbolKind,
 	ReferenceKind,
+	SymbolDefinition,
 	SymbolGraphStats,
+	SymbolKind,
+	SymbolReference,
 } from "../types.js";
 import { createDatabaseSync, type SQLiteDatabase } from "./sqlite.js";
 
@@ -581,7 +581,7 @@ export class FileTracker implements IFileTracker {
 			| { enrichment_state: string }
 			| undefined;
 
-		if (!row || !row.enrichment_state) {
+		if (!row?.enrichment_state) {
 			return {};
 		}
 
@@ -1204,16 +1204,15 @@ export class FileTracker implements IFileTracker {
 	 * Get symbols by name (with optional kind filter)
 	 */
 	getSymbolByName(name: string, kind?: SymbolKind): SymbolDefinition[] {
-		let stmt;
 		let rows: Array<Record<string, unknown>>;
 
 		if (kind) {
-			stmt = this.db.prepare(
+			const stmt = this.db.prepare(
 				"SELECT * FROM symbols WHERE name = ? AND kind = ?",
 			);
 			rows = stmt.all(name, kind) as Array<Record<string, unknown>>;
 		} else {
-			stmt = this.db.prepare("SELECT * FROM symbols WHERE name = ?");
+			const stmt = this.db.prepare("SELECT * FROM symbols WHERE name = ?");
 			rows = stmt.all(name) as Array<Record<string, unknown>>;
 		}
 

@@ -3,9 +3,9 @@
  * Used by ResultList (search results) and ResultDetailView (detail code).
  */
 
+import { extname } from "node:path";
 import { useMemo } from "react";
 import { theme } from "../theme.js";
-import { extname } from "node:path";
 
 // ============================================================================
 // Syntax color palette
@@ -141,8 +141,8 @@ export function syntaxColorLine(line: string, lang: string): TextSegment[] {
 	const tokenPattern =
 		/\/\/.*$|\/\*.*?\*\/|#.*$|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b\d+(?:\.\d+)?\b|\b[a-zA-Z_$][\w$]*\b|[^\s\w]+|\s+/g;
 
-	let match: RegExpExecArray | null;
-	while ((match = tokenPattern.exec(line)) !== null) {
+	let match: RegExpExecArray | null = tokenPattern.exec(line);
+	while (match !== null) {
 		const token = match[0];
 		if (
 			token.startsWith("//") ||
@@ -169,6 +169,7 @@ export function syntaxColorLine(line: string, lang: string): TextSegment[] {
 		} else {
 			segments.push({ text: token, fg: SYNTAX_COLORS.punctuation });
 		}
+		match = tokenPattern.exec(line);
 	}
 	return segments.length > 0 ? segments : [{ text: line, fg: theme.text }];
 }
@@ -185,10 +186,10 @@ export function applyTermHighlights(
 	const result: TextSegment[] = [];
 	for (const seg of segments) {
 		let lastIdx = 0;
-		let m: RegExpExecArray | null;
 		pattern.lastIndex = 0;
 		let hadMatch = false;
-		while ((m = pattern.exec(seg.text)) !== null) {
+		let m: RegExpExecArray | null = pattern.exec(seg.text);
+		while (m !== null) {
 			hadMatch = true;
 			if (m.index > lastIdx) {
 				result.push({
@@ -199,6 +200,7 @@ export function applyTermHighlights(
 			}
 			result.push({ text: m[0], fg: "#000000", bg: "#B8860B" });
 			lastIdx = pattern.lastIndex;
+			m = pattern.exec(seg.text);
 		}
 		if (hadMatch && lastIdx < seg.text.length) {
 			result.push({ text: seg.text.slice(lastIdx), fg: seg.fg, bg: seg.bg });
@@ -236,7 +238,11 @@ export function SyntaxLine({
 	line,
 	terms,
 	lang,
-}: { line: string; terms?: string[]; lang: string }) {
+}: {
+	line: string;
+	terms?: string[];
+	lang: string;
+}) {
 	const segments = useMemo(() => {
 		const syntaxSegs = syntaxColorLine(line, lang);
 		return terms && terms.length > 0

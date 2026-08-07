@@ -7,7 +7,7 @@
  * - Entity extraction
  */
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { QueryRouter } from "../../src/retrieval/routing/query-router.js";
 
 describe("QueryRouter", () => {
@@ -213,7 +213,7 @@ describe("QueryRouter", () => {
 		});
 
 		test("handles very long query", async () => {
-			const longQuery = "how does " + "the system ".repeat(100) + "work";
+			const longQuery = `how does ${"the system ".repeat(100)}work`;
 			const result = await router.route(longQuery);
 			expect(result.classification).toBeDefined();
 		});

@@ -5,13 +5,13 @@
  * Supports structured outputs and proper error handling.
  */
 
-import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
-import { combineAbortSignals } from "../abort.js";
 import type {
 	LLMGenerateOptions,
 	LLMMessage,
 	LLMResponse,
 } from "../../types.js";
+import { combineAbortSignals } from "../abort.js";
+import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
 
 // ============================================================================
 // Types

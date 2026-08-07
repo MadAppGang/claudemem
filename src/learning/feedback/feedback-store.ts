@@ -9,16 +9,15 @@
  */
 
 import type { SQLiteDatabase } from "../../core/sqlite.js";
+import type { SearchUseCase } from "../../types.js";
 import type {
-	SearchFeedbackEvent,
-	QueryHistoryEntry,
-	LearnedWeights,
-	LearningStatistics,
 	FeedbackType,
 	LearningConfig,
+	LearningStatistics,
+	QueryHistoryEntry,
+	SearchFeedbackEvent,
 } from "../types.js";
 import { DEFAULT_LEARNING_CONFIG } from "../types.js";
-import type { DocumentType, SearchUseCase } from "../../types.js";
 
 // ============================================================================
 // FeedbackStore Class

@@ -100,7 +100,6 @@ export function patchClaudeSettings(
 	install: boolean,
 	settingsPath = getClaudeSettingsPath(),
 ): void {
-
 	let settings: Record<string, unknown> = {};
 
 	if (existsSync(settingsPath)) {
@@ -120,7 +119,7 @@ export function patchClaudeSettings(
 		if (env.USE_BUILTIN_RIPGREP !== "0") {
 			env.USE_BUILTIN_RIPGREP = "0";
 			settings.env = env;
-			writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n", {
+			writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, {
 				encoding: "utf-8",
 			});
 			console.log(`Updated ${settingsPath}: set USE_BUILTIN_RIPGREP=0`);
@@ -138,7 +137,7 @@ export function patchClaudeSettings(
 			} else {
 				settings.env = env;
 			}
-			writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n", {
+			writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, {
 				encoding: "utf-8",
 			});
 			console.log(`Updated ${settingsPath}: removed USE_BUILTIN_RIPGREP`);

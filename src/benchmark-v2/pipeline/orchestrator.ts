@@ -9,20 +9,17 @@
  * - Progress reporting
  */
 
+import { BenchmarkError, wrapError } from "../errors.js";
 import type { BenchmarkDatabase } from "../storage/benchmark-db.js";
 import type {
 	BenchmarkConfig,
 	BenchmarkPhase,
 	BenchmarkProgressCallback,
-	BenchmarkRun,
 	BenchmarkReport,
-	BenchmarkCodeUnit,
-	GeneratedSummary,
-	EvaluationResult,
+	BenchmarkRun,
 	NormalizedScores,
 } from "../types.js";
-import { PipelineStateMachine, PHASES, PHASE_NAMES } from "./state.js";
-import { wrapError, BenchmarkError } from "../errors.js";
+import { PipelineStateMachine } from "./state.js";
 
 // ============================================================================
 // Phase Executor Interface

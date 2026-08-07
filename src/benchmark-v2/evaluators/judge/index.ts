@@ -5,34 +5,28 @@
  */
 
 export {
-	PointwiseJudgeEvaluator,
-	createPointwiseJudgeEvaluator,
-} from "./pointwise.js";
-
-export {
-	PairwiseJudgeEvaluator,
-	createPairwiseJudgeEvaluator,
 	aggregateTournamentResults,
+	createPairwiseJudgeEvaluator,
+	PairwiseJudgeEvaluator,
 } from "./pairwise.js";
+export {
+	createPointwiseJudgeEvaluator,
+	PointwiseJudgeEvaluator,
+} from "./pointwise.js";
 
 // ============================================================================
 // Phase Executor
 // ============================================================================
 
-import { randomUUID } from "crypto";
 import type { ILLMClient } from "../../../types.js";
 import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
+import type { PairwiseResult } from "../../types.js";
 import { selectJudges } from "../base.js";
-import { createPointwiseJudgeEvaluator } from "./pointwise.js";
 import {
-	createPairwiseJudgeEvaluator,
 	aggregateTournamentResults,
+	createPairwiseJudgeEvaluator,
 } from "./pairwise.js";
-import type {
-	EvaluationResult,
-	PairwiseResult,
-	JudgeResults,
-} from "../../types.js";
+import { createPointwiseJudgeEvaluator } from "./pointwise.js";
 
 /**
  * Create the judge evaluation phase executor

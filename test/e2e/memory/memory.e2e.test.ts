@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { TestWorkspace } from "../../helpers/test-workspace.js";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { MemoryStore } from "../../../src/memory/store.js";
+import { TestWorkspace } from "../../helpers/test-workspace.js";
 
 describe("MemoryStore E2E", () => {
 	let ws: TestWorkspace;

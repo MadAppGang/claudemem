@@ -6,7 +6,7 @@
  */
 
 import { writeFileSync } from "node:fs";
-import type { HookInput, HookOutput, HookOptions } from "./types.js";
+import type { HookInput, HookOptions, HookOutput } from "./types.js";
 
 // ============================================================================
 // Stdin/Output Utilities

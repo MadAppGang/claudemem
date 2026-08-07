@@ -13,7 +13,7 @@
  * - Track behavioral changes
  */
 
-import type { ShadowPredictor, PredictionResult } from "./shadow-predictor.js";
+import type { PredictionResult, ShadowPredictor } from "./shadow-predictor.js";
 
 // ============================================================================
 // Types

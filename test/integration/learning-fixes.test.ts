@@ -12,31 +12,29 @@
  * 8. Public utility for containsDangerousPatterns
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { existsSync, rmSync } from "node:fs";
 
 import {
-	type SQLiteDatabase,
 	createDatabaseSync,
+	type SQLiteDatabase,
 } from "../../src/core/sqlite.js";
 import {
-	FeedbackStore,
-	createFeedbackStore,
-} from "../../src/learning/feedback/feedback-store.js";
-import {
-	LearningEngine,
 	createLearningEngine,
+	type LearningEngine,
 } from "../../src/learning/engine/learning-engine.js";
 import {
-	PatternHasher,
 	createPatternHasher,
 	DEFAULT_HASHER_CONFIG,
 } from "../../src/learning/federated/pattern-hasher.js";
 import {
-	SafetyValidator,
-	createSafetyValidator,
+	createFeedbackStore,
+	type FeedbackStore,
+} from "../../src/learning/feedback/feedback-store.js";
+import {
 	containsDangerousPatterns,
-	DEFAULT_SAFETY_CONFIG,
+	createSafetyValidator,
+	type SafetyValidator,
 } from "../../src/learning/generator/safety-validator.js";
 import type { SearchFeedbackEvent } from "../../src/learning/types.js";
 

@@ -5,10 +5,10 @@
  * Supports filtering and expanding/collapsing file paths.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { createRepoMapGenerator } from "../../core/repo-map.js";
 import type { FileTracker } from "../../core/tracker.js";
 import type { RepoMapEntry } from "../../types.js";
-import { createRepoMapGenerator } from "../../core/repo-map.js";
 
 // ============================================================================
 // Types

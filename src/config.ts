@@ -322,7 +322,7 @@ export function parseGitignore(projectPath: string): string[] {
 
 			// If pattern ends with /, it's a directory - add **
 			if (pattern.endsWith("/")) {
-				pattern = pattern + "**";
+				pattern = `${pattern}**`;
 			}
 			// If pattern doesn't contain /, it matches anywhere
 			else if (!pattern.includes("/")) {
@@ -626,7 +626,6 @@ export function getEmbeddingModel(projectPath?: string): string {
 // LLM Configuration (for Enrichment)
 // ============================================================================
 
-import type { LLMProvider } from "./types.js";
 import { LLMResolver, type LLMSpec } from "./llm/resolver.js";
 
 /**
@@ -720,7 +719,7 @@ export function isVectorEnabled(projectPath?: string): boolean {
 // Documentation Fetching Configuration
 // ============================================================================
 
-import type { DocsConfig, DocProviderType } from "./types.js";
+import type { DocProviderType, DocsConfig } from "./types.js";
 
 /**
  * Get Context7 API key from environment or config

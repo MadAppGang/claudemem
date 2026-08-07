@@ -6,15 +6,15 @@
  * the database connection on first use.
  */
 
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
-import type { HookInput, ToolInput, ToolResponse } from "../types.js";
 import { createDatabaseSync, type SQLiteDatabase } from "../../core/sqlite.js";
 import {
 	createInteractionSystem,
-	type InteractionSystem,
 	generateSessionId,
+	type InteractionSystem,
 } from "../../learning/interaction/index.js";
+import type { HookInput, ToolInput, ToolResponse } from "../types.js";
 
 // ============================================================================
 // Singleton Management

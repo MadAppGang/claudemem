@@ -20,10 +20,9 @@
  */
 
 import {
-	getInstructions,
-	getCompactInstructions,
 	type AgentRole,
-	VALID_ROLES,
+	getCompactInstructions,
+	getInstructions,
 } from "./ai-instructions.js";
 
 /**

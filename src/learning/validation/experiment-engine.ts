@@ -7,32 +7,26 @@
  * @module learning/validation/experiment-engine
  */
 
+import type { AgentDriver } from "./agent-driver.js";
+import type { ScenarioLibrary } from "./scenario-library.js";
+import { SessionRecorder } from "./session-recorder.js";
+import { StatisticsEngine } from "./statistics-engine.js";
 import type {
-	ValidationScenario,
-	ValidationExperiment,
-	ExperimentResults,
 	AggregateResults,
-	ScenarioResults,
-	ExperimentDecision,
-	ExperimentDecisionAction,
-	ExecutionTask,
 	ExecutionResult,
-	ExecutionStatus,
-	RunConfig,
-	ExperimentGroup,
+	ExecutionTask,
+	ExperimentDecision,
+	ExperimentResults,
 	RecordedSession,
-	TierConfig,
-	ValidationTier,
+	RunConfig,
+	ScenarioResults,
 	StatisticalComparison,
+	ValidationExperiment,
+	ValidationScenario,
+	ValidationTier,
 } from "./types.js";
 import { VALIDATION_TIERS } from "./types.js";
 import type { ValidationStore } from "./validation-store.js";
-import type { ScenarioLibrary } from "./scenario-library.js";
-import { StatisticsEngine } from "./statistics-engine.js";
-import type { EnvironmentManager } from "./environment-manager.js";
-import { SessionRecorder, CriteriaEvaluator } from "./session-recorder.js";
-import { SyntheticAgent } from "./synthetic-agent.js";
-import type { AgentDriver } from "./agent-driver.js";
 
 // ============================================================================
 // Experiment Engine
@@ -300,7 +294,8 @@ export class ExperimentEngine {
 		return items.reduce(
 			(groups, item) => {
 				const key = keyGetter(item);
-				(groups[key] = groups[key] ?? []).push(item);
+				groups[key] = groups[key] ?? [];
+				groups[key].push(item);
 				return groups;
 			},
 			{} as Record<string, T[]>,

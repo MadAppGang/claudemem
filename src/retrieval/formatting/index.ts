@@ -7,6 +7,6 @@
 export {
 	ContextFormatter,
 	createContextFormatter,
-	type FormatterOptions,
 	type FormatInput,
+	type FormatterOptions,
 } from "./context-formatter.js";

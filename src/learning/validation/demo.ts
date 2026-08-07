@@ -8,25 +8,20 @@
 import {
 	// Scenario Library
 	createScenarioLibrary,
-	PERSONAS,
-	KNOWLEDGE_BASES,
-	// Session Recording
-	SessionRecorder,
-	CriteriaEvaluator,
-	// Validation Store
-	ValidationStore,
-	// Environment Manager
-	TempEnvironmentManager,
-	MockEnvironmentManager,
 	// Synthetic Agent
 	createSyntheticAgent,
-	// Statistics
-	StatisticsEngine,
 	// Experiment Engine
 	DecisionEngine,
+	MockEnvironmentManager,
+	// Session Recording
+	SessionRecorder,
+	// Statistics
+	StatisticsEngine,
+	// Validation Store
+	ValidationStore,
 } from "./index.js";
 
-import type { RecordedSession, StatisticalComparison } from "./types.js";
+import type { RecordedSession } from "./types.js";
 
 // ============================================================================
 // Demo: Scenario Library
@@ -65,7 +60,7 @@ for (const cat of categories) {
 // Demo: Session Recorder
 // ============================================================================
 
-console.log("\n" + "═".repeat(60));
+console.log(`\n${"═".repeat(60)}`);
 console.log("📝 SESSION RECORDER DEMO");
 console.log("═".repeat(60));
 
@@ -162,7 +157,7 @@ console.log(
 // Demo: Statistics Engine
 // ============================================================================
 
-console.log("\n" + "═".repeat(60));
+console.log(`\n${"═".repeat(60)}`);
 console.log("📈 STATISTICS ENGINE DEMO");
 console.log("═".repeat(60));
 
@@ -272,7 +267,7 @@ console.log(
 // Demo: Decision Engine
 // ============================================================================
 
-console.log("\n" + "═".repeat(60));
+console.log(`\n${"═".repeat(60)}`);
 console.log("🎯 DECISION ENGINE DEMO");
 console.log("═".repeat(60));
 
@@ -318,7 +313,7 @@ if (decision.significantMetrics.length > 0) {
 // Demo: Synthetic Agent
 // ============================================================================
 
-console.log("\n" + "═".repeat(60));
+console.log(`\n${"═".repeat(60)}`);
 console.log("🤖 SYNTHETIC AGENT DEMO");
 console.log("═".repeat(60));
 
@@ -358,7 +353,7 @@ console.log(`    Continue: ${response.shouldContinue}`);
 // Demo: Environment Manager
 // ============================================================================
 
-console.log("\n" + "═".repeat(60));
+console.log(`\n${"═".repeat(60)}`);
 console.log("🗂️  ENVIRONMENT MANAGER DEMO");
 console.log("═".repeat(60));
 
@@ -390,7 +385,7 @@ console.log("\n  ✓ Cleanup complete");
 // Demo: Validation Store
 // ============================================================================
 
-console.log("\n" + "═".repeat(60));
+console.log(`\n${"═".repeat(60)}`);
 console.log("💾 VALIDATION STORE DEMO");
 console.log("═".repeat(60));
 
@@ -427,7 +422,7 @@ console.log("\n  ✓ Database closed");
 // Summary
 // ============================================================================
 
-console.log("\n" + "═".repeat(60));
+console.log(`\n${"═".repeat(60)}`);
 console.log("✅ E2E VALIDATION SYSTEM DEMO COMPLETE");
 console.log("═".repeat(60));
 console.log(`

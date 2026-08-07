@@ -5,11 +5,11 @@
  * Enter triggers save, Esc goes back.
  */
 
-import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
+import { useState } from "react";
+import { GLOBAL_CONFIG_PATH } from "../../../config.js";
 import { theme } from "../../theme.js";
 import type { ScreenProps } from "../types.js";
-import { GLOBAL_CONFIG_PATH } from "../../../config.js";
 
 // ============================================================================
 // Sub-components

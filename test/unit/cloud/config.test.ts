@@ -6,7 +6,7 @@
  * here (needs an integration test with a real git repo).
  */
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { parseRepoNameFromUrl } from "../../../src/cloud/config.js";
 
 // ============================================================================

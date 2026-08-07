@@ -5,6 +5,10 @@
  * Extracts: example type, code snippet, description.
  */
 
+import {
+	buildUsageExamplePrompt,
+	getSystemPrompt,
+} from "../../../llm/prompts/enrichment.js";
 import type {
 	BaseDocument,
 	CodeChunk,
@@ -12,10 +16,6 @@ import type {
 	ILLMClient,
 	UsageExample,
 } from "../../../types.js";
-import {
-	buildUsageExamplePrompt,
-	getSystemPrompt,
-} from "../../../llm/prompts/enrichment.js";
 import { BaseExtractor } from "./base.js";
 
 // ============================================================================

@@ -8,9 +8,9 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { loadProjectConfig } from "../config.js";
-import type { ICloudIndexClient, TeamConfig } from "./types.js";
-import { createThinCloudClient } from "./thin-client.js";
 import { createSmartCloudClient } from "./smart-client.js";
+import { createThinCloudClient } from "./thin-client.js";
+import type { ICloudIndexClient, TeamConfig } from "./types.js";
 
 const execAsync = promisify(exec);
 

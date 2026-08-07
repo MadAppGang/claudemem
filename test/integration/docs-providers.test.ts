@@ -9,16 +9,16 @@
  * Run with: CONTEXT7_API_KEY=your-key bun test test/integration/docs-providers.test.ts
  */
 
-import { describe, test, expect, beforeAll } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import {
 	Context7Provider,
-	LlmsTxtProvider,
-	DevDocsProvider,
 	createProviders,
+	DevDocsProvider,
 	DocsFetcher,
 	LibraryMapper,
+	LlmsTxtProvider,
 } from "../../src/docs/index.js";
-import type { FetchedDoc, DocsConfig } from "../../src/docs/types.js";
+import type { DocsConfig } from "../../src/docs/types.js";
 
 // ============================================================================
 // Test Configuration
@@ -200,9 +200,7 @@ describe("DevDocsProvider", () => {
 						expect(docs[0]).toHaveProperty("content");
 						return; // Test passed
 					}
-				} catch {
-					continue; // Try next library
-				}
+				} catch {}
 			}
 		}
 

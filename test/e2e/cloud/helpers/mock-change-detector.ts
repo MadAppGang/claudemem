@@ -6,9 +6,9 @@
  */
 
 import type {
-	IChangeDetector,
-	DirtyFile,
 	ChangedFile,
+	DirtyFile,
+	IChangeDetector,
 } from "../../../../src/cloud/types.js";
 
 // ============================================================================

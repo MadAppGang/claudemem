@@ -4,56 +4,52 @@
  * Public API for the retrieval system.
  */
 
-// Original enriched retriever (backward compatibility)
-export {
-	EnrichedRetriever,
-	createEnrichedRetriever,
-	DEFAULT_TYPE_WEIGHTS,
-} from "./retriever.js";
-export type { RetrieverOptions } from "./retriever.js";
-
-// Enhanced retriever (new hierarchical model)
-export {
-	EnhancedRetriever,
-	createEnhancedRetriever,
-} from "./enhanced-retriever.js";
 export type {
 	EnhancedRetrieverOptions,
-	SearchOptions,
 	EnhancedSearchResult,
+	SearchOptions,
 } from "./enhanced-retriever.js";
-
-// Query routing
-export { QueryRouter, createQueryRouter } from "./routing/query-router.js";
+// Enhanced retriever (new hierarchical model)
+export {
+	createEnhancedRetriever,
+	EnhancedRetriever,
+} from "./enhanced-retriever.js";
 export type {
-	QueryRouterOptions,
-	RouteResult,
-	RetrievalStrategy,
-} from "./routing/query-router.js";
-
-// Reranking
-export { LLMReranker, createLLMReranker } from "./reranking/llm-reranker.js";
-export type {
-	RerankerOptions,
-	RerankableResult,
-} from "./reranking/llm-reranker.js";
-
+	FormatInput,
+	FormatterOptions,
+} from "./formatting/context-formatter.js";
 // Context formatting
 export {
 	ContextFormatter,
 	createContextFormatter,
 } from "./formatting/context-formatter.js";
-export type {
-	FormatterOptions,
-	FormatInput,
-} from "./formatting/context-formatter.js";
-
 // Prompts
 export {
-	QUERY_CLASSIFICATION_PROMPT,
-	QUERY_EXPANSION_PROMPT,
-	RERANKING_PROMPT,
 	CONTEXT_FILTER_PROMPT,
 	formatCandidatesForReranking,
 	formatContextForFiltering,
+	QUERY_CLASSIFICATION_PROMPT,
+	QUERY_EXPANSION_PROMPT,
+	RERANKING_PROMPT,
 } from "./prompts.js";
+export type {
+	RerankableResult,
+	RerankerOptions,
+} from "./reranking/llm-reranker.js";
+
+// Reranking
+export { createLLMReranker, LLMReranker } from "./reranking/llm-reranker.js";
+export type { RetrieverOptions } from "./retriever.js";
+// Original enriched retriever (backward compatibility)
+export {
+	createEnrichedRetriever,
+	DEFAULT_TYPE_WEIGHTS,
+	EnrichedRetriever,
+} from "./retriever.js";
+export type {
+	QueryRouterOptions,
+	RetrievalStrategy,
+	RouteResult,
+} from "./routing/query-router.js";
+// Query routing
+export { createQueryRouter, QueryRouter } from "./routing/query-router.js";

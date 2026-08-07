@@ -7,12 +7,12 @@
  *   "delete-confirm" — shows delete confirmation overlay over KeyListView
  */
 
-import { useState, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
-import { AdminApiClient, type ApiKey } from "./AdminApiClient.js";
-import { KeyListView } from "./KeyListView.js";
-import { CreateKeyView } from "./CreateKeyView.js";
+import { useCallback, useEffect, useState } from "react";
 import { theme } from "../theme.js";
+import { AdminApiClient, type ApiKey } from "./AdminApiClient.js";
+import { CreateKeyView } from "./CreateKeyView.js";
+import { KeyListView } from "./KeyListView.js";
 
 // ============================================================================
 // Types

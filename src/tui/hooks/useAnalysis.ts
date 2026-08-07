@@ -4,14 +4,14 @@
  * Manages code analysis state: dead code, test gaps, and impact analysis.
  */
 
-import { useState, useCallback, useEffect } from "react";
-import type { FileTracker } from "../../core/tracker.js";
+import { useCallback, useEffect, useState } from "react";
 import {
 	createCodeAnalyzer,
 	type DeadCodeResult,
-	type TestGapResult,
 	type ImpactAnalysis,
+	type TestGapResult,
 } from "../../core/analysis/analyzer.js";
+import type { FileTracker } from "../../core/tracker.js";
 
 // ============================================================================
 // Types

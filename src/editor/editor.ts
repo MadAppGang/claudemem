@@ -5,17 +5,16 @@
  * Provides both symbol-level and line-level editing with per-file locking.
  */
 
-import { readFileSync, writeFileSync, renameSync } from "node:fs";
-import { randomBytes } from "node:crypto";
-import { dirname, join, resolve } from "node:path";
 import { spawn } from "node:child_process";
-
-import { SymbolLocator } from "./locator.js";
-import { EditValidator } from "./validator.js";
-import { EditHistory } from "./history.js";
+import { randomBytes } from "node:crypto";
+import { readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import type { LspManager } from "../lsp/manager.js";
 import type { IndexCache } from "../mcp/cache.js";
 import type { McpConfig } from "../mcp/config.js";
-import type { LspManager } from "../lsp/manager.js";
+import { EditHistory } from "./history.js";
+import { SymbolLocator } from "./locator.js";
+import { EditValidator } from "./validator.js";
 
 export type InsertMode = "replace" | "before" | "after";
 
@@ -265,9 +264,17 @@ export class SymbolEditor {
 				stdio: "ignore",
 				detached: true,
 			});
+			// spawn() reports a missing executable ASYNCHRONOUSLY via an 'error'
+			// event — it does not throw — so the catch below never sees ENOENT.
+			// Without a listener Node re-raises it as an unhandled 'error' and
+			// takes the process down, which defeats the best-effort intent: the
+			// edit itself succeeded and only the follow-up reindex is missing.
+			// Happens whenever mnemex is not on PATH (library use, npx, a dev
+			// checkout without `npm link`, CI).
+			child.on("error", () => {});
 			child.unref();
 		} catch {
-			// Best-effort: if mnemex binary isn't available, skip
+			// Synchronous spawn failures (e.g. unusable cwd) — also best-effort.
 		}
 	}
 }

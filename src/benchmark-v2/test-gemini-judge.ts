@@ -135,7 +135,7 @@ async function testModel(model: string): Promise<void> {
 			);
 
 			// Try to parse as JSON
-			if (content && content.trim()) {
+			if (content?.trim()) {
 				try {
 					// Extract JSON from markdown if present
 					const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -274,7 +274,7 @@ async function main() {
 	}
 
 	// Also test pairwise
-	console.log("\n\n" + "=".repeat(60));
+	console.log(`\n\n${"=".repeat(60)}`);
 	console.log("PAIRWISE COMPARISON TESTS");
 	console.log("=".repeat(60));
 

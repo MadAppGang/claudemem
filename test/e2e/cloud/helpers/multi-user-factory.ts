@@ -6,13 +6,13 @@
  * the three-step register → upload → assert-ready pattern.
  */
 
+import type { MergedSearchResult } from "../../../../src/cloud/merger.js";
 import { createThinCloudClient } from "../../../../src/cloud/thin-client.js";
 import type {
+	CloudSearchResult,
 	UploadChunk,
 	UploadIndexResponse,
 } from "../../../../src/cloud/types.js";
-import type { MergedSearchResult } from "../../../../src/cloud/merger.js";
-import type { CloudSearchResult } from "../../../../src/cloud/types.js";
 
 // ============================================================================
 // Constants

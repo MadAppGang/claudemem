@@ -1,6 +1,6 @@
-import { describe, test, expect, afterEach } from "bun:test";
-import { TestWorkspace } from "../../helpers/test-workspace.js";
+import { afterEach, describe, expect, test } from "bun:test";
 import { SymbolLocator } from "../../../src/editor/locator.js";
+import { TestWorkspace } from "../../helpers/test-workspace.js";
 
 describe("SymbolLocator E2E", () => {
 	let ws: TestWorkspace;

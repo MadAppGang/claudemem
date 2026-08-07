@@ -8,12 +8,11 @@
  */
 
 import type {
-	StatisticalConfig,
-	StatisticalComparison,
 	MetricComparison,
 	PowerAnalysisConfig,
-	SessionMetrics,
 	RecordedSession,
+	StatisticalComparison,
+	StatisticalConfig,
 } from "./types.js";
 
 // ============================================================================
@@ -56,8 +55,7 @@ export class StatisticsEngine {
 		const pooledVariance = p * (1 - p);
 
 		const n = Math.ceil(
-			(2 * Math.pow(zAlpha + zBeta, 2) * pooledVariance) /
-				Math.pow(minEffectSize, 2),
+			(2 * (zAlpha + zBeta) ** 2 * pooledVariance) / minEffectSize ** 2,
 		);
 
 		return Math.max(n, 20); // Minimum 20 samples per group
@@ -340,8 +338,7 @@ export class StatisticsEngine {
 		if (values.length <= 1) return 0;
 		const m = this.mean(values);
 		return (
-			values.reduce((sum, v) => sum + Math.pow(v - m, 2), 0) /
-			(values.length - 1)
+			values.reduce((sum, v) => sum + (v - m) ** 2, 0) / (values.length - 1)
 		);
 	}
 

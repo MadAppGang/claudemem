@@ -5,7 +5,7 @@
  * and null-byte scanning. Also provides extension-to-language mapping.
  */
 
-import { openSync, readSync, closeSync } from "node:fs";
+import { closeSync, openSync, readSync } from "node:fs";
 
 // ============================================================================
 // Constants

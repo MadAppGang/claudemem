@@ -9,16 +9,16 @@
  */
 
 import {
-	InvalidPhaseTransitionError,
 	IncompletePhaseError,
+	InvalidPhaseTransitionError,
 	StateError,
 } from "../errors.js";
 import type { BenchmarkDatabase } from "../storage/benchmark-db.js";
 import type {
 	BenchmarkPhase,
-	BenchmarkStatus,
-	BenchmarkRun,
 	BenchmarkProgressCallback,
+	BenchmarkRun,
+	BenchmarkStatus,
 } from "../types.js";
 
 // ============================================================================

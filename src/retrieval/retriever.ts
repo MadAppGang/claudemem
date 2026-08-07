@@ -7,8 +7,8 @@
  */
 
 import {
-	type RepoMapGenerator,
 	createRepoMapGenerator,
+	type RepoMapGenerator,
 } from "../core/repo-map.js";
 import type { IVectorStore } from "../core/store.js";
 import type { IFileTracker } from "../core/tracker.js";

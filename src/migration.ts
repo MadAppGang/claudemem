@@ -5,13 +5,7 @@
  * Called early in CLI startup to transparently migrate existing users.
  */
 
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	renameSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -170,7 +164,7 @@ function updateGitignore(projectPath: string, silent = false): void {
 	if (changed) {
 		try {
 			// Ensure content ends with a single newline
-			const content = lines.join("\n").replace(/\n+$/, "") + "\n";
+			const content = `${lines.join("\n").replace(/\n+$/, "")}\n`;
 			writeFileSync(gitignorePath, content, "utf-8");
 			if (!silent) {
 				process.stderr.write(

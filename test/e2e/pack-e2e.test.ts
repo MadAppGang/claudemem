@@ -8,18 +8,18 @@
  * Run with: bun test test/e2e/pack-e2e.test.ts
  */
 
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import {
-	mkdtempSync,
-	writeFileSync,
-	mkdirSync,
-	rmSync,
-	readFileSync,
 	existsSync,
-} from "fs";
-import { join, resolve } from "path";
-import { tmpdir } from "os";
-import { spawnSync } from "child_process";
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 // ============================================================================
 // Constants
@@ -216,7 +216,7 @@ describe("CLI argument parsing", () => {
 			// (files are written relative to cwd when no -o given, but --stdout overrides)
 			const outputFile = join(
 				REPO_ROOT,
-				`${require("path").basename(dir)}-pack.xml`,
+				`${require("node:path").basename(dir)}-pack.xml`,
 			);
 			expect(existsSync(outputFile)).toBe(false);
 		} finally {
@@ -1105,7 +1105,13 @@ describe("--agent mode output format", () => {
 	test("E2E-15a: --agent pack with -o produces key=value summary lines", () => {
 		const outFile = join(tmpdir(), `agent-test-${Date.now()}.xml`);
 		try {
-			const { stdout } = runCli(["--agent", "pack", "-o", outFile, testdataDir]);
+			const { stdout } = runCli([
+				"--agent",
+				"pack",
+				"-o",
+				outFile,
+				testdataDir,
+			]);
 			expect(stdout).toMatch(/^files=\d+/m);
 			expect(stdout).toMatch(/^binary_skipped=\d+/m);
 			expect(stdout).toMatch(/^size_skipped=\d+/m);
@@ -1139,7 +1145,13 @@ describe("--agent mode output format", () => {
 	test("E2E-15c: --agent pack reports correct fileCount", () => {
 		const outFile = join(tmpdir(), `agent-count-${Date.now()}.xml`);
 		try {
-			const { stdout } = runCli(["--agent", "pack", "-o", outFile, testdataDir]);
+			const { stdout } = runCli([
+				"--agent",
+				"pack",
+				"-o",
+				outFile,
+				testdataDir,
+			]);
 			const match = stdout.match(/^files=(\d+)$/m);
 			expect(match).not.toBeNull();
 			const count = Number.parseInt(match![1], 10);
@@ -1179,7 +1191,7 @@ describe("Default output file naming", () => {
 			testdataDir,
 		);
 		expect(status).toBe(0);
-		const expectedName = `${require("path").basename(testdataDir)}-pack.xml`;
+		const expectedName = `${require("node:path").basename(testdataDir)}-pack.xml`;
 		const expectedPath = join(testdataDir, expectedName);
 		expect(existsSync(expectedPath)).toBe(true);
 		// Cleanup
@@ -1192,7 +1204,7 @@ describe("Default output file naming", () => {
 			testdataDir,
 		);
 		expect(status).toBe(0);
-		const expectedName = `${require("path").basename(testdataDir)}-pack.md`;
+		const expectedName = `${require("node:path").basename(testdataDir)}-pack.md`;
 		const expectedPath = join(testdataDir, expectedName);
 		expect(existsSync(expectedPath)).toBe(true);
 		// Cleanup
@@ -1205,7 +1217,7 @@ describe("Default output file naming", () => {
 			testdataDir,
 		);
 		expect(status).toBe(0);
-		const expectedName = `${require("path").basename(testdataDir)}-pack.txt`;
+		const expectedName = `${require("node:path").basename(testdataDir)}-pack.txt`;
 		const expectedPath = join(testdataDir, expectedName);
 		expect(existsSync(expectedPath)).toBe(true);
 		// Cleanup

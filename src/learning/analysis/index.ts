@@ -33,35 +33,34 @@
  * ```
  */
 
-// Pattern Miner
-export {
-	PatternMiner,
-	createPatternMiner,
-	DEFAULT_MINER_CONFIG,
-	type PatternMinerConfig,
-	type FrequentItemset,
-	type AssociationRule,
-	type SequentialPattern,
-	type MinedPatterns,
-} from "./pattern-miner.js";
-
 // Error Clusterer
 export {
-	ErrorClusterer,
+	type ClusteringResult,
 	createErrorClusterer,
 	DEFAULT_CLUSTER_CONFIG,
-	type ErrorClusterConfig,
-	type ErrorInstance,
 	type ErrorCluster,
-	type ClusteringResult,
+	type ErrorClusterConfig,
+	ErrorClusterer,
+	type ErrorInstance,
 } from "./error-clusterer.js";
+// Pattern Miner
+export {
+	type AssociationRule,
+	createPatternMiner,
+	DEFAULT_MINER_CONFIG,
+	type FrequentItemset,
+	type MinedPatterns,
+	PatternMiner,
+	type PatternMinerConfig,
+	type SequentialPattern,
+} from "./pattern-miner.js";
 
 // Workflow Detector
 export {
-	WorkflowDetector,
 	createWorkflowDetector,
 	DEFAULT_WORKFLOW_CONFIG,
-	type WorkflowDetectorConfig,
 	type Workflow,
 	type WorkflowAnalysis,
+	WorkflowDetector,
+	type WorkflowDetectorConfig,
 } from "./workflow-detector.js";

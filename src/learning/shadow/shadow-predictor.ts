@@ -451,7 +451,7 @@ export class ShadowPredictor {
 			let bestOrder = 1;
 
 			for (const pred of preds) {
-				const weight = Math.pow(2, pred.ngramOrder); // 2^n weighting
+				const weight = 2 ** pred.ngramOrder; // 2^n weighting
 				totalWeight += weight;
 				weightedProb += pred.probability * weight;
 				maxConfidence = Math.max(maxConfidence, pred.confidence);

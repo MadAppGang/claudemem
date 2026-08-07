@@ -5,27 +5,22 @@
  * Wraps the existing CodeUnitExtractor with benchmark-specific logic.
  */
 
-import { createHash, randomUUID } from "crypto";
-import { readFile } from "fs/promises";
-import { readdirSync, statSync } from "fs";
-import { join, extname, relative } from "path";
+import { createHash } from "node:crypto";
+import { readdirSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { extname, join, relative } from "node:path";
 import { minimatch } from "minimatch";
 
 import {
-	CodeUnitExtractor,
+	type CodeUnitExtractor,
 	createCodeUnitExtractor,
 } from "../../core/ast/code-unit-extractor.js";
 import type { CodeUnit, SupportedLanguage } from "../../types.js";
-import {
-	ExtractionError,
-	FileParseError,
-	UnsupportedLanguageError,
-} from "../errors.js";
+import { FileParseError } from "../errors.js";
 import type {
 	BenchmarkCodeUnit,
-	BenchmarkConfig,
-	CodeUnitType,
 	CodebaseInfo,
+	CodeUnitType,
 	SamplingStrategy,
 } from "../types.js";
 

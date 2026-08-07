@@ -15,7 +15,13 @@ import {
 } from "bun:test";
 import { createThinCloudClient } from "../../../src/cloud/thin-client.js";
 import type { UploadChunk } from "../../../src/cloud/types.js";
-import { TEST_ORG_SLUG, type TestContext, startTestInfra } from "./setup.js";
+import {
+	HAS_CLOUD_DB,
+	startTestInfra,
+	TEST_ORG_SLUG,
+	type TestContext,
+	warnCloudDbMissing,
+} from "./setup.js";
 
 // ============================================================================
 // Helpers
@@ -63,7 +69,9 @@ function makeChunks(count: number, seed = 0): UploadChunk[] {
 // Test suite
 // ============================================================================
 
-describe("E2E: Thin mode indexing (FR-1)", () => {
+if (!HAS_CLOUD_DB) warnCloudDbMissing("E2E: Thin mode indexing (FR-1)");
+
+describe.skipIf(!HAS_CLOUD_DB)("E2E: Thin mode indexing (FR-1)", () => {
 	let ctx: TestContext;
 
 	beforeAll(async () => {

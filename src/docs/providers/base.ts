@@ -5,8 +5,8 @@
  * Providers are tried in priority order (lower = first).
  */
 
-import type { DocProvider, FetchedDoc, FetchOptions } from "../types.js";
 import type { DocProviderType } from "../../types.js";
+import type { DocProvider, FetchedDoc, FetchOptions } from "../types.js";
 
 // ============================================================================
 // Provider Error Types

@@ -5,8 +5,7 @@
  * Background hardware detection via useEffect on mount.
  */
 
-import { useState, useEffect, useCallback } from "react";
-import type { GlobalConfig, ProjectConfig } from "../../types.js";
+import { useCallback, useEffect, useState } from "react";
 import type { TeamConfig } from "../../cloud/types.js";
 import {
 	loadGlobalConfig,
@@ -14,22 +13,23 @@ import {
 	saveGlobalConfig,
 	saveProjectConfig,
 } from "../../config.js";
+import type { GlobalConfig, ProjectConfig } from "../../types.js";
+import { detectHardware } from "./hardware.js";
+import { CloudSetupScreen } from "./screens/CloudSetup.js";
+import { CloudWarningScreen } from "./screens/CloudWarning.js";
+import { CompleteScreen } from "./screens/Complete.js";
+import { EnrichmentSetupScreen } from "./screens/EnrichmentSetup.js";
+import { HardwareDetectScreen } from "./screens/HardwareDetect.js";
+import { ModelSelectScreen } from "./screens/ModelSelect.js";
+import { ModeSelectScreen } from "./screens/ModeSelect.js";
+import { ProviderSelectScreen } from "./screens/ProviderSelect.js";
+import { ReviewScreen } from "./screens/Review.js";
+import { ScopeSelectScreen } from "./screens/ScopeSelect.js";
 import {
 	DEFAULT_WIZARD_STATE,
 	type WizardState,
 	type WizardStep,
 } from "./types.js";
-import { detectHardware } from "./hardware.js";
-import { ModeSelectScreen } from "./screens/ModeSelect.js";
-import { HardwareDetectScreen } from "./screens/HardwareDetect.js";
-import { ProviderSelectScreen } from "./screens/ProviderSelect.js";
-import { ModelSelectScreen } from "./screens/ModelSelect.js";
-import { ScopeSelectScreen } from "./screens/ScopeSelect.js";
-import { ReviewScreen } from "./screens/Review.js";
-import { CompleteScreen } from "./screens/Complete.js";
-import { CloudWarningScreen } from "./screens/CloudWarning.js";
-import { CloudSetupScreen } from "./screens/CloudSetup.js";
-import { EnrichmentSetupScreen } from "./screens/EnrichmentSetup.js";
 
 // ============================================================================
 // Types

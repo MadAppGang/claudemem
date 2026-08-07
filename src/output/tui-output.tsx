@@ -15,13 +15,12 @@
  * output like headers that appear before the progress bar.
  */
 
-import React from "react";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
-// CliRenderer type inferred from createCliRenderer return
-import { ProgressStore } from "./progress-store.js";
 import { IndexProgress } from "../tui/components/command/IndexProgress.js";
 import type { OutputRouter, ProgressHandle } from "./index.js";
+// CliRenderer type inferred from createCliRenderer return
+import { ProgressStore } from "./progress-store.js";
 
 // ============================================================================
 // TuiOutput
@@ -40,7 +39,7 @@ export class TuiOutput implements OutputRouter {
 
 	async start(): Promise<void> {
 		this.renderer = await createCliRenderer({
-			useAlternateScreen: false,
+			screenMode: "main-screen",
 			exitOnCtrlC: false,
 			useMouse: false,
 		});

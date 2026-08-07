@@ -49,7 +49,7 @@ export class Logger {
 	}
 
 	private write(label: string, msg: string, args: unknown[]): void {
-		const extra = args.length > 0 ? " " + args.map(formatArg).join(" ") : "";
+		const extra = args.length > 0 ? ` ${args.map(formatArg).join(" ")}` : "";
 		process.stderr.write(`[mnemex] [${label}] ${msg}${extra}\n`);
 	}
 }

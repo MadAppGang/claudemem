@@ -11,7 +11,6 @@ import type {
 	EnrichedSearchResult,
 	ILLMClient,
 	LLMMessage,
-	RerankResult,
 	RerankedSearchResult,
 } from "../../types.js";
 

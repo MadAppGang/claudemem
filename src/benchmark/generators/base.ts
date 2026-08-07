@@ -5,6 +5,8 @@
  * generation with timing and usage tracking.
  */
 
+import { FileSummaryExtractor } from "../../core/enrichment/extractors/file-summary.js";
+import { SymbolSummaryExtractor } from "../../core/enrichment/extractors/symbol-summary.js";
 import type {
 	CodeChunk,
 	FileSummary,
@@ -17,8 +19,6 @@ import type {
 	ISummaryGenerator,
 	UsageStats,
 } from "../types.js";
-import { FileSummaryExtractor } from "../../core/enrichment/extractors/file-summary.js";
-import { SymbolSummaryExtractor } from "../../core/enrichment/extractors/symbol-summary.js";
 
 // ============================================================================
 // Summary Generator Implementation

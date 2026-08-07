@@ -11,8 +11,11 @@
 import { config } from "dotenv";
 import { runMigrations } from "./migration.js";
 
-// Load environment variables from .env file
-config();
+// Load environment variables from .env file.
+// quiet: true is required — dotenv >= 17 prints an "injected env" banner to
+// stdout by default, which corrupts machine-readable output (notably `mnemex rg`,
+// which must stay byte-identical to ripgrep) and any --agent mode consumer.
+config({ quiet: true });
 
 // Migrate .claudemem/ → .mnemex/ for existing users (silent, non-blocking)
 runMigrations();
@@ -25,7 +28,7 @@ const isAutocompleteServerMode = args.includes("--autocomplete-server");
 
 if (isAutocompleteServerMode) {
 	// Autocomplete server mode (JSONL-RPC over stdio)
-	const projectIdx = args.findIndex((a) => a === "--project");
+	const projectIdx = args.indexOf("--project");
 	const projectPath = projectIdx !== -1 ? args[projectIdx + 1] : undefined;
 
 	import("./autocomplete/server.js").then((module) => {

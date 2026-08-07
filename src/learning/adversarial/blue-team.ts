@@ -10,10 +10,10 @@
  * Goal: Make improvements robust before deployment.
  */
 
-import type { Improvement } from "../interaction/types.js";
 import type { GeneratedSkill } from "../generator/skill-generator.js";
 import type { GeneratedSubagent } from "../generator/subagent-composer.js";
-import type { RedTeamReport, AttackType } from "./red-team.js";
+import type { Improvement } from "../interaction/types.js";
+import type { AttackType, RedTeamReport } from "./red-team.js";
 
 // ============================================================================
 // Types
@@ -550,7 +550,7 @@ export class BlueTeam {
 			case "input_validation":
 				subagent.constraints.push("Validate all inputs before processing");
 				break;
-			case "access_control":
+			case "access_control": {
 				// Remove dangerous tools
 				const dangerousTools = ["Bash"];
 				if (mitigation.effectiveness > 0.8 && subagent.role !== "fixer") {
@@ -564,6 +564,7 @@ export class BlueTeam {
 				}
 				subagent.constraints.push("Restricted tool access applied");
 				break;
+			}
 			case "resource_limiting":
 				subagent.constraints.push("Operation timeout: 60 seconds");
 				break;

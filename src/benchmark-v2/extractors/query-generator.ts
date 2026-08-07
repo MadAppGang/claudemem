@@ -5,7 +5,7 @@
  * can be retrieved using semantic search.
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ILLMClient, LLMMessage } from "../../types.js";
 import type { BenchmarkCodeUnit, GeneratedQuery, QueryType } from "../types.js";
 
@@ -231,7 +231,7 @@ export class QueryGenerator {
 		const maxCodeLength = 2000;
 		let code = codeUnit.content;
 		if (code.length > maxCodeLength) {
-			code = code.slice(0, maxCodeLength) + "\n// ... (truncated)";
+			code = `${code.slice(0, maxCodeLength)}\n// ... (truncated)`;
 		}
 
 		return QUERY_GENERATION_USER_PROMPT.replace("{language}", codeUnit.language)

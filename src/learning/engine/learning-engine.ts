@@ -8,15 +8,15 @@
  * - Handle cold start with static defaults
  */
 
+import type { DocumentType, SearchUseCase } from "../../types.js";
 import type { FeedbackStore } from "../feedback/feedback-store.js";
 import type {
 	LearnedWeights,
 	LearningConfig,
-	SearchFeedbackEvent,
 	QueryPatternMapping,
+	SearchFeedbackEvent,
 } from "../types.js";
 import { DEFAULT_LEARNING_CONFIG } from "../types.js";
-import type { DocumentType, SearchUseCase } from "../../types.js";
 
 // ============================================================================
 // Constants

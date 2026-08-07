@@ -7,16 +7,16 @@
  * @module learning/validation/synthetic-agent
  */
 
+import type { SessionRecorder } from "./session-recorder.js";
 import type {
-	ValidationScenario,
-	UserPersona,
-	ScenarioKnowledgeBase,
+	AgentResponse,
 	CorrectionPoint,
 	CorrectionTrigger,
+	ScenarioKnowledgeBase,
 	ToolEvent,
-	AgentResponse,
+	UserPersona,
+	ValidationScenario,
 } from "./types.js";
-import type { SessionRecorder } from "./session-recorder.js";
 
 // ============================================================================
 // Synthetic Agent
@@ -515,10 +515,11 @@ export class CorrectionInjector {
 					(e) => !e.success && e.errorMessage?.includes(trigger.errorType),
 				);
 
-			case "random":
+			case "random": {
 				// Deterministic random based on seed and event count
 				const hash = this.hashCode(`${this.randomSeed}_${toolEvents.length}`);
 				return (hash % 100) / 100 < trigger.probability;
+			}
 
 			default:
 				return false;

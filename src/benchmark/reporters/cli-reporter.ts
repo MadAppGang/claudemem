@@ -180,7 +180,7 @@ export class CLIReporter implements IReporter {
 
 		const headerRow = headers.map((h, i) => h.padEnd(widths[i])).join(" ");
 		lines.push(this.color(`  ${c.bold}${headerRow}${c.reset}`));
-		lines.push("  " + "─".repeat(headerRow.length));
+		lines.push(`  ${"─".repeat(headerRow.length)}`);
 
 		// Find best/worst for highlighting
 		const validOverall = results.generators
@@ -199,7 +199,7 @@ export class CLIReporter implements IReporter {
 				results.metadata.totalTestCases,
 				hasJudgeBreakdown,
 			);
-			lines.push("  " + row);
+			lines.push(`  ${row}`);
 		}
 
 		return lines.join("\n");
@@ -311,6 +311,7 @@ export class CLIReporter implements IReporter {
 		return values
 			.map((v, i) => {
 				// Strip ANSI codes for padding calculation
+				// biome-ignore lint/suspicious/noControlCharactersInRegex: \x1b is intentional — this matches ANSI terminal escape sequences
 				const stripped = v.replace(/\x1b\[[0-9;]*m/g, "");
 				const padding = widths[i] - stripped.length;
 				return v + " ".repeat(Math.max(0, padding));
@@ -428,6 +429,7 @@ export class CLIReporter implements IReporter {
 	 */
 	private color(str: string): string {
 		if (!this.useColors) {
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: \x1b is intentional — this matches ANSI terminal escape sequences
 			return str.replace(/\x1b\[[0-9;]*m/g, "");
 		}
 		return str;

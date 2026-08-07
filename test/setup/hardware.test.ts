@@ -12,12 +12,12 @@
  *   Architecture §4.3: suggestModel() and suggestAlternateModel()
  */
 
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
 	detectHardware,
-	suggestModel,
-	suggestAlternateModel,
 	type HardwareProfile,
+	suggestAlternateModel,
+	suggestModel,
 } from "../../src/tui/setup/hardware.js";
 
 // ============================================================================

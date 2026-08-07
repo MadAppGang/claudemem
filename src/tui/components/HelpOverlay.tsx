@@ -116,7 +116,7 @@ export function HelpOverlay({ view, onClose }: HelpOverlayProps) {
 			padding={1}
 		>
 			<box paddingBottom={1}>
-				<text fg={theme.primary}>{"Keybindings - " + viewLabel + " View"}</text>
+				<text fg={theme.primary}>{`Keybindings - ${viewLabel} View`}</text>
 			</box>
 
 			<box paddingBottom={1}>
@@ -129,7 +129,7 @@ export function HelpOverlay({ view, onClose }: HelpOverlayProps) {
 			))}
 
 			<box paddingTop={1} paddingBottom={1}>
-				<text fg={theme.muted}>{viewLabel + " View"}</text>
+				<text fg={theme.muted}>{`${viewLabel} View`}</text>
 			</box>
 			{viewBindings[view].map((b) => (
 				<box key={b.key}>

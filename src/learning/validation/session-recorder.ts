@@ -8,16 +8,16 @@
  */
 
 import type {
-	RecordedSession,
-	ToolEvent,
-	RecordedCorrection,
-	UserResponse,
-	SessionMetrics,
-	CriteriaResult,
-	SessionOutcome,
-	ExperimentGroup,
-	SuccessCriterion,
 	CorrectionTrigger,
+	CriteriaResult,
+	ExperimentGroup,
+	RecordedCorrection,
+	RecordedSession,
+	SessionMetrics,
+	SessionOutcome,
+	SuccessCriterion,
+	ToolEvent,
+	UserResponse,
 	ValidationScenario,
 } from "./types.js";
 

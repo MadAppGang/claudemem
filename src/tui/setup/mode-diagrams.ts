@@ -4,6 +4,7 @@
 
 const R = "\x1b[0m";
 
+// biome-ignore lint/suspicious/noControlCharactersInRegex: \x1b is intentional — this matches ANSI terminal escape sequences
 const strip = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
 
 // Foreground
@@ -464,7 +465,7 @@ function comparison() {
 // EXPORTS
 // ════════════════════════════════════════════════════════════
 
-export { mode1, mode2, mode3, comparison };
+export { comparison, mode1, mode2, mode3 };
 
 // Capture console.log output as line array
 const captureLines = (fn: () => void): string[] => {

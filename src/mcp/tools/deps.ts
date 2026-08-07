@@ -5,21 +5,21 @@
  * functions, reducing boilerplate and centralizing infrastructure access.
  */
 
-import type { IndexCache } from "../cache.js";
-import type { IndexStateManager } from "../state-manager.js";
-import type { McpConfig } from "../config.js";
-import type { Logger } from "../logger.js";
-import type { DebounceReindexer } from "../reindexer.js";
-import type { CompletionDetector } from "../completion-detector.js";
-import type { FreshnessMetadata } from "../types.js";
 import type {
 	ICloudIndexClient,
 	IOverlayIndex,
 	TeamConfig,
 } from "../../cloud/types.js";
-import type { LspManager } from "../../lsp/manager.js";
 import type { SymbolEditor } from "../../editor/editor.js";
+import type { LspManager } from "../../lsp/manager.js";
 import type { MemoryStore } from "../../memory/store.js";
+import type { IndexCache } from "../cache.js";
+import type { CompletionDetector } from "../completion-detector.js";
+import type { McpConfig } from "../config.js";
+import type { Logger } from "../logger.js";
+import type { DebounceReindexer } from "../reindexer.js";
+import type { IndexStateManager } from "../state-manager.js";
+import type { FreshnessMetadata } from "../types.js";
 
 export interface ToolDeps {
 	cache: IndexCache;

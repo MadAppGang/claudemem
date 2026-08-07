@@ -12,31 +12,25 @@
  *   StatusMessage     — success / error / info / warning footer lines
  */
 
-export { CommandOutputApp } from "./CommandOutputApp.js";
-export type { CommandOutputAppProps } from "./CommandOutputApp.js";
-
-export { IndexProgress } from "./IndexProgress.js";
-export type { IndexProgressProps } from "./IndexProgress.js";
-
-export { StatusMessage } from "./StatusMessage.js";
-export type { StatusMessageProps, StatusType } from "./StatusMessage.js";
-
-export { BenchmarkResults, BenchmarkResultsApp } from "./BenchmarkResults.js";
 export type {
-	BenchmarkResultsProps,
-	BenchmarkResultsData,
-	BenchmarkResultsAppProps,
-} from "./BenchmarkResults.js";
-
+	BenchmarkListAppProps,
+	BenchmarkRunSummary,
+	RunError,
+} from "./BenchmarkList.js";
 export { BenchmarkListApp } from "./BenchmarkList.js";
 export type {
-	RunError,
-	BenchmarkRunSummary,
-	BenchmarkListAppProps,
-} from "./BenchmarkList.js";
-
-export { MetricsTable } from "./MetricsTable.js";
-export type { MetricsTableProps, MetricsColumn } from "./MetricsTable.js";
-
+	BenchmarkResultsAppProps,
+	BenchmarkResultsData,
+	BenchmarkResultsProps,
+} from "./BenchmarkResults.js";
+export { BenchmarkResults, BenchmarkResultsApp } from "./BenchmarkResults.js";
+export type { CommandOutputAppProps } from "./CommandOutputApp.js";
+export { CommandOutputApp } from "./CommandOutputApp.js";
+export type { IndexProgressProps } from "./IndexProgress.js";
+export { IndexProgress } from "./IndexProgress.js";
+export type { MetricHint, MetricHintsProps } from "./MetricHints.js";
 export { MetricHints } from "./MetricHints.js";
-export type { MetricHintsProps, MetricHint } from "./MetricHints.js";
+export type { MetricsColumn, MetricsTableProps } from "./MetricsTable.js";
+export { MetricsTable } from "./MetricsTable.js";
+export type { StatusMessageProps, StatusType } from "./StatusMessage.js";
+export { StatusMessage } from "./StatusMessage.js";

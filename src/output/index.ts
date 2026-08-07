@@ -99,6 +99,6 @@ export function createOutput(agentMode: boolean): OutputRouter {
 
 // Re-export concrete classes for consumers that need them explicitly
 export { AgentOutput } from "./agent-output.js";
-export { TuiOutput } from "./tui-output.js";
-export { ProgressStore } from "./progress-store.js";
 export type { PhaseState, ProgressSnapshot } from "./progress-store.js";
+export { ProgressStore } from "./progress-store.js";
+export { TuiOutput } from "./tui-output.js";

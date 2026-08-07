@@ -9,7 +9,7 @@
  *   Phase 4: Aggregation & Reporting
  */
 
-import type { CodeChunk, LLMProvider } from "../types.js";
+import type { CodeChunk } from "../types.js";
 
 // ============================================================================
 // Code Unit Types (Phase 1: Extraction)

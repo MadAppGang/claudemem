@@ -11,21 +11,20 @@
  */
 
 import type {
+	ASTMetadata,
 	CodeUnit,
 	ILLMClient,
-	UnitType,
-	ASTMetadata,
 	LLMMessage,
 } from "../../types.js";
 import type { VectorStore } from "../store.js";
 import {
-	SUMMARY_SYSTEM_PROMPT,
-	buildFunctionSummaryPrompt,
 	buildClassSummaryPrompt,
 	buildFileSummaryPrompt,
-	type FunctionSummaryInput,
+	buildFunctionSummaryPrompt,
 	type ClassSummaryInput,
 	type FileSummaryInput,
+	type FunctionSummaryInput,
+	SUMMARY_SYSTEM_PROMPT,
 } from "./prompts.js";
 
 // ============================================================================
@@ -378,14 +377,15 @@ export class BottomUpSummarizer {
 			// Match property declarations like: private readonly name: Type
 			const propRegex =
 				/(private|public|protected|readonly)?\s*(readonly)?\s*(\w+)\s*[?!]?\s*:\s*([^;=]+)/g;
-			let match;
-			while ((match = propRegex.exec(code)) !== null) {
+			let match = propRegex.exec(code);
+			while (match !== null) {
 				const visibility = match[1] || "public";
 				const name = match[3];
 				const type = match[4]?.trim();
 				if (name && !name.startsWith("_") && name !== "constructor") {
 					properties.push({ name, type, visibility });
 				}
+				match = propRegex.exec(code);
 			}
 		}
 

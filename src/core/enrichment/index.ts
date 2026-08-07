@@ -4,23 +4,20 @@
  * Public API for the enrichment system.
  */
 
-// Core components
-export { Enricher, createEnricher } from "./enricher.js";
+export { createDependencyGraph, DependencyGraph } from "./dependency-graph.js";
 export type {
 	EnricherOptions,
 	FileToEnrich,
 	RefinementOptions,
 	RefinementResult,
 } from "./enricher.js";
-
-export { EnrichmentPipeline, createEnrichmentPipeline } from "./pipeline.js";
-export type { PipelineOptions, PipelineResult } from "./pipeline.js";
-
-export { DependencyGraph, createDependencyGraph } from "./dependency-graph.js";
-
+// Core components
+export { createEnricher, Enricher } from "./enricher.js";
 // Extractor infrastructure
 export {
 	BaseExtractor,
-	ExtractorRegistry,
 	createExtractorRegistry,
+	ExtractorRegistry,
 } from "./extractors/base.js";
+export type { PipelineOptions, PipelineResult } from "./pipeline.js";
+export { createEnrichmentPipeline, EnrichmentPipeline } from "./pipeline.js";

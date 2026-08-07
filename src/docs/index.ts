@@ -8,62 +8,54 @@
 
 import { getContext7ApiKey, getDocsConfig, isDocsEnabled } from "../config.js";
 import type { DocProviderType, DocsConfig } from "../types.js";
+import { createDocChunker, type DocChunker } from "./doc-chunker.js";
+import { createLibraryMapper, type LibraryMapper } from "./library-mapper.js";
+import {
+	createContext7Provider,
+	createDevDocsProvider,
+	createLlmsTxtProvider,
+} from "./providers/index.js";
 import type {
 	DocChunk,
 	DocProvider,
 	FetchedDoc,
 	FetchOptions,
 } from "./types.js";
-import { DocChunker, createDocChunker } from "./doc-chunker.js";
-import { LibraryMapper, createLibraryMapper } from "./library-mapper.js";
-import {
-	Context7Provider,
-	DevDocsProvider,
-	LlmsTxtProvider,
-	createContext7Provider,
-	createDevDocsProvider,
-	createLlmsTxtProvider,
-} from "./providers/index.js";
 
 // ============================================================================
 // Re-exports
 // ============================================================================
 
-// Types (all types from types.ts)
-export type {
-	FetchedDoc,
-	FetchOptions,
-	DocProvider,
-	PackageEcosystem,
-	VersionConstraint,
-	DetectedDependency,
-	LibrarySource,
-	DocChunk,
-	IndexedDocState,
-} from "./types.js";
-
+// Chunking
+export { createDocChunker, DocChunker } from "./doc-chunker.js";
+// Library mapping
+export { createLibraryMapper, LibraryMapper } from "./library-mapper.js";
 // Providers
 export * from "./providers/index.js";
-
 // Registry
 export * from "./registry.js";
-
+// Types (all types from types.ts)
+export type {
+	DetectedDependency,
+	DocChunk,
+	DocProvider,
+	FetchedDoc,
+	FetchOptions,
+	IndexedDocState,
+	LibrarySource,
+	PackageEcosystem,
+	VersionConstraint,
+} from "./types.js";
 // Version parsing (excluding PackageEcosystem which is already in types.ts)
 export {
-	parseVersion,
 	extractMajorVersion,
+	parseCargoVersion,
+	parseGoVersion,
 	parseNpmVersion,
 	parsePythonVersion,
-	parseGoVersion,
-	parseCargoVersion,
+	parseVersion,
 	parseVersionForEcosystem,
 } from "./version-parser.js";
-
-// Library mapping
-export { LibraryMapper, createLibraryMapper } from "./library-mapper.js";
-
-// Chunking
-export { DocChunker, createDocChunker } from "./doc-chunker.js";
 
 // ============================================================================
 // Provider Factory

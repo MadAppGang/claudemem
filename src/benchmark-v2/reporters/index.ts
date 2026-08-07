@@ -8,45 +8,43 @@
  */
 
 export {
-	JSONReporter,
-	createJSONReporter,
-	type JSONReport,
-	type JSONReporterOptions,
-	type ReportMeta,
-	type ExecutiveSummary,
-	type ModelRanking,
-	type DetailedModelResults,
-	type AnalysisSection,
-	type RawDataSection,
-} from "./json-reporter.js";
-
-export {
-	MarkdownReporter,
-	createMarkdownReporter,
-	type MarkdownReporterOptions,
-} from "./markdown-reporter.js";
-
-export {
-	HTMLReporter,
 	createHTMLReporter,
+	HTMLReporter,
 	type HTMLReporterOptions,
 } from "./html-reporter.js";
+export {
+	type AnalysisSection,
+	createJSONReporter,
+	type DetailedModelResults,
+	type ExecutiveSummary,
+	type JSONReport,
+	JSONReporter,
+	type JSONReporterOptions,
+	type ModelRanking,
+	type RawDataSection,
+	type ReportMeta,
+} from "./json-reporter.js";
+export {
+	createMarkdownReporter,
+	MarkdownReporter,
+	type MarkdownReporterOptions,
+} from "./markdown-reporter.js";
 
 // ============================================================================
 // Phase Executor
 // ============================================================================
 
-import { mkdirSync, existsSync, writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import type { PhaseContext, PhaseResult } from "../pipeline/orchestrator.js";
 import { createScoreAggregator } from "../scorers/aggregator.js";
 import {
-	calculateCorrelationMatrix,
 	analyzeInterRaterAgreement,
+	calculateCorrelationMatrix,
 } from "../scorers/statistics.js";
+import { createHTMLReporter } from "./html-reporter.js";
 import { createJSONReporter } from "./json-reporter.js";
 import { createMarkdownReporter } from "./markdown-reporter.js";
-import { createHTMLReporter } from "./html-reporter.js";
 
 /**
  * Create the reporting phase executor

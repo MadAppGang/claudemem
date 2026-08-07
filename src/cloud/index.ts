@@ -5,101 +5,91 @@
  *   import { GitDiffChangeDetector, LocalCloudStub, isCloudEnabled } from "./cloud/index.js"
  */
 
-// Types
-export type {
-	TeamConfig,
-	ChangedFile,
-	DirtyFile,
-	IChangeDetector,
-	ChunkCheckResult,
-	UploadChunk,
-	UploadIndexRequest,
-	UploadIndexResponse,
-	CommitStatus,
-	CloudSearchRequest,
-	CloudSearchResult,
-	RegisterRepoRequest,
-	RegisterRepoResponse,
-	CloudSymbol,
-	CloudCallerResult,
-	CloudCalleeResult,
-	CloudEnrichmentDoc,
-	CloudGraphResult,
-	CloudSymbolReference,
-	ICloudIndexClient,
-	IOverlayIndex,
-} from "./types.js";
-
-// Git diff change detector
-export {
-	GitDiffChangeDetector,
-	createGitDiffChangeDetector,
-} from "./git-diff.js";
-
-// Cloud configuration helpers
-export {
-	DEFAULT_CLOUD_ENDPOINT,
-	isCloudEnabled,
-	getCloudMode,
-	getTeamConfig,
-	getCloudEndpoint,
-	getRepoSlug,
-	parseRepoNameFromUrl,
-	createCloudClientFromConfig,
-} from "./config.js";
-
-// In-memory stub for testing
-export { LocalCloudStub, createLocalCloudStub } from "./stub.js";
-
-// Real HTTP client — thin mode (client computes embeddings locally)
-export {
-	ThinCloudClient,
-	CloudApiError,
-	createThinCloudClient,
-} from "./thin-client.js";
-export type { ThinCloudClientOptions } from "./thin-client.js";
-
-// Real HTTP client — smart mode (cloud computes embeddings server-side)
-export {
-	SmartCloudClient,
-	createSmartCloudClient,
-} from "./smart-client.js";
-
-// Cloud-aware indexer
-export {
-	CloudAwareIndexer,
-	createCloudIndexer,
-} from "./indexer.js";
-export type { CloudIndexResult, CloudIndexerOptions } from "./indexer.js";
-
 // Auth manager
 export {
 	CloudAuthManager,
 	createCloudAuthManager,
 	getDefaultAuthManager,
 } from "./auth.js";
+// Cloud configuration helpers
+export {
+	createCloudClientFromConfig,
+	DEFAULT_CLOUD_ENDPOINT,
+	getCloudEndpoint,
+	getCloudMode,
+	getRepoSlug,
+	getTeamConfig,
+	isCloudEnabled,
+	parseRepoNameFromUrl,
+} from "./config.js";
+// Git diff change detector
+export {
+	createGitDiffChangeDetector,
+	GitDiffChangeDetector,
+} from "./git-diff.js";
+export type { GraphSyncOptions, GraphSyncResult } from "./graph-sync.js";
+// Graph sync
+export {
+	createGraphSyncer,
+	GraphSyncer,
+} from "./graph-sync.js";
+export type { CloudIndexerOptions, CloudIndexResult } from "./indexer.js";
+// Cloud-aware indexer
+export {
+	CloudAwareIndexer,
+	createCloudIndexer,
+} from "./indexer.js";
+export type { MergedSearchResult } from "./merger.js";
+// Overlay merger
+export { OverlayMerger } from "./merger.js";
+export type { OverlayIndexOptions } from "./overlay.js";
 
 // Overlay index for dirty files
 export {
-	OverlayIndex,
 	createOverlayIndex,
+	OverlayIndex,
 } from "./overlay.js";
-export type { OverlayIndexOptions } from "./overlay.js";
-
-// Overlay merger
-export { OverlayMerger } from "./merger.js";
-export type { MergedSearchResult } from "./merger.js";
-
+export type { CloudSearchOptions } from "./search.js";
 // Cloud-aware search
 export {
 	CloudAwareSearch,
 	createCloudAwareSearch,
 } from "./search.js";
-export type { CloudSearchOptions } from "./search.js";
-
-// Graph sync
+// Real HTTP client — smart mode (cloud computes embeddings server-side)
 export {
-	GraphSyncer,
-	createGraphSyncer,
-} from "./graph-sync.js";
-export type { GraphSyncOptions, GraphSyncResult } from "./graph-sync.js";
+	createSmartCloudClient,
+	SmartCloudClient,
+} from "./smart-client.js";
+// In-memory stub for testing
+export { createLocalCloudStub, LocalCloudStub } from "./stub.js";
+export type { ThinCloudClientOptions } from "./thin-client.js";
+// Real HTTP client — thin mode (client computes embeddings locally)
+export {
+	CloudApiError,
+	createThinCloudClient,
+	ThinCloudClient,
+} from "./thin-client.js";
+// Types
+export type {
+	ChangedFile,
+	ChunkCheckResult,
+	CloudCalleeResult,
+	CloudCallerResult,
+	CloudEnrichmentDoc,
+	CloudGraphResult,
+	CloudSearchRequest,
+	CloudSearchResult,
+	CloudSymbol,
+	CloudSymbolReference,
+	CommitStatus,
+	DirtyFile,
+	IChangeDetector,
+	ICloudIndexClient,
+	IOverlayIndex,
+	RegisterRepoRequest,
+	RegisterRepoResponse,
+	TeamConfig,
+	UploadChunk,
+	UploadIndexRequest,
+	UploadIndexResponse,
+} from "./types.js";

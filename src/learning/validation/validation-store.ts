@@ -9,17 +9,16 @@
 
 import { Database } from "bun:sqlite";
 import type {
-	RecordedSession,
-	ValidationExperiment,
-	ExperimentResults,
 	AggregateResults,
-	ScenarioResults,
-	StatisticalComparison,
 	ExperimentDecision,
-	SessionMetrics,
-	ExperimentStatus,
 	ExperimentGroup,
+	ExperimentResults,
+	ExperimentStatus,
+	RecordedSession,
+	ScenarioResults,
 	SessionOutcome,
+	StatisticalComparison,
+	ValidationExperiment,
 } from "./types.js";
 
 // ============================================================================
@@ -618,7 +617,8 @@ export class ValidationStore {
 		return items.reduce(
 			(groups, item) => {
 				const key = keyGetter(item);
-				(groups[key] = groups[key] ?? []).push(item);
+				groups[key] = groups[key] ?? [];
+				groups[key].push(item);
 				return groups;
 			},
 			{} as Record<string, T[]>,

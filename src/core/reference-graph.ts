@@ -5,8 +5,8 @@
  * Computes PageRank scores for symbol importance ranking.
  */
 
+import type { SymbolDefinition } from "../types.js";
 import type { IFileTracker } from "./tracker.js";
-import type { SymbolDefinition, SymbolReference } from "../types.js";
 
 // ============================================================================
 // Types

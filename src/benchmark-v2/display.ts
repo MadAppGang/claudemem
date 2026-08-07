@@ -6,7 +6,6 @@
  */
 
 import type { BenchmarkDatabase } from "./storage/benchmark-db.js";
-import type { NormalizedScores } from "./types.js";
 
 // Colors for output
 const c = {
@@ -23,7 +22,7 @@ const c = {
 // Helper functions
 const truncateName = (s: string, max = 24) => {
 	const short = s.split("/").pop() || s;
-	return short.length > max ? short.slice(0, max - 1) + "…" : short;
+	return short.length > max ? `${short.slice(0, max - 1)}…` : short;
 };
 
 const fmtPct = (v: number) => (isNaN(v) ? "N/A" : `${(v * 100).toFixed(0)}%`);

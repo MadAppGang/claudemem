@@ -6,17 +6,17 @@
  * Rolls back on any failure.
  */
 
-import { readFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { atomicWrite } from "./editor.js";
-import type { EditHistory } from "./history.js";
 import type {
-	WorkspaceEdit,
-	TextEdit,
 	TextDocumentEdit,
+	TextEdit,
+	WorkspaceEdit,
 } from "../lsp/protocol.js";
 import { uriToPath } from "../lsp/protocol.js";
+import { atomicWrite } from "./editor.js";
+import type { EditHistory } from "./history.js";
 
 export interface ApplyResult {
 	filesChanged: string[];

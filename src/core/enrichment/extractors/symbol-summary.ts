@@ -5,6 +5,13 @@
  * Extracts: purpose, parameters, return value, side effects, usage context.
  */
 
+import {
+	BATCHED_SYMBOL_SUMMARY_SYSTEM_PROMPT,
+	type BatchSymbolInfo,
+	buildBatchedSymbolSummaryPrompt,
+	buildSymbolSummaryPrompt,
+	getSystemPrompt,
+} from "../../../llm/prompts/enrichment.js";
 import type {
 	BaseDocument,
 	CodeChunk,
@@ -12,13 +19,6 @@ import type {
 	ILLMClient,
 	SymbolSummary,
 } from "../../../types.js";
-import {
-	buildSymbolSummaryPrompt,
-	buildBatchedSymbolSummaryPrompt,
-	BATCHED_SYMBOL_SUMMARY_SYSTEM_PROMPT,
-	getSystemPrompt,
-	type BatchSymbolInfo,
-} from "../../../llm/prompts/enrichment.js";
 import { BaseExtractor } from "./base.js";
 
 // ============================================================================

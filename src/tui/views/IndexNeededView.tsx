@@ -14,8 +14,8 @@ import { basename } from "node:path";
 import { useKeyboard } from "@opentui/react";
 import { getEmbeddingModel } from "../../config.js";
 import { IndexProgress } from "../components/command/IndexProgress.js";
-import { theme } from "../theme.js";
 import { useAppContext } from "../context.js";
+import { theme } from "../theme.js";
 
 // ============================================================================
 // Component
@@ -71,7 +71,7 @@ export function IndexNeededView() {
 						<text fg={theme.dimmed}>{`  Model: ${model}`}</text>
 					</box>
 					<box flexDirection="row" height={1}>
-						<text fg={theme.muted}>{" "}</text>
+						<text fg={theme.muted}> </text>
 					</box>
 					<IndexProgress
 						store={progressStore}
@@ -100,7 +100,7 @@ export function IndexNeededView() {
 				</box>
 
 				<box flexDirection="row" height={1}>
-					<text fg={theme.muted}>{" "}</text>
+					<text fg={theme.muted}> </text>
 				</box>
 
 				<box flexDirection="row" height={1}>
@@ -120,7 +120,7 @@ export function IndexNeededView() {
 				)}
 
 				<box flexDirection="row" height={1}>
-					<text fg={theme.muted}>{" "}</text>
+					<text fg={theme.muted}> </text>
 				</box>
 
 				<box flexDirection="row" height={1}>
@@ -137,7 +137,7 @@ export function IndexNeededView() {
 				</box>
 
 				<box flexDirection="row" height={1}>
-					<text fg={theme.muted}>{" "}</text>
+					<text fg={theme.muted}> </text>
 				</box>
 
 				<box height={1}>

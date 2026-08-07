@@ -10,8 +10,8 @@
  * for exact patterns.
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { execFileSync } from "node:child_process";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { ToolDeps } from "./deps.js";
 import { buildFreshness, errorResponse } from "./deps.js";

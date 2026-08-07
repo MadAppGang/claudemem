@@ -110,19 +110,19 @@ export function buildAutocompletePrompt(args: {
 	userParts.push(`language: ${args.language}`);
 
 	if (args.projectFacts) {
-		userParts.push("\n[project]\n" + args.projectFacts.trim());
+		userParts.push(`\n[project]\n${args.projectFacts.trim()}`);
 	}
 
 	if (args.styleHints && Object.keys(args.styleHints).length > 0) {
-		userParts.push("\n[style_hints]\n" + JSON.stringify(args.styleHints));
+		userParts.push(`\n[style_hints]\n${JSON.stringify(args.styleHints)}`);
 	}
 
 	if (args.astContext) {
-		userParts.push("\n[ast_context]\n" + args.astContext.trim());
+		userParts.push(`\n[ast_context]\n${args.astContext.trim()}`);
 	}
 
 	if (args.retrieval?.repoMapContext) {
-		userParts.push("\n[repo_map]\n" + args.retrieval.repoMapContext.trim());
+		userParts.push(`\n[repo_map]\n${args.retrieval.repoMapContext.trim()}`);
 	}
 
 	if (args.retrieval?.results?.length) {
@@ -133,7 +133,7 @@ export function buildAutocompletePrompt(args: {
 					`\n[context_${i + 1}] score=${r.score.toFixed(3)}\n${formatDoc(r.document, 1400)}`,
 			)
 			.join("\n");
-		userParts.push("\n[retrieved_context]" + docs);
+		userParts.push(`\n[retrieved_context]${docs}`);
 	}
 
 	userParts.push(

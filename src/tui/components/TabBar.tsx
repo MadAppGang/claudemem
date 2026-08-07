@@ -5,7 +5,7 @@
  * Active tab highlighted with primary orange color.
  */
 
-import { useAppContext, type TabId } from "../context.js";
+import { type TabId, useAppContext } from "../context.js";
 import { theme } from "../theme.js";
 
 // ============================================================================
@@ -51,9 +51,9 @@ export function TabBar() {
 							paddingRight={2}
 						>
 							{isActive ? (
-								<text fg={theme.tabActive}>{"[" + tab.label + "]"}</text>
+								<text fg={theme.tabActive}>{`[${tab.label}]`}</text>
 							) : (
-								<text fg={theme.tabInactive}>{" " + tab.label + " "}</text>
+								<text fg={theme.tabInactive}>{` ${tab.label} `}</text>
 							)}
 						</box>
 					);

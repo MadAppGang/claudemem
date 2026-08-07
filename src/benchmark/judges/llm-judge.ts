@@ -143,7 +143,7 @@ export class LLMJudge implements IJudge {
 		const maxCodeLength = 3000;
 		const truncatedCode =
 			codeContent.length > maxCodeLength
-				? codeContent.slice(0, maxCodeLength) + "\n... (truncated)"
+				? `${codeContent.slice(0, maxCodeLength)}\n... (truncated)`
 				: codeContent;
 
 		return `Evaluate this ${summaryType} summary.

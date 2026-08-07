@@ -9,27 +9,27 @@
  * 2. LLM-based: Ask an LLM to match summary to code
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type {
-	ILLMClient,
 	IEmbeddingsClient,
+	ILLMClient,
 	LLMMessage,
 } from "../../../types.js";
-import type {
-	BenchmarkCodeUnit,
-	GeneratedSummary,
-	EvaluationResult,
-	ContrastiveResults,
-	DistractorSet,
-	DistractorDifficulty,
-	EvaluatorContext,
-} from "../../types.js";
-import { BaseEvaluator } from "../base.js";
 import {
 	ContrastiveError,
 	InsufficientDistractorsError,
 } from "../../errors.js";
 import type { PhaseContext, PhaseResult } from "../../pipeline/orchestrator.js";
+import type {
+	BenchmarkCodeUnit,
+	ContrastiveResults,
+	DistractorDifficulty,
+	DistractorSet,
+	EvaluationResult,
+	EvaluatorContext,
+	GeneratedSummary,
+} from "../../types.js";
+import { BaseEvaluator } from "../base.js";
 
 // ============================================================================
 // Prompts
@@ -319,10 +319,6 @@ interface ContrastiveLLMResponse {
 }
 
 export class LLMContrastiveEvaluator extends BaseEvaluator<EvaluationResult> {
-	constructor(llmClient: ILLMClient) {
-		super(llmClient);
-	}
-
 	async evaluate(
 		summary: GeneratedSummary,
 		codeUnit: BenchmarkCodeUnit,
@@ -496,7 +492,7 @@ export function createContrastivePhaseExecutor(
 			// Max possible distractors = largest language group - 1 (excluding target)
 			const maxPossibleDistractors = maxLanguageCount - 1;
 			const minDistractors = 4;
-			let actualDistractorCount = Math.min(
+			const actualDistractorCount = Math.min(
 				evalConfig.distractorCount,
 				maxPossibleDistractors,
 			);
@@ -572,10 +568,7 @@ export function createContrastivePhaseExecutor(
 						codeEmbeddings, // Pass embeddings for TIER 3 selection
 					);
 					distractorSets.push(set);
-				} catch (error) {
-					// Skip units without enough distractors (different language/type)
-					continue;
-				}
+				} catch (error) {}
 			}
 
 			// If no distractor sets could be generated, skip evaluation

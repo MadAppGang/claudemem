@@ -2,9 +2,9 @@
  * Learning engine module - Core learning algorithms.
  */
 
-export { LearningEngine, createLearningEngine } from "./learning-engine.js";
+export { createLearningEngine, LearningEngine } from "./learning-engine.js";
 export {
-	WeightOptimizer,
 	createWeightOptimizer,
 	type ValidationResult,
+	WeightOptimizer,
 } from "./weight-optimizer.js";

@@ -5,16 +5,16 @@
  * in .mnemex/memories/. Maintains a memories.json index for fast listing.
  */
 
+import { randomBytes } from "node:crypto";
 import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
-	writeFileSync,
-	unlinkSync,
 	renameSync,
+	unlinkSync,
+	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { randomBytes } from "node:crypto";
 
 export interface Memory {
 	key: string;
@@ -179,7 +179,7 @@ export class MemoryStore {
  * Write a file atomically: write to temp, then rename.
  */
 function atomicWriteFile(filePath: string, content: string): void {
-	const tmpPath = filePath + `.tmp-${randomBytes(6).toString("hex")}`;
+	const tmpPath = `${filePath}.tmp-${randomBytes(6).toString("hex")}`;
 	writeFileSync(tmpPath, content, "utf-8");
 	renameSync(tmpPath, filePath);
 }

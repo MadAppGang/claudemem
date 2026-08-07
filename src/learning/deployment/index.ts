@@ -34,40 +34,40 @@
 
 // A/B Testing
 export {
+	type ABTestConfig,
 	ABTestManager,
 	createABTestManager,
 	DEFAULT_AB_CONFIG,
-	type ABTestConfig,
 	type Experiment,
+	type ExperimentDecision,
 	type ExperimentMetrics,
 	type ExperimentStatus,
 	type StatisticalResult,
-	type ExperimentDecision,
 } from "./ab-testing.js";
 
 // Metrics Tracker
 export {
-	MetricsTracker,
 	createMetricsTracker,
 	DEFAULT_METRICS_CONFIG,
-	type MetricsTrackerConfig,
+	type ImprovementMetrics,
+	type MetricAnomaly,
 	type MetricDataPoint,
 	type MetricSeries,
 	type MetricsSnapshot,
-	type ImprovementMetrics,
-	type MetricAnomaly,
+	MetricsTracker,
+	type MetricsTrackerConfig,
 	type TrendAnalysis,
 } from "./metrics-tracker.js";
 
 // Rollback Manager
 export {
-	RollbackManager,
 	createRollbackManager,
 	DEFAULT_ROLLBACK_CONFIG,
-	type RollbackManagerConfig,
-	type RollbackEvent,
-	type RollbackMetrics,
 	type RollbackCandidate,
-	type RollbackStatus,
+	type RollbackEvent,
+	RollbackManager,
+	type RollbackManagerConfig,
+	type RollbackMetrics,
 	type RollbackReason,
+	type RollbackStatus,
 } from "./rollback.js";

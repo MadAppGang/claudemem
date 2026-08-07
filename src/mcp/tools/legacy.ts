@@ -15,19 +15,18 @@
  *   get_learning_stats   - Learning system stats
  */
 
+import { appendFileSync, existsSync } from "node:fs";
+import { join, resolve } from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { appendFileSync } from "node:fs";
-import { join, resolve } from "node:path";
 import { createIndexer, IndexLockError } from "../../core/indexer.js";
 import { FileTracker } from "../../core/tracker.js";
-import { existsSync } from "node:fs";
-import { discoverEmbeddingModels } from "../../models/model-discovery.js";
 import { createLearningSystem } from "../../learning/index.js";
-import type { ToolDeps } from "./deps.js";
-import { buildFreshness, errorResponse } from "./deps.js";
+import { discoverEmbeddingModels } from "../../models/model-discovery.js";
 import { buildIndexState, type IndexState } from "../index-state.js";
 import type { FreshnessMetadata } from "../types.js";
+import type { ToolDeps } from "./deps.js";
+import { buildFreshness, errorResponse } from "./deps.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -376,7 +375,7 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 					response += `\n`;
 					response += `Score: ${(r.score * 100).toFixed(1)}% (vector: ${(r.vectorScore * 100).toFixed(0)}%, keyword: ${(r.keywordScore * 100).toFixed(0)}%)\n`;
 					response += `ID: \`${chunk.id.slice(0, 12)}...\`\n\n`;
-					response += "```" + chunk.language + "\n";
+					response += `\`\`\`${chunk.language}\n`;
 					response += chunk.content.slice(0, 1000);
 					if (chunk.content.length > 1000) response += "\n// ... truncated";
 					response += "\n```\n\n";

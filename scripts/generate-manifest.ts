@@ -8,7 +8,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 interface PlatformInfo {
@@ -89,5 +89,5 @@ const checksums = Object.entries(PLATFORM_MAP)
 	)
 	.join("\n");
 
-writeFileSync(checksumsPath, checksums + "\n");
+writeFileSync(checksumsPath, `${checksums}\n`);
 console.log("\nGenerated checksums.txt");

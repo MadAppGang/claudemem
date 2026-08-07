@@ -19,10 +19,11 @@
  *   o         - open report (on Summary tab)
  */
 
-import { useState, useEffect } from "react";
+import { TextAttributes } from "@opentui/core";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
+import { useEffect, useState } from "react";
 import type { NormalizedScores } from "../../../benchmark-v2/types.js";
-import { theme, getScoreColor, scoreBarChars } from "../../theme.js";
+import { getScoreColor, scoreBarChars, theme } from "../../theme.js";
 
 // ============================================================================
 // Data Types (public interface - kept stable)
@@ -69,7 +70,7 @@ export interface BenchmarkResultsProps {
 
 const truncateName = (s: string, max = 24): string => {
 	const short = s.split("/").pop() || s;
-	return short.length > max ? short.slice(0, max - 1) + "\u2026" : short;
+	return short.length > max ? `${short.slice(0, max - 1)}\u2026` : short;
 };
 
 const fmtPct = (v: number): string =>
@@ -179,7 +180,7 @@ function BarChart({ value, max = 1, width = 20, label, color }: BarChartProps) {
 	return (
 		<box flexDirection="row" height={1}>
 			<text fg={barColor}>{bar}</text>
-			<text fg={theme.text}>{" " + displayLabel}</text>
+			<text fg={theme.text}>{` ${displayLabel}`}</text>
 		</box>
 	);
 }
@@ -293,7 +294,7 @@ function Sidebar({ sections, activeIndex, height, showBack }: SidebarProps) {
 								width="100%"
 								backgroundColor={theme.primary}
 							>
-								<text fg="#000000" bold>
+								<text fg="#000000" attributes={TextAttributes.BOLD}>
 									{padded}
 								</text>
 							</box>
@@ -324,7 +325,7 @@ function Sidebar({ sections, activeIndex, height, showBack }: SidebarProps) {
 					<text fg={theme.text}>{"\u2191\u2193/Tab  next/prev"}</text>
 				</box>
 				<box height={1}>
-					<text fg={theme.text}>{"1-" + sections.length + "     jump to"}</text>
+					<text fg={theme.text}>{`1-${sections.length}     jump to`}</text>
 				</box>
 				<box height={1}>
 					<text fg={theme.text}>{"j/k    scroll"}</text>
@@ -553,7 +554,7 @@ function OperationalSectionContent({
 				{totalBenchmarkCost > 0 && (
 					<box height={1}>
 						<text fg={theme.text}>
-							{"Total cost: " + fmtCostTotal(totalBenchmarkCost)}
+							{`Total cost: ${fmtCostTotal(totalBenchmarkCost)}`}
 						</text>
 					</box>
 				)}
@@ -770,7 +771,7 @@ function PerJudgeSectionContent({
 								<box key={judgeId} flexDirection="row" height={1}>
 									<box width={14}>
 										<text fg={color}>
-											{("  " + truncateName(judgeId, 11)).padEnd(14)}
+											{`  ${truncateName(judgeId, 11)}`.padEnd(14)}
 										</text>
 									</box>
 									<BarChart
@@ -1036,8 +1037,8 @@ function SummarySectionContent({
 		<box flexDirection="column" paddingY={0} paddingX={1}>
 			{codebaseLabel && (
 				<box height={1} marginBottom={1}>
-					<text fg={theme.info} bold>
-						{"\u2500\u2500 Codebase: " + codebaseLabel + " \u2500\u2500"}
+					<text fg={theme.info} attributes={TextAttributes.BOLD}>
+						{`\u2500\u2500 Codebase: ${codebaseLabel} \u2500\u2500`}
 					</text>
 				</box>
 			)}
@@ -1061,7 +1062,7 @@ function SummarySectionContent({
 
 					return (
 						<box key={s.modelId} height={1}>
-							<text fg={color} bold>
+							<text fg={color} attributes={TextAttributes.BOLD}>
 								{" " +
 									icon +
 									" " +
@@ -1236,10 +1237,10 @@ function SummarySectionContent({
 									<text fg={theme.info}>{"Recommendation"}</text>
 								</box>
 								<box height={1}>
-									<text fg={theme.text}>{" " + recommendation}</text>
+									<text fg={theme.text}>{` ${recommendation}`}</text>
 								</box>
 								<box height={1}>
-									<text fg={theme.text}>{" " + reasoning}</text>
+									<text fg={theme.text}>{` ${reasoning}`}</text>
 								</box>
 								{isClose && (
 									<box height={1}>
@@ -1266,21 +1267,21 @@ function SummarySectionContent({
 					{data.outputFiles.json && (
 						<box height={1}>
 							<text fg={theme.text}>
-								{"  [j] JSON     " + data.outputFiles.json}
+								{`  [j] JSON     ${data.outputFiles.json}`}
 							</text>
 						</box>
 					)}
 					{data.outputFiles.markdown && (
 						<box height={1}>
 							<text fg={theme.text}>
-								{"  [m] Markdown " + data.outputFiles.markdown}
+								{`  [m] Markdown ${data.outputFiles.markdown}`}
 							</text>
 						</box>
 					)}
 					{data.outputFiles.html && (
 						<box height={1}>
 							<text fg={theme.text}>
-								{"  [h] HTML     " + data.outputFiles.html}
+								{`  [h] HTML     ${data.outputFiles.html}`}
 							</text>
 						</box>
 					)}
@@ -1372,7 +1373,7 @@ function ErrorsSectionContent({ errors }: { errors: BenchmarkError[] }) {
 									</box>
 									{/* Show full error - wrap long lines */}
 									<box paddingLeft={2}>
-										<text fg={theme.muted} wrap="wrap">
+										<text fg={theme.muted} wrapMode="word">
 											{err.error}
 										</text>
 									</box>
@@ -1595,13 +1596,17 @@ export function BenchmarkResultsApp({
 			{/* Status bar at bottom */}
 			<box flexDirection="row" width="100%" height={1}>
 				<box>
-					<text backgroundColor={theme.primary} fg="#000000" bold>
-						{" " + activeSection.icon + " " + activeSection.label + " "}
+					<text
+						bg={theme.primary}
+						fg="#000000"
+						attributes={TextAttributes.BOLD}
+					>
+						{` ${activeSection.icon} ${activeSection.label} `}
 					</text>
 				</box>
 				<box paddingLeft={1}>
 					<text fg={theme.muted}>
-						{"[" + (activeIndex + 1) + "/" + allSections.length + "]"}
+						{`[${activeIndex + 1}/${allSections.length}]`}
 					</text>
 				</box>
 				<box flexGrow={1} />

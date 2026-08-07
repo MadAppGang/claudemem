@@ -11,11 +11,11 @@
  *  - Limit applied correctly
  */
 
-import { describe, test, expect } from "bun:test";
-import { OverlayMerger } from "../../../src/cloud/merger.js";
+import { describe, expect, test } from "bun:test";
 import type { MergedSearchResult } from "../../../src/cloud/merger.js";
+import { OverlayMerger } from "../../../src/cloud/merger.js";
 import type { CloudSearchResult } from "../../../src/cloud/types.js";
-import type { SearchResult, CodeChunk } from "../../../src/types.js";
+import type { CodeChunk, SearchResult } from "../../../src/types.js";
 
 // ============================================================================
 // Testdata

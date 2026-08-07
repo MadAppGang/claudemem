@@ -5,7 +5,7 @@
  * Color depends on score: green for high, yellow for mid, red for low.
  */
 
-import { theme, scoreBarChars, getScoreColor } from "../theme.js";
+import { getScoreColor, scoreBarChars, theme } from "../theme.js";
 
 // ============================================================================
 // Props

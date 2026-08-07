@@ -18,46 +18,44 @@
  * 11. Register SIGTERM/SIGINT shutdown handlers
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-
-import { loadMcpConfig } from "./config.js";
-import { createLogger } from "./logger.js";
-import { IndexStateManager } from "./state-manager.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { getIndexDbPath } from "../config.js";
+import { SymbolEditor } from "../editor/editor.js";
+import { LspManager } from "../lsp/manager.js";
+import { MemoryStore } from "../memory/store.js";
 import { IndexCache } from "./cache.js";
 import { CompletionDetector } from "./completion-detector.js";
+import { loadMcpConfig } from "./config.js";
+import { createLogger } from "./logger.js";
 import { DebounceReindexer } from "./reindexer.js";
-import { FileWatcher } from "./watcher.js";
-import { getIndexDbPath } from "../config.js";
-
+import { IndexStateManager } from "./state-manager.js";
 import {
-	registerSearchTools,
-	registerSymbolTools,
-	registerCallersTools,
-	registerCalleesTools,
-	registerMapTools,
-	registerContextTools,
 	registerAnalysisTools,
-	registerStatusTools,
-	registerReindexTools,
-	registerLegacyTools,
+	registerCalleesTools,
+	registerCallersTools,
+	registerContextTools,
 	registerEditTools,
+	registerLegacyTools,
 	registerLspTools,
-	registerRenameTools,
+	registerMapTools,
 	registerMemoryTools,
 	registerObserveTools,
-	registerThinkTools,
 	registerReadFileTools,
+	registerReindexTools,
+	registerRenameTools,
 	registerSearchPatternTools,
+	registerSearchTools,
+	registerStatusTools,
+	registerSymbolTools,
+	registerThinkTools,
 	type ToolDeps,
 } from "./tools/index.js";
-import { LspManager } from "../lsp/manager.js";
-import { SymbolEditor } from "../editor/editor.js";
-import { MemoryStore } from "../memory/store.js";
+import { FileWatcher } from "./watcher.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

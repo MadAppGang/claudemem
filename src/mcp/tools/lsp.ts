@@ -5,20 +5,20 @@
  * All tools fall back to tree-sitter when LSP is unavailable.
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { ToolDeps } from "./deps.js";
-import { buildFreshness, errorResponse } from "./deps.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import {
+	type Hover,
+	type Location,
 	LSP_METHODS,
+	type MarkupContent,
 	pathToUri,
 	uriToPath,
-	type Location,
-	type Hover,
-	type MarkupContent,
 } from "../../lsp/protocol.js";
+import type { ToolDeps } from "./deps.js";
+import { buildFreshness, errorResponse } from "./deps.js";
 
 export function registerLspTools(server: McpServer, deps: ToolDeps): void {
 	const { cache, stateManager, config, lspManager } = deps;

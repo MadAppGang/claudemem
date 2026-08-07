@@ -12,8 +12,8 @@
  */
 
 import type {
-	CorrectionSignals,
 	CorrectionEvent,
+	CorrectionSignals,
 } from "../interaction/types.js";
 
 // ============================================================================

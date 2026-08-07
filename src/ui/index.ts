@@ -8,40 +8,37 @@
  */
 
 // Colors
-export { colors, c, colorize, styled } from "./colors.js";
-
-// Progress bars
-export {
-	formatElapsed,
-	createBenchmarkProgress,
-	createSimpleProgress,
-	type BenchmarkProgress,
-} from "./progress.js";
-
-// Table rendering
-export {
-	truncate,
-	formatPercent,
-	formatDuration,
-	formatCost,
-	formatContextLength,
-	renderTable,
-	renderSummary,
-	renderHeader,
-	renderInfo,
-	renderBenchmarkBanner,
-	renderSuccess,
-	renderError,
-	getHighlight,
-	type TableColumn,
-	type CellValue,
-} from "./table.js";
-
+export { c, colorize, colors, styled } from "./colors.js";
 // Logo and branding
 export {
 	getLogo,
-	printLogo,
 	printBenchmarkHeader,
+	printLogo,
 	printPhaseHeader,
 	printStatus,
 } from "./logo.js";
+// Progress bars
+export {
+	type BenchmarkProgress,
+	createBenchmarkProgress,
+	createSimpleProgress,
+	formatElapsed,
+} from "./progress.js";
+// Table rendering
+export {
+	type CellValue,
+	formatContextLength,
+	formatCost,
+	formatDuration,
+	formatPercent,
+	getHighlight,
+	renderBenchmarkBanner,
+	renderError,
+	renderHeader,
+	renderInfo,
+	renderSuccess,
+	renderSummary,
+	renderTable,
+	type TableColumn,
+	truncate,
+} from "./table.js";

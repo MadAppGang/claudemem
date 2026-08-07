@@ -11,28 +11,25 @@
 import type { IVectorStore } from "../core/store.js";
 import type {
 	CodeUnit,
-	DocumentType,
-	EnrichedSearchResult,
 	FormattedContext,
 	IEmbeddingsClient,
 	ILLMClient,
 	QueryIntent,
-	RerankedSearchResult,
 	UnitType,
 } from "../types.js";
 import {
 	type ContextFormatter,
-	type FormatInput,
 	createContextFormatter,
+	type FormatInput,
 } from "./formatting/context-formatter.js";
 import {
-	type LLMReranker,
 	createLLMReranker,
+	type LLMReranker,
 } from "./reranking/llm-reranker.js";
 import {
+	createQueryRouter,
 	type QueryRouter,
 	type RouteResult,
-	createQueryRouter,
 } from "./routing/query-router.js";
 
 // ============================================================================

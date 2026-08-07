@@ -1,20 +1,6 @@
 #!/usr/bin/env bun
-
-/**
- * Download tree-sitter grammar WASM files
- *
- * Downloads pre-built WASM grammars from GitHub releases or builds them.
- */
-
-import {
-	existsSync,
-	mkdirSync,
-	writeFileSync,
-	readdirSync,
-	copyFileSync,
-} from "node:fs";
-import { join } from "node:path";
-import { execSync } from "node:child_process";
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { basename, join } from "node:path";
 
 const GRAMMARS_DIR = join(import.meta.dir, "../grammars");
 
@@ -163,33 +149,44 @@ async function downloadGrammar(name: string): Promise<void> {
 }
 
 async function copyTreeSitterRuntime(): Promise<void> {
-	// Copy the core tree-sitter.wasm from node_modules
-	// This is required because Bun bundles absolute paths at build time
-	const destPath = join(GRAMMARS_DIR, "tree-sitter.wasm");
-
-	if (existsSync(destPath)) {
-		console.log("✓ tree-sitter.wasm (cached)");
-		return;
-	}
-
-	// Try multiple possible locations for node_modules
+	// Copy the core tree-sitter runtime wasm from node_modules.
+	// This is required because Bun bundles absolute paths at build time.
+	//
+	// The destination filename must match what the runtime asks locateFile()
+	// for (see parser-manager.ts), and that name tracks the package version:
+	//   web-tree-sitter <= 0.25 -> tree-sitter.wasm
+	//   web-tree-sitter >= 0.26 -> web-tree-sitter.wasm
+	// So copy each candidate to its own basename rather than a fixed name.
 	const possibleSources = [
+		join(
+			import.meta.dir,
+			"../node_modules/web-tree-sitter/web-tree-sitter.wasm",
+		),
 		join(import.meta.dir, "../node_modules/web-tree-sitter/tree-sitter.wasm"),
 		// When installed globally, web-tree-sitter might be a peer
+		join(import.meta.dir, "../../web-tree-sitter/web-tree-sitter.wasm"),
 		join(import.meta.dir, "../../web-tree-sitter/tree-sitter.wasm"),
 	];
 
 	for (const sourcePath of possibleSources) {
-		if (existsSync(sourcePath)) {
-			console.log("⬇ Copying tree-sitter.wasm runtime...");
-			copyFileSync(sourcePath, destPath);
-			console.log("✓ tree-sitter.wasm (from node_modules)");
+		if (!existsSync(sourcePath)) continue;
+
+		const name = basename(sourcePath);
+		const destPath = join(GRAMMARS_DIR, name);
+
+		if (existsSync(destPath)) {
+			console.log(`✓ ${name} (cached)`);
 			return;
 		}
+
+		console.log(`⬇ Copying ${name} runtime...`);
+		copyFileSync(sourcePath, destPath);
+		console.log(`✓ ${name} (from node_modules)`);
+		return;
 	}
 
 	console.warn(
-		"⚠ tree-sitter.wasm not found in node_modules - will use default location",
+		"⚠ tree-sitter runtime wasm not found in node_modules - will use default location",
 	);
 }
 

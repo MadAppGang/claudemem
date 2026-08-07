@@ -23,7 +23,7 @@ export interface CellValue {
  * Truncate string with ellipsis
  */
 export function truncate(s: string, max: number): string {
-	return s.length > max ? s.slice(0, max - 1) + "…" : s;
+	return s.length > max ? `${s.slice(0, max - 1)}…` : s;
 }
 
 /**
@@ -83,7 +83,7 @@ export function renderTable(
 		.map((col) => col.header.padEnd(col.width))
 		.join(" ");
 	console.log(`  ${headerLine}`);
-	console.log("  " + "─".repeat(totalWidth));
+	console.log(`  ${"─".repeat(totalWidth)}`);
 
 	// Print rows
 	for (const row of rows) {

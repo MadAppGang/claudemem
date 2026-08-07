@@ -11,7 +11,6 @@
  */
 
 import type { Node } from "web-tree-sitter";
-import { Query } from "web-tree-sitter";
 import {
 	getParserManager,
 	type ParserManager,
@@ -694,7 +693,7 @@ export class ASTMetadataExtractor {
 				child.type === "type_identifier" ||
 				child.type === "type_annotation"
 			) {
-				const name = child.text.replace(/^:\s*/, "").split(/[<\[\(]/)[0];
+				const name = child.text.replace(/^:\s*/, "").split(/[<[(]/)[0];
 				if (name && name.length > 1 && /^[A-Z]/.test(name)) {
 					typesReferenced.add(name);
 				}

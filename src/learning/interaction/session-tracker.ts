@@ -8,14 +8,14 @@
  * - Detect session outcomes
  */
 
+import { createHash } from "node:crypto";
 import type { InteractionStore } from "./interaction-store.js";
 import type {
 	AgentSession,
-	SessionOutcome,
 	InteractionConfig,
+	SessionOutcome,
 } from "./types.js";
 import { DEFAULT_INTERACTION_CONFIG } from "./types.js";
-import { createHash } from "node:crypto";
 
 // ============================================================================
 // SessionTracker Class

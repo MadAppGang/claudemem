@@ -7,13 +7,11 @@
  */
 
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { IndexLock } from "../core/lock.js";
-import type { Logger } from "./logger.js";
-import type { IndexStateManager } from "./state-manager.js";
 import type { IndexCache } from "./cache.js";
 import type { CompletionDetector } from "./completion-detector.js";
+import type { Logger } from "./logger.js";
+import type { IndexStateManager } from "./state-manager.js";
 
 /**
  * Schedules and executes background reindex operations.
@@ -115,6 +113,15 @@ export class DebounceReindexer {
 				cwd: this.workspaceRoot,
 				detached: true,
 				stdio: "ignore",
+			});
+
+			// A missing `mnemex` on PATH surfaces as an async 'error' event, not a
+			// throw. Unhandled, Node re-raises it and kills the MCP server over a
+			// background reindex that is explicitly best-effort.
+			child.on("error", (err) => {
+				this.logger.debug(
+					`DebounceReindexer: could not spawn mnemex (${err.message}) — skipping background reindex`,
+				);
 			});
 
 			child.unref();

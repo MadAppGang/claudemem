@@ -348,7 +348,7 @@ export abstract class BaseLLMClient implements ILLMClient {
 				}
 
 				if (attempt < maxRetries - 1) {
-					const delay = BASE_RETRY_DELAY * Math.pow(2, attempt);
+					const delay = BASE_RETRY_DELAY * 2 ** attempt;
 					await this.sleep(delay);
 				}
 			}

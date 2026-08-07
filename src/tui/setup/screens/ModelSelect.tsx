@@ -5,14 +5,14 @@
  * For "pull recommended", spawns `ollama pull` and streams progress.
  */
 
-import { useState, useEffect, useRef } from "react";
-import { useKeyboard } from "@opentui/react";
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
-import { theme, scoreBarChars } from "../../theme.js";
-import type { ScreenProps } from "../types.js";
-import { suggestModel, suggestAlternateModel } from "../hardware.js";
+import { spawn } from "node:child_process";
+import { useKeyboard } from "@opentui/react";
+import { useEffect, useRef, useState } from "react";
+import { scoreBarChars, theme } from "../../theme.js";
 import type { HardwareProfile } from "../hardware.js";
+import { suggestAlternateModel, suggestModel } from "../hardware.js";
+import type { ScreenProps } from "../types.js";
 
 // ============================================================================
 // Sub-components

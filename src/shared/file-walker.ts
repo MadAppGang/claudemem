@@ -5,7 +5,7 @@
  * Extracted from Indexer to be reusable across modules (indexer, pack, etc.).
  */
 
-import { readdirSync, statSync, type Dirent } from "node:fs";
+import { type Dirent, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { shouldExclude, shouldInclude } from "./pattern-matcher.js";
 
@@ -92,8 +92,7 @@ export function walkFiles(root: string, opts: WalkOptions): WalkEntry[] {
 
 				// Check extension filter if specified
 				if (onlyExtensions !== undefined) {
-					const ext =
-						"." + (entry.name as string).split(".").pop()?.toLowerCase();
+					const ext = `.${(entry.name as string).split(".").pop()?.toLowerCase()}`;
 					if (!onlyExtensions.has(ext)) {
 						continue;
 					}

@@ -7,9 +7,9 @@
  * - Reranking (mocked)
  */
 
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, rmSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { CodeUnitExtractor } from "../../src/core/ast/code-unit-extractor.js";
 import { ContextFormatter } from "../../src/retrieval/formatting/context-formatter.js";

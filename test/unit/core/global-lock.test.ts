@@ -149,9 +149,9 @@ describe("createGlobalIndexLock", () => {
 			);
 
 			lock.setPhase("writing:lance");
-			expect(
-				(readLock(lockPath) as { phase?: string }).phase,
-			).toBe("writing:lance");
+			expect((readLock(lockPath) as { phase?: string }).phase).toBe(
+				"writing:lance",
+			);
 		} finally {
 			lock.release();
 		}

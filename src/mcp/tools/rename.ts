@@ -5,18 +5,18 @@
  * Uses LSP textDocument/rename when available, falls back to text search.
  */
 
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { ToolDeps } from "./deps.js";
-import { buildFreshness, errorResponse } from "./deps.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import { WorkspaceEditApplier } from "../../editor/workspace-edit.js";
 import {
 	LSP_METHODS,
 	pathToUri,
 	type WorkspaceEdit,
 } from "../../lsp/protocol.js";
-import { WorkspaceEditApplier } from "../../editor/workspace-edit.js";
+import type { ToolDeps } from "./deps.js";
+import { buildFreshness, errorResponse } from "./deps.js";
 
 export function registerRenameTools(server: McpServer, deps: ToolDeps): void {
 	const { cache, stateManager, config, lspManager, editor } = deps;

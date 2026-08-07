@@ -12,7 +12,7 @@ export {
 } from "./code-extractor.js";
 
 export {
-	QueryGenerator,
 	createQueryGenerator,
+	QueryGenerator,
 	type QueryGeneratorOptions,
 } from "./query-generator.js";

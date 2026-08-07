@@ -8,7 +8,7 @@
  * search() will return, bypassing LanceDB entirely.
  */
 
-import type { IOverlayIndex, DirtyFile } from "../../../../src/cloud/types.js";
+import type { DirtyFile, IOverlayIndex } from "../../../../src/cloud/types.js";
 import type { SearchResult } from "../../../../src/types.js";
 
 // ============================================================================

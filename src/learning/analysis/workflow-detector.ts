@@ -11,7 +11,7 @@
  * - Subagent creation (handle the workflow autonomously)
  */
 
-import type { ToolEvent, DetectedPattern } from "../interaction/types.js";
+import type { DetectedPattern, ToolEvent } from "../interaction/types.js";
 
 // ============================================================================
 // Types

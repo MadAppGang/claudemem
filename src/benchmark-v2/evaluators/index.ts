@@ -11,50 +11,45 @@
 // Base evaluator
 export {
 	BaseEvaluator,
-	isSameModelFamily,
 	getModelFamily,
+	isSameModelFamily,
 	selectJudges,
 } from "./base.js";
-
-// Judge evaluators
-export {
-	PointwiseJudgeEvaluator,
-	createPointwiseJudgeEvaluator,
-} from "./judge/pointwise.js";
-
-export {
-	PairwiseJudgeEvaluator,
-	createPairwiseJudgeEvaluator,
-	aggregateTournamentResults,
-} from "./judge/pairwise.js";
-
-export { createJudgePhaseExecutor } from "./judge/index.js";
-
 // Contrastive evaluators
 export {
-	EmbeddingContrastiveEvaluator,
-	LLMContrastiveEvaluator,
+	createContrastivePhaseExecutor,
 	createEmbeddingContrastiveEvaluator,
 	createLLMContrastiveEvaluator,
+	EmbeddingContrastiveEvaluator,
+	LLMContrastiveEvaluator,
 	selectDistractors,
-	createContrastivePhaseExecutor,
 } from "./contrastive/index.js";
-
-// Retrieval evaluator
-export {
-	RetrievalEvaluator,
-	createRetrievalEvaluator,
-	aggregateRetrievalResults,
-	createRetrievalPhaseExecutor,
-	type AggregatedRetrievalMetrics,
-} from "./retrieval/index.js";
-
 // Downstream evaluators
 export {
-	DownstreamEvaluator,
 	createDownstreamEvaluator,
-	generateCompletionTasks,
-	generateBugLocalizationTasks,
-	generateFunctionSelectionTasks,
 	createDownstreamPhaseExecutor,
+	DownstreamEvaluator,
+	generateBugLocalizationTasks,
+	generateCompletionTasks,
+	generateFunctionSelectionTasks,
 } from "./downstream/index.js";
+
+export { createJudgePhaseExecutor } from "./judge/index.js";
+export {
+	aggregateTournamentResults,
+	createPairwiseJudgeEvaluator,
+	PairwiseJudgeEvaluator,
+} from "./judge/pairwise.js";
+// Judge evaluators
+export {
+	createPointwiseJudgeEvaluator,
+	PointwiseJudgeEvaluator,
+} from "./judge/pointwise.js";
+// Retrieval evaluator
+export {
+	type AggregatedRetrievalMetrics,
+	aggregateRetrievalResults,
+	createRetrievalEvaluator,
+	createRetrievalPhaseExecutor,
+	RetrievalEvaluator,
+} from "./retrieval/index.js";

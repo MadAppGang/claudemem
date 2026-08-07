@@ -9,9 +9,9 @@
  */
 
 import type {
-	IEmbeddingsClient,
-	EmbedResult,
 	EmbeddingProvider,
+	EmbedResult,
+	IEmbeddingsClient,
 } from "../../../../src/types.js";
 
 // ============================================================================

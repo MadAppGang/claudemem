@@ -4,9 +4,8 @@
 // Verifies that MemoryStore instances backed by different .mnemex
 // directories do not share data.
 
-import { describe, test, expect, afterEach } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { TestWorkspace } from "../../helpers/test-workspace.js";
-import { MemoryStore } from "../../../src/memory/store.js";
 
 describe("Memory Isolation Scenarios (FR-4.3)", () => {
 	let ws1: TestWorkspace;

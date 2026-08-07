@@ -11,8 +11,8 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
-	SmartCloudClient,
 	createSmartCloudClient,
+	SmartCloudClient,
 } from "../../../src/cloud/smart-client.js";
 import { ThinCloudClient } from "../../../src/cloud/thin-client.js";
 import type { UploadIndexRequest } from "../../../src/cloud/types.js";

@@ -30,26 +30,25 @@
  * ```
  */
 
+// Code Change Tracker
+export {
+	CodeChangeTracker,
+	type CodeChangeTrackerConfig,
+	type CorrectionGapResult,
+	type CorrectionGapStats,
+	createCodeChangeTracker,
+	DEFAULT_TRACKER_CONFIG,
+	hashContent,
+	type TrackedEdit,
+} from "./code-change-tracker.js";
 // Correction Scorer
 export {
 	CorrectionScorer,
+	type CorrectionScorerConfig,
 	createCorrectionScorer,
 	DEFAULT_CORRECTION_WEIGHTS,
 	DEFAULT_SCORER_CONFIG,
 	LEXICAL_CORRECTION_KEYWORDS,
-	STRONG_CORRECTION_KEYWORDS,
-	type CorrectionScorerConfig,
 	type ScoringContext,
+	STRONG_CORRECTION_KEYWORDS,
 } from "./correction-scorer.js";
-
-// Code Change Tracker
-export {
-	CodeChangeTracker,
-	createCodeChangeTracker,
-	hashContent,
-	DEFAULT_TRACKER_CONFIG,
-	type CodeChangeTrackerConfig,
-	type TrackedEdit,
-	type CorrectionGapResult,
-	type CorrectionGapStats,
-} from "./code-change-tracker.js";

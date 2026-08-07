@@ -61,9 +61,17 @@ const CLAUDE_ALIASES: Record<string, string> = {
 	"haiku-4.5": "claude-haiku-4-5",
 };
 
-/** Local provider endpoints */
+/**
+ * OpenAI-compatible endpoints served by the "local" provider.
+ *
+ * `ollama-cloud` is hosted rather than local, but speaks the same protocol, so
+ * it reuses the same client. It requires a Bearer token (OLLAMA_API_KEY);
+ * see LocalLLMClient. Note it serves generation only — its /api/embed route
+ * returns 401, so it cannot back the embedding provider.
+ */
 const LOCAL_ENDPOINTS: Record<string, string> = {
 	ollama: "http://localhost:11434/v1",
+	"ollama-cloud": "https://ollama.com/v1",
 	lmstudio: "http://localhost:1234/v1",
 };
 
@@ -117,7 +125,7 @@ export class LLMResolver {
 			return {
 				provider: customAlias.provider,
 				model: customAlias.model,
-				displayName: this.formatDisplayName(
+				displayName: LLMResolver.formatDisplayName(
 					customAlias.provider,
 					customAlias.model,
 				),
@@ -130,31 +138,34 @@ export class LLMResolver {
 		// Handle explicit provider prefixes
 		if (prefix === "batch" || prefix === "abatch") {
 			const modelAlias = parts.slice(1).join("/") || "sonnet";
-			const model = this.resolveModelAlias(modelAlias, "anthropic-batch");
+			const model = LLMResolver.resolveModelAlias(
+				modelAlias,
+				"anthropic-batch",
+			);
 			return {
 				provider: "anthropic-batch",
 				model,
-				displayName: this.formatDisplayName("anthropic-batch", model),
+				displayName: LLMResolver.formatDisplayName("anthropic-batch", model),
 			};
 		}
 
 		if (prefix === "a") {
 			const modelAlias = parts.slice(1).join("/") || "sonnet";
-			const model = this.resolveModelAlias(modelAlias, "anthropic");
+			const model = LLMResolver.resolveModelAlias(modelAlias, "anthropic");
 			return {
 				provider: "anthropic",
 				model,
-				displayName: this.formatDisplayName("anthropic", model),
+				displayName: LLMResolver.formatDisplayName("anthropic", model),
 			};
 		}
 
 		if (prefix === "cc") {
 			const modelAlias = parts.slice(1).join("/") || "sonnet";
-			const model = this.resolveModelAlias(modelAlias, "claude-code");
+			const model = LLMResolver.resolveModelAlias(modelAlias, "claude-code");
 			return {
 				provider: "claude-code",
 				model,
-				displayName: this.formatDisplayName("claude-code", model),
+				displayName: LLMResolver.formatDisplayName("claude-code", model),
 			};
 		}
 
@@ -163,7 +174,7 @@ export class LLMResolver {
 			return {
 				provider: "openrouter",
 				model,
-				displayName: this.formatDisplayName("openrouter", model),
+				displayName: LLMResolver.formatDisplayName("openrouter", model),
 			};
 		}
 
@@ -173,7 +184,19 @@ export class LLMResolver {
 				provider: "local",
 				model,
 				endpoint: LOCAL_ENDPOINTS.ollama,
-				displayName: this.formatDisplayName("local", model),
+				displayName: LLMResolver.formatDisplayName("local", model),
+			};
+		}
+
+		// Hosted Ollama (ollama.com). Same OpenAI-compatible protocol as local
+		// Ollama, but needs OLLAMA_API_KEY. e.g. "ollama-cloud/gemma4:31b".
+		if (prefix === "ollama-cloud") {
+			const model = parts.length > 1 ? parts.slice(1).join("/") : "gemma4:31b";
+			return {
+				provider: "local",
+				model,
+				endpoint: LOCAL_ENDPOINTS["ollama-cloud"],
+				displayName: LLMResolver.formatDisplayName("local", model),
 			};
 		}
 
@@ -183,40 +206,41 @@ export class LLMResolver {
 				provider: "local",
 				model: model || "default",
 				endpoint: LOCAL_ENDPOINTS.lmstudio,
-				displayName: this.formatDisplayName("local", model || "default"),
+				displayName: LLMResolver.formatDisplayName("local", model || "default"),
 			};
 		}
 
 		// Check if first part is a known provider alias
 		if (PROVIDER_ALIASES[prefix]) {
 			const provider = PROVIDER_ALIASES[prefix];
-			const model = parts.slice(1).join("/") || this.getDefaultModel(provider);
-			const resolvedModel = this.resolveModelAlias(model, provider);
+			const model =
+				parts.slice(1).join("/") || LLMResolver.getDefaultModel(provider);
+			const resolvedModel = LLMResolver.resolveModelAlias(model, provider);
 			return {
 				provider,
 				model: resolvedModel,
-				displayName: this.formatDisplayName(provider, resolvedModel),
+				displayName: LLMResolver.formatDisplayName(provider, resolvedModel),
 			};
 		}
 
 		// No explicit provider prefix - try to detect from model name
 		if (parts.length === 1) {
-			const provider = this.detectProvider(spec);
-			const model = this.resolveModelAlias(spec, provider);
+			const provider = LLMResolver.detectProvider(spec);
+			const model = LLMResolver.resolveModelAlias(spec, provider);
 			return {
 				provider,
 				model,
-				displayName: this.formatDisplayName(provider, model),
+				displayName: LLMResolver.formatDisplayName(provider, model),
 			};
 		}
 
 		// provider/model format (e.g., "openai/gpt-4o" for OpenRouter)
-		const provider = this.normalizeProvider(parts[0]);
+		const provider = LLMResolver.normalizeProvider(parts[0]);
 		const model = parts.slice(1).join("/");
 		return {
 			provider,
 			model: parts.join("/"), // Keep full path for OpenRouter models
-			displayName: this.formatDisplayName(provider, model),
+			displayName: LLMResolver.formatDisplayName(provider, model),
 		};
 	}
 
@@ -365,7 +389,7 @@ export class LLMResolver {
 		spec: string,
 		options?: Partial<LLMClientOptions>,
 	): Promise<ILLMClient> {
-		const parsed = this.parseSpec(spec);
+		const parsed = LLMResolver.parseSpec(spec);
 
 		return createLLMClient({
 			provider: options?.provider || parsed.provider,
@@ -382,7 +406,7 @@ export class LLMResolver {
 	 * Useful for consensus judges or multi-generator benchmarks.
 	 */
 	static parseSpecs(specs: string[]): LLMSpec[] {
-		return specs.map((spec) => this.parseSpec(spec));
+		return specs.map((spec) => LLMResolver.parseSpec(spec));
 	}
 
 	/**
@@ -392,7 +416,9 @@ export class LLMResolver {
 		specs: string[],
 		options?: Partial<LLMClientOptions>,
 	): Promise<ILLMClient[]> {
-		return Promise.all(specs.map((spec) => this.createClient(spec, options)));
+		return Promise.all(
+			specs.map((spec) => LLMResolver.createClient(spec, options)),
+		);
 	}
 
 	// ========== Utility Methods ==========
@@ -415,7 +441,7 @@ export class LLMResolver {
 	 * Check if a spec represents a local provider.
 	 */
 	static isLocalProvider(spec: string): boolean {
-		const parsed = this.parseSpec(spec);
+		const parsed = LLMResolver.parseSpec(spec);
 		return parsed.provider === "local";
 	}
 
@@ -423,6 +449,6 @@ export class LLMResolver {
 	 * Check if a spec represents a cloud provider.
 	 */
 	static isCloudProvider(spec: string): boolean {
-		return !this.isLocalProvider(spec);
+		return !LLMResolver.isLocalProvider(spec);
 	}
 }

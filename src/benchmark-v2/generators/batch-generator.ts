@@ -5,18 +5,22 @@
  * Handles rate limiting, retries, and parallel execution.
  */
 
-import type { ILLMClient, LLMProvider } from "../../types.js";
-import { RateLimitError, isRateLimitError, isRecoverable } from "../errors.js";
+import type { ILLMClient } from "../../types.js";
+import {
+	isRateLimitError,
+	isRecoverable,
+	type RateLimitError,
+} from "../errors.js";
+import type { PhaseContext, PhaseResult } from "../pipeline/orchestrator.js";
 import type {
 	BenchmarkCodeUnit,
 	GeneratedSummary,
 	ModelConfig,
 } from "../types.js";
 import {
-	SummaryGenerator,
 	createSummaryGenerator,
+	type SummaryGenerator,
 } from "./summary-generator.js";
-import type { PhaseContext, PhaseResult } from "../pipeline/orchestrator.js";
 
 // ============================================================================
 // Types
@@ -361,15 +365,14 @@ export class BatchGenerator {
 					// Handle rate limits with exponential backoff
 					if (isRateLimitError(error)) {
 						const backoff =
-							(error as RateLimitError).retryAfterMs ??
-							Math.pow(2, attempt) * 1000;
+							(error as RateLimitError).retryAfterMs ?? 2 ** attempt * 1000;
 						await this.delay(backoff);
 						continue;
 					}
 
 					// For other recoverable errors, retry with delay
 					if (isRecoverable(error)) {
-						await this.delay(Math.pow(2, attempt) * 500);
+						await this.delay(2 ** attempt * 500);
 						continue;
 					}
 

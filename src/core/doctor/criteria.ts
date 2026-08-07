@@ -4,8 +4,8 @@
  * Implements all 6 diagnostic criteria for context file quality
  */
 
-import type { ContextFile, CriterionResult } from "./types.js";
 import type { FileTracker } from "../tracker.js";
+import type { ContextFile, CriterionResult } from "./types.js";
 
 /**
  * Criterion 1: Token Count (weight 2.0)
@@ -187,7 +187,7 @@ export function analyzeInstructionDensity(file: ContextFile): CriterionResult {
 		const trimmed = line.trim().toLowerCase();
 
 		// Check for list items or numbered items
-		if (/^[-*•]/.test(trimmed) || /^\d+[\.)]\s/.test(trimmed)) {
+		if (/^[-*•]/.test(trimmed) || /^\d+[.)]\s/.test(trimmed)) {
 			instructionLines++;
 			continue;
 		}
@@ -417,7 +417,7 @@ export function analyzeSkillsBenchCompliance(
 	// Check if content is procedural (instructions) vs descriptive
 	const imperativeLines = content.split("\n").filter((l) => {
 		const t = l.trim().toLowerCase();
-		return /^[-*•]/.test(t) || /^\d+[\.)]\s/.test(t) || t.startsWith("use ");
+		return /^[-*•]/.test(t) || /^\d+[.)]\s/.test(t) || t.startsWith("use ");
 	}).length;
 
 	const procedureRatio = imperativeLines / (file.lineCount || 1);

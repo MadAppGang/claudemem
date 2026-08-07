@@ -6,16 +6,16 @@
  * Press Esc or 'q' to return to the result list.
  */
 
-import { useState, useEffect, useMemo } from "react";
-import { useKeyboard, useTerminalDimensions } from "@opentui/react";
-import type { SearchResult, SymbolDefinition } from "../../types.js";
-import { theme, getScoreColor } from "../theme.js";
-import { useAppContext } from "../context.js";
-import { createReferenceGraphManager } from "../../core/reference-graph.js";
-import { SyntaxLine, detectLang } from "./SyntaxLine.js";
-import { getVectorStorePath } from "../../config.js";
-import lancedb from "@lancedb/lancedb";
 import { join } from "node:path";
+import lancedb from "@lancedb/lancedb";
+import { useKeyboard, useTerminalDimensions } from "@opentui/react";
+import { useEffect, useMemo, useState } from "react";
+import { getVectorStorePath } from "../../config.js";
+import { createReferenceGraphManager } from "../../core/reference-graph.js";
+import type { SearchResult, SymbolDefinition } from "../../types.js";
+import { useAppContext } from "../context.js";
+import { getScoreColor, theme } from "../theme.js";
+import { detectLang, SyntaxLine } from "./SyntaxLine.js";
 
 // ============================================================================
 // Props
@@ -227,7 +227,12 @@ function SectionHeader({
 	count,
 	bg,
 	hint,
-}: { title: string; count?: number; bg: string; hint?: string }) {
+}: {
+	title: string;
+	count?: number;
+	bg: string;
+	hint?: string;
+}) {
 	const countStr = count !== undefined ? `  ${count}` : "";
 	return (
 		<box height={1} width="100%" backgroundColor={bg} flexDirection="row">
@@ -319,7 +324,11 @@ function InfoRow({
 	label,
 	value,
 	valueFg,
-}: { label: string; value: string; valueFg?: string }) {
+}: {
+	label: string;
+	value: string;
+	valueFg?: string;
+}) {
 	return (
 		<box height={1} flexDirection="row">
 			<box>
@@ -385,6 +394,9 @@ export function ResultDetailView({
 			setAllSiblingResults([]);
 			return;
 		}
+		// Capture the narrowed value: TS does not carry the guard above into the
+		// nested async closure below.
+		const resolvedName = symbolName;
 		let cancelled = false;
 		async function loadSiblings() {
 			try {
@@ -395,7 +407,7 @@ export function ResultDetailView({
 				const table = await db.openTable("code_chunks");
 
 				// Escape single quotes in name for SQL
-				const escapedName = symbolName.replace(/'/g, "''");
+				const escapedName = resolvedName.replace(/'/g, "''");
 				const escapedPath = chunk.filePath.replace(/'/g, "''");
 				const rows = await table
 					.query()
@@ -715,7 +727,7 @@ export function ResultDetailView({
 		const lines: Array<{ text: string; fg: string; indent: number }> = [];
 		for (const part of parts) {
 			if (part.label) {
-				lines.push({ text: part.label + ":", fg: theme.info, indent: 4 });
+				lines.push({ text: `${part.label}:`, fg: theme.info, indent: 4 });
 			}
 			for (const line of part.lines) {
 				lines.push({

@@ -6,7 +6,7 @@
  * Deduplicates events on the same file within a 1000ms window.
  */
 
-import { watch, type FSWatcher } from "node:fs";
+import { type FSWatcher, watch } from "node:fs";
 import { relative, resolve } from "node:path";
 import { minimatch } from "minimatch";
 import type { Logger } from "./logger.js";

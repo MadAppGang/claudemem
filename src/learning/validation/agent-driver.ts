@@ -8,11 +8,11 @@
  */
 
 import type {
-	AgentResponse,
 	AgentConfig,
-	ToolCall,
 	AgentError,
+	AgentResponse,
 	TokenUsage,
+	ToolCall,
 } from "./types.js";
 
 // ============================================================================

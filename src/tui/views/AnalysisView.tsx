@@ -7,18 +7,17 @@
  *   3. Impact      - transitive callers of a symbol
  */
 
-import { useState, useCallback, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
-import { useAppContext } from "../context.js";
-import { useAnalysis } from "../hooks/useAnalysis.js";
-import { ScoreBar } from "../components/ScoreBar.js";
-import { theme } from "../theme.js";
-import type { AnalysisTab } from "../hooks/useAnalysis.js";
+import { useCallback, useEffect, useState } from "react";
 import type {
 	DeadCodeResult,
-	TestGapResult,
 	ImpactAnalysis,
+	TestGapResult,
 } from "../../core/analysis/analyzer.js";
+import { useAppContext } from "../context.js";
+import type { AnalysisTab } from "../hooks/useAnalysis.js";
+import { useAnalysis } from "../hooks/useAnalysis.js";
+import { theme } from "../theme.js";
 
 // ============================================================================
 // Dead Code Sub-view
@@ -63,7 +62,7 @@ function DeadCodePane({ results, selectedIndex }: DeadCodePaneProps) {
 					const { symbol } = item;
 					const filePart =
 						symbol.filePath.length > 30
-							? "..." + symbol.filePath.slice(-27)
+							? `...${symbol.filePath.slice(-27)}`
 							: symbol.filePath;
 					return (
 						<box key={symbol.id} flexDirection="row" paddingLeft={1} height={1}>
@@ -259,11 +258,11 @@ function ImpactPane({
 							.filter((r) => r.depth > 1)
 							.map((r) => (
 								<box
-									key={r.symbol.id + ":" + r.depth}
+									key={`${r.symbol.id}:${r.depth}`}
 									paddingLeft={1}
 									height={1}
 								>
-									<text fg={theme.dimmed}>{"  ".repeat(r.depth) + "--> "}</text>
+									<text fg={theme.dimmed}>{`${"  ".repeat(r.depth)}--> `}</text>
 									<text fg={theme.text} width={28}>
 										{r.symbol.name}
 									</text>

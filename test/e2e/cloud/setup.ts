@@ -16,7 +16,32 @@ import { startServer, stopServer } from "../../../src/cloud/server/index.js";
 
 // Read from the environment — never hardcode a real connection string in a
 // committed test (it leaks the credential to git history and every fork).
-export const NEON_DB_URL = process.env.NEON_DB_URL ?? process.env.DATABASE_URL ?? "";
+export const NEON_DB_URL =
+	process.env.NEON_DB_URL ?? process.env.DATABASE_URL ?? "";
+
+/**
+ * Whether a PostgreSQL instance is configured for the cloud e2e suites.
+ *
+ * These tests need a real database. With no URL set, `postgres("")` silently
+ * falls back to localhost:5432 and every test in the suite dies on
+ * ECONNREFUSED — which reads as "6 failing tests" rather than "infrastructure
+ * absent". Suites gate on this and skip loudly instead.
+ *
+ * To run them: NEON_DB_URL=postgres://… bun test test/e2e/cloud
+ */
+export const HAS_CLOUD_DB = NEON_DB_URL.length > 0;
+
+/** Print a one-time explanation of why the cloud suites were skipped. */
+let cloudSkipWarned = false;
+export function warnCloudDbMissing(suite: string): void {
+	if (cloudSkipWarned) return;
+	cloudSkipWarned = true;
+	console.warn(
+		`[cloud-e2e] Skipping "${suite}" and the other cloud suites — no NEON_DB_URL/DATABASE_URL set.\n` +
+			"           These require a real PostgreSQL instance. Run with:\n" +
+			"             NEON_DB_URL=postgres://… bun test test/e2e/cloud",
+	);
+}
 
 export const TEST_ORG_SLUG = "test-org";
 

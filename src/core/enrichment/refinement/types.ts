@@ -5,7 +5,7 @@
  * These types are shared between benchmark evaluation and production indexing.
  */
 
-import type { ILLMClient, IEmbeddingsClient } from "../../../types.js";
+import type { ILLMClient } from "../../../types.js";
 
 // ============================================================================
 // Quality Test Types

@@ -12,8 +12,8 @@
  */
 
 import type { Improvement } from "../interaction/types.js";
-import type { RedTeamReport } from "./red-team.js";
 import type { DefenseReport } from "./blue-team.js";
+import type { RedTeamReport } from "./red-team.js";
 
 // ============================================================================
 // Types

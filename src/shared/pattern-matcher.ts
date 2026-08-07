@@ -65,7 +65,7 @@ export function shouldExclude(
 	}
 
 	// Slow path: check glob patterns
-	const pathToCheck = isDirectory ? relativePath + "/" : relativePath;
+	const pathToCheck = isDirectory ? `${relativePath}/` : relativePath;
 
 	for (const pattern of excludePatterns) {
 		if (minimatch(pathToCheck, pattern, { dot: true })) {

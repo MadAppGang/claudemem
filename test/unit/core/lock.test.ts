@@ -30,9 +30,9 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	createIndexLock,
 	DEFAULT_PROGRESS_TIMEOUT,
 	IndexLock,
-	createIndexLock,
 	inspectLock,
 	isLockStale,
 } from "../../../src/core/lock.js";

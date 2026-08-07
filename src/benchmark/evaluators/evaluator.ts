@@ -5,7 +5,14 @@
  * Coordinates generators, judges, and scorers to produce benchmark results.
  */
 
+import { LLMResolver } from "../../llm/resolver.js";
 import type { FileSummary, LLMProvider, SymbolSummary } from "../../types.js";
+import { createGenerator } from "../generators/index.js";
+import { createJudge } from "../judges/index.js";
+import {
+	type CompositeScorer,
+	createCompositeScorer,
+} from "../scorers/index.js";
 import type {
 	AggregateScores,
 	BenchmarkConfig,
@@ -23,10 +30,6 @@ import type {
 	TestCaseResult,
 } from "../types.js";
 import { DEFAULT_WEIGHTS } from "../types.js";
-import { createGenerator, parseGeneratorSpec } from "../generators/index.js";
-import { createJudge } from "../judges/index.js";
-import { LLMResolver } from "../../llm/resolver.js";
-import { createCompositeScorer, CompositeScorer } from "../scorers/index.js";
 import { createTestCaseSelector } from "./test-case-selector.js";
 
 // ============================================================================
@@ -107,7 +110,7 @@ export class BenchmarkEvaluator {
 		process.stderr.write(
 			`${prefix} ${categoryColor}${category}${reset}: ${message}\n`,
 		);
-		if (error && error.stack) {
+		if (error?.stack) {
 			// Only show first line of stack in verbose mode
 			const stackLine = error.stack.split("\n")[1]?.trim() || "";
 			if (stackLine) {

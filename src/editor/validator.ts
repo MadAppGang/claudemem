@@ -5,12 +5,12 @@
  * size limits, and syntax validation via tree-sitter.
  */
 
-import { realpathSync, readFileSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readFileSync, realpathSync } from "node:fs";
 import { extname } from "node:path";
 import type { IFileTracker } from "../core/tracker.js";
 import { getParserManager } from "../parsers/parser-manager.js";
 import type { SupportedLanguage } from "../types.js";
-import { createHash } from "node:crypto";
 
 const MAX_EDIT_SIZE = 1_000_000; // 1MB
 
@@ -49,7 +49,7 @@ export class EditValidator {
 		}
 
 		if (
-			!resolvedPath.startsWith(resolvedRoot + "/") &&
+			!resolvedPath.startsWith(`${resolvedRoot}/`) &&
 			resolvedPath !== resolvedRoot
 		) {
 			throw new Error(

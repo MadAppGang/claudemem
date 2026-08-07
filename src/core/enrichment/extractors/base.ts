@@ -7,8 +7,6 @@
 
 import type {
 	BaseDocument,
-	CodeChunk,
-	Document,
 	DocumentType,
 	ExtractionContext,
 	IDocumentExtractor,

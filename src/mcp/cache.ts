@@ -6,15 +6,17 @@
  * tool call gets fresh data.
  */
 
-import { join } from "node:path";
 import { existsSync } from "node:fs";
-import { type IFileTracker, createFileTracker } from "../core/tracker.js";
-import {
-	ReferenceGraphManager,
-	createReferenceGraphManager,
-} from "../core/reference-graph.js";
-import { RepoMapGenerator, createRepoMapGenerator } from "../core/repo-map.js";
 import { getIndexDbPath } from "../config.js";
+import {
+	createReferenceGraphManager,
+	type ReferenceGraphManager,
+} from "../core/reference-graph.js";
+import {
+	createRepoMapGenerator,
+	type RepoMapGenerator,
+} from "../core/repo-map.js";
+import { createFileTracker, type IFileTracker } from "../core/tracker.js";
 import type { Logger } from "./logger.js";
 
 export interface CachedIndex {

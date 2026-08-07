@@ -19,13 +19,13 @@ import type {
 	SearchOptions,
 	SearchResult,
 } from "../types.js";
+import { type MergedSearchResult, OverlayMerger } from "./merger.js";
 import type {
+	DirtyFile,
 	IChangeDetector,
 	ICloudIndexClient,
 	IOverlayIndex,
-	DirtyFile,
 } from "./types.js";
-import { OverlayMerger, type MergedSearchResult } from "./merger.js";
 
 // ============================================================================
 // Options

@@ -1,4 +1,4 @@
-import { describe, test, expect, afterEach } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { TestWorkspace } from "../../helpers/test-workspace.js";
 
 describe("TestWorkspace smoke test", () => {

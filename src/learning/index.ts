@@ -27,37 +27,44 @@
  */
 
 import type { SQLiteDatabase } from "../core/sqlite.js";
+import {
+	createLearningEngine,
+	createWeightOptimizer,
+	type LearningEngine,
+	type WeightOptimizer,
+} from "./engine/index.js";
+import {
+	createFeedbackCollector,
+	createFeedbackStore,
+	type FeedbackCollector,
+	type FeedbackStore,
+} from "./feedback/index.js";
+import { type AdaptiveRanker, createAdaptiveRanker } from "./ranking/index.js";
 import type { LearningConfig } from "./types.js";
 import { DEFAULT_LEARNING_CONFIG } from "./types.js";
-import { FeedbackStore, createFeedbackStore } from "./feedback/index.js";
-import {
-	FeedbackCollector,
-	createFeedbackCollector,
-} from "./feedback/index.js";
-import { LearningEngine, createLearningEngine } from "./engine/index.js";
-import { WeightOptimizer, createWeightOptimizer } from "./engine/index.js";
-import { AdaptiveRanker, createAdaptiveRanker } from "./ranking/index.js";
 
 // ============================================================================
 // Re-exports
 // ============================================================================
 
-// Types
-export * from "./types.js";
-
-// Feedback
-export { FeedbackStore, createFeedbackStore } from "./feedback/index.js";
-export {
-	FeedbackCollector,
-	createFeedbackCollector,
-} from "./feedback/index.js";
-
 // Engine
-export { LearningEngine, createLearningEngine } from "./engine/index.js";
-export { WeightOptimizer, createWeightOptimizer } from "./engine/index.js";
-
+export {
+	createLearningEngine,
+	createWeightOptimizer,
+	LearningEngine,
+	WeightOptimizer,
+} from "./engine/index.js";
+// Feedback
+export {
+	createFeedbackCollector,
+	createFeedbackStore,
+	FeedbackCollector,
+	FeedbackStore,
+} from "./feedback/index.js";
 // Ranking
 export { AdaptiveRanker, createAdaptiveRanker } from "./ranking/index.js";
+// Types
+export * from "./types.js";
 
 // ============================================================================
 // Convenience Factory

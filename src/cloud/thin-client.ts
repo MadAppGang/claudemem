@@ -16,22 +16,22 @@
  *   5xx → CloudApiError (server-side error)
  */
 
+import { getMachineId } from "./machine-id.js";
 import type {
-	ICloudIndexClient,
 	ChunkCheckResult,
-	CloudCallerResult,
 	CloudCalleeResult,
+	CloudCallerResult,
 	CloudGraphResult,
 	CloudSearchRequest,
 	CloudSearchResult,
 	CloudSymbol,
 	CommitStatus,
+	ICloudIndexClient,
 	RegisterRepoRequest,
 	RegisterRepoResponse,
 	UploadIndexRequest,
 	UploadIndexResponse,
 } from "./types.js";
-import { getMachineId } from "./machine-id.js";
 
 // ============================================================================
 // Error class
@@ -298,11 +298,9 @@ export class ThinCloudClient implements ICloudIndexClient {
 		try {
 			const body = (await response.json()) as Record<string, unknown>;
 			message =
-				typeof body["message"] === "string"
-					? body["message"]
-					: `HTTP ${status}`;
+				typeof body.message === "string" ? body.message : `HTTP ${status}`;
 			errorCode =
-				typeof body["errorCode"] === "string" ? body["errorCode"] : undefined;
+				typeof body.errorCode === "string" ? body.errorCode : undefined;
 		} catch {
 			message = `HTTP ${status}: ${response.statusText}`;
 		}

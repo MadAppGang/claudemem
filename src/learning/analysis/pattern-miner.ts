@@ -12,9 +12,9 @@
  */
 
 import type {
-	ToolEvent,
 	DetectedPattern,
 	PatternData,
+	ToolEvent,
 } from "../interaction/types.js";
 
 // ============================================================================

@@ -6,8 +6,8 @@
 
 import type { IReporter, ReportFormat } from "../types.js";
 import { CLIReporter } from "./cli-reporter.js";
-import { JSONReporter } from "./json-reporter.js";
 import { DetailedReporter } from "./detailed-reporter.js";
+import { JSONReporter } from "./json-reporter.js";
 
 // ============================================================================
 // Factory Function

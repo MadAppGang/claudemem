@@ -4,10 +4,10 @@
  */
 
 import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { startServer } from "./index.js";
-import { createDatabase } from "./db.js";
+import { dirname, resolve } from "node:path";
 import { loadConfig } from "./config.js";
+import { createDatabase } from "./db.js";
+import { startServer } from "./index.js";
 
 async function main() {
 	const config = loadConfig();

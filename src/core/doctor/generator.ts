@@ -6,21 +6,21 @@
  * research-optimal context file under 50 lines.
  */
 
-import * as readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { stdin as input, stdout as output } from "node:process";
+import * as readline from "node:readline/promises";
 import type { FileTracker } from "../tracker.js";
-import type {
-	GeneratorAnswers,
-	GeneratedContext,
-	DoctorResult,
-} from "./types.js";
 import {
 	gatherProjectContext,
 	generateSmartQuestions,
 	type SmartQuestion,
 } from "./smart-questions.js";
+import type {
+	DoctorResult,
+	GeneratedContext,
+	GeneratorAnswers,
+} from "./types.js";
 
 const c = {
 	reset: "\x1b[0m",
@@ -223,7 +223,7 @@ export function generateOptimizedContext(
 	];
 	const compactSkill =
 		allItems.length > 0
-			? allItems.join(". ") + "."
+			? `${allItems.join(". ")}.`
 			: "No specific context rules defined.";
 
 	// Calculate scores

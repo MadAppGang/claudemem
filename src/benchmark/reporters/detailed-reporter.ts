@@ -262,10 +262,9 @@ export class DetailedReporter implements IReporter {
 				]
 			: [Math.min(maxModelLen, 30) + 2, 8, 9, 6, 8, priceWidth, 12];
 
-		const headerRow =
-			"  " + headers.map((h, i) => h.padEnd(widths[i])).join(" ");
+		const headerRow = `  ${headers.map((h, i) => h.padEnd(widths[i])).join(" ")}`;
 		lines.push(`${c.bold}${headerRow}${c.reset}`);
-		lines.push("  " + "─".repeat(headerRow.length - 2));
+		lines.push(`  ${"─".repeat(headerRow.length - 2)}`);
 
 		// Helper to colorize based on rank
 		const colorize = (str: string, rank: "top" | "bottom" | null): string => {
@@ -374,13 +373,14 @@ export class DetailedReporter implements IReporter {
 
 			const row = values
 				.map((v, i) => {
+					// biome-ignore lint/suspicious/noControlCharactersInRegex: \x1b is intentional — this matches ANSI terminal escape sequences
 					const stripped = v.replace(/\x1b\[[0-9;]*m/g, "");
 					const padding = widths[i] - stripped.length;
 					return v + " ".repeat(Math.max(0, padding));
 				})
 				.join(" ");
 
-			lines.push("  " + row);
+			lines.push(`  ${row}`);
 		}
 
 		// Add note if no judges configured
@@ -686,7 +686,7 @@ export class DetailedReporter implements IReporter {
 	 */
 	private truncate(str: string, maxLen: number): string {
 		if (str.length <= maxLen) return str;
-		return str.slice(0, maxLen - 1) + "…";
+		return `${str.slice(0, maxLen - 1)}…`;
 	}
 
 	// ============================================================================

@@ -5,8 +5,8 @@
  * Keyboard: j/k or arrow keys, 1/2/3 for direct select, Enter to confirm, q to quit.
  */
 
-import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
+import { useState } from "react";
 import { theme } from "../../theme.js";
 import type { DeploymentMode, ScreenProps } from "../types.js";
 
