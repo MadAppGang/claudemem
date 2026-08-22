@@ -83,4 +83,3 @@ ai-docs/sessions/
 # A managed rule says this path should stay out of git.
 .claude/_profiles/
 # Local claudemem indexes are generated from the repo and should not be committed.
-.claudemem/
