@@ -439,6 +439,9 @@ export function saveGlobalConfig(config: Partial<GlobalConfig>): void {
 	const plaintextSafe = stripSecrets(merged);
 
 	writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(plaintextSafe, null, 2), "utf-8");
+
+	// The learning decision is cached per path; a rewrite must be visible.
+	resetLearningEnabledCache();
 }
 
 /**
@@ -464,6 +467,9 @@ export function saveProjectConfig(
 	const merged = { ...existing, ...config };
 
 	writeFileSync(configPath, JSON.stringify(merged, null, 2), "utf-8");
+
+	// The learning decision is cached per path; a rewrite must be visible.
+	resetLearningEnabledCache();
 }
 
 // ============================================================================
@@ -851,24 +857,74 @@ export type TestFileMode = "downrank" | "exclude" | "include";
 // ============================================================================
 
 /**
- * Check if self-learning system is enabled.
- * Priority: project config > global config > default (true)
+ * Cached learning decision per project path.
+ *
+ * The learning flag is written once (by `mnemex init` / the setup wizard) and
+ * read on every search, so a filesystem read per search would be pure
+ * overhead. `saveGlobalConfig` / `saveProjectConfig` drop the cache so an
+ * in-process rewrite still takes effect.
+ */
+const learningEnabledCache = new Map<string, boolean>();
+
+/** Cache key for the global-only lookup (no project path given). */
+const GLOBAL_LEARNING_CACHE_KEY = " global";
+
+/**
+ * Uncached read of the learning flag.
+ *
+ * Learning is opt-OUT: only an explicit `false` on record turns it off. A
+ * missing or unreadable config is not an opt-out, so it fails OPEN — users who
+ * never configured anything keep the behaviour they already have.
+ */
+function readLearningEnabled(projectPath?: string): boolean {
+	try {
+		// Explicit project value wins over the global one.
+		if (projectPath) {
+			const projectConfig = loadProjectConfig(projectPath);
+			if (typeof projectConfig?.learning === "boolean") {
+				return projectConfig.learning;
+			}
+		}
+
+		// Project config is silent (or absent): `mnemex init` records the answer
+		// in the global config. Default when nobody said anything: enabled.
+		return loadGlobalConfig().learning !== false;
+	} catch {
+		return true;
+	}
+}
+
+/**
+ * Whether the self-learning system is enabled for this project.
+ *
+ * THE single source of truth for "is learning on?". Both entry points — the
+ * CLI (`src/cli.ts`) and the MCP search tools (`src/mcp/tools/deps.ts`) — must
+ * call this and nothing else, so one config state cannot mean two things.
+ *
+ * Priority: explicit project config > explicit global config > default (true).
+ *
+ * Cheap by construction: at most one config read per project path for the
+ * lifetime of the process, and never a database open.
  *
  * When enabled, mnemex tracks interactions and learns from user corrections
  * to improve search quality over time.
  */
 export function isLearningEnabled(projectPath?: string): boolean {
-	// Check project override first
-	if (projectPath) {
-		const projectConfig = loadProjectConfig(projectPath);
-		if (projectConfig?.learning !== undefined) {
-			return projectConfig.learning;
-		}
-	}
+	const key = projectPath ?? GLOBAL_LEARNING_CACHE_KEY;
+	const cached = learningEnabledCache.get(key);
+	if (cached !== undefined) return cached;
 
-	// Fall back to global config (default: true)
-	const globalConfig = loadGlobalConfig();
-	return globalConfig.learning !== false;
+	const enabled = readLearningEnabled(projectPath);
+	learningEnabledCache.set(key, enabled);
+	return enabled;
+}
+
+/**
+ * Drop the cached learning decisions. For tests, and for callers that rewrite
+ * the config in-process.
+ */
+export function resetLearningEnabledCache(): void {
+	learningEnabledCache.clear();
 }
 
 /**

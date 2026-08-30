@@ -8,6 +8,7 @@
  * - Manage file boost factors
  */
 
+import { statSync } from "node:fs";
 import type { SQLiteDatabase } from "../../core/sqlite.js";
 import type { SearchUseCase } from "../../types.js";
 import type {
@@ -18,6 +19,71 @@ import type {
 	SearchFeedbackEvent,
 } from "../types.js";
 import { DEFAULT_LEARNING_CONFIG } from "../types.js";
+
+// ============================================================================
+// Per-database schema memo
+// ============================================================================
+
+/**
+ * Databases whose learning schema has already been applied in this process,
+ * keyed by the sqlite file each connection is attached to.
+ *
+ * A FeedbackStore is built fresh on every search (`createFeedbackStore`), and
+ * its `initialized` flag is per-INSTANCE, so the guard never fired: every
+ * search re-ran 5 `CREATE TABLE IF NOT EXISTS` + 6 `CREATE INDEX IF NOT
+ * EXISTS`. The statements are idempotent, so re-running them only ever cost
+ * time. Memoizing per database file makes the DDL run at most ONCE per process
+ * per database, whatever the connection.
+ */
+const initializedSchemas = new Set<string>();
+
+/**
+ * Stable identity of the database a connection is attached to, or null when it
+ * has none and therefore cannot be memoized.
+ *
+ * `PRAGMA database_list` reports the resolved path of the `main` database, and
+ * an empty string for in-memory / anonymous databases. Those are private to a
+ * single connection and share no state, so they must never be memoized — a
+ * second in-memory database would inherit the first one's "already done" and
+ * end up with no tables at all.
+ *
+ * The inode is folded in so that a database deleted and recreated at the same
+ * path is a different database, and gets the DDL again.
+ */
+function schemaMemoKey(db: SQLiteDatabase): string | null {
+	let file: string;
+	try {
+		const rows = db.prepare("PRAGMA database_list").all() as Array<{
+			name?: string;
+			file?: string;
+		}>;
+		const main = rows.find((row) => row.name === "main") ?? rows[0];
+		if (typeof main?.file !== "string" || main.file.length === 0) {
+			return null;
+		}
+		file = main.file;
+	} catch {
+		// Unknown identity: treat as non-memoizable and re-apply the DDL.
+		return null;
+	}
+
+	try {
+		return `${file}:${statSync(file).ino}`;
+	} catch {
+		// Path is real but unstattable — the path alone still identifies it.
+		return file;
+	}
+}
+
+/**
+ * Forget which databases have had the schema applied.
+ *
+ * For tests, and for any caller that deletes or replaces a database file
+ * in-process (the path would otherwise still look initialized).
+ */
+export function resetFeedbackSchemaCache(): void {
+	initializedSchemas.clear();
+}
 
 // ============================================================================
 // FeedbackStore Class
@@ -41,9 +107,20 @@ export class FeedbackStore {
 	/**
 	 * Initialize feedback tables in the database.
 	 * Call this during database setup.
+	 *
+	 * Idempotent and cheap to call repeatedly: the DDL is skipped entirely when
+	 * this process has already applied it to this database file (see
+	 * `initializedSchemas`). The schema itself is unchanged — only how often it
+	 * is issued.
 	 */
 	initializeSchema(): void {
 		if (this.initialized) return;
+
+		const memoKey = schemaMemoKey(this.db);
+		if (memoKey !== null && initializedSchemas.has(memoKey)) {
+			this.initialized = true;
+			return;
+		}
 
 		this.db.exec(`
 			-- Explicit feedback from MCP tool / CLI
@@ -106,6 +183,9 @@ export class FeedbackStore {
 			CREATE INDEX IF NOT EXISTS idx_query_history_timestamp ON query_history(timestamp);
 		`);
 
+		if (memoKey !== null) {
+			initializedSchemas.add(memoKey);
+		}
 		this.initialized = true;
 	}
 
@@ -701,6 +781,9 @@ export class FeedbackStore {
 
 /**
  * Create a FeedbackStore instance.
+ *
+ * `initializeSchema` is safe to call on every construction: it is memoized per
+ * database file, so the DDL is issued at most once per process per database.
  */
 export function createFeedbackStore(
 	db: SQLiteDatabase,
