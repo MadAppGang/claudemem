@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-08-10T14:02:59.370Z",
+  "head": "6687723a1b07e684533ee2ac79cbf636b48f3532",
+  "generator": "scripts/build-eval-dataset.ts",
+  "commitsScanned": 208,
+  "commitsExcluded": {
+    "release_chore": 23,
+    "no_files": 0,
+    "too_many_files": 39,
+    "short_subject": 0,
+    "no_gold_files": 11
+  },
+  "commitsExcludedTotal": 73,
+  "commitsKept": 135,
+  "queryCount": 135,
+  "corpusDocCount": 810,
+  "corpusTrackedFiles": 901,
+  "corpusSkipped": {
+    "ineligible": 90,
+    "unreadable": 0,
+    "emptyOrBinary": 1
+  },
+  "qrelCount": 403,
+  "meanGoldFilesPerQuery": 2.985,
+  "routerLabelSource": "rules",
+  "routerLabelAgreementWithRules": null,
+  "routerLabelDistribution": {
+    "semantic_search": 88,
+    "symbol_lookup": 46,
+    "exploratory": 1
+  },
+  "settings": {
+    "maxFilesPerCommit": 10,
+    "minSubjectChars": 15,
+    "corpusMaxChars": 8000
+  }
+}

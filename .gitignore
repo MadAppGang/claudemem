@@ -8,6 +8,8 @@ dist/
 # Binary builds
 mnemex
 mnemex-*
+# ...but the git-derived eval datasets are checked in (mnemex-* matches them too)
+!eval/datasets/mnemex-*/
 
 # Tree-sitter grammars (downloaded at build time)
 grammars/*.wasm
