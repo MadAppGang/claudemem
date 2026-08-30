@@ -10,8 +10,6 @@ import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import type { ChangedFile, DirtyFile, IChangeDetector } from "./types.js";
 
-const execAsync = promisify(exec);
-
 // ============================================================================
 // GitDiffChangeDetector
 // ============================================================================
@@ -80,6 +78,37 @@ export class GitDiffChangeDetector implements IChangeDetector {
 	}
 
 	/**
+	 * Get the first-parent depth of a commit — its ordinal.
+	 *
+	 * SHAs are not orderable, so anything that needs `argmax(recency)` needs a
+	 * number. `git rev-list --count --first-parent <sha>` counts commits on the
+	 * first-parent chain, which is monotonic along a linear history and ignores
+	 * the internals of merged side branches.
+	 *
+	 * NOT stable across history rewrites: rebase, amend, filter-branch and
+	 * squash-merge all renumber commits. Anything persisted against an ordinal
+	 * must be rebuilt (reindexed) after a rewrite.
+	 */
+	async getCommitOrdinal(commitSha: string): Promise<number> {
+		const output = await this.run(
+			`git rev-list --count --first-parent ${commitSha}`,
+		);
+		const ordinal = Number.parseInt(output.trim(), 10);
+		if (!Number.isFinite(ordinal)) {
+			throw new Error(`Unparseable rev-list count: ${JSON.stringify(output)}`);
+		}
+		return ordinal;
+	}
+
+	/**
+	 * Get the committer date of a commit as a strict ISO-8601 string.
+	 */
+	async getCommitTimestamp(commitSha: string): Promise<string> {
+		const output = await this.run(`git show -s --format=%cI ${commitSha}`);
+		return output.trim();
+	}
+
+	/**
 	 * Get parent commit SHA(s) for the given commit.
 	 * Merge commits will have two or more parents.
 	 * The initial commit will have no parents — returns [].
@@ -104,8 +133,17 @@ export class GitDiffChangeDetector implements IChangeDetector {
 	// Private helpers
 	// --------------------------------------------------------------------------
 
-	/** Run a git command in the project directory and return stdout */
+	/**
+	 * Run a git command in the project directory and return stdout.
+	 *
+	 * `exec` is resolved through the live import binding on every call rather
+	 * than snapshotted into a module-level `promisify(exec)`. Snapshotting made
+	 * the mock in test/unit/cloud/git-diff.test.ts silently ineffective as soon
+	 * as anything else imported this module first, which turned real coverage
+	 * into 23 spurious ENOENT failures that depended on test file ordering.
+	 */
 	private async run(cmd: string): Promise<string> {
+		const execAsync = promisify(exec);
 		const { stdout } = await execAsync(cmd, {
 			cwd: this.projectPath,
 			// Prevent git from spawning a pager
