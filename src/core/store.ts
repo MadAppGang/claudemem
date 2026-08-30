@@ -34,6 +34,12 @@ import {
 /** Table name for code chunks */
 const CHUNKS_TABLE = "code_chunks";
 
+/** Column carrying the BM25 full-text index. */
+const FTS_COLUMN = "content";
+
+/** `IndexConfig.indexType` for a full-text index, upper-cased for comparison. */
+const FTS_INDEX_TYPE = "FTS";
+
 /** Default search limit */
 const DEFAULT_LIMIT = 10;
 
@@ -165,6 +171,45 @@ function escapeFilterValue(value: string): string {
 		.replace(/'/g, "''")
 		.replace(/%/g, "\\%")
 		.replace(/_/g, "\\_");
+}
+
+/**
+ * True when the table's BM25 index on `FTS_COLUMN` exists AND already covers
+ * every live row, so rebuilding it would be pure cost.
+ *
+ * The semantics below were established empirically against LanceDB 0.37.1,
+ * because the answer decides whether skipping a rebuild can silently rot BM25:
+ *
+ *   - rows ADDED after the index was built are still returned by
+ *     `fullTextSearch` (LanceDB scans the unindexed tail), and are reported as
+ *     `numUnindexedRows > 0`;
+ *   - rows DELETED after the index was built are correctly excluded, via
+ *     deletion vectors applied at query time;
+ *   - rows UPDATED after the index was built return their new terms and stop
+ *     returning their stale ones, and count as unindexed.
+ *
+ * So `numUnindexedRows === 0` is an exact "this index is current" signal, and
+ * treating everything else as stale reproduces the previous
+ * rebuild-whenever-the-corpus-moved behaviour without any in-process
+ * bookkeeping that a second process could invalidate behind our back.
+ */
+async function ftsIndexCoversCorpus(table: lancedb.Table): Promise<boolean> {
+	const fts = (await table.listIndices()).find(
+		(index) =>
+			index.indexType.toUpperCase() === FTS_INDEX_TYPE &&
+			index.columns.includes(FTS_COLUMN),
+	);
+
+	// No FTS index at all: a fresh store, or one written before FTS existed.
+	if (!fts) return false;
+
+	// Local tables report coverage inline. Remote tables leave these undefined
+	// and need the extra round trip to `indexStats`.
+	const unindexed =
+		fts.numUnindexedRows ??
+		(await table.indexStats(fts.name))?.numUnindexedRows;
+
+	return unindexed === 0;
 }
 
 // ============================================================================
@@ -359,16 +404,56 @@ export class VectorStore implements IVectorStore {
 		return null;
 	}
 
-	private ftsIndexReady = false;
-
+	/**
+	 * Build the BM25 full-text index on `content` if, and only if, the one on
+	 * disk does not already cover the current corpus.
+	 *
+	 * This used to be guarded by a per-INSTANCE `ftsIndexReady` flag while
+	 * VectorStore instances are built per-SEARCH (SemanticBackend constructs a
+	 * fresh Indexer per query and closes it in a `finally`, and each Indexer
+	 * builds its own VectorStore). The flag was therefore always `false` on
+	 * entry, so `createIndex(..., { replace: true })` — which rebuilds rather
+	 * than no-ops — ran on EVERY search. Measured on this repo's real store
+	 * (19,862 rows, 2.6 GB): ~275 ms per call against a ~9 ms BM25 query, i.e.
+	 * roughly half of total search latency spent rebuilding an index that was
+	 * already correct, and 820 index versions accumulated on disk. Same defect
+	 * as `initializedSchemas` in src/core/tracker.ts and
+	 * src/learning/feedback/feedback-store.ts — an idempotent-but-expensive
+	 * setup guarded per-instance while instances are per-request.
+	 *
+	 * Freshness is read from the store itself rather than memoized in a
+	 * process-global set, because LanceDB answers the question directly and
+	 * cheaply: `indexStats().numUnindexedRows` is 0 exactly when the index
+	 * covers every live row. Measured on the same store, `listIndices()` +
+	 * `indexStats()` cost ~0.09 ms — three orders of magnitude below a rebuild,
+	 * so there is nothing to gain from a memo, and a memo would be strictly
+	 * less correct: it cannot see a corpus mutated by ANOTHER process (a
+	 * `mnemex watch` daemon writing while an MCP server serves searches), which
+	 * this probe catches for free. It also needs no invalidation hooks on
+	 * `addChunks` and friends, so there is no way to add a write path later and
+	 * silently rot BM25 by forgetting to invalidate.
+	 *
+	 * Verified against LanceDB 0.37.1 — see the empirical notes on
+	 * `ftsIndexCoversCorpus`. A missing index yields `listIndices() === []`, so
+	 * a fresh store, or one created before FTS existed, still gets its index
+	 * built here.
+	 */
 	private async ensureFtsIndex(): Promise<void> {
-		if (!this.table || this.ftsIndexReady) return;
+		const table = this.table;
+		if (!table) return;
+
 		try {
-			await this.table.createIndex("content", {
+			if (await ftsIndexCoversCorpus(table)) return;
+		} catch {
+			// Freshness unknown — fall through and rebuild, which is the safe
+			// direction: a redundant rebuild is slow, a skipped one is wrong.
+		}
+
+		try {
+			await table.createIndex(FTS_COLUMN, {
 				config: lancedb.Index.fts(),
 				replace: true,
 			});
-			this.ftsIndexReady = true;
 		} catch {
 			// FTS index creation failed — BM25 search will be unavailable
 		}
