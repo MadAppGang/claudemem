@@ -103,12 +103,11 @@ Multiple skill document variants for different contexts:
 - `MNEMEX_MCP_SKILL` - MCP server integration
 - `MNEMEX_QUICK_REF` - Minimal token reference
 
-## AgentBench Evaluation
+## Evaluation
 
-Evaluation harness lives in the sibling `../agentbench/` repo. See the `agentbench-eval` skill (`.claude/skills/agentbench-eval`) for full details on:
-- Pre-indexed repos (12 repos, ~39K symbols, ~1.9GB indexes in `../agentbench/data/`)
-- Experiment conditions (no_plan, mnemex_full, dc_planner, ace_planner)
-- Running benchmarks, restoring indexes, analyzing results
+Evaluation and benchmark work lives in the sibling `../mnemex-bench/` repo. (The old `../agentbench/` pointer is dead — that directory no longer exists, and the `agentbench-eval` skill still describes that layout.)
+
+Layout: `../mnemex-bench/experiments/` holds numbered, self-contained experiment directories, each with its own README. Currently 001–012, e.g. `009-mnemex-vs-serena`, `011-n-way-code-tool-benchmark`, `012-swebench-context-ablation`. Start at `../mnemex-bench/README.md`.
 
 ## Common Gotchas
 
