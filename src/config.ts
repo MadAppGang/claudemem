@@ -867,7 +867,7 @@ export type TestFileMode = "downrank" | "exclude" | "include";
 const learningEnabledCache = new Map<string, boolean>();
 
 /** Cache key for the global-only lookup (no project path given). */
-const GLOBAL_LEARNING_CACHE_KEY = " global";
+const GLOBAL_LEARNING_CACHE_KEY = "\0global";
 
 /**
  * Uncached read of the learning flag.
