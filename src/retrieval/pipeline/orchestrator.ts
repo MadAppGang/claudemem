@@ -8,7 +8,13 @@
 import type { QueryIntent } from "../../types.js";
 import type { QueryRouter } from "../routing/query-router.js";
 import type { PipelineConfig } from "./config.js";
-import { rrfMerge } from "./merge.js";
+import {
+	applyPersonalizedPageRank,
+	type SymbolGraphProvider,
+} from "./graph-ppr.js";
+import { applyFileBoosts, type FileBoostProvider } from "./learned-boosts.js";
+import { rrfMerge, tm2c2Merge } from "./merge.js";
+import { adaptBackendWeights, applyScoreFloor } from "./query-adaptation.js";
 import type {
 	BackendName,
 	BackendResult,
@@ -31,6 +37,36 @@ const INTENT_BACKENDS: Record<QueryIntent, BackendName[]> = {
 };
 
 // ============================================================================
+// PPR → Intent Routing
+// ============================================================================
+
+/**
+ * Intents that get query-seeded Personalized PageRank.
+ *
+ * DELIBERATELY NOT UNIVERSAL. The graph-propagation win is entirely on
+ * multi-hop reasoning: HippoRAG 2 (arXiv:2502.14802, ICML 2025) measures +13.9
+ * multi-hop recall@5 and essentially nothing on single-hop, and GraphRAG-Bench
+ * (arXiv:2506.05690, ICLR 2026) finds basic RAG BEATS graph methods on simple
+ * fact retrieval while losing by 10–13 points on complex reasoning. Applying
+ * the walk everywhere would buy the multi-hop win at the cost of a real
+ * regression on lookups.
+ *
+ *   - `structural` — "what calls X", "what does Y depend on". Answering these
+ *     well means traversing edges, which is exactly what the walk does. IN.
+ *   - `semantic` — open-ended "how does X work" questions whose answer is
+ *     spread across collaborating symbols rather than sitting in one. IN.
+ *   - `symbol_lookup` — the user named the thing. Single-hop fact retrieval;
+ *     the answer is the exact match, and diffusing score toward its neighbors
+ *     can only push the named symbol down. OUT.
+ *   - `location` — a path/glob constraint. There is no reasoning hop to make,
+ *     and the graph knows nothing about directory layout. OUT.
+ *   - `similarity` — "find code like this" is a nearest-neighbor question in
+ *     embedding space; call-graph adjacency is a different relation entirely
+ *     (similar code usually does NOT call similar code). OUT.
+ */
+const PPR_INTENTS: readonly QueryIntent[] = ["structural", "semantic"];
+
+// ============================================================================
 // Orchestrator
 // ============================================================================
 
@@ -39,6 +75,18 @@ export class PipelineOrchestrator {
 		private router: QueryRouter,
 		private backends: ISearchBackend[],
 		private config: PipelineConfig,
+		/**
+		 * Optional learned per-file boosts. Absent (or returning null) when the
+		 * opt-in learning system is unavailable/inactive — the common case.
+		 */
+		private boostProvider?: FileBoostProvider,
+		/**
+		 * Optional symbol graph for query-seeded Personalized PageRank. Absent
+		 * (or returning null) when there is no symbol graph to walk — and unused
+		 * regardless unless `config.personalizedPageRank.enabled`, which is off
+		 * by default.
+		 */
+		private graphProvider?: SymbolGraphProvider,
 	) {}
 
 	async search(
@@ -161,12 +209,59 @@ export class PipelineOrchestrator {
 		// Abort any still-running backends (no-op if already done)
 		controller.abort();
 
-		// 5. RRF merge
+		// 5. Fuse backend result lists (rrf by default, tm2c2 when configured)
 		if (settled.length === 0) return [];
 
-		const merged = rrfMerge(settled, this.config, limit);
+		// Per-query adaptation. Both halves are no-ops under the default config:
+		// `applyScoreFloor` returns its input by identity when minScore is 0, and
+		// the weights are left static unless adaptiveWeights.enabled.
+		const floored = applyScoreFloor(settled, query, this.config.scoreFloor);
+		const fusionConfig = this.config.adaptiveWeights.enabled
+			? {
+					...this.config,
+					backendWeights: adaptBackendWeights(
+						this.config.backendWeights,
+						query,
+						this.config.adaptiveWeights.strength,
+					),
+				}
+			: this.config;
 
-		// 6. Apply file pattern filter on final merged results (in case some backends didn't)
+		// Query-seeded Personalized PageRank, if enabled AND this intent is one
+		// the graph walk actually helps (see PPR_INTENTS). When it runs, fuse a
+		// deeper candidate list so the walk has something below the cut to
+		// promote; when it does not, `limit` is used exactly as before.
+		const pprConfig = this.config.personalizedPageRank;
+		const usePpr =
+			pprConfig.enabled &&
+			PPR_INTENTS.includes(classification.intent) &&
+			this.graphProvider !== undefined;
+		const mergeLimit = usePpr ? limit * pprConfig.candidateMultiplier : limit;
+
+		let merged =
+			fusionConfig.fusionMethod === "tm2c2"
+				? tm2c2Merge(floored, fusionConfig, mergeLimit)
+				: rrfMerge(floored, fusionConfig, mergeLimit);
+
+		if (usePpr) {
+			merged = applyPersonalizedPageRank(
+				merged,
+				this.graphProvider?.() ?? null,
+				pprConfig,
+			).slice(0, limit);
+		}
+
+		// 6. Apply learned per-file boosts (same semantics as search_code).
+		// No-op when learning is off, which is the default.
+		merged = applyFileBoosts(
+			merged,
+			this.boostProvider?.() ?? null,
+			(r) => r.file,
+			(r) => r.rrfScore,
+			(r, rrfScore) => ({ ...r, rrfScore }),
+		);
+
+		// 7. Apply file pattern filter on final merged results (in case some backends didn't)
 		if (options.filePattern) {
 			const pat = options.filePattern
 				.replace(/\*\*/g, ".*")

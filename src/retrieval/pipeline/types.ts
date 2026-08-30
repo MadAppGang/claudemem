@@ -4,7 +4,7 @@
  * Core interfaces shared across all pipeline components.
  */
 
-import type { QueryClassification } from "../../types.js";
+import type { DocumentType, QueryClassification } from "../../types.js";
 
 // ============================================================================
 // Backend Types
@@ -18,6 +18,20 @@ export type BackendName =
 	| "location";
 
 export interface BackendResult {
+	/**
+	 * Stable identity for this result (e.g. chunk id). When present it is used
+	 * as the merge key instead of `file:startLine` — required for results that
+	 * have no file anchor (observations recorded without affected files), which
+	 * would otherwise all collapse into a single `":0"` entry.
+	 */
+	id?: string;
+	/**
+	 * Document type from the index (code_chunk, session_observation, …).
+	 * Absent for backends that do not read from the document store.
+	 */
+	documentType?: DocumentType;
+	/** Observation metadata — only set for `session_observation` results */
+	observationMetadata?: Record<string, unknown>;
 	/** Relative file path */
 	file: string;
 	/** Starting line number (1-indexed) */
