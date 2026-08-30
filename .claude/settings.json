@@ -9,17 +9,16 @@
     "plugin-dev@claude-code-plugins": false,
     "ralph-wiggum@claude-code-plugins": false,
     "code-analysis@magus": true,
-    "seo@magus": true,
-    "agentdev@magus": true,
     "feature-dev@claude-plugins-official": true,
     "github@claude-plugins-official": true,
     "dev@magus": true,
     "multimodel@magus": true,
     "terminal@magus": true,
-    "kanban@magus": true,
     "promptfoo-evals@promptfoo": true,
     "claudish@magus": true,
-    "mnemex@magus": true
+    "mnemex@magus": true,
+    "seo@magus-marketing": true,
+    "claudish@magus-marketing": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
@@ -39,9 +38,9 @@
     "code-analysis@magus": "5.3.0",
     "seo@magus": "1.8.0",
     "agentdev@magus": "1.7.0",
-    "feature-dev@claude-plugins-official": "0.0.0",
-    "github@claude-plugins-official": "0.0.0",
-    "dev@magus": "2.9.0",
+    "feature-dev@claude-plugins-official": "b819188d2eea",
+    "github@claude-plugins-official": "b819188d2eea",
+    "dev@magus": "6.0.0",
     "multimodel@magus": "3.2.0",
     "statusline@magus": "2.1.2",
     "terminal@magus": "4.0.3",
@@ -49,7 +48,8 @@
     "designer@magus": "0.4.0",
     "gtd@magus": "2.0.1",
     "kanban@magus": "1.6.0",
-    "claudish@magus": "1.0.0",
+    "claudish@magus": "2.0.0",
     "mnemex@magus": "1.0.0"
-  }
+  },
+  "outputStyle": "composed"
 }

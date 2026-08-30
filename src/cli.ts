@@ -2874,7 +2874,10 @@ async function promptForApiKey(): Promise<void> {
 	});
 
 	saveGlobalConfig({ openrouterApiKey: apiKey });
-	console.log("\n✅ API key saved.");
+	const { isKeychainAvailable } = await import("./core/keychain.js");
+	console.log(
+		`\n✅ API key saved${isKeychainAvailable() ? " to macOS Keychain" : ""}.`,
+	);
 }
 
 // ============================================================================

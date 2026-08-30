@@ -8,6 +8,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import {
+	getKeychainSecret,
+	mergeKeychainSecrets,
+	routeSecretsToKeychain,
+	stripSecrets,
+} from "./core/keychain.js";
 import type {
 	Config,
 	EmbeddingProvider,
@@ -246,7 +252,7 @@ export function loadGlobalConfig(): GlobalConfig {
 	try {
 		const content = readFileSync(GLOBAL_CONFIG_PATH, "utf-8");
 		const loaded = JSON.parse(content) as Partial<GlobalConfig>;
-		return {
+		const merged = {
 			...defaultConfig,
 			...loaded,
 			excludePatterns: [
@@ -254,6 +260,8 @@ export function loadGlobalConfig(): GlobalConfig {
 				...(loaded.excludePatterns || []),
 			],
 		};
+		// Pull secrets from keychain (macOS) and merge into config
+		return mergeKeychainSecrets(merged);
 	} catch (error) {
 		console.warn("Failed to load global config:", error);
 		return defaultConfig;
@@ -420,11 +428,17 @@ export function saveGlobalConfig(config: Partial<GlobalConfig>): void {
 		mkdirSync(GLOBAL_CONFIG_DIR, { recursive: true });
 	}
 
-	// Merge with existing config
-	const existing = loadGlobalConfig();
-	const merged = { ...existing, ...config };
+	// Route secret fields to keychain (macOS) and strip from JSON
+	const keychainSafe = routeSecretsToKeychain(config);
 
-	writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(merged, null, 2), "utf-8");
+	// Merge with existing config (also keychain-merged on load)
+	const existing = loadGlobalConfig();
+	const merged = { ...existing, ...keychainSafe };
+
+	// Strip any secrets from the final result so they never leak to JSON
+	const plaintextSafe = stripSecrets(merged);
+
+	writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(plaintextSafe, null, 2), "utf-8");
 }
 
 /**
@@ -528,6 +542,12 @@ export function getApiKey(): string | undefined {
 		return envKey;
 	}
 
+	// Then check macOS Keychain
+	const keychainKey = getKeychainSecret("openrouter");
+	if (keychainKey) {
+		return keychainKey;
+	}
+
 	// Then check global config
 	const config = loadGlobalConfig();
 	return config.openrouterApiKey;
@@ -548,6 +568,12 @@ export function getVoyageApiKey(): string | undefined {
 	const envKey = process.env[ENV.VOYAGE_API_KEY];
 	if (envKey) {
 		return envKey;
+	}
+
+	// Then check macOS Keychain
+	const keychainKey = getKeychainSecret("voyage");
+	if (keychainKey) {
+		return keychainKey;
 	}
 
 	// Then check global config
@@ -636,6 +662,12 @@ export function getAnthropicApiKey(): string | undefined {
 	const envKey = process.env[ENV.ANTHROPIC_API_KEY];
 	if (envKey) {
 		return envKey;
+	}
+
+	// Then check macOS Keychain
+	const keychainKey = getKeychainSecret("anthropic");
+	if (keychainKey) {
+		return keychainKey;
 	}
 
 	// Then check global config
@@ -730,6 +762,12 @@ export function getContext7ApiKey(projectPath?: string): string | undefined {
 	const envKey = process.env[ENV.CONTEXT7_API_KEY];
 	if (envKey) {
 		return envKey;
+	}
+
+	// Then check macOS Keychain
+	const keychainKey = getKeychainSecret("context7");
+	if (keychainKey) {
+		return keychainKey;
 	}
 
 	// Then check project config

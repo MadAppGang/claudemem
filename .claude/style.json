@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "presets": [
+    "asd-ste100",
+    "evidence-first",
+    "plain-language",
+    "structured"
+  ],
+  "imports": [
+    "user:builtin-explanatory"
+  ],
+  "hash": "sha256:330defc6b00a35fe5d10a20c499416b2",
+  "updatedAt": "2026-08-30T14:13:56.572Z"
+}
