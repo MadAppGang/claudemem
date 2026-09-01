@@ -261,9 +261,9 @@ describe("ensureFtsIndex — corpus changed", () => {
 		expect(idsOf(await searchFor("uniqueterm"))).toContain("alpha");
 
 		await withFreshStore(async (store) => {
-			// deleteByFile no-ops unless the table handle is already open on this
-			// instance (it is opened lazily by the search path, not by initialize).
-			await store.search("warmup", undefined, { limit: 1, keywordOnly: true });
+			// No warmup search: deleteByFile opens the table itself now. It used
+			// to no-op unless the handle was already open on this instance — see
+			// store-delete-lazy-open.test.ts.
 			await store.deleteByFile("src/alpha.ts");
 		});
 		createIndexCalls = [];

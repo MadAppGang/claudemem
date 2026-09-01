@@ -161,9 +161,12 @@ export function withTimeout<T>(
 
 /**
  * Escape special characters in filter values to prevent injection attacks
- * and crashes on special characters (identified by multi-model review)
+ * and crashes on special characters (identified by multi-model review).
+ *
+ * For LIKE patterns ONLY — see `escapeSqlLiteral` below for equality/IN
+ * literals. Exported for the escaping tests, which pin the two apart.
  */
-function escapeFilterValue(value: string): string {
+export function escapeFilterValue(value: string): string {
 	// Escape single quotes by doubling them (SQL-style escaping)
 	// Also escape backslashes and other special chars
 	return value
@@ -171,6 +174,29 @@ function escapeFilterValue(value: string): string {
 		.replace(/'/g, "''")
 		.replace(/%/g, "\\%")
 		.replace(/_/g, "\\_");
+}
+
+/**
+ * Escape a value for a single-quoted SQL string literal in an EQUALITY
+ * predicate.
+ *
+ * SQL-standard quote doubling and nothing else — the same rule LanceDB's own
+ * `toSQL()` (`@lancedb/lancedb/dist/util.js`) applies to strings. That helper
+ * is not re-exported from the package index (only the `IntoSql` type is), so
+ * calling it would mean importing from `dist/`; the rule is one line and
+ * stable, so it is restated here instead. LanceDB 0.33 offers no parameterized
+ * predicate API at all: `Table.delete`, `countRows` and `Query.where` each take
+ * a pre-rendered SQL string, so rendering it safely is the caller's job.
+ *
+ * Deliberately NOT `escapeFilterValue` above: that one also backslash-escapes
+ * `%` and `_` for LIKE patterns. Correct for LIKE, wrong here — in an equality
+ * literal DataFusion takes the backslash literally, so `filePath =
+ * 'src/my\_file.ts'` matches no row at all. Verified against LanceDB 0.33:
+ * quote-doubling alone matches `o'brien.ts`, `my_file.ts`, `100%.ts` and
+ * backslash paths; the LIKE escaping matches only the first.
+ */
+export function escapeSqlLiteral(value: string): string {
+	return value.replace(/'/g, "''");
 }
 
 /**
@@ -580,10 +606,14 @@ export class VectorStore implements IVectorStore {
 			return [];
 		}
 
-		// Build filter string with escaped values to prevent injection
+		// Build filter string with escaped values to prevent injection.
+		// Note the two escapers: equality literals take `escapeSqlLiteral`, LIKE
+		// patterns take `escapeFilterValue` (which additionally neutralises the
+		// `%` / `_` wildcards). Swapping either way is a silent bug — see the
+		// comments on the two functions.
 		const filters: string[] = [];
 		if (language) {
-			filters.push(`language = '${escapeFilterValue(language)}'`);
+			filters.push(`language = '${escapeSqlLiteral(language)}'`);
 		}
 		if (filePath) {
 			filters.push(`filePath LIKE '%${escapeFilterValue(filePath)}%'`);
@@ -729,12 +759,37 @@ export class VectorStore implements IVectorStore {
 	 * Delete all chunks from a specific file
 	 */
 	async deleteByFile(filePath: string): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// REGRESSION: deleteByFile silently no-opped when the table had not been
+		// lazily opened. The guard used to be `if (!this.db || !this.table)`,
+		// testing the raw field — but the table is opened lazily, and every read
+		// path (`getChunksWithVectors`, `getStats`, `search`) goes through
+		// `ensureTableOpen()` instead. A delete issued before any read on the
+		// instance returned 0, which is indistinguishable from "nothing to
+		// delete", so stale chunks survived a delete that reported success.
+		// `ensureTableOpen()` returns null only when the table does not exist on
+		// disk — the one genuinely-safe no-op — and throws if opening fails, so
+		// the whole thing stays inside the existing catch: deletes must never
+		// throw where they previously returned 0.
+		//
+		// BEHAVIOUR CHANGE, deliberate: a delete on a store that has not been
+		// connected yet now runs `initialize()` (via `ensureTableOpen()`), where
+		// before it returned 0 without touching the disk. That only connects —
+		// `ensureTableOpen()` lists `tableNames()` and calls `openTable()` on a
+		// hit, and has no create path (see it above), so no empty table is
+		// materialized by a delete against a store that was never indexed.
+		//
+		// The value is escaped, not interpolated raw: a single quote is legal in
+		// a path on macOS and Linux (`src/o'brien.ts`) and ends the string
+		// literal early, which LanceDB rejects — and the catch below would turn
+		// that into a silent 0, the same "delete reported success but did
+		// nothing" failure this method was just fixed for.
 		try {
-			await this.table.delete(`filePath = '${filePath}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			await table.delete(`filePath = '${escapeSqlLiteral(filePath)}'`);
 			return 1; // LanceDB doesn't return count
 		} catch {
 			return 0;
@@ -745,12 +800,15 @@ export class VectorStore implements IVectorStore {
 	 * Delete chunks by file hash
 	 */
 	async deleteByFileHash(fileHash: string): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// Same lazy-open bug, same deliberate connect-on-delete behaviour change,
+		// and same literal escaping as deleteByFile above; see the notes there.
 		try {
-			await this.table.delete(`fileHash = '${fileHash}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			await table.delete(`fileHash = '${escapeSqlLiteral(fileHash)}'`);
 			return 1;
 		} catch {
 			return 0;
@@ -768,10 +826,16 @@ export class VectorStore implements IVectorStore {
 		}
 
 		try {
+			// Equality, so `escapeSqlLiteral`. This used the LIKE escaper, which
+			// backslash-escapes `%` and `_`; in an equality literal DataFusion
+			// takes the backslash literally, so every file with an underscore in
+			// its name returned zero chunks. The caller (indexer.ts) reads that
+			// as "no previous vectors to reuse" and re-embeds the whole file on
+			// every incremental reindex — silent, and paid for on each run.
 			const results = await table
 				.query()
 				.where(
-					`filePath = '${escapeFilterValue(filePath)}' AND documentType = 'code_chunk'`,
+					`filePath = '${escapeSqlLiteral(filePath)}' AND documentType = 'code_chunk'`,
 				)
 				.toArray();
 
@@ -959,12 +1023,24 @@ export class VectorStore implements IVectorStore {
 	 * Delete all documents of a specific type
 	 */
 	async deleteByDocumentType(documentType: DocumentType): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// Same lazy-open bug, same deliberate connect-on-delete behaviour change
+		// as deleteByFile above; see the notes there.
+		//
+		// `documentType` is interpolated RAW and must stay that way. It is the
+		// closed `DocumentType` union (`code_chunk`, `file_summary`,
+		// `session_observation`, ...), so no member carries a quote and there is
+		// nothing for `escapeSqlLiteral` to do. Applying the LIKE escaper
+		// (`escapeFilterValue`) here would actively BREAK it: nearly every member
+		// contains an underscore, which that escaper backslash-escapes, and in an
+		// equality literal DataFusion takes the backslash literally — so the
+		// predicate would match no row and the delete would silently no-op.
 		try {
-			await this.table.delete(`documentType = '${documentType}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			await table.delete(`documentType = '${documentType}'`);
 			return 1;
 		} catch {
 			return 0;
@@ -975,12 +1051,21 @@ export class VectorStore implements IVectorStore {
 	 * Delete all documents (code chunks and enriched) for a specific file
 	 */
 	async deleteAllByFile(filePath: string): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// Same lazy-open bug, same deliberate connect-on-delete behaviour change
+		// as deleteByFile above; see the notes there.
 		try {
-			await this.table.delete(`filePath = '${filePath}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			// The value was interpolated raw. That is data loss, not a syntax
+			// hazard: `x' OR filePath LIKE '%` renders the well-formed predicate
+			// `filePath = 'x' OR filePath LIKE '%'`, which matches every row —
+			// so a delete aimed at one file empties the table. Equality, so the
+			// escape is quote doubling only (`escapeSqlLiteral`); the LIKE
+			// escaper would break ordinary `my_file.ts` paths instead.
+			await table.delete(`filePath = '${escapeSqlLiteral(filePath)}'`);
 			return 1;
 		} catch {
 			return 0;
@@ -1000,8 +1085,15 @@ export class VectorStore implements IVectorStore {
 		}
 
 		try {
-			let filter = `filePath = '${filePath}'`;
+			// Same raw interpolation as `deleteAllByFile` had: a quote in the
+			// path made LanceDB reject the statement (caught below, reported as
+			// "no documents"), and a crafted path widened the predicate to every
+			// row. Equality, so quote doubling only.
+			let filter = `filePath = '${escapeSqlLiteral(filePath)}'`;
 			if (documentTypes && documentTypes.length > 0) {
+				// `documentTypes` is the closed `DocumentType` union — no quotes
+				// to escape, and no `%`/`_` handling wanted either, since IN
+				// compares by equality.
 				const types = documentTypes.map((t) => `'${t}'`).join(", ");
 				filter += ` AND documentType IN (${types})`;
 			}
@@ -1047,10 +1139,11 @@ export class VectorStore implements IVectorStore {
 			return [];
 		}
 
-		// Build filter string with escaped values to prevent injection
+		// Build filter string with escaped values to prevent injection.
+		// Equality takes `escapeSqlLiteral`, LIKE takes `escapeFilterValue`.
 		const filters: string[] = [];
 		if (language) {
-			filters.push(`language = '${escapeFilterValue(language)}'`);
+			filters.push(`language = '${escapeSqlLiteral(language)}'`);
 		}
 		if (pathPattern) {
 			filters.push(`filePath LIKE '%${escapeFilterValue(pathPattern)}%'`);
@@ -1071,8 +1164,13 @@ export class VectorStore implements IVectorStore {
 					]);
 
 		if (effectiveTypes && effectiveTypes.length > 0) {
+			// IN compares by equality, so this needs `escapeSqlLiteral`. With the
+			// LIKE escaper it was not merely redundant, it was broken: every
+			// `DocumentType` but `idiom` contains an underscore, so the rendered
+			// `documentType IN ('file\_summary', 'symbol\_summary', ...)` matched
+			// NO row and every type-filtered enriched search came back empty.
 			const types = effectiveTypes
-				.map((t) => `'${escapeFilterValue(t)}'`)
+				.map((t) => `'${escapeSqlLiteral(t)}'`)
 				.join(", ");
 			filters.push(`documentType IN (${types})`);
 		}
@@ -1268,17 +1366,17 @@ export class VectorStore implements IVectorStore {
 
 		try {
 			// LanceDB update via delete + insert pattern
-			// First, get the existing record
+			// First, get the existing record (equality: quote doubling only)
 			const results = await table
 				.query()
-				.where(`id = '${escapeFilterValue(unitId)}'`)
+				.where(`id = '${escapeSqlLiteral(unitId)}'`)
 				.toArray();
 			if (results.length === 0) return;
 
 			const existing = results[0] as StoredChunk;
 
 			// Delete old record
-			await table.delete(`id = '${escapeFilterValue(unitId)}'`);
+			await table.delete(`id = '${escapeSqlLiteral(unitId)}'`);
 
 			// Insert updated record (watchdog-wrapped: same native write path)
 			await withTimeout(
@@ -1303,17 +1401,17 @@ export class VectorStore implements IVectorStore {
 		if (!table) return false;
 
 		try {
-			// LanceDB update via delete + insert pattern
+			// LanceDB update via delete + insert pattern (equality predicates)
 			const results = await table
 				.query()
-				.where(`id = '${escapeFilterValue(documentId)}'`)
+				.where(`id = '${escapeSqlLiteral(documentId)}'`)
 				.toArray();
 			if (results.length === 0) return false;
 
 			const existing = results[0] as StoredChunk;
 
 			// Delete old record
-			await table.delete(`id = '${escapeFilterValue(documentId)}'`);
+			await table.delete(`id = '${escapeSqlLiteral(documentId)}'`);
 
 			// Insert updated record with new content and vector
 			// (watchdog-wrapped: same native write path)
@@ -1376,10 +1474,11 @@ export class VectorStore implements IVectorStore {
 		if (!table) return [];
 
 		try {
-			let filter = `filePath = '${escapeFilterValue(filePath)}' AND documentType = 'code_unit'`;
+			let filter = `filePath = '${escapeSqlLiteral(filePath)}' AND documentType = 'code_unit'`;
 			if (unitTypes && unitTypes.length > 0) {
+				// IN compares by equality, so this takes `escapeSqlLiteral`.
 				const types = unitTypes
-					.map((t) => `'${escapeFilterValue(t)}'`)
+					.map((t) => `'${escapeSqlLiteral(t)}'`)
 					.join(", ");
 				filter += ` AND unitType IN (${types})`;
 			}
@@ -1405,7 +1504,7 @@ export class VectorStore implements IVectorStore {
 		try {
 			let filter = `depth = ${depth} AND documentType = 'code_unit'`;
 			if (filePath) {
-				filter += ` AND filePath = '${escapeFilterValue(filePath)}'`;
+				filter += ` AND filePath = '${escapeSqlLiteral(filePath)}'`;
 			}
 
 			const results = await table.query().where(filter).toArray();
@@ -1424,7 +1523,7 @@ export class VectorStore implements IVectorStore {
 		if (!table) return [];
 
 		try {
-			const filter = `parentId = '${escapeFilterValue(parentId)}' AND documentType = 'code_unit'`;
+			const filter = `parentId = '${escapeSqlLiteral(parentId)}' AND documentType = 'code_unit'`;
 			const results = await table.query().where(filter).toArray();
 
 			return results.map((row) => this.rowToCodeUnit(row));
@@ -1441,7 +1540,7 @@ export class VectorStore implements IVectorStore {
 		if (!table) return null;
 
 		try {
-			const filter = `id = '${escapeFilterValue(unitId)}'`;
+			const filter = `id = '${escapeSqlLiteral(unitId)}'`;
 			const results = await table.query().where(filter).toArray();
 
 			if (results.length === 0) return null;
@@ -1482,9 +1581,8 @@ export class VectorStore implements IVectorStore {
 		const filters: string[] = ["documentType = 'code_unit'"];
 
 		if (unitTypes && unitTypes.length > 0) {
-			const types = unitTypes
-				.map((t) => `'${escapeFilterValue(t)}'`)
-				.join(", ");
+			// IN compares by equality, so this takes `escapeSqlLiteral`.
+			const types = unitTypes.map((t) => `'${escapeSqlLiteral(t)}'`).join(", ");
 			filters.push(`unitType IN (${types})`);
 		}
 		if (minDepth !== undefined) {
@@ -1545,7 +1643,7 @@ export class VectorStore implements IVectorStore {
 		try {
 			let filter = "documentType = 'code_unit'";
 			if (filePath) {
-				filter += ` AND filePath = '${escapeFilterValue(filePath)}'`;
+				filter += ` AND filePath = '${escapeSqlLiteral(filePath)}'`;
 			}
 
 			const results = await table.query().where(filter).toArray();
