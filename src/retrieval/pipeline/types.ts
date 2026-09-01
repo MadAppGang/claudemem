@@ -19,10 +19,11 @@ export type BackendName =
 
 export interface BackendResult {
 	/**
-	 * Stable identity for this result (e.g. chunk id). When present it is used
-	 * as the merge key instead of `file:startLine` — required for results that
-	 * have no file anchor (observations recorded without affected files), which
-	 * would otherwise all collapse into a single `":0"` entry.
+	 * Stable identity for this result (e.g. chunk id). Used as the merge key for
+	 * results with no usable code anchor — observations, which are stored with
+	 * `startLine: 0` and would otherwise all collapse into one `file:0` entry.
+	 * Anchored results key on `file:startLine`; see `mergeKey` in
+	 * `pipeline/merge.ts`.
 	 */
 	id?: string;
 	/**

@@ -93,6 +93,146 @@ function fakeIndexer(results: SearchResult[]) {
 // ---------------------------------------------------------------------------
 
 describe("rrfMerge keying", () => {
+	test("a semantic hit fuses with another backend at the same anchor", () => {
+		// The semantic backend sets `id` (a sha256 chunk digest) on every result;
+		// no other backend does. If the digest wins over the anchor, the same
+		// code location arrives twice and loses the RRF consensus boost — which
+		// is the entire point of fusion.
+		const merged = rrfMerge(
+			[
+				{
+					name: "semantic",
+					results: [
+						backendResult({
+							id: "a3f9c1d2e4b5a6c7",
+							file: "src/core/store.ts",
+							startLine: 120,
+						}),
+					],
+				},
+				{
+					name: "tree-sitter",
+					results: [
+						backendResult({
+							file: "src/core/store.ts",
+							startLine: 120,
+							backend: "tree-sitter",
+							symbol: "VectorStore",
+						}),
+					],
+				},
+			],
+			MERGE_CONFIG,
+			10,
+		);
+
+		expect(merged.length).toBe(1);
+		expect(merged[0].backends).toEqual(["semantic", "tree-sitter"]);
+		expect(merged[0].file).toBe("src/core/store.ts");
+		expect(merged[0].startLine).toBe(120);
+		expect(merged[0].symbol).toBe("VectorStore");
+		// Consensus boost: both backends contributed at rank 0. This is the exact
+		// v0.32.0 number (semantic 1.0/60 + tree-sitter 1.1/60 = 0.035), which
+		// v0.33.0 split into 0.018333 + 0.016667 across two entries.
+		expect(merged[0].rrfScore).toBeCloseTo(0.035, 12);
+	});
+
+	test("two observations sharing one file anchor stay distinct", () => {
+		// `observe` sets filePath from affectedFiles[0] and enriched documents are
+		// stored with startLine 0, so two observations about the same file share
+		// the anchor "src/store.ts:0". Keying on "is file empty" alone would
+		// collapse them.
+		const merged = rrfMerge(
+			[
+				{
+					name: "semantic",
+					results: [
+						backendResult({
+							id: "obs-a",
+							file: "src/store.ts",
+							startLine: 0,
+							documentType: "session_observation",
+							snippet: "first observation",
+						}),
+						backendResult({
+							id: "obs-b",
+							file: "src/store.ts",
+							startLine: 0,
+							documentType: "session_observation",
+							snippet: "second observation",
+						}),
+					],
+				},
+			],
+			MERGE_CONFIG,
+			10,
+		);
+
+		expect(merged.length).toBe(2);
+		expect(new Set(merged.map((r) => r.id))).toEqual(
+			new Set(["obs-a", "obs-b"]),
+		);
+	});
+
+	test("a file-anchored observation does not swallow code in that file", () => {
+		// Observations have startLine 0; every real code anchor is 1-indexed, so
+		// the two can never share a key.
+		const merged = rrfMerge(
+			[
+				{
+					name: "semantic",
+					results: [
+						backendResult({
+							id: "obs-a",
+							file: "src/store.ts",
+							startLine: 0,
+							documentType: "session_observation",
+						}),
+						backendResult({
+							id: "code-a",
+							file: "src/store.ts",
+							startLine: 1,
+						}),
+					],
+				},
+			],
+			MERGE_CONFIG,
+			10,
+		);
+
+		expect(merged.length).toBe(2);
+	});
+
+	test("isDefinitive still forces first place", () => {
+		const merged = rrfMerge(
+			[
+				{
+					name: "semantic",
+					results: [
+						backendResult({ id: "hot", file: "src/a.ts", startLine: 10 }),
+						backendResult({ id: "obs", file: "", startLine: 0 }),
+					],
+				},
+				{
+					name: "lsp",
+					results: [
+						backendResult({
+							file: "src/z.ts",
+							startLine: 99,
+							backend: "lsp",
+							isDefinitive: true,
+						}),
+					],
+				},
+			],
+			MERGE_CONFIG,
+			10,
+		);
+
+		expect(merged[0].file).toBe("src/z.ts");
+		expect(merged[0].rrfScore).toBe(Number.POSITIVE_INFINITY);
+	});
+
 	test("anchor-less observations with distinct ids stay distinct", () => {
 		const results = [
 			backendResult({ id: "obs-1", file: "", startLine: 0, snippet: "first" }),

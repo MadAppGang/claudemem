@@ -60,6 +60,11 @@ const COMMON_QUERY = "how do we get the new one";
 
 const DEFAULT_WEIGHTS = DEFAULT_PIPELINE_CONFIG.backendWeights;
 
+/**
+ * NOTE: distinct documents need distinct `startLine`s, not just distinct ids —
+ * `mergeKey` keys anchored results on `file:startLine`, so two fixtures left at
+ * the default anchor are one location and merge into one entry.
+ */
 function backendResult(overrides: Partial<BackendResult>): BackendResult {
 	return {
 		file: "src/a.ts",
@@ -238,9 +243,12 @@ describe("tilted weights keep tm2c2 convex", () => {
 		active: BackendName[],
 	): { total: number; byBackend: Map<BackendName, number> } {
 		const weights = adaptBackendWeights(DEFAULT_WEIGHTS, query, 0.5);
-		const input = active.map((name) => ({
+		const input = active.map((name, i) => ({
 			name,
-			results: [backendResult({ id: name, score: 1, backend: name })],
+			results: [
+				// One distinct doc per backend — distinct anchor, not just id.
+				backendResult({ id: name, startLine: i + 1, score: 1, backend: name }),
+			],
 		}));
 		const merged = tm2c2Merge(input, { backendWeights: weights }, 100);
 		const byBackend = new Map<BackendName, number>(
@@ -273,10 +281,18 @@ describe("tilted weights keep tm2c2 convex", () => {
 				{
 					name: "symbol-graph",
 					results: [
-						backendResult({ id: "sg", score: 1, backend: "symbol-graph" }),
+						backendResult({
+							id: "sg",
+							startLine: 10,
+							score: 1,
+							backend: "symbol-graph",
+						}),
 					],
 				},
-				{ name: "semantic", results: [backendResult({ id: "sem", score: 1 })] },
+				{
+					name: "semantic",
+					results: [backendResult({ id: "sem", startLine: 20, score: 1 })],
+				},
 			],
 			{ backendWeights: weights },
 			100,
@@ -588,21 +604,38 @@ const FIXTURE_RESULTS: Array<{ name: BackendName; results: BackendResult[] }> =
 		{
 			name: "symbol-graph",
 			results: [
-				backendResult({ id: "sg-1", score: 0.9, backend: "symbol-graph" }),
-				backendResult({ id: "shared", score: 0.4, backend: "symbol-graph" }),
+				backendResult({
+					id: "sg-1",
+					startLine: 10,
+					score: 0.9,
+					backend: "symbol-graph",
+				}),
+				backendResult({
+					id: "shared",
+					startLine: 20,
+					score: 0.4,
+					backend: "symbol-graph",
+				}),
 			],
 		},
 		{
 			name: "tree-sitter",
 			results: [
-				backendResult({ id: "ts-1", score: 0.8, backend: "tree-sitter" }),
+				backendResult({
+					id: "ts-1",
+					startLine: 30,
+					score: 0.8,
+					backend: "tree-sitter",
+				}),
 			],
 		},
 		{
 			name: "semantic",
 			results: [
-				backendResult({ id: "shared", score: 0.7 }),
-				backendResult({ id: "sem-weak", score: 0.2 }),
+				// Same anchor as the symbol-graph hit above: this is the one
+				// document two backends agree on, so fusion must merge it.
+				backendResult({ id: "shared", startLine: 20, score: 0.7 }),
+				backendResult({ id: "sem-weak", startLine: 40, score: 0.2 }),
 			],
 		},
 	];

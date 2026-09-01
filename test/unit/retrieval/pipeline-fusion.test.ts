@@ -38,6 +38,11 @@ const DEFAULT_WEIGHTS = {
 	backendWeights: DEFAULT_PIPELINE_CONFIG.backendWeights,
 };
 
+/**
+ * NOTE: distinct documents need distinct `startLine`s, not just distinct ids —
+ * `mergeKey` keys anchored results on `file:startLine`, so two fixtures left at
+ * the default anchor are one location and merge into one entry.
+ */
 function backendResult(overrides: Partial<BackendResult>): BackendResult {
 	return {
 		file: "src/a.ts",
@@ -237,8 +242,8 @@ describe("tm2c2 convex combination", () => {
 				{
 					name: "semantic",
 					results: [
-						backendResult({ id: "doc1", score: 0.9 }),
-						backendResult({ id: "doc2", score: 0.7 }),
+						backendResult({ id: "doc1", startLine: 10, score: 0.9 }),
+						backendResult({ id: "doc2", startLine: 20, score: 0.7 }),
 					],
 				},
 			],
@@ -256,9 +261,9 @@ describe("tm2c2 convex combination", () => {
 				{
 					name: "semantic",
 					results: [
-						backendResult({ id: "hi", score: 4.2 }),
-						backendResult({ id: "lo", score: -3 }),
-						backendResult({ id: "nan", score: Number.NaN }),
+						backendResult({ id: "hi", startLine: 10, score: 4.2 }),
+						backendResult({ id: "lo", startLine: 20, score: -3 }),
+						backendResult({ id: "nan", startLine: 30, score: Number.NaN }),
 					],
 				},
 			],
@@ -283,13 +288,14 @@ describe("tm2c2 preserves rrf-path invariants", () => {
 			[
 				{
 					name: "semantic",
-					results: [backendResult({ id: "hot", score: 0.99 })],
+					results: [backendResult({ id: "hot", startLine: 10, score: 0.99 })],
 				},
 				{
 					name: "lsp",
 					results: [
 						backendResult({
 							id: "def",
+							startLine: 20,
 							score: 0.01,
 							backend: "lsp",
 							isDefinitive: true,
@@ -368,7 +374,7 @@ describe("tm2c2 preserves rrf-path invariants", () => {
 
 	test("respects the limit", () => {
 		const results = Array.from({ length: 10 }, (_, i) =>
-			backendResult({ id: `doc-${i}`, score: 1 - i / 10 }),
+			backendResult({ id: `doc-${i}`, startLine: i + 1, score: 1 - i / 10 }),
 		);
 
 		expect(

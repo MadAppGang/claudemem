@@ -56,9 +56,10 @@ export class SemanticBackend implements ISearchBackend {
 			const maxScore = Math.max(...filtered.map((r) => r.score));
 			const normalizer = maxScore > 0 ? maxScore : 1;
 
-			// Observations are returned like any other result. Those recorded
-			// with affected files carry a real anchor (filePath/startLine);
-			// anchor-less ones keep file "" and are keyed by chunk id on merge.
+			// Observations are returned like any other result. `id` is the
+			// chunk digest: merge uses it only for results with no usable code
+			// anchor (observations, stored with startLine 0) — anchored results
+			// key on file:startLine so they fuse with the other backends.
 			return filtered.map((r): BackendResult => {
 				return {
 					id: r.chunk.id,

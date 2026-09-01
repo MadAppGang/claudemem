@@ -28,12 +28,29 @@ import type { BackendName, BackendResult, MergedResult } from "./types.js";
 /**
  * Merge key for a result.
  *
- * Prefer the stable id: anchor-less results (observations recorded with no
- * affected files) all share file "" / startLine 0 and would otherwise collapse
- * into a single entry.
+ * The rule: **a usable code anchor wins; otherwise the stable id.**
+ *
+ *   - A result with a usable anchor (non-empty `file` AND a 1-indexed
+ *     `startLine`) keys on `file:startLine`. Every backend must agree on the key
+ *     for one code location or cross-backend fusion silently stops happening:
+ *     only the semantic backend carries an `id` (a sha256 chunk digest), so
+ *     preferring the id there would make its hits unmergeable with the four
+ *     backends that key on the anchor, emitting one location twice and losing
+ *     the consensus boost fusion exists to give.
+ *   - Anything else keys on `id` (falling back to `file:startLine` when absent).
+ *     Enriched documents are stored with `startLine: 0` (`store.addDocuments`),
+ *     so an observation is always in this branch — including one that DOES have
+ *     a file, since `observe` sets `filePath` from `affectedFiles[0]` and every
+ *     observation about the same file would otherwise collapse into one entry.
+ *
+ * The two branches cannot collide: real code anchors are 1-indexed everywhere
+ * (chunker, tree-sitter, symbol graph, LSP, location), so an observation's
+ * `file:0` can never equal a code result's key.
  */
 function mergeKey(result: BackendResult): string {
-	return result.id ?? `${result.file}:${result.startLine}`;
+	const anchored = result.file !== "" && result.startLine >= 1;
+	if (!anchored && result.id !== undefined) return result.id;
+	return `${result.file}:${result.startLine}`;
 }
 
 /** Build the backend → weight lookup from config. */
@@ -136,8 +153,8 @@ function finalize(
 /**
  * Merge results from multiple backends using Reciprocal Rank Fusion.
  *
- * Key by result `id` when present, else "file:startLine". Accumulate weighted
- * RRF scores across backends.
+ * Key by {@link mergeKey} (the code anchor when there is one, else the stable
+ * id). Accumulate weighted RRF scores across backends.
  * isDefinitive override: force rrfScore = Infinity (always rank 0).
  */
 export function rrfMerge(
@@ -148,7 +165,7 @@ export function rrfMerge(
 	const k = config.rrfK;
 	const weightMap = buildWeightMap(config);
 
-	// Map from merge key (id, else "file:startLine") → MergedResult
+	// Map from merge key ("file:startLine" when anchored, else id) → MergedResult
 	const merged = new Map<string, MergedResult>();
 
 	for (const { name, results } of backendResults) {
@@ -212,7 +229,7 @@ export function tm2c2Merge(
 		0,
 	);
 
-	// Map from merge key (id, else "file:startLine") → MergedResult
+	// Map from merge key ("file:startLine" when anchored, else id) → MergedResult
 	const merged = new Map<string, MergedResult>();
 
 	for (const { name, results } of active) {

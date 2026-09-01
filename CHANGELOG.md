@@ -89,10 +89,30 @@ reporting success.
 - `FileTracker` construction: 346 us -> 35 us.
 - Learning layer per search: 190 us -> 2 us.
 
+### Known limitations
+
+- **Root-mounted embedding endpoints now get `/v1` appended.** Endpoint
+  normalization adds `/v1` to any URL with no path at all. A server that serves
+  `/embeddings` at the root (`http://host:8080`) worked before and will now 404.
+  Set an explicit path on the endpoint to opt out. Endpoints that already carry
+  a path — including gateway prefixes like `/openai` — are left untouched.
+
+- **A config edit made outside the process needs an MCP server restart.** The
+  learning-enabled flag is cached per project path and only invalidated by
+  in-process saves, so editing `config.json` in an editor is invisible to a
+  long-running MCP server until it restarts.
+
 ### Notes
 
 TM2C2 fusion was implemented, measured against the 135-query set, and **rejected**:
 it loses on all six metrics, so the default remains reciprocal-rank fusion. The
 measurement is committed under `eval/code-search-harness/results/clean-run/`.
+
+A pre-release code review caught a fusion regression before it shipped: setting a
+stable id on every semantic result made those hits unmergeable with the four
+backends that key on `file:startLine`, so one code location surfaced twice and
+lost its consensus boost. Merge keying now prefers a real code anchor and falls
+back to the id only for anchor-less documents. Fixed in this release; it never
+reached a published version.
 
 [0.33.0]: https://github.com/MadAppGang/mnemex/releases/tag/v0.33.0
