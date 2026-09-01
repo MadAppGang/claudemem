@@ -6,7 +6,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { extname, join } from "node:path";
+import { extname, join, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Language, Parser, type Tree } from "web-tree-sitter";
 import type { LanguageConfig, SupportedLanguage } from "../types.js";
@@ -619,6 +619,31 @@ for (const [language, config] of Object.entries(LANGUAGE_CONFIGS)) {
 }
 
 // ============================================================================
+// Grammar Path Resolution
+// ============================================================================
+
+/**
+ * Whether a directory is the bundled `dist/` output directory.
+ *
+ * `win32.basename` is used deliberately on every platform: it treats both `/`
+ * and `\` as separators and strips trailing ones, so it classifies a path
+ * correctly no matter which OS produced it. The platform-bound `basename` from
+ * `node:path` cannot do this — on POSIX it does not recognise `\`, so it returns
+ * the whole of `C:\...\mnemex\dist\` unchanged. That is the same blind spot that
+ * broke every Windows global install (issue #4) and that makes the check
+ * untestable from a POSIX runner.
+ *
+ * Matching the final segment also means an unrelated ancestor named `dist`
+ * (e.g. `~/dist/myproject/src/parsers/`) is no longer misdetected.
+ *
+ * Exported so the classification can be exercised with Windows-style input
+ * from a POSIX test runner.
+ */
+export function isDistDirectory(dir: string): boolean {
+	return win32.basename(dir) === "dist";
+}
+
+// ============================================================================
 // Parser Manager Class
 // ============================================================================
 
@@ -634,8 +659,9 @@ export class ParserManager {
 		// In development: src/parsers/parser-manager.ts -> ../../grammars
 		// In bundled dist: dist/index.js -> ../grammars
 		const __dirname = fileURLToPath(new URL(".", import.meta.url));
-		const isDist = __dirname.includes("/dist") || __dirname.endsWith("/dist/");
-		const relativePath = isDist ? "../grammars" : "../../grammars";
+		const relativePath = isDistDirectory(__dirname)
+			? "../grammars"
+			: "../../grammars";
 		this.grammarsPath = grammarsPath || join(__dirname, relativePath);
 	}
 
