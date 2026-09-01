@@ -438,7 +438,11 @@ export function saveGlobalConfig(config: Partial<GlobalConfig>): void {
 	// Strip any secrets from the final result so they never leak to JSON
 	const plaintextSafe = stripSecrets(merged);
 
-	writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(plaintextSafe, null, 2), "utf-8");
+	writeFileSync(
+		GLOBAL_CONFIG_PATH,
+		JSON.stringify(plaintextSafe, null, 2),
+		"utf-8",
+	);
 
 	// The learning decision is cached per path; a rewrite must be visible.
 	resetLearningEnabledCache();

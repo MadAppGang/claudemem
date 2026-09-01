@@ -275,7 +275,7 @@ export class Context7Provider extends BaseDocProvider {
 						const retryAfter = response.headers.get("Retry-After");
 						throw new RateLimitError(
 							"context7",
-							retryAfter ? Number.parseInt(retryAfter) * 1000 : undefined,
+							retryAfter ? Number.parseInt(retryAfter, 10) * 1000 : undefined,
 						);
 					}
 
@@ -332,7 +332,7 @@ export class Context7Provider extends BaseDocProvider {
 						const retryAfter = response.headers.get("Retry-After");
 						throw new RateLimitError(
 							"context7",
-							retryAfter ? Number.parseInt(retryAfter) * 1000 : undefined,
+							retryAfter ? Number.parseInt(retryAfter, 10) * 1000 : undefined,
 						);
 					}
 
