@@ -54,6 +54,10 @@ import {
 } from "./enrichment/index.js";
 import { CURRENT_INDEX_VERSION, setIndexVersion } from "./index-version.js";
 import {
+	formatInvalidationCounts,
+	invalidateForCommit,
+} from "./invalidation.js";
+import {
 	createGlobalIndexLock,
 	createIndexLock,
 	type IIndexLock,
@@ -450,6 +454,39 @@ export class Indexer {
 		startTime: number,
 	): Promise<EnrichedIndexResult> {
 		await this.initialize();
+
+		// Resolve the commit anchor ONCE for the whole run. Everything written
+		// below (files via markIndexed, documents via the enricher) is stamped
+		// with this SHA, so there is no per-file git subprocess.
+		//
+		// Non-git projects and git failures return null, which leaves the
+		// provenance columns NULL — "unknown", which reads as valid. Provenance
+		// is an enrichment on the index and is never a reason to fail a run.
+		const head = await this.fileTracker!.recordHeadCommit();
+
+		// Walk the diff of the commit that produced this state and invalidate the
+		// memories it made wrong. This is the path a post-commit hook drives
+		// (`mnemex index`), and it runs BEFORE enrichment so anything queued for
+		// re-derivation is picked up by this same run.
+		//
+		// One `git diff` per run, not per file. Returns null and changes nothing
+		// outside a git repository or on any git failure — never a new way for an
+		// index run to fail.
+		const invalidation = await invalidateForCommit(
+			this.projectPath,
+			this.fileTracker!,
+			{ head },
+		);
+		if (invalidation) {
+			this.fileTracker!.recordActivity("invalidation", {
+				...invalidation,
+			});
+			this.onProgress?.(
+				0,
+				0,
+				`[invalidating] ${formatInvalidationCounts(invalidation)}`,
+			);
+		}
 
 		// Check if embedding model changed - requires full reindex
 		const previousModel = this.fileTracker!.getMetadata("embeddingModel");

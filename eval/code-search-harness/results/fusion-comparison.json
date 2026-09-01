@@ -1,0 +1,143 @@
+{
+  "generatedAt": "2026-08-10T15:11:59.171Z",
+  "projectPath": "/Users/jack/mag/mnemex/.claude/worktrees/mnemex-fix",
+  "dataset": "eval/datasets/mnemex-git",
+  "nQueries": 135,
+  "baseline": "rrf",
+  "candidate": "tm2c2",
+  "activeBackends": [
+    "symbol-graph",
+    "semantic",
+    "location",
+    "tree-sitter"
+  ],
+  "zeroResultQueries": {
+    "rrf": 0,
+    "tm2c2": 0
+  },
+  "rankingDiffQueries": 129,
+  "metrics": [
+    {
+      "metric": "mrr",
+      "baselineMean": 0.545265968599302,
+      "candidateMean": 0.5355852854098467,
+      "delta": -0.009680683189455253,
+      "improved": 2,
+      "regressed": 4,
+      "tied": 129,
+      "pValue": 0.14221331924967795,
+      "effectSize": 0.5991446895152782
+    },
+    {
+      "metric": "ndcg_at_5",
+      "baselineMean": 0.41203304226989335,
+      "candidateMean": 0.4075034937334592,
+      "delta": -0.004529548536434169,
+      "improved": 1,
+      "regressed": 4,
+      "tied": 130,
+      "pValue": 0.10564541741656219,
+      "effectSize": 0.7236272269866326
+    },
+    {
+      "metric": "ndcg_at_10",
+      "baselineMean": 0.442394501346591,
+      "candidateMean": 0.437636085622971,
+      "delta": -0.004758415723619958,
+      "improved": 3,
+      "regressed": 8,
+      "tied": 124,
+      "pValue": 0.19732618158186543,
+      "effectSize": 0.38871061168109244
+    },
+    {
+      "metric": "recall_at_1",
+      "baselineMean": 0.18113168724279832,
+      "candidateMean": 0.1759465020576131,
+      "delta": -0.005185185185185209,
+      "improved": 0,
+      "regressed": 2,
+      "tied": 133,
+      "pValue": 0.3710933069555178,
+      "effectSize": 0.6324555320336758
+    },
+    {
+      "metric": "recall_at_5",
+      "baselineMean": 0.43595532039976487,
+      "candidateMean": 0.43348618459729577,
+      "delta": -0.0024691358024691024,
+      "improved": 0,
+      "regressed": 1,
+      "tied": 134,
+      "pValue": 0.9999999989999999,
+      "effectSize": 0
+    },
+    {
+      "metric": "recall_at_10",
+      "baselineMean": 0.5458112874779539,
+      "candidateMean": 0.5427248677248676,
+      "delta": -0.0030864197530863224,
+      "improved": 1,
+      "regressed": 2,
+      "tied": 132,
+      "pValue": 0.42267795497155314,
+      "effectSize": 0.46291004988627577
+    }
+  ],
+  "latency": {
+    "rrf": {
+      "p50": 1896.0846250000177,
+      "p95": 17738.022641999996,
+      "mean": 4760.366868837038
+    },
+    "tm2c2": {
+      "p50": 1870.2510419999016,
+      "p95": 8569.08512139999,
+      "mean": 2841.276637
+    }
+  },
+  "topMovers": [
+    {
+      "queryId": "e3e2ee6",
+      "query": "add auto-update command and version check. - Add `claudemem update` command to check for and install updates - Enhance `--version` to show update availability notification - Add src/updater/ module with: - UpdateManager class for update",
+      "baseline": 1,
+      "candidate": 0.5,
+      "delta": -0.5
+    },
+    {
+      "queryId": "a8b2456",
+      "query": "add OpenAI-compatible provider support and improve indexing performance. - Add generic OpenAI-compatible provider option in init for MLX, vLLM, llamafile, etc. - Add fetchOpenAICompatibleModels function with 5s timeout and model type detection - Make fetchLMStudioModels",
+      "baseline": 1,
+      "candidate": 0.5,
+      "delta": -0.5
+    },
+    {
+      "queryId": "38b020b",
+      "query": "shebang node→bun and clear update cache on explicit update. - Change shebang from #!/usr/bin/env node to #!/usr/bin/env bun since the bundle uses bun:sqlite and bun:ffi - Call updater.clearCache() before checking in handleUpdate() so explicit `claudemem",
+      "baseline": 0.5,
+      "candidate": 0.3333333333333333,
+      "delta": -0.16666666666666669
+    },
+    {
+      "queryId": "ac610bf",
+      "query": "upgrade web-tree-sitter to support grammar version 15. - Upgrade web-tree-sitter from 0.24.4 to 0.25.10 - Fix import: Parser is now a named export, Language is separate - Fix store.getStats() to call ensureTableOpen() before querying - Resolves",
+      "baseline": 0.5,
+      "candidate": 0.3333333333333333,
+      "delta": -0.16666666666666669
+    },
+    {
+      "queryId": "a21fca2",
+      "query": "use new Query() constructor instead of deprecated Language.query(). Updates tree-sitter API usage to avoid deprecation warnings: - Import Query class from web-tree-sitter - Use `new Query(lang, source)` instead of `lang.query(source)`",
+      "baseline": 0.14285714285714285,
+      "candidate": 0.16666666666666666,
+      "delta": 0.023809523809523808
+    },
+    {
+      "queryId": "91ffb37",
+      "query": "highlight all tied winners/losers in benchmark table. Use rounded values for comparison to handle floating-point precision issues. Now all models with the same displayed score get highlighted green (best) or red (worst) instead of only the first one",
+      "baseline": 0.05,
+      "candidate": 0.05263157894736842,
+      "delta": 0.0026315789473684154
+    }
+  ]
+}

@@ -330,25 +330,63 @@ export function computeReciprocalRank(
 }
 
 /**
- * Compute NDCG@K with binary relevance.
- * DCG@K = sum(rel_i / log2(i+2)) for i in [0, K).
- * IDCG@K = 1 (ideal: first doc is relevant).
+ * Compute NDCG@K.
+ *
+ * Assumes BINARY relevance: a doc is either in `relevant` (gain 1) or not
+ * (gain 0). That matches every dataset under `eval/datasets/`, whose qrels are
+ * all relevance 1. Graded relevance would need a gain lookup here and a
+ * gain-sorted IDCG below.
+ *
+ *   DCG@K  = sum_{i=0}^{K-1} rel_i / log2(i + 2)
+ *   IDCG@K = sum_{i=0}^{min(|relevant|, K)-1} 1 / log2(i + 2)
+ *
+ * IDCG is the DCG of the IDEAL ranking — the first min(|relevant|, K)
+ * positions all relevant. It is 1 only in the special case of a single gold
+ * doc. Hardcoding it to 1 (the previous behavior) left the result
+ * un-normalized for multi-gold queries: `eval/datasets/mnemex-git` averages
+ * ~2.99 gold files per query and 46 of 135 queries scored above 1.0, up to
+ * 2.765.
+ *
+ * A doc repeated in `retrieved` contributes gain at most once — it is one
+ * relevant document, not several. Together with the IDCG above this makes
+ * dcg <= idcg for every input, so the result is always in [0, 1]; the check
+ * below turns any future violation into a loud failure rather than a silently
+ * out-of-range metric.
  */
 export function computeNdcgAtK(
 	retrieved: string[],
 	relevant: Set<string>,
 	k: number,
 ): number {
+	if (relevant.size === 0) return 0;
+
 	const topK = retrieved.slice(0, k);
+	const counted = new Set<string>();
 	let dcg = 0;
 	for (let i = 0; i < topK.length; i++) {
-		if (relevant.has(topK[i])) {
+		const docId = topK[i];
+		if (relevant.has(docId) && !counted.has(docId)) {
+			counted.add(docId);
 			dcg += 1 / Math.log2(i + 2); // i+2 because log2(1) = 0
 		}
 	}
-	// IDCG@K = 1/log2(2) = 1 when there is at least one relevant doc
-	const idcg = relevant.size > 0 ? 1 / Math.log2(2) : 0;
-	return idcg > 0 ? dcg / idcg : 0;
+
+	// IDCG@K: the ideal ranking puts min(|relevant|, K) relevant docs first.
+	let idcg = 0;
+	const idealHits = Math.min(relevant.size, k);
+	for (let i = 0; i < idealHits; i++) {
+		idcg += 1 / Math.log2(i + 2);
+	}
+	if (idcg <= 0) return 0; // k <= 0
+
+	const ndcg = dcg / idcg;
+	if (!(ndcg >= 0 && ndcg <= 1 + 1e-9)) {
+		throw new Error(
+			`NDCG@${k} out of range: ${ndcg} (dcg=${dcg}, idcg=${idcg}, ` +
+				`|relevant|=${relevant.size}, |retrieved|=${retrieved.length})`,
+		);
+	}
+	return Math.min(ndcg, 1);
 }
 
 /**

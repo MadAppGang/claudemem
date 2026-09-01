@@ -34,6 +34,12 @@ import {
 /** Table name for code chunks */
 const CHUNKS_TABLE = "code_chunks";
 
+/** Column carrying the BM25 full-text index. */
+const FTS_COLUMN = "content";
+
+/** `IndexConfig.indexType` for a full-text index, upper-cased for comparison. */
+const FTS_INDEX_TYPE = "FTS";
+
 /** Default search limit */
 const DEFAULT_LIMIT = 10;
 
@@ -155,9 +161,12 @@ export function withTimeout<T>(
 
 /**
  * Escape special characters in filter values to prevent injection attacks
- * and crashes on special characters (identified by multi-model review)
+ * and crashes on special characters (identified by multi-model review).
+ *
+ * For LIKE patterns ONLY — see `escapeSqlLiteral` below for equality/IN
+ * literals. Exported for the escaping tests, which pin the two apart.
  */
-function escapeFilterValue(value: string): string {
+export function escapeFilterValue(value: string): string {
 	// Escape single quotes by doubling them (SQL-style escaping)
 	// Also escape backslashes and other special chars
 	return value
@@ -165,6 +174,68 @@ function escapeFilterValue(value: string): string {
 		.replace(/'/g, "''")
 		.replace(/%/g, "\\%")
 		.replace(/_/g, "\\_");
+}
+
+/**
+ * Escape a value for a single-quoted SQL string literal in an EQUALITY
+ * predicate.
+ *
+ * SQL-standard quote doubling and nothing else — the same rule LanceDB's own
+ * `toSQL()` (`@lancedb/lancedb/dist/util.js`) applies to strings. That helper
+ * is not re-exported from the package index (only the `IntoSql` type is), so
+ * calling it would mean importing from `dist/`; the rule is one line and
+ * stable, so it is restated here instead. LanceDB 0.33 offers no parameterized
+ * predicate API at all: `Table.delete`, `countRows` and `Query.where` each take
+ * a pre-rendered SQL string, so rendering it safely is the caller's job.
+ *
+ * Deliberately NOT `escapeFilterValue` above: that one also backslash-escapes
+ * `%` and `_` for LIKE patterns. Correct for LIKE, wrong here — in an equality
+ * literal DataFusion takes the backslash literally, so `filePath =
+ * 'src/my\_file.ts'` matches no row at all. Verified against LanceDB 0.33:
+ * quote-doubling alone matches `o'brien.ts`, `my_file.ts`, `100%.ts` and
+ * backslash paths; the LIKE escaping matches only the first.
+ */
+export function escapeSqlLiteral(value: string): string {
+	return value.replace(/'/g, "''");
+}
+
+/**
+ * True when the table's BM25 index on `FTS_COLUMN` exists AND already covers
+ * every live row, so rebuilding it would be pure cost.
+ *
+ * The semantics below were established empirically against LanceDB 0.37.1,
+ * because the answer decides whether skipping a rebuild can silently rot BM25:
+ *
+ *   - rows ADDED after the index was built are still returned by
+ *     `fullTextSearch` (LanceDB scans the unindexed tail), and are reported as
+ *     `numUnindexedRows > 0`;
+ *   - rows DELETED after the index was built are correctly excluded, via
+ *     deletion vectors applied at query time;
+ *   - rows UPDATED after the index was built return their new terms and stop
+ *     returning their stale ones, and count as unindexed.
+ *
+ * So `numUnindexedRows === 0` is an exact "this index is current" signal, and
+ * treating everything else as stale reproduces the previous
+ * rebuild-whenever-the-corpus-moved behaviour without any in-process
+ * bookkeeping that a second process could invalidate behind our back.
+ */
+async function ftsIndexCoversCorpus(table: lancedb.Table): Promise<boolean> {
+	const fts = (await table.listIndices()).find(
+		(index) =>
+			index.indexType.toUpperCase() === FTS_INDEX_TYPE &&
+			index.columns.includes(FTS_COLUMN),
+	);
+
+	// No FTS index at all: a fresh store, or one written before FTS existed.
+	if (!fts) return false;
+
+	// Local tables report coverage inline. Remote tables leave these undefined
+	// and need the extra round trip to `indexStats`.
+	const unindexed =
+		fts.numUnindexedRows ??
+		(await table.indexStats(fts.name))?.numUnindexedRows;
+
+	return unindexed === 0;
 }
 
 // ============================================================================
@@ -359,16 +430,56 @@ export class VectorStore implements IVectorStore {
 		return null;
 	}
 
-	private ftsIndexReady = false;
-
+	/**
+	 * Build the BM25 full-text index on `content` if, and only if, the one on
+	 * disk does not already cover the current corpus.
+	 *
+	 * This used to be guarded by a per-INSTANCE `ftsIndexReady` flag while
+	 * VectorStore instances are built per-SEARCH (SemanticBackend constructs a
+	 * fresh Indexer per query and closes it in a `finally`, and each Indexer
+	 * builds its own VectorStore). The flag was therefore always `false` on
+	 * entry, so `createIndex(..., { replace: true })` — which rebuilds rather
+	 * than no-ops — ran on EVERY search. Measured on this repo's real store
+	 * (19,862 rows, 2.6 GB): ~275 ms per call against a ~9 ms BM25 query, i.e.
+	 * roughly half of total search latency spent rebuilding an index that was
+	 * already correct, and 820 index versions accumulated on disk. Same defect
+	 * as `initializedSchemas` in src/core/tracker.ts and
+	 * src/learning/feedback/feedback-store.ts — an idempotent-but-expensive
+	 * setup guarded per-instance while instances are per-request.
+	 *
+	 * Freshness is read from the store itself rather than memoized in a
+	 * process-global set, because LanceDB answers the question directly and
+	 * cheaply: `indexStats().numUnindexedRows` is 0 exactly when the index
+	 * covers every live row. Measured on the same store, `listIndices()` +
+	 * `indexStats()` cost ~0.09 ms — three orders of magnitude below a rebuild,
+	 * so there is nothing to gain from a memo, and a memo would be strictly
+	 * less correct: it cannot see a corpus mutated by ANOTHER process (a
+	 * `mnemex watch` daemon writing while an MCP server serves searches), which
+	 * this probe catches for free. It also needs no invalidation hooks on
+	 * `addChunks` and friends, so there is no way to add a write path later and
+	 * silently rot BM25 by forgetting to invalidate.
+	 *
+	 * Verified against LanceDB 0.37.1 — see the empirical notes on
+	 * `ftsIndexCoversCorpus`. A missing index yields `listIndices() === []`, so
+	 * a fresh store, or one created before FTS existed, still gets its index
+	 * built here.
+	 */
 	private async ensureFtsIndex(): Promise<void> {
-		if (!this.table || this.ftsIndexReady) return;
+		const table = this.table;
+		if (!table) return;
+
 		try {
-			await this.table.createIndex("content", {
+			if (await ftsIndexCoversCorpus(table)) return;
+		} catch {
+			// Freshness unknown — fall through and rebuild, which is the safe
+			// direction: a redundant rebuild is slow, a skipped one is wrong.
+		}
+
+		try {
+			await table.createIndex(FTS_COLUMN, {
 				config: lancedb.Index.fts(),
 				replace: true,
 			});
-			this.ftsIndexReady = true;
 		} catch {
 			// FTS index creation failed — BM25 search will be unavailable
 		}
@@ -495,10 +606,14 @@ export class VectorStore implements IVectorStore {
 			return [];
 		}
 
-		// Build filter string with escaped values to prevent injection
+		// Build filter string with escaped values to prevent injection.
+		// Note the two escapers: equality literals take `escapeSqlLiteral`, LIKE
+		// patterns take `escapeFilterValue` (which additionally neutralises the
+		// `%` / `_` wildcards). Swapping either way is a silent bug — see the
+		// comments on the two functions.
 		const filters: string[] = [];
 		if (language) {
-			filters.push(`language = '${escapeFilterValue(language)}'`);
+			filters.push(`language = '${escapeSqlLiteral(language)}'`);
 		}
 		if (filePath) {
 			filters.push(`filePath LIKE '%${escapeFilterValue(filePath)}%'`);
@@ -644,12 +759,37 @@ export class VectorStore implements IVectorStore {
 	 * Delete all chunks from a specific file
 	 */
 	async deleteByFile(filePath: string): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// REGRESSION: deleteByFile silently no-opped when the table had not been
+		// lazily opened. The guard used to be `if (!this.db || !this.table)`,
+		// testing the raw field — but the table is opened lazily, and every read
+		// path (`getChunksWithVectors`, `getStats`, `search`) goes through
+		// `ensureTableOpen()` instead. A delete issued before any read on the
+		// instance returned 0, which is indistinguishable from "nothing to
+		// delete", so stale chunks survived a delete that reported success.
+		// `ensureTableOpen()` returns null only when the table does not exist on
+		// disk — the one genuinely-safe no-op — and throws if opening fails, so
+		// the whole thing stays inside the existing catch: deletes must never
+		// throw where they previously returned 0.
+		//
+		// BEHAVIOUR CHANGE, deliberate: a delete on a store that has not been
+		// connected yet now runs `initialize()` (via `ensureTableOpen()`), where
+		// before it returned 0 without touching the disk. That only connects —
+		// `ensureTableOpen()` lists `tableNames()` and calls `openTable()` on a
+		// hit, and has no create path (see it above), so no empty table is
+		// materialized by a delete against a store that was never indexed.
+		//
+		// The value is escaped, not interpolated raw: a single quote is legal in
+		// a path on macOS and Linux (`src/o'brien.ts`) and ends the string
+		// literal early, which LanceDB rejects — and the catch below would turn
+		// that into a silent 0, the same "delete reported success but did
+		// nothing" failure this method was just fixed for.
 		try {
-			await this.table.delete(`filePath = '${filePath}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			await table.delete(`filePath = '${escapeSqlLiteral(filePath)}'`);
 			return 1; // LanceDB doesn't return count
 		} catch {
 			return 0;
@@ -660,12 +800,15 @@ export class VectorStore implements IVectorStore {
 	 * Delete chunks by file hash
 	 */
 	async deleteByFileHash(fileHash: string): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// Same lazy-open bug, same deliberate connect-on-delete behaviour change,
+		// and same literal escaping as deleteByFile above; see the notes there.
 		try {
-			await this.table.delete(`fileHash = '${fileHash}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			await table.delete(`fileHash = '${escapeSqlLiteral(fileHash)}'`);
 			return 1;
 		} catch {
 			return 0;
@@ -683,10 +826,16 @@ export class VectorStore implements IVectorStore {
 		}
 
 		try {
+			// Equality, so `escapeSqlLiteral`. This used the LIKE escaper, which
+			// backslash-escapes `%` and `_`; in an equality literal DataFusion
+			// takes the backslash literally, so every file with an underscore in
+			// its name returned zero chunks. The caller (indexer.ts) reads that
+			// as "no previous vectors to reuse" and re-embeds the whole file on
+			// every incremental reindex — silent, and paid for on each run.
 			const results = await table
 				.query()
 				.where(
-					`filePath = '${escapeFilterValue(filePath)}' AND documentType = 'code_chunk'`,
+					`filePath = '${escapeSqlLiteral(filePath)}' AND documentType = 'code_chunk'`,
 				)
 				.toArray();
 
@@ -874,12 +1023,24 @@ export class VectorStore implements IVectorStore {
 	 * Delete all documents of a specific type
 	 */
 	async deleteByDocumentType(documentType: DocumentType): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// Same lazy-open bug, same deliberate connect-on-delete behaviour change
+		// as deleteByFile above; see the notes there.
+		//
+		// `documentType` is interpolated RAW and must stay that way. It is the
+		// closed `DocumentType` union (`code_chunk`, `file_summary`,
+		// `session_observation`, ...), so no member carries a quote and there is
+		// nothing for `escapeSqlLiteral` to do. Applying the LIKE escaper
+		// (`escapeFilterValue`) here would actively BREAK it: nearly every member
+		// contains an underscore, which that escaper backslash-escapes, and in an
+		// equality literal DataFusion takes the backslash literally — so the
+		// predicate would match no row and the delete would silently no-op.
 		try {
-			await this.table.delete(`documentType = '${documentType}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			await table.delete(`documentType = '${documentType}'`);
 			return 1;
 		} catch {
 			return 0;
@@ -890,12 +1051,21 @@ export class VectorStore implements IVectorStore {
 	 * Delete all documents (code chunks and enriched) for a specific file
 	 */
 	async deleteAllByFile(filePath: string): Promise<number> {
-		if (!this.db || !this.table) {
-			return 0;
-		}
-
+		// Same lazy-open bug, same deliberate connect-on-delete behaviour change
+		// as deleteByFile above; see the notes there.
 		try {
-			await this.table.delete(`filePath = '${filePath}'`);
+			const table = await this.ensureTableOpen();
+			if (!table) {
+				return 0;
+			}
+
+			// The value was interpolated raw. That is data loss, not a syntax
+			// hazard: `x' OR filePath LIKE '%` renders the well-formed predicate
+			// `filePath = 'x' OR filePath LIKE '%'`, which matches every row —
+			// so a delete aimed at one file empties the table. Equality, so the
+			// escape is quote doubling only (`escapeSqlLiteral`); the LIKE
+			// escaper would break ordinary `my_file.ts` paths instead.
+			await table.delete(`filePath = '${escapeSqlLiteral(filePath)}'`);
 			return 1;
 		} catch {
 			return 0;
@@ -915,8 +1085,15 @@ export class VectorStore implements IVectorStore {
 		}
 
 		try {
-			let filter = `filePath = '${filePath}'`;
+			// Same raw interpolation as `deleteAllByFile` had: a quote in the
+			// path made LanceDB reject the statement (caught below, reported as
+			// "no documents"), and a crafted path widened the predicate to every
+			// row. Equality, so quote doubling only.
+			let filter = `filePath = '${escapeSqlLiteral(filePath)}'`;
 			if (documentTypes && documentTypes.length > 0) {
+				// `documentTypes` is the closed `DocumentType` union — no quotes
+				// to escape, and no `%`/`_` handling wanted either, since IN
+				// compares by equality.
 				const types = documentTypes.map((t) => `'${t}'`).join(", ");
 				filter += ` AND documentType IN (${types})`;
 			}
@@ -962,10 +1139,11 @@ export class VectorStore implements IVectorStore {
 			return [];
 		}
 
-		// Build filter string with escaped values to prevent injection
+		// Build filter string with escaped values to prevent injection.
+		// Equality takes `escapeSqlLiteral`, LIKE takes `escapeFilterValue`.
 		const filters: string[] = [];
 		if (language) {
-			filters.push(`language = '${escapeFilterValue(language)}'`);
+			filters.push(`language = '${escapeSqlLiteral(language)}'`);
 		}
 		if (pathPattern) {
 			filters.push(`filePath LIKE '%${escapeFilterValue(pathPattern)}%'`);
@@ -986,8 +1164,13 @@ export class VectorStore implements IVectorStore {
 					]);
 
 		if (effectiveTypes && effectiveTypes.length > 0) {
+			// IN compares by equality, so this needs `escapeSqlLiteral`. With the
+			// LIKE escaper it was not merely redundant, it was broken: every
+			// `DocumentType` but `idiom` contains an underscore, so the rendered
+			// `documentType IN ('file\_summary', 'symbol\_summary', ...)` matched
+			// NO row and every type-filtered enriched search came back empty.
 			const types = effectiveTypes
-				.map((t) => `'${escapeFilterValue(t)}'`)
+				.map((t) => `'${escapeSqlLiteral(t)}'`)
 				.join(", ");
 			filters.push(`documentType IN (${types})`);
 		}
@@ -1183,17 +1366,17 @@ export class VectorStore implements IVectorStore {
 
 		try {
 			// LanceDB update via delete + insert pattern
-			// First, get the existing record
+			// First, get the existing record (equality: quote doubling only)
 			const results = await table
 				.query()
-				.where(`id = '${escapeFilterValue(unitId)}'`)
+				.where(`id = '${escapeSqlLiteral(unitId)}'`)
 				.toArray();
 			if (results.length === 0) return;
 
 			const existing = results[0] as StoredChunk;
 
 			// Delete old record
-			await table.delete(`id = '${escapeFilterValue(unitId)}'`);
+			await table.delete(`id = '${escapeSqlLiteral(unitId)}'`);
 
 			// Insert updated record (watchdog-wrapped: same native write path)
 			await withTimeout(
@@ -1218,17 +1401,17 @@ export class VectorStore implements IVectorStore {
 		if (!table) return false;
 
 		try {
-			// LanceDB update via delete + insert pattern
+			// LanceDB update via delete + insert pattern (equality predicates)
 			const results = await table
 				.query()
-				.where(`id = '${escapeFilterValue(documentId)}'`)
+				.where(`id = '${escapeSqlLiteral(documentId)}'`)
 				.toArray();
 			if (results.length === 0) return false;
 
 			const existing = results[0] as StoredChunk;
 
 			// Delete old record
-			await table.delete(`id = '${escapeFilterValue(documentId)}'`);
+			await table.delete(`id = '${escapeSqlLiteral(documentId)}'`);
 
 			// Insert updated record with new content and vector
 			// (watchdog-wrapped: same native write path)
@@ -1291,10 +1474,11 @@ export class VectorStore implements IVectorStore {
 		if (!table) return [];
 
 		try {
-			let filter = `filePath = '${escapeFilterValue(filePath)}' AND documentType = 'code_unit'`;
+			let filter = `filePath = '${escapeSqlLiteral(filePath)}' AND documentType = 'code_unit'`;
 			if (unitTypes && unitTypes.length > 0) {
+				// IN compares by equality, so this takes `escapeSqlLiteral`.
 				const types = unitTypes
-					.map((t) => `'${escapeFilterValue(t)}'`)
+					.map((t) => `'${escapeSqlLiteral(t)}'`)
 					.join(", ");
 				filter += ` AND unitType IN (${types})`;
 			}
@@ -1320,7 +1504,7 @@ export class VectorStore implements IVectorStore {
 		try {
 			let filter = `depth = ${depth} AND documentType = 'code_unit'`;
 			if (filePath) {
-				filter += ` AND filePath = '${escapeFilterValue(filePath)}'`;
+				filter += ` AND filePath = '${escapeSqlLiteral(filePath)}'`;
 			}
 
 			const results = await table.query().where(filter).toArray();
@@ -1339,7 +1523,7 @@ export class VectorStore implements IVectorStore {
 		if (!table) return [];
 
 		try {
-			const filter = `parentId = '${escapeFilterValue(parentId)}' AND documentType = 'code_unit'`;
+			const filter = `parentId = '${escapeSqlLiteral(parentId)}' AND documentType = 'code_unit'`;
 			const results = await table.query().where(filter).toArray();
 
 			return results.map((row) => this.rowToCodeUnit(row));
@@ -1356,7 +1540,7 @@ export class VectorStore implements IVectorStore {
 		if (!table) return null;
 
 		try {
-			const filter = `id = '${escapeFilterValue(unitId)}'`;
+			const filter = `id = '${escapeSqlLiteral(unitId)}'`;
 			const results = await table.query().where(filter).toArray();
 
 			if (results.length === 0) return null;
@@ -1397,9 +1581,8 @@ export class VectorStore implements IVectorStore {
 		const filters: string[] = ["documentType = 'code_unit'"];
 
 		if (unitTypes && unitTypes.length > 0) {
-			const types = unitTypes
-				.map((t) => `'${escapeFilterValue(t)}'`)
-				.join(", ");
+			// IN compares by equality, so this takes `escapeSqlLiteral`.
+			const types = unitTypes.map((t) => `'${escapeSqlLiteral(t)}'`).join(", ");
 			filters.push(`unitType IN (${types})`);
 		}
 		if (minDepth !== undefined) {
@@ -1460,7 +1643,7 @@ export class VectorStore implements IVectorStore {
 		try {
 			let filter = "documentType = 'code_unit'";
 			if (filePath) {
-				filter += ` AND filePath = '${escapeFilterValue(filePath)}'`;
+				filter += ` AND filePath = '${escapeSqlLiteral(filePath)}'`;
 			}
 
 			const results = await table.query().where(filter).toArray();

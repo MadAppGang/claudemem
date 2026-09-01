@@ -58,6 +58,102 @@ function writeTimestamp(indexDir: string, date: Date = new Date()): void {
 	);
 }
 
+interface PollOptions {
+	/** Upper bound for failure — NOT an expected wait. */
+	timeoutMs?: number;
+	/** How often to re-check the predicate. */
+	intervalMs?: number;
+}
+
+const DEFAULT_POLL_TIMEOUT_MS = 2000;
+const DEFAULT_POLL_INTERVAL_MS = 5;
+
+/**
+ * Poll `predicate` until it is true, or the timeout elapses. Returns whether
+ * the condition was ever observed.
+ *
+ * Use this when the condition is genuinely optional (e.g. platform-dependent
+ * fs.watch delivery). When the condition is required, use `waitFor` so a
+ * timeout produces a diagnosable failure instead of a silent skip.
+ */
+async function pollUntil(
+	predicate: () => boolean,
+	{
+		timeoutMs = DEFAULT_POLL_TIMEOUT_MS,
+		intervalMs = DEFAULT_POLL_INTERVAL_MS,
+	}: PollOptions = {},
+): Promise<boolean> {
+	const deadline = Date.now() + timeoutMs;
+	for (;;) {
+		if (predicate()) return true;
+		if (Date.now() >= deadline) return false;
+		await new Promise<void>((resolve) => setTimeout(resolve, intervalMs));
+	}
+}
+
+/**
+ * Wait for an asynchronous side effect to become observable.
+ *
+ * A fixed `setTimeout` followed by `expect(...)` is a race: under load the
+ * event loop slips past the deadline and the assertion runs before the
+ * callback has fired. Polling removes the race — the timeout below is an upper
+ * bound for FAILURE, not an expected wait, so it can be generous without
+ * slowing the happy path (a passing run resolves within one interval).
+ *
+ * `describeActual` is evaluated only on timeout and must report the observed
+ * value, so failures read "startCount was 0 after 2000ms, expected 1" rather
+ * than an undiagnosable "expected 1, received 0".
+ */
+async function waitFor(
+	predicate: () => boolean,
+	describeActual: () => string,
+	options: PollOptions = {},
+): Promise<void> {
+	const timeoutMs = options.timeoutMs ?? DEFAULT_POLL_TIMEOUT_MS;
+	const observed = await pollUntil(predicate, { ...options, timeoutMs });
+	if (!observed) {
+		throw new Error(
+			`waitFor timed out after ${timeoutMs}ms: ${describeActual()}`,
+		);
+	}
+}
+
+/**
+ * Hide any installed `mnemex` binary from the child processes these tests
+ * spawn, by pointing PATH at an empty directory. Returns the previous PATH so
+ * the caller can restore it.
+ *
+ * DebounceReindexer spawns a real `mnemex index` child. On a developer machine
+ * mnemex IS on PATH, so that child indexes the throwaway workspace for real and
+ * takes `.mnemex/.indexing.lock` ~160-500ms after spawn (measured). That lock
+ * lands inside these tests' timing windows and makes a later, unrelated trigger
+ * skip with "index lock held by another process" — startCount stays 0 through
+ * any amount of waiting. No amount of polling can fix that; the environment has
+ * to be made hermetic.
+ *
+ * With PATH emptied, spawn fails with an async ENOENT that DebounceReindexer
+ * already handles, restoring the condition these tests were written for and
+ * document inline ("no real binary in test"). The parent-side state machine
+ * under test — debounce, running flag, lock check — is unaffected.
+ */
+function hideMnemexFromPath(emptyDir: string): string {
+	const previousPath = process.env.PATH ?? "";
+	mkdirSync(emptyDir, { recursive: true });
+	process.env.PATH = emptyDir;
+	return previousPath;
+}
+
+/**
+ * Bounded wait for NEGATIVE assertions only ("nothing happened within N ms").
+ *
+ * A negative cannot be polled for — there is no condition that becomes true —
+ * so real time must pass before the absence means anything. Every positive
+ * assertion in this file uses `waitFor` instead.
+ */
+function settle(ms: number): Promise<void> {
+	return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
 /** Minimal no-op logger for test use */
 const noopLogger: Logger = {
 	debug: () => {},
@@ -224,9 +320,11 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 	let cache: IndexCache;
 	let completionDetector: CompletionDetector;
 	let reindexer: DebounceReindexer;
+	let previousPath: string;
 
 	beforeEach(async () => {
 		({ root, indexDir } = makeTempWorkspace());
+		previousPath = hideMnemexFromPath(join(root, "empty-bin"));
 		manager = new IndexStateManager(indexDir);
 		await manager.initialize();
 		cache = makeStubCache();
@@ -237,10 +335,18 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 	afterEach(() => {
 		reindexer?.cancelPending();
 		completionDetector.stop();
+		process.env.PATH = previousPath;
 		cleanup(root);
 	});
 
 	test("scheduleReindex() triggers onReindexStart within debounce window", async () => {
+		let startCount = 0;
+		const originalStart = manager.onReindexStart.bind(manager);
+		manager.onReindexStart = () => {
+			startCount++;
+			originalStart();
+		};
+
 		// Use a very short debounce to keep tests fast
 		reindexer = new DebounceReindexer(
 			root,
@@ -256,8 +362,12 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 
 		reindexer.scheduleReindex();
 
-		// Wait for debounce to fire
-		await new Promise<void>((resolve) => setTimeout(resolve, 150));
+		// Wait for the debounce callback to actually run, rather than sleeping
+		// past it and hoping.
+		await waitFor(
+			() => startCount === 1,
+			() => `onReindexStart was called ${startCount} times, expected 1`,
+		);
 
 		// The reindexer should have called onReindexStart() on the state manager.
 		// The actual `mnemex index` spawn will fail (no real binary in test),
@@ -312,8 +422,17 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 		reindexer.scheduleReindex();
 		reindexer.scheduleReindex();
 
-		// Wait for debounce to fire
-		await new Promise<void>((resolve) => setTimeout(resolve, 250));
+		// Wait for the debounce to fire at all...
+		await waitFor(
+			() => triggerCount >= 1,
+			() => `onReindexStart was called ${triggerCount} times, expected 1`,
+		);
+
+		// ...then give the two other schedule calls more than a full debounce
+		// window to produce a trigger. This is a negative assertion ("no second
+		// trigger arrives"), so it needs a bounded wait — there is no condition
+		// to poll for.
+		await settle(160);
 
 		// All three collapsed into exactly one trigger
 		expect(triggerCount).toBe(1);
@@ -340,8 +459,10 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 		reindexer.scheduleReindex();
 		reindexer.cancelPending();
 
-		// Wait past the debounce
-		await new Promise<void>((resolve) => setTimeout(resolve, 400));
+		// Negative assertion: the cancelled timer must never fire. There is no
+		// condition to poll for, so this legitimately needs a fixed wait past
+		// the 200ms debounce window.
+		await settle(400);
 
 		expect(triggered).toBe(false);
 	}, 5000);
@@ -393,8 +514,13 @@ describe("FileWatcher detects changes and updates state manager", () => {
 		// Modify the test file
 		writeFileSync(testFile, "export const x = 2; // modified\n", "utf-8");
 
-		// Wait for fs.watch event to fire (timing-sensitive on some platforms)
-		await new Promise<void>((resolve) => setTimeout(resolve, 500));
+		// Wait for the fs.watch event to be delivered. Delivery is optional here
+		// (non-recursive platforms never fire), so this uses pollUntil and
+		// tolerates a false result rather than failing on timeout. The bound
+		// stays at the 500ms this test always allowed — for an OPTIONAL
+		// condition the bound only caps how long a non-delivering platform
+		// costs; delivery is observed in ~10ms and exits immediately.
+		await pollUntil(() => manager.changedFileCount > 0, { timeoutMs: 500 });
 
 		// The file change should have been picked up
 		const freshness = manager.getFreshness();
@@ -433,7 +559,10 @@ describe("FileWatcher detects changes and updates state manager", () => {
 		// Modify the ignored file
 		writeFileSync(ignoredFile, "// still ignored\n", "utf-8");
 
-		await new Promise<void>((resolve) => setTimeout(resolve, 500));
+		// Negative assertion: the ignored path must never be recorded. Nothing
+		// becomes true here, so a bounded wait is the only way to give the
+		// watcher a chance to (wrongly) fire.
+		await settle(500);
 
 		// The ignored file should not be in changed files
 		const freshness = manager.getFreshness();
@@ -458,16 +587,19 @@ describe("FileWatcher detects changes and updates state manager", () => {
 
 		watcher.start();
 
-		// Modify once while running
+		// Modify once while running. Delivery is platform-dependent, so a false
+		// result here is acceptable — the assertion below compares against
+		// whatever count was reached.
 		writeFileSync(testFile, "// change 1\n", "utf-8");
-		await new Promise<void>((resolve) => setTimeout(resolve, 300));
+		await pollUntil(() => callCount > 0, { timeoutMs: 300 });
 
 		const countAfterFirst = callCount;
 		watcher.stop();
 
-		// Modify again after stopping — should not fire
+		// Modify again after stopping — should not fire. Negative assertion, so
+		// this one needs a bounded wait rather than a polled condition.
 		writeFileSync(testFile, "// change 2\n", "utf-8");
-		await new Promise<void>((resolve) => setTimeout(resolve, 300));
+		await settle(300);
 
 		// Count should not have increased after stop (or might be the same if platform didn't fire)
 		expect(callCount).toBe(countAfterFirst);
@@ -759,8 +891,14 @@ describe("MCP server state when no .reindex-timestamp exists", () => {
 		const firstLastIndexed = manager.getFreshness().lastIndexed;
 		expect(firstLastIndexed).not.toBeNull();
 
-		// Add delay to ensure timestamp differs
-		await new Promise<void>((resolve) => setTimeout(resolve, 5));
+		// Wait for the wall clock to actually advance, rather than sleeping a
+		// fixed amount and assuming it did.
+		const beforeSecondCycle = Date.now();
+		await waitFor(
+			() => Date.now() > beforeSecondCycle,
+			() => `clock did not advance past ${beforeSecondCycle}`,
+			{ intervalMs: 1 },
+		);
 
 		// Cycle 2
 		manager.recordChange("src/b.ts");
@@ -792,9 +930,11 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 	let cache: IndexCache;
 	let completionDetector: CompletionDetector;
 	let reindexer: DebounceReindexer;
+	let previousPath: string;
 
 	beforeEach(async () => {
 		({ root, indexDir } = makeTempWorkspace());
+		previousPath = hideMnemexFromPath(join(root, "empty-bin"));
 		manager = new IndexStateManager(indexDir);
 		await manager.initialize();
 		cache = makeStubCache();
@@ -804,6 +944,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 	afterEach(() => {
 		reindexer?.cancelPending();
 		completionDetector.stop();
+		process.env.PATH = previousPath;
 		cleanup(root);
 	});
 
@@ -827,8 +968,11 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 
 		reindexer.scheduleReindex();
 
-		// Wait for debounce to fire and triggerReindex to run
-		await new Promise<void>((resolve) => setTimeout(resolve, 100));
+		// Wait for the debounce to fire and triggerReindex to run
+		await waitFor(
+			() => startCount === 1,
+			() => `startCount was ${startCount}, expected 1`,
+		);
 
 		// After first trigger, isRunning() should be true (even if child process
 		// failed to spawn — the running flag is set before spawn)
@@ -861,12 +1005,17 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 
 		// Trigger first reindex
 		reindexer.scheduleReindex();
-		await new Promise<void>((resolve) => setTimeout(resolve, 100));
+		await waitFor(
+			() => startCount === 1,
+			() => `startCount was ${startCount}, expected 1`,
+		);
 		expect(startCount).toBe(1);
 
-		// Try to trigger second reindex while first is "running"
+		// Try to trigger second reindex while first is "running". Negative
+		// assertion ("no second start arrives"), so this needs a bounded wait
+		// past the 30ms debounce window rather than a polled condition.
 		reindexer.scheduleReindex();
-		await new Promise<void>((resolve) => setTimeout(resolve, 100));
+		await settle(100);
 
 		// Should still be 1 — the second trigger was a no-op because running=true
 		expect(startCount).toBe(1);
@@ -892,7 +1041,10 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 
 		// Start first reindex via schedule
 		reindexer.scheduleReindex();
-		await new Promise<void>((resolve) => setTimeout(resolve, 100));
+		await waitFor(
+			() => startCount === 1,
+			() => `startCount was ${startCount}, expected 1`,
+		);
 		expect(startCount).toBe(1);
 
 		// Try forceReindex while first is active
@@ -932,9 +1084,11 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 			}),
 		);
 
-		// Try to schedule reindex
+		// Try to schedule reindex. The assertion below is a negative ("the
+		// trigger never starts"), so this needs a bounded wait past the 30ms
+		// debounce window — there is no condition to poll for.
 		reindexer.scheduleReindex();
-		await new Promise<void>((resolve) => setTimeout(resolve, 100));
+		await settle(100);
 
 		// Lock is held → triggerReindex should have skipped
 		expect(startCount).toBe(0);
@@ -970,7 +1124,10 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 
 		// First reindex
 		reindexer.scheduleReindex();
-		await new Promise<void>((resolve) => setTimeout(resolve, 100));
+		await waitFor(
+			() => startCount === 1,
+			() => `startCount was ${startCount} after the first schedule, expected 1`,
+		);
 		expect(startCount).toBe(1);
 
 		// Simulate completion (in real scenario, CompletionDetector fires this callback)
@@ -996,7 +1153,11 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 		// Second reindex should now be allowed
 		startCount = 0;
 		reindexer.scheduleReindex();
-		await new Promise<void>((resolve) => setTimeout(resolve, 100));
+		await waitFor(
+			() => startCount === 1,
+			() =>
+				`startCount was ${startCount} after the second schedule, expected 1 (completeCount=${completeCount})`,
+		);
 		expect(startCount).toBe(1); // New trigger allowed
 	}, 5000);
 });

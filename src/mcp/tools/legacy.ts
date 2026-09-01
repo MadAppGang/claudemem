@@ -15,30 +15,29 @@
  *   get_learning_stats   - Learning system stats
  */
 
-import { appendFileSync, existsSync } from "node:fs";
+import { appendFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { createIndexer, IndexLockError } from "../../core/indexer.js";
-import { FileTracker } from "../../core/tracker.js";
 import { createLearningSystem } from "../../learning/index.js";
 import { discoverEmbeddingModels } from "../../models/model-discovery.js";
+import { applyFileBoosts } from "../../retrieval/pipeline/learned-boosts.js";
 import { buildIndexState, type IndexState } from "../index-state.js";
 import type { FreshnessMetadata } from "../types.js";
 import type { ToolDeps } from "./deps.js";
-import { buildFreshness, errorResponse } from "./deps.js";
+import {
+	buildFreshness,
+	errorResponse,
+	getFileTracker,
+	getLearnedFileBoosts,
+	openToolSession,
+	recordSearchInteraction,
+} from "./deps.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function getFileTracker(projectPath: string): FileTracker | null {
-	const dbPath = join(projectPath, ".mnemex", "index.db");
-	if (!existsSync(dbPath)) {
-		return null;
-	}
-	return new FileTracker(dbPath, projectPath);
-}
 
 /**
  * Serialize an IndexState into a non-error MCP text response. Used by
@@ -279,33 +278,41 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 					useCase: useCase ?? "search",
 				});
 
-				// Apply learning system if available
-				const tracker = getFileTracker(projectPath);
+				// ONE index-db connection for this request, shared by the learning
+				// system and activity recording. Learning goes through the same
+				// opt-in gate and the same helpers as the `search` tool; when it
+				// is off, no learning work happens on this connection.
+				const session = openToolSession(projectPath, { requireTracker: true });
+				const { tracker } = session;
 				let adaptiveApplied = false;
 				const chunkIds: string[] = [];
 
 				if (tracker) {
 					try {
-						const learning = createLearningSystem(tracker.getDatabase());
 						const sessionId = `mcp_${Date.now()}`;
 
-						learning.collector.recordSearch({
+						recordSearchInteraction(session, {
 							query,
 							sessionId,
 							resultCount: results.length,
 							useCase: useCase ?? "search",
 						});
 
-						if (learning.ranker.isActive(useCase ?? "search")) {
-							const fileBoosts = learning.ranker.getAllFileBoosts();
-							if (fileBoosts.size > 0) {
-								results = results.map((r) => ({
-									...r,
-									score: r.score * (fileBoosts.get(r.chunk.filePath) ?? 1.0),
-								}));
-								results.sort((a, b) => b.score - a.score);
-								adaptiveApplied = true;
-							}
+						const fileBoosts = getLearnedFileBoosts(
+							session,
+							useCase ?? "search",
+						);
+						if (fileBoosts) {
+							// Shared with the pipeline path (search tool) so both
+							// retrieval paths boost and rank identically.
+							results = applyFileBoosts(
+								results,
+								fileBoosts,
+								(r) => r.chunk.filePath,
+								(r) => r.score,
+								(r, score) => ({ ...r, score }),
+							);
+							adaptiveApplied = true;
 						}
 
 						// Record activity
@@ -328,7 +335,7 @@ export function registerLegacyTools(server: McpServer, deps: ToolDeps): void {
 					} catch {
 						// Learning system error - continue without it
 					} finally {
-						tracker.close();
+						session.close();
 					}
 				}
 

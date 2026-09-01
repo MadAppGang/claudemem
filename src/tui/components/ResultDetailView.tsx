@@ -215,7 +215,10 @@ function parsePartInfo(
 	if (!name) return null;
 	const match = name.match(/\(part\s+(\d+)\/(\d+)\)$/i);
 	if (!match) return null;
-	return { partIndex: parseInt(match[1]), totalParts: parseInt(match[2]) };
+	return {
+		partIndex: parseInt(match[1], 10),
+		totalParts: parseInt(match[2], 10),
+	};
 }
 
 // ============================================================================

@@ -14,6 +14,12 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import {
+	formatInvalidationCounts,
+	type InvalidationCounts,
+	invalidateForCommit,
+} from "../core/invalidation.js";
+import type { IFileTracker } from "../core/tracker.js";
 
 // ============================================================================
 // Types
@@ -26,6 +32,13 @@ export interface HookStatus {
 	isMnemex?: boolean;
 }
 
+/** Outcome of the invalidation pass a commit triggers */
+export interface PostCommitInvalidation {
+	counts: InvalidationCounts;
+	/** Human-readable one-liner for logs */
+	summary: string;
+}
+
 // ============================================================================
 // Hook Template
 // ============================================================================
@@ -34,7 +47,10 @@ const HOOK_MARKER = "# mnemex-auto-index";
 
 const POST_COMMIT_HOOK = `#!/bin/sh
 ${HOOK_MARKER}
-# Auto-index changed files after each commit
+# Auto-index changed files after each commit, and invalidate the memories this
+# commit made wrong. The invalidation runs inside the index pass (see
+# src/core/invalidation.ts) so the hook stays a single command and a git
+# failure can never block the commit.
 # Installed by: mnemex hooks install
 
 # Run in background to not block git
@@ -186,6 +202,18 @@ export class GitHookManager {
 	isGitRepository(): boolean {
 		return existsSync(this.gitDir);
 	}
+
+	/**
+	 * Walk the diff of the commit that just landed and invalidate against it.
+	 *
+	 * See `runPostCommitInvalidation` — this is the instance-shaped entry point
+	 * for callers that already hold a hook manager.
+	 */
+	async runInvalidation(
+		tracker: IFileTracker,
+	): Promise<PostCommitInvalidation | null> {
+		return runPostCommitInvalidation(this.projectPath, tracker);
+	}
 }
 
 // ============================================================================
@@ -197,4 +225,34 @@ export class GitHookManager {
  */
 export function createGitHookManager(projectPath: string): GitHookManager {
 	return new GitHookManager(projectPath);
+}
+
+// ============================================================================
+// Post-Commit Invalidation
+// ============================================================================
+
+/**
+ * The work the post-commit path performs beyond re-indexing: walk the commit's
+ * own diff once, then apply the three-class invalidation policy to it.
+ *
+ * Returns null — having changed nothing and thrown nothing — when the directory
+ * is not a git repository, git is missing, the repository has no commits, or
+ * any git call fails. A commit hook that can fail a commit, and an index run
+ * that can fail because provenance was unavailable, are both strictly worse
+ * than no invalidation.
+ *
+ * Exactly one `git diff` per commit; never one per file.
+ */
+export async function runPostCommitInvalidation(
+	projectPath: string,
+	tracker: IFileTracker,
+): Promise<PostCommitInvalidation | null> {
+	try {
+		const counts = await invalidateForCommit(projectPath, tracker);
+		if (!counts) return null;
+
+		return { counts, summary: formatInvalidationCounts(counts) };
+	} catch {
+		return null;
+	}
 }

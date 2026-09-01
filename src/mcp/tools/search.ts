@@ -26,11 +26,20 @@ import { SemanticBackend } from "../../retrieval/backends/semantic.js";
 import { SymbolGraphBackend } from "../../retrieval/backends/symbol-graph.js";
 import { TreeSitterBackend } from "../../retrieval/backends/tree-sitter.js";
 import { loadPipelineConfig } from "../../retrieval/pipeline/config.js";
+import type { SymbolGraphProvider } from "../../retrieval/pipeline/graph-ppr.js";
+import type { FileBoostProvider } from "../../retrieval/pipeline/learned-boosts.js";
 import { PipelineOrchestrator } from "../../retrieval/pipeline/orchestrator.js";
+import type { MergedResult } from "../../retrieval/pipeline/types.js";
 import { QueryRouter } from "../../retrieval/routing/query-router.js";
 import { buildIndexState } from "../index-state.js";
 import type { ToolDeps } from "./deps.js";
-import { buildFreshness, errorResponse } from "./deps.js";
+import {
+	buildFreshness,
+	errorResponse,
+	getLearnedFileBoosts,
+	openToolSession,
+	recordSearchInteraction,
+} from "./deps.js";
 
 export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
 	const { stateManager, config, logger } = deps;
@@ -232,18 +241,68 @@ export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
 					}
 				}
 
-				const orchestrator = new PipelineOrchestrator(
-					router,
-					backends,
-					pipelineConfig,
-				);
+				// Symbol graph for query-seeded Personalized PageRank.
+				//
+				// GATED FIRST, FETCHED SECOND: the walk is off by default, and a
+				// feature that is off must cost nothing — so the config decides
+				// before `cache.get()` is ever reached. Same discipline as the
+				// learning gate, which opens no database when learning is off.
+				//
+				// `ReferenceGraphManager` satisfies `SymbolGraphView` structurally;
+				// the pipeline never imports it. Acquisition failures degrade to
+				// "no provider" exactly like the optional backends above — a
+				// missing or unbuilt symbol graph must never fail a search.
+				let graphProvider: SymbolGraphProvider | undefined;
+				if (pipelineConfig.personalizedPageRank.enabled) {
+					try {
+						const { graphManager } = await deps.cache.get();
+						graphProvider = () => graphManager;
+					} catch {
+						// Graph not available — search runs without the walk
+					}
+				}
 
-				const mergedResults = await orchestrator.search(query, {
-					limit: limit ?? 10,
-					filePattern,
-				});
+				// Learned per-file boosts and feedback recording — same source as
+				// the legacy search_code tool so both retrieval paths rank
+				// identically. Learning is opt-in and off by default: when it is
+				// off `openToolSession` opens no database at all, and the boost
+				// provider stays silently null.
+				//
+				// ONE session for the whole request: the boost provider (during
+				// the search) and recordSearch (after it) share a single
+				// connection, closed exactly once in the finally below.
+				const learningSession = openToolSession(config.workspaceRoot);
+				let mergedResults: MergedResult[];
+				try {
+					const boostProvider: FileBoostProvider = () =>
+						getLearnedFileBoosts(learningSession, "search");
 
-				await indexer.close();
+					const orchestrator = new PipelineOrchestrator(
+						router,
+						backends,
+						pipelineConfig,
+						boostProvider,
+						graphProvider,
+					);
+
+					mergedResults = await orchestrator.search(query, {
+						limit: limit ?? 10,
+						filePattern,
+					});
+
+					await indexer.close();
+
+					// Feed the same learning loop as search_code so both tools
+					// contribute to (and benefit from) one feedback history.
+					recordSearchInteraction(learningSession, {
+						query,
+						sessionId: `mcp_${Date.now()}`,
+						resultCount: mergedResults.length,
+						useCase: "search",
+					});
+				} finally {
+					learningSession.close();
+				}
 
 				const resultItems = mergedResults.map((r) => ({
 					file: r.file,

@@ -1,6 +1,6 @@
 {
 	"name": "mnemex",
-	"version": "0.32.0",
+	"version": "0.33.0",
 	"description": "Seven-layer code memory — benchmarked. AST-aware chunking, symbol graph with PageRank, semantic + BM25 retrieval. Personal, team-shared, offline-first, any embedding or LLM provider. MCP server + CLI.",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -25,6 +25,7 @@
 		"test": "bun test",
 		"test:integration": "bun test test/integration",
 		"test:watch": "bun test --watch",
+		"build-eval-dataset": "bun run scripts/build-eval-dataset.ts",
 		"eval:rg:promptfoo": "cd eval/rg && npx promptfoo@latest eval --no-cache",
 		"eval:rg:report": "bun eval/rg/report.ts"
 	},

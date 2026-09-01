@@ -56,23 +56,24 @@ export class SemanticBackend implements ISearchBackend {
 			const maxScore = Math.max(...filtered.map((r) => r.score));
 			const normalizer = maxScore > 0 ? maxScore : 1;
 
-			return filtered
-				.map((r): BackendResult | null => {
-					if (r.documentType === "session_observation") {
-						// Skip observation results — they have no file location
-						return null;
-					}
-					return {
-						file: r.chunk.filePath,
-						startLine: r.chunk.startLine,
-						endLine: r.chunk.endLine,
-						symbol: r.chunk.name ?? undefined,
-						snippet: r.chunk.content.slice(0, 800),
-						score: r.score / normalizer,
-						backend: backendName,
-					};
-				})
-				.filter((r): r is BackendResult => r !== null);
+			// Observations are returned like any other result. `id` is the
+			// chunk digest: merge uses it only for results with no usable code
+			// anchor (observations, stored with startLine 0) — anchored results
+			// key on file:startLine so they fuse with the other backends.
+			return filtered.map((r): BackendResult => {
+				return {
+					id: r.chunk.id,
+					file: r.chunk.filePath,
+					startLine: r.chunk.startLine,
+					endLine: r.chunk.endLine,
+					symbol: r.chunk.name ?? undefined,
+					snippet: r.chunk.content.slice(0, 800),
+					score: r.score / normalizer,
+					backend: backendName,
+					documentType: r.documentType,
+					observationMetadata: r.observationMetadata,
+				};
+			});
 		} finally {
 			await indexer.close().catch(() => {});
 		}

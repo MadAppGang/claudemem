@@ -35,7 +35,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.4.0"
 
       - name: Install dependencies
         # GITHUB_TOKEN authenticates @vscode/ripgrep's postinstall download from
@@ -67,7 +67,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.4.0"
 
       - name: Get version
         id: version
@@ -117,7 +117,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.4.0"
 
       - name: Setup Node.js
         # Node 24 ships with npm 11.x, which includes OIDC trusted publishing

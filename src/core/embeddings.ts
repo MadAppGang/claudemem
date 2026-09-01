@@ -614,6 +614,86 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 // Local/Custom Endpoint Client
 // ============================================================================
 
+/**
+ * REGRESSION: issue #4 — local provider endpoint missing /v1 suffix
+ *
+ * `LocalEmbeddingsClient` POSTs to `${endpoint}/embeddings`, so the endpoint
+ * must be the OpenAI-compatible *base* URL (i.e. include `/v1`). The `lmstudio`
+ * default already does; `DEFAULT_LOCAL_ENDPOINT` and anything typed into the
+ * setup wizard, an env var or a hand-edited config may not. Normalizing here —
+ * where the URL is consumed — means configs already saved in the broken state
+ * self-heal without user action.
+ *
+ * Rules:
+ * - trailing slashes are stripped first, so `host/` yields `host/v1`, never
+ *   `host//v1`;
+ * - `/v1` is appended ONLY when the URL carries no path at all. A URL with any
+ *   path is treated as a deliberate choice (gateways such as LiteLLM or a vLLM
+ *   reverse proxy mount the OpenAI routes under arbitrary prefixes), so
+ *   `http://host/openai` and `http://host/api/v2` are left alone. That also
+ *   covers `/v1` itself — no double suffix — and `/V1`, which is preserved
+ *   verbatim because URL paths are case-sensitive (RFC 3986) and lowercasing
+ *   it could break a server that routes it;
+ * - a query string and fragment are NOT a path. `/v1` is spliced in ahead of
+ *   them and they are carried through unchanged, so `http://host?token=x`
+ *   becomes `http://host/v1?token=x`. An earlier cut tested `/[/?#]/` and so
+ *   read `?` as a path, leaving the token-bearing endpoint un-suffixed; dropping
+ *   the query instead would be worse still, since the token is what makes the
+ *   endpoint reachable;
+ * - an empty/whitespace-only value stays empty rather than becoming `/v1`.
+ *
+ * Note: this normalizes the base URL only. `LocalEmbeddingsClient` still joins
+ * routes by concatenation (`${endpoint}/embeddings`), which cannot place a path
+ * segment ahead of a query string — an endpoint carrying one needs the join
+ * itself reworked, which is deliberately out of scope here.
+ */
+export function normalizeOpenAIEndpoint(endpoint: string): string {
+	const trimmed = endpoint.trim().replace(/\/+$/, "");
+	if (trimmed === "") return trimmed;
+
+	// Split the query/fragment off first: `/v1` belongs on the path, so it has
+	// to go in ahead of them, and the emptiness test below must not see them.
+	const suffixIdx = trimmed.search(/[?#]/);
+	const suffix = suffixIdx === -1 ? "" : trimmed.slice(suffixIdx);
+	// Re-strip: a slash before a query (`http://host/?token=x`) is not at the
+	// end of the string, so the first strip could not reach it.
+	const base = (
+		suffixIdx === -1 ? trimmed : trimmed.slice(0, suffixIdx)
+	).replace(/\/+$/, "");
+
+	return hasEndpointPath(base) ? base + suffix : `${base}/v1${suffix}`;
+}
+
+/**
+ * True when `base` (already stripped of query, fragment and trailing slashes)
+ * carries a path of its own.
+ *
+ * Parsing wins over pattern-matching where it can be trusted, but only for a
+ * value that is genuinely an absolute URL — `new URL("localhost:8000")` does
+ * NOT throw, it reads `localhost:` as the scheme and `8000` as the path, which
+ * would call a bare scheme-less host "pathed" and skip the suffix it needs. So
+ * the parser is used only when a `://` is present, and anything it rejects
+ * (`http://[::1`, an unterminated IPv6 literal) falls back to a literal scan
+ * for a `/` after the scheme. The fallback never throws: a value this function
+ * cannot understand is treated as pathless and gets `/v1`, which is the same
+ * outcome the caller would have had before any of this existed. Throwing is not
+ * an option — the only caller is a client constructor.
+ */
+function hasEndpointPath(base: string): boolean {
+	const schemeIdx = base.indexOf("://");
+	if (schemeIdx !== -1) {
+		try {
+			const { pathname } = new URL(base);
+			return pathname !== "" && pathname !== "/";
+		} catch {
+			// Fall through to the scan below.
+		}
+	}
+	// Look for the path separator only after `scheme://`, so the `//` in the
+	// scheme is not mistaken for one.
+	return base.slice(schemeIdx === -1 ? 0 : schemeIdx + 3).includes("/");
+}
+
 export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 	private endpoint: string;
 	private warmedUp = false;
@@ -625,7 +705,10 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 		provider: "local" | "lmstudio" = "local",
 	) {
 		super(options.model || DEFAULT_MODELS[provider], provider, options.timeout);
-		this.endpoint = options.endpoint || DEFAULT_LOCAL_ENDPOINT;
+		// Normalized once, here — not per request.
+		this.endpoint = normalizeOpenAIEndpoint(
+			options.endpoint || DEFAULT_LOCAL_ENDPOINT,
+		);
 	}
 
 	/**

@@ -375,7 +375,7 @@ export const getLeaderboard = onRequest(
 		}
 
 		try {
-			const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+			const limit = Math.min(parseInt(req.query.limit as string, 10) || 20, 100);
 
 			const snapshot = await db
 				.collection("benchmark_leaderboard")
@@ -410,7 +410,7 @@ export const getRecentRuns = onRequest(
 		}
 
 		try {
-			const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+			const limit = Math.min(parseInt(req.query.limit as string, 10) || 10, 50);
 
 			const snapshot = await db
 				.collection("benchmark_runs")
