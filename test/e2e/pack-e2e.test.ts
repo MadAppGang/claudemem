@@ -954,7 +954,8 @@ describe("Repomix comparison: XML structural equivalence", () => {
 	let repomixOutput: string;
 	let repomixAvailable: boolean;
 
-	// beforeAll timeout must exceed repomix startup time (~5s via npx)
+	// The hook budget is generous, but nothing inside it may block on the
+	// network — see the npx invocation below for why.
 	beforeAll(
 		() => {
 			testdataDir = makeTempDir("repomix-cmp");
@@ -979,11 +980,29 @@ describe("Repomix comparison: XML structural equivalence", () => {
 			]);
 			mnemexOutput = mnemexResult.stdout;
 
-			// Get repomix output
+			// Get repomix output.
+			//
+			// `--no` means "run it only if it is already available; never fetch
+			// it". Without that flag npx downloads repomix on a machine that has
+			// not seen it — which is every CI runner — and that download blocked
+			// past this hook's 30s limit, failing the whole group instead of
+			// skipping it. The design here has always been to skip when repomix
+			// cannot be obtained (`repomixAvailable` below); the probe just could
+			// not conclude that in time.
+			//
+			// `--` keeps repomix's own flags out of npx's hands: `npx --no repomix
+			// --style xml` has npx swallow `--style`, and repomix then treats
+			// `xml` as the target path and fails for the wrong reason.
+			//
+			// The spawn timeout is a second bound, strictly below the hook's, so
+			// an npx that wedges for any other reason still resolves to
+			// "unavailable" rather than taking the hook down with it.
 			repomixOutputPath = join(tmpdir(), `repomix-cmp-${Date.now()}.xml`);
 			const repomixResult = spawnSync(
 				"npx",
 				[
+					"--no",
+					"--",
 					"repomix",
 					"--style",
 					"xml",
@@ -993,7 +1012,7 @@ describe("Repomix comparison: XML structural equivalence", () => {
 				],
 				{
 					encoding: "utf-8",
-					timeout: 60000,
+					timeout: 15000,
 				},
 			);
 
@@ -1006,7 +1025,8 @@ describe("Repomix comparison: XML structural equivalence", () => {
 				}
 			}
 		},
-		// 30s hook timeout to accommodate npx repomix startup
+		// Comfortably above the bounded probe above (15s) plus the mnemex pack
+		// run before it. Raising this would only buy a slower failure.
 		30000,
 	);
 
