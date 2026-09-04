@@ -680,6 +680,36 @@ function createProgressRenderer() {
 	};
 }
 
+/**
+ * Say out loud that the embedding model in use came from the INDEX, not from
+ * config. No-op when nothing was adopted.
+ *
+ * stderr, deliberately, on every surface:
+ *  - stdout under `--mcp` is the JSON-RPC stream and under `rg` must stay
+ *    byte-identical to ripgrep (CLAUDE.md gotcha #14);
+ *  - the TTY progress renderer owns stdout while it runs and would overwrite
+ *    this line, and truncates its own detail text to the column width anyway.
+ *
+ * Machine consumers do NOT read this: --agent emits `embedding_model` and
+ * `embedding_model_adopted` as data (src/output/agent.ts).
+ *
+ * Exported only so a test can pin the stream and the wording, as
+ * `resolveBenchmarkSubcommand` below is.
+ */
+export function reportAdoptedModel(effective: {
+	model?: string;
+	adopted?: boolean;
+	configuredModel?: string;
+}): void {
+	if (!effective.adopted || !effective.model) return;
+	const configured = effective.configuredModel ?? "the configured model";
+	process.stderr.write(
+		`\nℹ️  Using ${effective.model} — the model this index was built with — ` +
+			`instead of ${configured}.\n` +
+			`   To switch: mnemex index --force  (or set "onModelMismatch": "force-model")\n\n`,
+	);
+}
+
 async function handleIndex(args: string[]): Promise<void> {
 	// Parse arguments
 	const force = args.includes("--force") || args.includes("-f");
@@ -689,7 +719,28 @@ async function handleIndex(args: string[]): Promise<void> {
 	// machine-global lock (used by the MCP background reindexer so N sessions don't
 	// pile up idle waiters). See parseIndexLockFlags.
 	const { wait, ifIdle, globalLockOptions } = parseIndexLockFlags(args);
-	const pathArg = args.find((a) => !a.startsWith("-"));
+
+	// Embedding model override, parsed the same way handleSearch does it. Both
+	// mismatch errors tell users to run `mnemex index --force --model X`, and
+	// until this existed that command silently indexed an empty tree: `--model`
+	// was unparsed here, so `pathArg` below took the model NAME as the project
+	// path and ensureProjectDir happily created ./X/.mnemex.
+	const modelIdx = args.findIndex((a) => a === "-m" || a === "--model");
+	const model = modelIdx >= 0 ? args[modelIdx + 1] : undefined;
+	if (modelIdx >= 0 && (!model || model.startsWith("-"))) {
+		// Refusing beats guessing: an index run with a bogus model name rebuilds
+		// the whole index against it.
+		console.error(
+			"❌ --model requires a model name, e.g. --model voyage-3.5-lite",
+		);
+		process.exit(1);
+	}
+	// The model NAME is a bare word too, so exclude it from the path search.
+	const modelValueIdx = modelIdx >= 0 ? modelIdx + 1 : -1;
+
+	const pathArg = args.find(
+		(a, i) => !a.startsWith("-") && i !== modelValueIdx,
+	);
 	const projectPath = pathArg ? resolve(pathArg) : process.cwd();
 
 	// Parse concurrency (default 10 for parallel LLM requests)
@@ -725,8 +776,8 @@ async function handleIndex(args: string[]): Promise<void> {
 		assertValidEmbeddingCredentials();
 	}
 
-	// Get model info for display
-	const embeddingModel = getEmbeddingModel(projectPath);
+	// Get model info for display (an explicit --model is what will actually run)
+	const embeddingModel = model ?? getEmbeddingModel(projectPath);
 	const llmSpec = getLLMSpec(projectPath);
 	const compactMode = agentMode;
 
@@ -760,9 +811,13 @@ async function handleIndex(args: string[]): Promise<void> {
 	if (progress) progress.start();
 	let waitingMessageShown = false;
 
-	const { createIndexer, IndexLockError } = await import("./core/indexer.js");
+	const { createIndexer, IndexedModelUnavailableError, IndexLockError } =
+		await import("./core/indexer.js");
 	const indexer = createIndexer({
 		projectPath,
+		// Explicit --model: an instruction, so it outranks onModelMismatch and
+		// rebuilds with what was asked for.
+		model,
 		// Only force enrichment OFF when --no-llm was actually passed. Passing a
 		// boolean unconditionally (`!noLlm`) made this an explicit override on
 		// every run, so the `?? isEnrichmentEnabled(projectPath)` fallback in the
@@ -801,6 +856,16 @@ async function handleIndex(args: string[]): Promise<void> {
 
 		// Show final state and stop progress renderer
 		if (progress) progress.finish();
+
+		// After finish(), so the renderer cannot overwrite it. Agent mode gets the
+		// same fact as data via indexComplete() below.
+		if (!agentMode) {
+			reportAdoptedModel({
+				model: result.embeddingModel,
+				adopted: result.adoptedIndexedModel,
+				configuredModel: result.configuredModel,
+			});
+		}
 
 		// Agent mode: structured key=value output
 		if (agentMode) {
@@ -923,6 +988,14 @@ async function handleIndex(args: string[]): Promise<void> {
 				return;
 			}
 			console.error(`\n❌ ${error.message}`);
+			process.exit(1);
+		}
+
+		// A plain `mnemex index` against an index whose model is unreachable. The
+		// message already names the model and both ways out; a stack trace on top
+		// of it helps nobody.
+		if (error instanceof IndexedModelUnavailableError) {
+			console.error(`\n❌ ${error.message}\n`);
 			process.exit(1);
 		}
 
@@ -1528,10 +1601,17 @@ async function handleSearch(args: string[]): Promise<void> {
 		assertValidEmbeddingCredentials();
 	}
 
-	const { createIndexer, EmbeddingModelMismatchError } = await import(
-		"./core/indexer.js"
-	);
+	const {
+		createIndexer,
+		EmbeddingModelMismatchError,
+		IndexedModelUnavailableError,
+	} = await import("./core/indexer.js");
+	const { UnqueryableVectorIndexError } = await import("./core/store.js");
 	const indexer = createIndexer({ projectPath, model });
+
+	// Set once the adoption notice has been printed, so a run whose auto-reindex
+	// already said it does not repeat it after the search.
+	let adoptionReported = false;
 
 	try {
 		// Check if index exists
@@ -1602,6 +1682,16 @@ async function handleSearch(args: string[]): Promise<void> {
 						`✅ Auto-indexed ${result.filesIndexed} changed file(s)\n`,
 					);
 				}
+
+				// The auto-reindex is where a search first meets the mismatch, and
+				// its onProgress notice is invisible there: the renderer truncates
+				// detail text and then replaces it with "done".
+				reportAdoptedModel({
+					model: result.embeddingModel,
+					adopted: result.adoptedIndexedModel,
+					configuredModel: result.configuredModel,
+				});
+				adoptionReported = result.adoptedIndexedModel === true;
 			}
 		}
 
@@ -1618,9 +1708,24 @@ async function handleSearch(args: string[]): Promise<void> {
 			keywordOnly,
 		});
 
+		// A search adopts the index's model inside initialize(), without ever
+		// running index() — and in --agent mode the auto-reindex is skipped
+		// entirely, so this is the ONLY place the fact can surface there.
+		const effective = indexer.getEffectiveModel();
+		const searchMeta = effective.adopted
+			? {
+					embeddingModel: effective.model,
+					configuredModel: effective.configuredModel,
+				}
+			: undefined;
+		if (!agentMode && !adoptionReported) {
+			reportAdoptedModel(effective);
+			adoptionReported = effective.adopted;
+		}
+
 		if (results.length === 0) {
 			if (agentMode) {
-				agentOutput.searchResults(query, []);
+				agentOutput.searchResults(query, [], searchMeta);
 			} else {
 				console.log("\nNo results found.");
 				console.log("Make sure the codebase is indexed: mnemex index");
@@ -1658,7 +1763,7 @@ async function handleSearch(args: string[]): Promise<void> {
 
 		// Agent mode: structured key=value output
 		if (agentMode) {
-			agentOutput.searchResults(query, results);
+			agentOutput.searchResults(query, results, searchMeta);
 			return;
 		}
 
@@ -1684,7 +1789,11 @@ async function handleSearch(args: string[]): Promise<void> {
 		);
 		console.log(`   Result IDs: ${resultIds.join(",")}\n`);
 	} catch (error) {
-		if (error instanceof EmbeddingModelMismatchError) {
+		if (
+			error instanceof EmbeddingModelMismatchError ||
+			error instanceof IndexedModelUnavailableError ||
+			error instanceof UnqueryableVectorIndexError
+		) {
 			console.error(`\n❌ ${error.message}\n`);
 			process.exit(1);
 		}
@@ -1922,6 +2031,21 @@ async function handleStatus(args: string[]): Promise<void> {
 		// Agent mode: structured key=value output
 		if (agentMode) {
 			agentOutput.statusOutput(status);
+			return;
+		}
+
+		if (status.corrupt) {
+			console.log(
+				"\nThis index is corrupt: its vector column has 0 dimensions, so no",
+			);
+			console.log(
+				"query can read it. A previous run stored empty vectors, which happens",
+			);
+			console.log("when the embedding provider returns nothing.");
+			console.log(
+				"\nThe next index run rebuilds it automatically, or run now:",
+			);
+			console.log("  mnemex index\n");
 			return;
 		}
 
@@ -6854,6 +6978,7 @@ ${c.yellow}${c.bold}SELF-LEARNING SYSTEM${c.reset} ${c.dim}(enabled by default, 
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files
+  ${c.cyan}-m, --model${c.reset} <model>    Rebuild with this embedding model ${c.dim}(overrides onModelMismatch)${c.reset}
   ${c.cyan}-w, --wait${c.reset}             Wait for another indexer to finish instead of failing
   ${c.cyan}--if-idle${c.reset}              Skip if a machine-wide index is already running ${c.dim}(background reindex)${c.reset}
   ${c.cyan}--force-unlock${c.reset}         Clear a stale/held index lock

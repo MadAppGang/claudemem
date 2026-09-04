@@ -3,6 +3,8 @@
  */
 
 import type { TeamConfig } from "./cloud/types.js";
+// Type-only, so this leaves no runtime edge from types.ts back to config.ts.
+import type { ModelMismatchMode } from "./config.js";
 
 // ============================================================================
 // Code Chunk Types
@@ -289,6 +291,18 @@ export interface IndexResult {
 	cost?: number;
 	/** Total tokens used (if reported by provider) */
 	totalTokens?: number;
+	/** Embedding model the run actually used */
+	embeddingModel?: string;
+	/**
+	 * True when that model came from the INDEX rather than from config —
+	 * `onModelMismatch: "use-indexed"` adopting the model the index was built
+	 * with. Carried as data so every surface can say so; a progress notice
+	 * cannot, because --agent has no progress callback and the TTY renderer
+	 * overwrites detail text.
+	 */
+	adoptedIndexedModel?: boolean;
+	/** The configured model that was set aside (only when adoptedIndexedModel) */
+	configuredModel?: string;
 }
 
 export interface IndexStatus {
@@ -304,6 +318,12 @@ export interface IndexStatus {
 	embeddingModel?: string;
 	/** Languages indexed */
 	languages: string[];
+	/**
+	 * True when the index exists on disk but cannot answer any query, because
+	 * its vector column is typed `FixedSizeList[0]`. The next index run repairs
+	 * it by rebuilding; see `UnqueryableVectorIndexError` in core/store.ts.
+	 */
+	corrupt?: boolean;
 }
 
 export interface FileState {
@@ -418,6 +438,12 @@ export interface GlobalConfig {
 	 * Different models produce incompatible vector spaces.
 	 */
 	defaultModel?: string;
+	/**
+	 * What to do when an index was built with a different model (default: 'use-indexed').
+	 * - 'use-indexed': keep the index and switch to the model that built it
+	 * - 'force-model': clear the index and rebuild it with the configured model
+	 */
+	onModelMismatch?: ModelMismatchMode;
 	/** OpenRouter API key */
 	openrouterApiKey?: string;
 	/** Voyage AI API key */
@@ -479,6 +505,13 @@ export interface ProjectConfig {
 	 * Only used when vector=true.
 	 */
 	embeddingModel?: string;
+	/**
+	 * What to do when this project's index was built with a different model
+	 * (default: 'use-indexed'). Overrides the global setting.
+	 * - 'use-indexed': keep the index and switch to the model that built it
+	 * - 'force-model': clear the index and rebuild it with the configured model
+	 */
+	onModelMismatch?: ModelMismatchMode;
 	/** Additional exclude patterns (glob patterns) */
 	excludePatterns?: string[];
 	/** Include only these patterns (glob patterns) */

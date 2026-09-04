@@ -13,6 +13,7 @@ import {
 	getEmbeddingModel,
 	getExcludePatterns,
 	getIndexDbPath,
+	getModelMismatchMode,
 	getVectorStorePath,
 	isDocsEnabled,
 	isEnrichmentEnabled,
@@ -31,6 +32,7 @@ import type {
 	CodeChunk,
 	CodeUnit,
 	CodeUnitWithEmbedding,
+	EmbeddingProvider,
 	EnrichedIndexResult,
 	EnrichmentResult,
 	IEmbeddingsClient,
@@ -46,7 +48,7 @@ import {
 	createCodeUnitExtractor,
 } from "./ast/code-unit-extractor.js";
 import { chunkFileByPath } from "./chunker.js";
-import { createEmbeddingsClient } from "./embeddings.js";
+import { createEmbeddingsClient, testModelAvailability } from "./embeddings.js";
 import {
 	createEnricher,
 	type Enricher,
@@ -97,6 +99,64 @@ export class EmbeddingModelMismatchError extends Error {
 		);
 		this.name = "EmbeddingModelMismatchError";
 	}
+}
+
+/**
+ * Error thrown when the model an index was built with cannot be reached.
+ *
+ * Raised only under `onModelMismatch: "use-indexed"`, which keeps the stored
+ * vectors and adopts the model that produced them. If that model cannot embed,
+ * there is no honest way to continue: a query embedded by any other model
+ * lands in a different vector space and the results would be noise. Failing
+ * here leaves the index untouched, so both exits below stay open.
+ */
+export class IndexedModelUnavailableError extends Error {
+	constructor(
+		public storedModel: string,
+		public providerError: string,
+		public storedProvider?: EmbeddingProvider,
+	) {
+		// An index written before providers were recorded gives the reader a
+		// second, likelier explanation than "the model is down": the request went
+		// to whatever provider the config names today, which may never have heard
+		// of this model. Saying so is the difference between a fixable error and
+		// one whose stated remedies ("start the provider") change nothing.
+		const provenance = storedProvider
+			? `  Provider on record: ${storedProvider}\n`
+			: `  This index predates provider recording, so the request used the provider your config names now.\n` +
+				`  That is very likely the real problem, not the model being down.\n`;
+		super(
+			`The index was built with ${storedModel}, and that model is unavailable.\n` +
+				provenance +
+				`  Provider error: ${providerError}\n\n` +
+				`Nothing was changed — the index is intact. Solutions:\n` +
+				`  1. Make ${storedModel} reachable (start its provider, or pull the model)\n` +
+				`  2. Rebuild with the model your config names:\n` +
+				`     mnemex index --force   (or set "onModelMismatch": "force-model" in config)`,
+		);
+		this.name = "IndexedModelUnavailableError";
+	}
+}
+
+/**
+ * Narrow a provider name read back out of index metadata.
+ *
+ * Metadata is free-form text written by some earlier version of mnemex, so it
+ * is not trustworthy as a union member. An unreadable value is dropped rather
+ * than passed on, which lands on the same path as an index too old to have
+ * recorded a provider at all — one behaviour to reason about, not two.
+ */
+function asEmbeddingProvider(
+	value: string | null,
+): EmbeddingProvider | undefined {
+	const providers: EmbeddingProvider[] = [
+		"openrouter",
+		"ollama",
+		"lmstudio",
+		"local",
+		"voyage",
+	];
+	return providers.find((p) => p === value);
 }
 
 /**
@@ -236,6 +296,34 @@ export class Indexer {
 	private docsFetcher: DocsFetcher | null = null;
 	private codeUnitExtractor: CodeUnitExtractor | null = null;
 
+	/**
+	 * Set when a search would embed its query with a model the index was not
+	 * built with — see initialize(). Held rather than thrown so that the callers
+	 * which never embed anything (status, keyword-only search) keep working.
+	 */
+	private searchModelMismatch: { stored: string; configured: string } | null =
+		null;
+
+	/**
+	 * Set when this indexer used the model recorded in the INDEX instead of the
+	 * configured one. Carried as state so it can be returned as data: a progress
+	 * notice reaches no surface reliably (--agent passes no callback, the TTY
+	 * renderer overwrites detail with "done", the MCP tool passes no callback),
+	 * and a silent model substitution is the exact class of behaviour this
+	 * release removes.
+	 */
+	private modelAdoption: { model: string; configuredModel: string } | null =
+		null;
+
+	/**
+	 * Model/provider pairs already proved reachable by this indexer. One CLI
+	 * search calls initialize(true) more than once (getStatus, then search), and
+	 * each call would otherwise pay for the same probe again. Only successes are
+	 * remembered: a failure must stay re-checkable, or starting the provider
+	 * would not fix anything until the process restarts.
+	 */
+	private probedModels = new Set<string>();
+
 	// Smart incremental reindexing: cache of old chunk vectors by contentHash
 	// Used to reuse embeddings for unchanged content, saving API costs
 	private oldChunksCache: Map<string, Map<string, number[]>> = new Map();
@@ -272,6 +360,55 @@ export class Indexer {
 	}
 
 	/**
+	 * The model this indexer actually used, and where it came from.
+	 *
+	 * `adopted` is true when it came from the index rather than from config.
+	 * Callers that never run index() — a plain search — read it after search()
+	 * or getStatus(), which is when the adoption on the retrieval path happens.
+	 */
+	getEffectiveModel(): {
+		model: string;
+		adopted: boolean;
+		configuredModel?: string;
+	} {
+		if (this.modelAdoption) {
+			return {
+				model: this.modelAdoption.model,
+				adopted: true,
+				configuredModel: this.modelAdoption.configuredModel,
+			};
+		}
+		return { model: this.model, adopted: false };
+	}
+
+	/** Remember that `model` was used in place of the configured `configuredModel`. */
+	private recordModelAdoption(model: string, configuredModel: string): void {
+		this.modelAdoption = { model, configuredModel };
+	}
+
+	/**
+	 * Throw IndexedModelUnavailableError unless this exact model/provider pair
+	 * can embed. Call ONLY on a detected mismatch — it costs a round-trip.
+	 */
+	private async assertModelAvailable(
+		model: string,
+		provider: EmbeddingProvider | undefined,
+	): Promise<void> {
+		const key = `${provider ?? "<unset>"}|${model}`;
+		if (this.probedModels.has(key)) return;
+
+		const availability = await testModelAvailability(model, provider);
+		if (!availability.ok) {
+			throw new IndexedModelUnavailableError(
+				model,
+				availability.error ?? "unknown error",
+				provider,
+			);
+		}
+		this.probedModels.add(key);
+	}
+
+	/**
 	 * Initialize all components
 	 * @param forSearch - If true, use stored embedding model (for retrieval consistency)
 	 */
@@ -294,6 +431,11 @@ export class Indexer {
 		if (this.vectorEnabled) {
 			// For search operations, use the stored embedding model to ensure consistency
 			let modelToUse = this.model;
+			let providerToUse: EmbeddingProvider | undefined;
+			// Cleared on every initialize(): this object is reused across an
+			// auto-reindex and the search that follows it, and the reindex may have
+			// resolved the very mismatch a previous pass recorded.
+			this.searchModelMismatch = null;
 			if (forSearch) {
 				const storedModel = this.fileTracker.getMetadata("embeddingModel");
 				if (storedModel) {
@@ -301,13 +443,59 @@ export class Indexer {
 					if (this.modelExplicitlySet && this.model !== storedModel) {
 						throw new EmbeddingModelMismatchError(storedModel, this.model);
 					}
-					// Otherwise use the stored model for consistency
-					modelToUse = storedModel;
+					// Otherwise `onModelMismatch` decides. 'use-indexed' adopts the
+					// stored model — the only way to query vectors built by it — and
+					// takes the provider from the index too, because a bare model name
+					// resolves against today's config and would be sent to the wrong
+					// provider (see the adopt path in indexInternal).
+					if (getModelMismatchMode(this.projectPath) === "use-indexed") {
+						modelToUse = storedModel;
+						providerToUse = asEmbeddingProvider(
+							this.fileTracker.getMetadata("embeddingProvider"),
+						);
+						// Prove the adopted model can embed BEFORE anything uses it.
+						// index() probes on its own path, but a search does not always
+						// run index(): --agent skips the auto-reindex, --no-reindex
+						// skips it, and the MCP tool swallows its failure. Without this
+						// the first sign of an unreachable model is whatever the query
+						// layer says about the vector it got back — observed:
+						// "No vector column found to match with the query vector
+						// dimension: 0", which names neither the model nor the cause.
+						//
+						// Only on a real mismatch. When the two agree — the normal
+						// search, every time — there is nothing to prove and no
+						// network call is made.
+						if (storedModel !== this.model) {
+							await this.assertModelAvailable(storedModel, providerToUse);
+							// A search adopts without ever calling index(), so this is
+							// the only place the retrieval path can record the fact for
+							// the CLI and the MCP tool to report.
+							this.recordModelAdoption(storedModel, this.model);
+						}
+					} else if (storedModel !== this.model) {
+						// 'force-model' asked for the configured model everywhere, and
+						// the reindex normally rebuilds the index with it before any
+						// search. When that reindex did NOT run — --agent skips it,
+						// --no-reindex skips it, the MCP tool treats its failure as
+						// non-fatal — embedding the query with the configured model
+						// searches a different vector space than the table holds. If
+						// the widths differ that is a LanceDB error; if they happen to
+						// match (768 is common) it is silent nonsense. Record it and
+						// let search() refuse; status and keyword-only search stay
+						// usable because neither embeds a query.
+						this.searchModelMismatch = {
+							stored: storedModel,
+							configured: this.model,
+						};
+					}
 				}
 			}
 
 			// Create embeddings client with appropriate model
-			this.embeddingsClient = createEmbeddingsClient({ model: modelToUse });
+			this.embeddingsClient = createEmbeddingsClient({
+				model: modelToUse,
+				provider: providerToUse,
+			});
 		}
 
 		// Create vector store
@@ -453,6 +641,16 @@ export class Indexer {
 		force: boolean,
 		startTime: number,
 	): Promise<EnrichedIndexResult> {
+		// What the CALLER asked for, captured before the corruption branch below
+		// sets `force` for its own reasons. `--force` is an explicit instruction to
+		// rebuild, so it decides the model the same way an explicit `--model` does
+		// — and it is the escape hatch both mismatch errors advertise. Without
+		// this, `mnemex index --force` on an unreachable stored model re-probes
+		// that same model and throws the identical error: a documented remedy that
+		// loops. A corruption-driven rebuild is NOT a caller instruction and must
+		// not be read as one, which is why this is captured first.
+		const forceRequested = force;
+
 		await this.initialize();
 
 		// Resolve the commit anchor ONCE for the whole run. Everything written
@@ -488,17 +686,130 @@ export class Indexer {
 			);
 		}
 
-		// Check if embedding model changed - requires full reindex
+		// Read the index's identity BEFORE anything can erase it. The corruption
+		// branch below calls fileTracker.clear(), which does `DELETE FROM metadata`
+		// — the row these two values live in. Reading them afterwards returns null
+		// on every corrupt index, which would make the whole mismatch decision
+		// below dead code on exactly the case that motivated it.
 		const previousModel = this.fileTracker!.getMetadata("embeddingModel");
-		const modelChanged = previousModel && previousModel !== this.model;
-		if (modelChanged) {
-			console.log(
-				`\n⚠️  Embedding model changed: ${previousModel} → ${this.model}`,
+		const previousProvider = asEmbeddingProvider(
+			this.fileTracker!.getMetadata("embeddingProvider"),
+		);
+
+		// An index whose vector column is FixedSizeList[0] answers no query at all,
+		// so there is nothing to weigh: dropping it loses no capability, and
+		// leaving it means every search fails. That is why it rebuilds without
+		// asking, unlike a model change — there the stored vectors are valid, just
+		// built by another model, so the rebuild is a real cost trade.
+		const wasCorrupt = await this.vectorStore!.isUnqueryable();
+
+		// The index records the model that built it (read above). When that is not
+		// the model this run would use, `onModelMismatch` decides which one gives
+		// way — see getModelMismatchMode() for why the default keeps the index.
+		const mismatch = !!previousModel && previousModel !== this.model;
+		// An explicit `--model` or `--force` is an instruction, not a preference:
+		// it outranks the policy, exactly as `--model` does on the search path
+		// (where initialize() turns the same disagreement into
+		// EmbeddingModelMismatchError).
+		const mode = !mismatch
+			? undefined
+			: this.modelExplicitlySet || forceRequested
+				? "force-model"
+				: getModelMismatchMode(this.projectPath);
+
+		// DECIDE AND VALIDATE BEFORE MUTATING ANYTHING.
+		//
+		// The availability probe can throw IndexedModelUnavailableError, whose
+		// message promises "Nothing was changed — the index is intact". That
+		// promise is only true if nothing has been cleared yet — and the
+		// corruption repair below clears both the store and the tracker. Running
+		// the probe first keeps the message honest for every combination,
+		// including corrupt-and-mismatched, rather than teaching the error to
+		// describe damage it already did.
+		//
+		// The stored PROVIDER matters as much as the stored model.
+		// createEmbeddingsClient() infers the provider from the model string and
+		// falls back to the ambient config when nothing matches, so a bare name
+		// like "nomic-embed-text" would be requested from whatever provider the
+		// config names today — Voyage asked for an Ollama model. Indexes written
+		// before this change have no provider on record; there is nothing to infer
+		// from, so try the model alone and let the error say so.
+		const willAdopt = mismatch && mode === "use-indexed";
+		if (willAdopt) {
+			await this.assertModelAvailable(previousModel!, previousProvider);
+		}
+
+		// ── From here on, mutations. ──────────────────────────────────────────
+		// True once the store has been emptied by any branch below, so the
+		// `if (force)` block does not empty it a second time. Keyed on "did we
+		// clear", never on "was there a reason to" — adopting clears nothing, and
+		// a `--force` run that skipped its clear would re-index into a non-empty
+		// table.
+		let alreadyCleared = false;
+
+		if (wasCorrupt) {
+			// onProgress, not console.log: the MCP search tool runs this same
+			// index() in-process, and stdout there is the JSON-RPC stream.
+			this.onProgress?.(
+				0,
+				0,
+				"[repairing] the vector index had a 0-dimension vector column, so no query could read it — rebuilding it now",
 			);
-			console.log("   Clearing old index (vector dimensions may differ)...\n");
 			await this.vectorStore!.clear();
 			this.fileTracker!.clear();
+			alreadyCleared = true;
+			force = true;
+		}
+
+		if (mismatch && mode === "force-model") {
+			// Reported through onProgress, never console.log: the MCP search tool
+			// runs this same index() in-process and stdout there is the JSON-RPC
+			// stream (see the `[invalidating]` notice above for the precedent).
+			this.onProgress?.(
+				0,
+				0,
+				`[model] ${previousModel} → ${this.model}: the stored vectors came from the old model, rebuilding the whole index`,
+			);
+			if (!alreadyCleared) {
+				await this.vectorStore!.clear();
+				this.fileTracker!.clear();
+				alreadyCleared = true;
+			}
 			force = true; // Treat as force reindex
+		}
+
+		if (willAdopt) {
+			// 'use-indexed': the stored vectors are fine, they just belong to
+			// another model. Adopt that model; nothing is cleared for it.
+			this.recordModelAdoption(previousModel!, this.model);
+			this.model = previousModel!;
+			this.embeddingsClient = createEmbeddingsClient({
+				model: this.model,
+				provider: previousProvider,
+			});
+			// The enricher captured the OLD client by value in initialize(), so
+			// without this it would keep embedding summaries with the configured
+			// model and mix two vector spaces into one table.
+			if (this.enricher && this.llmClient) {
+				this.enricher = createEnricher(
+					this.llmClient,
+					this.embeddingsClient,
+					this.vectorStore!,
+					this.fileTracker!,
+				);
+			}
+
+			// One of FOUR channels for this fact, none of which reaches every
+			// surface alone: --agent has no progress callback, the TTY renderer
+			// truncates detail and then overwrites it with "done", and the MCP tool
+			// passes no callback at all. The authoritative one is the result object
+			// (see `embeddingModel` / `adoptedIndexedModel` on IndexResult).
+			this.onProgress?.(
+				0,
+				0,
+				`[model] using ${this.model}, the model this index was built with, instead of ${this.modelAdoption?.configuredModel} ` +
+					`(set onModelMismatch: "force-model" to rebuild with ${this.modelAdoption?.configuredModel})`,
+			);
 		}
 
 		// Discover files
@@ -513,8 +824,9 @@ export class Indexer {
 		if (force) {
 			// Force re-index all files
 			filesToIndex = allFiles;
-			// Clear existing data (skip if already cleared due to model change)
-			if (!modelChanged) {
+			// Clear existing data (skip if the corruption or model-change branch
+			// above already did it)
+			if (!alreadyCleared) {
 				await this.vectorStore!.clear();
 				this.fileTracker!.clear();
 			}
@@ -1160,6 +1472,16 @@ export class Indexer {
 		// Save metadata
 		this.reportPhase("finalizing");
 		this.fileTracker!.setMetadata("embeddingModel", this.model);
+		// The model name alone does not identify what produced these vectors:
+		// createEmbeddingsClient() resolves a bare name like "nomic-embed-text"
+		// against whatever provider the ambient config names at the time, so the
+		// same string means Ollama today and Voyage after a config change. Record
+		// the provider the client actually resolved to, so a later run can adopt
+		// this index's model without guessing where to send it.
+		const usedProvider = this.embeddingsClient?.getProvider();
+		if (usedProvider) {
+			this.fileTracker!.setMetadata("embeddingProvider", usedProvider);
+		}
 		this.fileTracker!.setMetadata("lastIndexed", new Date().toISOString());
 
 		// Clean up: Release cached old chunks to free memory
@@ -1172,6 +1494,12 @@ export class Indexer {
 			chunksCreated: totalChunksCreated,
 			codeUnitsCreated: totalCodeUnitsCreated,
 			durationMs,
+			// The authoritative channel for "which model did this actually use".
+			// Every surface renders from here; the onProgress notices above are a
+			// convenience on top, not the record.
+			embeddingModel: this.model,
+			adoptedIndexedModel: !!this.modelAdoption,
+			configuredModel: this.modelAdoption?.configuredModel,
 			skippedFiles,
 			errors,
 			cost: totalCost > 0 ? totalCost : undefined,
@@ -1193,6 +1521,17 @@ export class Indexer {
 
 		// Force keyword-only mode when vector embeddings are disabled
 		const useKeywordOnly = options.keywordOnly || !this.vectorEnabled;
+
+		// Refuse to embed a query into a vector space the table does not hold.
+		// Recorded by initialize() under 'force-model' when the rebuild that would
+		// have reconciled the two did not run; a wrong-space query returns ranked
+		// nonsense with no error whenever the dimensions happen to agree.
+		if (!useKeywordOnly && this.searchModelMismatch) {
+			throw new EmbeddingModelMismatchError(
+				this.searchModelMismatch.stored,
+				this.searchModelMismatch.configured,
+			);
+		}
 
 		// Generate query embedding (skip if keyword-only mode or vector disabled)
 		let queryVector: number[] | undefined;
@@ -1246,6 +1585,22 @@ export class Indexer {
 		await this.initialize(true);
 
 		const trackerStats = this.fileTracker!.getStats();
+
+		// A corrupt index must be REPORTED, not thrown, so the caller can route
+		// to the repair in index() above. Throwing here would abort every
+		// caller before it ever reached the code that fixes the problem.
+		if (await this.vectorStore!.isUnqueryable()) {
+			return {
+				exists: true,
+				corrupt: true,
+				totalFiles: trackerStats.totalFiles,
+				totalChunks: 0,
+				embeddingModel:
+					this.fileTracker!.getMetadata("embeddingModel") || undefined,
+				languages: [],
+			};
+		}
+
 		const storeStats = await this.vectorStore!.getStats();
 
 		const embeddingModel = this.fileTracker!.getMetadata("embeddingModel");

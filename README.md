@@ -461,11 +461,33 @@ mnemex docs clear        # clear cached documentation
 Env vars:
 - `OPENROUTER_API_KEY` — for OpenRouter provider
 - `MNEMEX_MODEL` — override embedding model
+- `MNEMEX_ON_MODEL_MISMATCH` — `use-indexed` (default) or `force-model`, see below
 - `CONTEXT7_API_KEY` — for documentation fetching (optional)
 
 Files:
 - `~/.mnemex/config.json` — global config (provider, model, docs settings)
 - `.mnemex/` — project index (add to .gitignore)
+
+### Changing the embedding model
+
+An index can only be searched with the model that built it, so mnemex records that
+model and notices when your config names a different one. `onModelMismatch` decides
+what happens then:
+
+- `use-indexed` (default) — keep the index and use the model it was built with.
+  Nothing is re-embedded, nothing is spent, and the command tells you which model it
+  used. If that model is unreachable it fails loudly and leaves the index untouched.
+- `force-model` — clear the index and rebuild it with the model your config names.
+
+```json
+{
+  "onModelMismatch": "force-model"
+}
+```
+
+Set it globally in `~/.mnemex/config.json` or per project in `mnemex.json` (project
+wins); `MNEMEX_ON_MODEL_MISMATCH` overrides both. Either way `mnemex index --force`
+and `mnemex index --model <model>` rebuild with the model you name.
 
 ## Limitations
 

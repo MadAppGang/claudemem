@@ -18,7 +18,10 @@ import {
 	createGitDiffChangeDetector,
 } from "../../cloud/index.js";
 import { createEmbeddingsClient } from "../../core/embeddings.js";
-import { createIndexer } from "../../core/indexer.js";
+import {
+	createIndexer,
+	IndexedModelUnavailableError,
+} from "../../core/indexer.js";
 import { getParserManager } from "../../parsers/parser-manager.js";
 import { LocationBackend } from "../../retrieval/backends/location.js";
 import { LspBackend } from "../../retrieval/backends/lsp.js";
@@ -159,8 +162,26 @@ export function registerSearchTools(server: McpServer, deps: ToolDeps): void {
 					if (autoIndexed > 0) {
 						logger.info(`search: auto-indexed ${autoIndexed} changed files`);
 					}
+					// The tool passes no onProgress, so the indexer's own notice goes
+					// nowhere. Say it here instead — via the logger, which writes to
+					// stderr; stdout is the JSON-RPC stream.
+					if (indexResult.adoptedIndexedModel) {
+						logger.warn(
+							`search: using ${indexResult.embeddingModel} — the model this index was built with — ` +
+								`instead of the configured ${indexResult.configuredModel}. ` +
+								`Run 'mnemex index --force' to rebuild with the configured model.`,
+						);
+					}
 				} catch (indexErr) {
-					// Non-fatal: proceed with existing index
+					// One auto-index failure is NOT non-fatal: when the index was
+					// built by a model that cannot be reached, there is no vector
+					// space to search. Falling through would embed the query with a
+					// different model and return ranked nonsense — silently, whenever
+					// the two dimensions happen to agree. Surface it instead.
+					if (indexErr instanceof IndexedModelUnavailableError) {
+						throw indexErr;
+					}
+					// Everything else: proceed with the existing index.
 					logger.warn(
 						"search: auto-index failed, searching existing index",
 						indexErr,
