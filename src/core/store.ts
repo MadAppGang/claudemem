@@ -88,6 +88,46 @@ export class ZeroDimensionVectorError extends Error {
 }
 
 /**
+ * Thrown when an EXISTING table is opened and its `vector` column is typed
+ * `FixedSizeList[0]<Float32>`.
+ *
+ * Read-side counterpart of ZeroDimensionVectorError, which guards writes. A
+ * table that slipped past those guards — written by an older build, or by a run
+ * whose embedding provider returned nothing — is corrupt in a way the schema
+ * makes permanent. Detecting it at open time converts an uncatchable Rust panic
+ * into a normal exception carrying one actionable sentence.
+ */
+export class UnqueryableVectorIndexError extends Error {
+	constructor() {
+		super(
+			"The vector index is corrupt: its vector column has 0 dimensions, so no " +
+				"query can read it. A previous index run stored empty vectors, which " +
+				"happens when the embedding provider returns nothing. " +
+				"Rebuild it with: mnemex index --force",
+		);
+		this.name = "UnqueryableVectorIndexError";
+	}
+}
+
+/**
+ * Guard the dimension of an EXISTING table's `vector` column, read from its
+ * Arrow schema when the table is opened.
+ *
+ * Deliberately compares against 0 rather than testing truthiness. The three
+ * write-path guards in this file spell the same idea as `this.tableDimension &&
+ * ...`, which is false for 0 and therefore skips the one case worth catching.
+ * Exported for tests.
+ *
+ * @param listSize the column's FixedSizeList width, or null when unknown
+ *                 (a schema read failed) — unknown is not an error.
+ */
+export function assertQueryableTableDimension(listSize: number | null): void {
+	if (listSize === 0) {
+		throw new UnqueryableVectorIndexError();
+	}
+}
+
+/**
  * Guard a batch's inferred vector dimension before it reaches LanceDB.
  * Exported for tests.
  * @returns the validated, non-zero dimension
@@ -290,6 +330,8 @@ export interface SearchOptions {
 export interface IVectorStore {
 	readonly dimensionMismatchCleared: boolean;
 	initialize(): Promise<void>;
+	/** True when the table exists but its vector column has 0 dimensions. */
+	isUnqueryable(): Promise<boolean>;
 	addChunks(chunks: ChunkWithEmbedding[]): Promise<void>;
 	search(
 		queryText: string,
@@ -424,10 +466,49 @@ export class VectorStore implements IVectorStore {
 				// Ignore schema read errors - dimension check will be skipped
 			}
 
+			// A FixedSizeList[0] vector column is unqueryable and unrepairable.
+			// Every read that touches `vector` fails in native code: LanceDB
+			// >= 0.20 raises LanceError(Schema), and 0.13-0.19 panic inside a
+			// tokio worker with "attempt to divide by zero" — a Rust backtrace
+			// that no JS catch can intercept and no user can act on. Reject the
+			// table here, at the one place every read and write opens it, so the
+			// caller gets one sentence naming the fix instead.
+			//
+			// Thrown OUTSIDE the try above, whose catch would swallow it.
+			// `clear()` drops the table without calling this method, so
+			// `mnemex index --force` still recovers.
+			try {
+				assertQueryableTableDimension(this.tableDimension);
+			} catch (err) {
+				this.table = null;
+				this.tableDimension = null;
+				throw err;
+			}
+
 			return this.table;
 		}
 
 		return null;
+	}
+
+	/**
+	 * Non-throwing corruption probe: true when the table exists but its vector
+	 * column has 0 dimensions.
+	 *
+	 * Reuses `ensureTableOpen()` so detection stays in one place. Callers that
+	 * can repair the index (the indexer, which owns the tracker too) ask this
+	 * first; callers that cannot let the throw reach the user instead.
+	 */
+	async isUnqueryable(): Promise<boolean> {
+		try {
+			await this.ensureTableOpen();
+			return false;
+		} catch (err) {
+			if (err instanceof UnqueryableVectorIndexError) {
+				return true;
+			}
+			throw err;
+		}
 	}
 
 	/**

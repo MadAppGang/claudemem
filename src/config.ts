@@ -219,6 +219,8 @@ export const ENV = {
 	CONTEXT7_API_KEY: "CONTEXT7_API_KEY",
 	/** Enable/disable documentation fetching (default: true) */
 	MNEMEX_DOCS_ENABLED: "MNEMEX_DOCS_ENABLED",
+	/** What to do when the index's model differs from the configured one */
+	MNEMEX_ON_MODEL_MISMATCH: "MNEMEX_ON_MODEL_MISMATCH",
 } as const;
 
 /** Context7 API endpoint */
@@ -857,6 +859,36 @@ export function getDocsCachePath(projectPath: string): string {
 export type TestFileMode = "downrank" | "exclude" | "include";
 
 // ============================================================================
+// Embedding Model Mismatch Handling
+// ============================================================================
+
+/**
+ * What to do when the model recorded in an index is not the configured one.
+ * - 'use-indexed': keep the index, switch to the model that built it
+ * - 'force-model': clear the index and rebuild it with the configured model
+ */
+export type ModelMismatchMode = "use-indexed" | "force-model";
+
+/** Every accepted value, so an unrecognised one can be told apart from a valid one. */
+const MODEL_MISMATCH_MODES = new Set<string>([
+	"use-indexed",
+	"force-model",
+] satisfies ModelMismatchMode[]);
+
+/**
+ * Narrow an untrusted value (env var, JSON config) to a mode, or undefined.
+ *
+ * Undefined for anything unrecognised so the caller falls through to the next
+ * level of the precedence chain instead of failing: a typo in one config file
+ * should not be able to stop a search.
+ */
+function asModelMismatchMode(value: unknown): ModelMismatchMode | undefined {
+	return typeof value === "string" && MODEL_MISMATCH_MODES.has(value)
+		? (value as ModelMismatchMode)
+		: undefined;
+}
+
+// ============================================================================
 // Self-Learning Configuration
 // ============================================================================
 
@@ -944,4 +976,47 @@ export function getTestFileMode(projectPath?: string): TestFileMode {
 	}
 	// Default: downrank test files in search results
 	return "downrank";
+}
+
+/**
+ * Get what to do when the index's embedding model is not the configured one.
+ *
+ * Priority: MNEMEX_ON_MODEL_MISMATCH env > project config > global config >
+ * default ('use-indexed'). Deliberately the same chain as getEmbeddingModel():
+ * this setting only ever matters together with that one, and two settings read
+ * as a pair must be overridable at the same levels.
+ *
+ * Default rationale: rebuilding costs money and time and throws away vectors
+ * that are still perfectly good — just built by another model. Adopting the
+ * stored model costs nothing and loses nothing, and when the stored model is
+ * unreachable the failure is loud and the index survives it. 'force-model'
+ * fails the other way: a silent charge for a rebuild nobody asked for.
+ */
+export function getModelMismatchMode(projectPath?: string): ModelMismatchMode {
+	// Environment first, so a one-off run can override without editing config.
+	const fromEnv = asModelMismatchMode(
+		process.env[ENV.MNEMEX_ON_MODEL_MISMATCH],
+	);
+	if (fromEnv) {
+		return fromEnv;
+	}
+
+	// Then the project, which knows more about its own index than the machine does.
+	if (projectPath) {
+		const fromProject = asModelMismatchMode(
+			loadProjectConfig(projectPath)?.onModelMismatch,
+		);
+		if (fromProject) {
+			return fromProject;
+		}
+	}
+
+	// Then the machine-wide preference.
+	const fromGlobal = asModelMismatchMode(loadGlobalConfig().onModelMismatch);
+	if (fromGlobal) {
+		return fromGlobal;
+	}
+
+	// Default: keep the index, adopt the model that built it.
+	return "use-indexed";
 }

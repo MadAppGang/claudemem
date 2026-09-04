@@ -3,6 +3,69 @@
 All notable changes to mnemex are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver.
 
+## [0.34.0] - 2026-09-04
+
+A release about failing loudly. Two silent failures are gone: an index built with
+one embedding model and searched with another was destroyed and rebuilt without
+being asked, and a model the provider did not have produced an index that could
+never answer a single query. Both now stop and say what to do about it.
+
+### Added
+
+- **`onModelMismatch` decides what happens when the index and the config disagree
+  about the embedding model.** `use-indexed` (the default) keeps the index and
+  switches to the model it was built with; `force-model` clears and rebuilds with
+  the configured one, which is what every version until now did unconditionally.
+  Readable from project config, global config, or `MNEMEX_ON_MODEL_MISMATCH`.
+- **`mnemex index` accepts `-m` / `--model`.** It never has: the value was
+  silently consumed as the project path. This matters more than it sounds,
+  because the remedy the mismatch error has been printing for users to run —
+  `mnemex index --force --model <name>` — could therefore never have worked.
+
+### Changed
+
+- **On a model mismatch, the default is now to use the model the index was built
+  with.** Rebuilding spends money and time; adopting the stored model costs
+  nothing and loses nothing. The failure mode of the new default is an error you
+  can act on, and the failure mode of the old one was a silent bill. Set
+  `"onModelMismatch": "force-model"` to keep the previous behaviour.
+- **The embedding provider is recorded alongside the model.** Without it the
+  feature above cannot work at all: the provider is inferred from the model
+  *string*, so a bare name like `nomic-embed-text` matches no prefix rule and is
+  requested from whatever provider the config happens to name today. An index
+  written before this release has no provider on record and says so by name.
+- LanceDB 0.33 → 0.38.
+- An error that escapes a command prints its message and nothing else. Previously
+  bun's default handler rendered four frames of minified `dist/` paths, two
+  "missing sourcemaps" notes and a version banner for ordinary operational
+  failures. `MNEMEX_DEBUG=1` restores the stack.
+
+### Fixed
+
+- **A missing embedding model no longer writes an index that can never be read.**
+  Only connection errors failed fast; everything else — including the 404 for a
+  model the provider does not have — was treated as a skippable chunk that
+  contributed an empty vector. Every chunk failing meant every vector empty, and
+  LanceDB fixes the column width at creation, so the table was born
+  `FixedSizeList[0]` and was unreadable forever. A missing model is now fatal, a
+  100% failure rate throws whatever the cause, and `embedOne` refuses to return a
+  zero-length vector. The deliberate skip for a genuine *partial* failure is
+  unchanged and pinned by a test.
+- **An index already in that state is detected when its table opens, and repaired
+  by the next index run.** Reaching native code with it produced a Rust panic on
+  LanceDB 0.13 (`attempt to divide by zero`, twice, with cargo paths), a
+  `LanceError(Schema)` on 0.33 and later, and on a plain scan zero rows in
+  silence. `mnemex status` explains the state instead of reporting an empty index.
+- **An unreachable model is reported before it is used, not after.** The check
+  had a single caller inside the indexing path, which agent mode skips entirely,
+  so a search produced `No vector column found to match with the query vector
+  dimension: 0`. It now names the model, the provider on record and the
+  provider's own error, and leaves the index untouched.
+- The MCP search tool no longer swallows an unavailable-model error as a
+  non-fatal auto-index failure.
+- Mismatch and repair notices no longer go to stdout, which is the JSON-RPC
+  stream when running as an MCP server.
+
 ## [0.33.0] - 2026-09-02
 
 A correctness and performance release. Search is roughly 18x faster, and seven

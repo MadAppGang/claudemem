@@ -22,6 +22,43 @@ runMigrations();
 
 const args = process.argv.slice(2);
 
+/**
+ * Last-resort handler for anything that escapes an entry point.
+ *
+ * `runCli` already catches the error types it knows and prints one clean line
+ * for each; those paths are unaffected. This exists for the rest, which until
+ * now reached bun's default handler and were rendered as four frames of
+ * minified `dist/index.js` paths, two "missing sourcemaps" notes and a bun
+ * version banner — for operational failures whose message already says exactly
+ * what to do ("Ollama has no model 'x': … try pulling it first").
+ *
+ * Rules this obeys:
+ *  - stderr, never stdout. The MCP branch's stdout is the JSON-RPC stream, and
+ *    a stray byte there corrupts the protocol (CLAUDE.md gotcha #14). stderr is
+ *    correct in every mode, so there is no per-mode variant to get wrong.
+ *  - the message verbatim. Several of these errors are deliberately multi-line
+ *    and structured (IndexedModelUnavailableError names the model, the provider
+ *    error and both ways out); re-wrapping or per-line prefixing would break the
+ *    shape their authors chose.
+ *  - a non-Error throw is still reported, via String(err), rather than silently
+ *    becoming "undefined".
+ *
+ * The stack is not lost, only demoted: MNEMEX_DEBUG=1 prints it. That name
+ * follows the user-facing MNEMEX_* env convention (MNEMEX_MODEL, MNEMEX_LLM,
+ * MNEMEX_DOCS_ENABLED); the DEBUG_* names elsewhere in the tree are
+ * area-scoped internals, not a product-wide switch.
+ */
+function fatal(err: unknown): never {
+	const message = err instanceof Error ? err.message : String(err);
+	process.stderr.write(`\n${message}\n`);
+
+	if (process.env.MNEMEX_DEBUG && err instanceof Error && err.stack) {
+		process.stderr.write(`\n${err.stack}\n`);
+	}
+
+	process.exit(1);
+}
+
 // Check for MCP server mode
 const isMcpMode = args.includes("--mcp");
 const isAutocompleteServerMode = args.includes("--autocomplete-server");
@@ -31,17 +68,15 @@ if (isAutocompleteServerMode) {
 	const projectIdx = args.indexOf("--project");
 	const projectPath = projectIdx !== -1 ? args[projectIdx + 1] : undefined;
 
-	import("./autocomplete/server.js").then((module) => {
-		module.startAutocompleteServer({ projectPath });
-	});
+	import("./autocomplete/server.js")
+		.then((module) => module.startAutocompleteServer({ projectPath }))
+		.catch(fatal);
 } else if (isMcpMode) {
 	// MCP server mode - lazy load to keep CLI startup fast
-	import("./mcp/server.js").then((module) => {
-		module.startMcpServer();
-	});
+	import("./mcp/server.js")
+		.then((module) => module.startMcpServer())
+		.catch(fatal);
 } else {
 	// CLI mode
-	import("./cli.js").then((module) => {
-		module.runCli(args);
-	});
+	import("./cli.js").then((module) => module.runCli(args)).catch(fatal);
 }

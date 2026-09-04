@@ -48,6 +48,68 @@ const DEFAULT_MODELS: Record<EmbeddingProvider, string> = {
 	voyage: "voyage-code-3",
 };
 
+// ============================================================================
+// Failure classification
+// ============================================================================
+
+/**
+ * Does this error say the MODEL is unusable, rather than this one request?
+ *
+ * Providers report a missing model in the body, not the status: Ollama answers
+ * `404 {"error":"model \"x\" not found, try pulling it first"}` on BOTH
+ * /api/embed and /api/embeddings, so the status alone cannot tell "this model
+ * was never pulled" apart from "this endpoint does not exist on this server".
+ * The body is the only discriminator, which is why this matches text.
+ *
+ * The distinction is load-bearing. Treating it as a per-chunk problem means
+ * every chunk "fails" the same way, every chunk gets an empty vector, and the
+ * run writes a FixedSizeList[0] column that no query can ever read — the
+ * corruption `assertVectorDimension` and `UnqueryableVectorIndexError` exist
+ * to cope with. Fail here instead, while it is still one clear error.
+ */
+export function isModelUnavailableError(message: string): boolean {
+	return /model .*not found|not found, try pulling|no such model|model_not_found|unknown model|does not exist/i.test(
+		message,
+	);
+}
+
+/**
+ * Failures that are about the setup — the daemon, the credentials, the model —
+ * and so will repeat identically for every remaining text. Skipping past these
+ * turns one legible error into N empty vectors.
+ */
+function isFatalEmbeddingFailure(message: string): boolean {
+	return (
+		message.includes("ECONNREFUSED") ||
+		message.includes("Cannot connect") ||
+		message.includes("401") ||
+		message.includes("403") ||
+		isModelUnavailableError(message)
+	);
+}
+
+/**
+ * Guard for the end of a partial-failure loop.
+ *
+ * Skipping a chunk that failed is deliberate: one bad file should not lose a
+ * whole index run. A 100% failure rate is not that case — nothing about it is
+ * per-chunk — and returning all-empty embeddings from it is how an unusable
+ * index gets written without a single error.
+ */
+function assertNotTotalFailure(
+	failedCount: number,
+	total: number,
+	warnings: string[],
+	provider: string,
+): void {
+	if (total === 0 || failedCount < total) return;
+	const cause = warnings[0] ?? "no error recorded";
+	throw new Error(
+		`${provider} embeddings failed for all ${total} texts, so this is not a per-text problem.\n` +
+			`  First failure: ${cause}`,
+	);
+}
+
 /** Default endpoints */
 const DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434";
 const DEFAULT_LOCAL_ENDPOINT = "http://localhost:8000";
@@ -168,7 +230,20 @@ abstract class BaseEmbeddingsClient implements IEmbeddingsClient {
 
 	async embedOne(text: string): Promise<number[]> {
 		const result = await this.embed([text]);
-		return result.embeddings[0];
+		const embedding = result.embeddings[0];
+		// An empty vector is not an embedding, and every caller treats it as one:
+		// it becomes a 0-dimension query vector (LanceDB answers with an opaque
+		// "No vector column found to match ... dimension: 0") or a 0-dimension
+		// column at write time. Whatever produced it, the honest answer here is
+		// an error naming the model.
+		if (!embedding || embedding.length === 0) {
+			throw new Error(
+				`Embedding model ${this.model} (${this.provider}) returned an empty vector. ` +
+					`The model is reachable but produced nothing usable` +
+					(result.warnings?.length ? `: ${result.warnings[0]}` : "."),
+			);
+		}
+		return embedding;
 	}
 
 	protected sleep(ms: number): Promise<void> {
@@ -238,8 +313,9 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 				} catch (error) {
 					// Return empty embeddings for failed batch
 					const msg = error instanceof Error ? error.message : String(error);
-					// Auth errors should fail fast
-					if (msg.includes("401") || msg.includes("403")) {
+					// Auth and model-level errors should fail fast: they repeat
+					// identically for every remaining batch.
+					if (isFatalEmbeddingFailure(msg)) {
 						throw error;
 					}
 					warnings.push(msg);
@@ -262,6 +338,7 @@ export class OpenRouterEmbeddingsClient extends BaseEmbeddingsClient {
 		if (failedCount > 0) {
 			warnings.push(`${failedCount}/${texts.length} chunks skipped`);
 		}
+		assertNotTotalFailure(failedCount, texts.length, warnings, "OpenRouter");
 
 		// Final progress report (all complete)
 		if (onProgress) {
@@ -416,9 +493,11 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 				results.push([]);
 				failedCount++;
 
-				// Connection errors should fail fast
+				// Setup-level failures (daemon down, model never pulled) will repeat
+				// for every remaining text, so skipping past them just multiplies one
+				// error into N empty vectors.
 				const msg = error instanceof Error ? error.message : String(error);
-				if (msg.includes("ECONNREFUSED") || msg.includes("Cannot connect")) {
+				if (isFatalEmbeddingFailure(msg)) {
 					throw error;
 				}
 				warnings.push(`Chunk ${i + 1}: ${msg}`);
@@ -433,6 +512,12 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 		if (failedCount > 0) {
 			warnings.push(`${failedCount}/${truncatedTexts.length} chunks skipped`);
 		}
+		assertNotTotalFailure(
+			failedCount,
+			truncatedTexts.length,
+			warnings,
+			"Ollama",
+		);
 
 		// Ollama doesn't report cost (local model)
 		return {
@@ -470,6 +555,18 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 					});
 
 					if (response.status === 404) {
+						// 404 is ambiguous here: either this server predates
+						// /api/embed, or the model was never pulled — Ollama uses the
+						// same status for both and only distinguishes them in the
+						// body. Falling back to legacy on a missing model would ask
+						// the older endpoint the same impossible question, get the
+						// same 404, and surface it as a per-chunk failure.
+						const errorText = await response.text();
+						if (isModelUnavailableError(errorText)) {
+							throw new Error(
+								`Ollama has no model '${this.model}': ${errorText.trim()}`,
+							);
+						}
 						// /api/embed not available, use legacy
 						this.useNewApi = false;
 						this.warmedUp = true;
@@ -492,7 +589,13 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 				} finally {
 					clearTimeout(timeoutId);
 				}
-			} catch {
+			} catch (error) {
+				// A model that does not exist will not appear by waiting. Retrying it
+				// eight times with backoff spends ~25s to reach the same answer.
+				const msg = error instanceof Error ? error.message : String(error);
+				if (isModelUnavailableError(msg)) {
+					throw error;
+				}
 				// JSON parse error or network issue — model still loading
 			}
 			// Wait with backoff: 2s, 3s, 4s, 5s...
@@ -528,8 +631,14 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 
 						if (!response.ok) {
 							const errorText = await response.text();
-							// Only fall back to legacy on 404 (endpoint truly not available)
-							if (response.status === 404) {
+							// Only fall back to legacy on a 404 that means "no such
+							// endpoint". A 404 that names the model means the model was
+							// never pulled, and the legacy endpoint answers that
+							// identically — see the same check in warmup().
+							if (
+								response.status === 404 &&
+								!isModelUnavailableError(errorText)
+							) {
 								this.useNewApi = false;
 								return this.embedSingleLegacy(text);
 							}
@@ -565,6 +674,12 @@ export class OllamaEmbeddingsClient extends BaseEmbeddingsClient {
 					throw new Error(
 						`Cannot connect to Ollama at ${this.endpoint}. Is Ollama running? Try: ollama serve`,
 					);
+				}
+
+				// A missing model is a settled answer, not a transient one. Retrying
+				// it six times with backoff delays the same error by ~30s per text.
+				if (isModelUnavailableError(lastError.message)) {
+					throw lastError;
 				}
 
 				// JSON parse errors during model loading are transient — retry with delay
@@ -740,7 +855,12 @@ export class LocalEmbeddingsClient extends BaseEmbeddingsClient {
 				} finally {
 					clearTimeout(timeoutId);
 				}
-			} catch {
+			} catch (error) {
+				// A model the server does not have will not appear by waiting.
+				const msg = error instanceof Error ? error.message : String(error);
+				if (isModelUnavailableError(msg)) {
+					throw error;
+				}
 				// Model still loading — retry
 			}
 			await this.sleep(Math.min(1000 * (attempt + 1), 3000));
@@ -931,8 +1051,9 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 					return await this.embedBatch(batch);
 				} catch (error) {
 					const msg = error instanceof Error ? error.message : String(error);
-					// Auth errors should fail fast
-					if (msg.includes("401") || msg.includes("403")) {
+					// Auth and model-level errors should fail fast: they repeat
+					// identically for every remaining batch.
+					if (isFatalEmbeddingFailure(msg)) {
 						throw error;
 					}
 					warnings.push(msg);
@@ -954,6 +1075,7 @@ export class VoyageEmbeddingsClient extends BaseEmbeddingsClient {
 		if (failedCount > 0) {
 			warnings.push(`${failedCount}/${texts.length} chunks skipped`);
 		}
+		assertNotTotalFailure(failedCount, texts.length, warnings, "Voyage");
 
 		if (onProgress) {
 			onProgress(completedTexts, texts.length, 0);
@@ -1259,6 +1381,40 @@ export async function testProviderConnection(
 			provider,
 			endpoint,
 		});
+		await client.embedOne("test");
+		return { ok: true };
+	} catch (error) {
+		return {
+			ok: false,
+			error: error instanceof Error ? error.message : String(error),
+		};
+	}
+}
+
+/**
+ * Test that one specific model can actually produce an embedding.
+ *
+ * Reaching the provider is NOT the same question: Ollama answers on its port
+ * while the model it is asked for was never pulled, and a hosted provider is up
+ * while the key has no access to that particular model. Both look healthy to
+ * testProviderConnection and fail on the first real embed. So this builds a
+ * client for the exact model and embeds through it — the only check whose
+ * success means the caller can go on to use that model.
+ *
+ * Pass `provider` whenever it is known. Without it, createEmbeddingsClient()
+ * resolves a bare model name against the ambient config, so this would test
+ * "that name, at today's provider" — a different question, and the wrong one
+ * when the caller is asking about a model some *earlier* config indexed with.
+ *
+ * Costs a network round-trip, so call it only when something already went
+ * wrong (see the model-mismatch path in core/indexer.ts), never on a hot path.
+ */
+export async function testModelAvailability(
+	model: string,
+	provider?: EmbeddingProvider,
+): Promise<{ ok: boolean; error?: string }> {
+	try {
+		const client = createEmbeddingsClient({ model, provider });
 		await client.embedOne("test");
 		return { ok: true };
 	} catch (error) {

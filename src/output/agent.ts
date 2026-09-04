@@ -44,6 +44,18 @@ function indexComplete(result: EnrichedIndexResult): void {
 			console.log(`enrichment_cost_usd=${result.enrichment.cost.toFixed(6)}`);
 		}
 	}
+	if (result.embeddingModel) {
+		console.log(`embedding_model=${result.embeddingModel}`);
+	}
+	// Emitted only when the model came from the index rather than from config,
+	// so a machine consumer can tell "as configured" from "silently substituted"
+	// without diffing against its own config.
+	if (result.adoptedIndexedModel) {
+		console.log("embedding_model_adopted=true");
+		if (result.configuredModel) {
+			console.log(`configured_model=${result.configuredModel}`);
+		}
+	}
 	if (result.errors.length > 0) {
 		console.log(`errors=${result.errors.length}`);
 	}
@@ -53,9 +65,23 @@ function indexComplete(result: EnrichedIndexResult): void {
  * Output for the `search` command: results as structured key=value lines.
  * One header block followed by result lines.
  */
-function searchResults(query: string, results: SearchResult[]): void {
+function searchResults(
+	query: string,
+	results: SearchResult[],
+	meta?: { embeddingModel?: string; configuredModel?: string },
+): void {
 	console.log(`query=${query}`);
 	console.log(`result_count=${results.length}`);
+	// Only present when the query was embedded with the model the INDEX was
+	// built with rather than the configured one. An agent that gets results back
+	// otherwise has no way to know a different model answered.
+	if (meta?.embeddingModel) {
+		console.log(`embedding_model=${meta.embeddingModel}`);
+		console.log("embedding_model_adopted=true");
+		if (meta.configuredModel) {
+			console.log(`configured_model=${meta.configuredModel}`);
+		}
+	}
 	for (const r of results) {
 		if (r.documentType === "session_observation") {
 			const meta = r.observationMetadata || {};
