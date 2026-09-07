@@ -32,14 +32,21 @@ before the first coloured byte, from the first source that has an opinion.
   the CLI entry now runs with `--env-file=/dev/null` (in the shebang for the npm install,
   and compiled into the standalone binaries). `dotenv` remains the loader for `./.env`, as
   before. Consequence: Bun's automatic loading of `.env.local` and `.env.$NODE_ENV` no
-  longer applies to mnemex; put those values in `./.env` or the environment.
+  longer applies to mnemex; put those values in `./.env` or the environment. The shebang
+  needs an `env` that supports `-S` (macOS, FreeBSD, GNU coreutils ≥ 8.30); on BusyBox
+  run `bun --env-file=/dev/null dist/index.js` instead.
 - **TUI components read colours from the palette instead of their own literals.** The
   syntax highlighter, result list, result detail view, and two smaller screens carried
   hardcoded hex values; thirty roles moved into the palette so both themes reach every
   screen.
-- The terminal query never runs for `--agent`, `--mcp`, `mnemex rg`, `--help`,
-  `--version`, a bare `mnemex`, `TERM=dumb`, or a piped stdout, so machine-readable
-  output stays byte-exact.
+- The terminal query (OSC 11) runs only for the TUI commands (`ui`, `monitor`, `setup`,
+  `admin`), and only on an interactive TTY — never for `--agent`, `--mcp`, `mnemex rg`,
+  `--help`, `--version`, a bare `mnemex`, `TERM=dumb`, or a piped stdout. The query puts
+  stdin in raw mode, and a backgrounded job (`mnemex index &`) that still holds the
+  terminal would be stopped by SIGTTOU for doing that; a backgrounded job must never be
+  stopped by a tty query. Every other command still takes the theme from `--theme`,
+  `MNEMEX_THEME`, `TERM_THEME` and `COLORFGBG`, so machine-readable output stays
+  byte-exact and the ANSI palette still switches.
 
 ## [0.34.0] - 2026-09-04
 

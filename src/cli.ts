@@ -7083,7 +7083,7 @@ ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
   ${c.cyan}-h, --help${c.reset}             Show this help
   ${c.cyan}--agent${c.reset}                Agent mode: no logo, compact output (for tools/scripts)
-  ${c.cyan}--theme=light|dark${c.reset}     Colour theme (default: auto-detect via TERM_THEME / OSC 11 / COLORFGBG)
+  ${c.cyan}--theme=light|dark${c.reset}     Colour theme (default: TERM_THEME / COLORFGBG; TUI commands also query the terminal)
   ${c.cyan}--models${c.reset}               List available embedding models (with --free, --refresh)
 
 ${c.yellow}${c.bold}MCP SERVER${c.reset}

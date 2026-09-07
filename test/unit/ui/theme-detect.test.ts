@@ -22,6 +22,7 @@ import {
 	ThemeFlagError,
 	type ThemeMode,
 	type ThemeProbe,
+	TUI_COMMANDS,
 } from "../../../src/ui/theme-detect.js";
 import { captureThemeEnv, type ThemeEnv } from "../../../src/ui/theme-env.js";
 
@@ -359,21 +360,21 @@ describe("detectThemeAtStartup — diagnostics (row 9; AC 9 / FR4)", () => {
 		args: string[];
 		opts: Partial<DetectOptions>;
 	}> = [
-		{ name: "flag", args: ["--theme=light", "status"], opts: {} },
-		{ name: "env", args: ["status"], opts: { env: { MNEMEX_THEME: "light" } } },
+		{ name: "flag", args: ["--theme=light", "ui"], opts: {} },
+		{ name: "env", args: ["ui"], opts: { env: { MNEMEX_THEME: "light" } } },
 		{
 			name: "term-theme",
-			args: ["status"],
+			args: ["ui"],
 			opts: { env: { TERM_THEME: "light" } },
 		},
 		{
 			name: "osc11",
-			args: ["status"],
+			args: ["ui"],
 			opts: { io: ttyIo(), probe: probeReturning("light") },
 		},
 		{
 			name: "colorfgbg",
-			args: ["status"],
+			args: ["ui"],
 			opts: { env: { COLORFGBG: "0;15" } },
 		},
 	];
@@ -396,7 +397,7 @@ describe("detectThemeAtStartup — diagnostics (row 9; AC 9 / FR4)", () => {
 			theme: resolved,
 			stderr,
 			probe,
-		} = await detect(["status"], {
+		} = await detect(["ui"], {
 			io: ttyIo(),
 			debug: true,
 		});
@@ -412,7 +413,7 @@ describe("detectThemeAtStartup — diagnostics (row 9; AC 9 / FR4)", () => {
 			theme: resolved,
 			stderr,
 			probe,
-		} = await detect(["status"], {
+		} = await detect(["ui"], {
 			io: pipedIo(),
 			debug: true,
 		});
@@ -426,7 +427,7 @@ describe("detectThemeAtStartup — diagnostics (row 9; AC 9 / FR4)", () => {
 	});
 
 	it("default without MNEMEX_DEBUG: zero writes", async () => {
-		const { theme: resolved, stderr } = await detect(["status"], {
+		const { theme: resolved, stderr } = await detect(["ui"], {
 			io: ttyIo(),
 			debug: false,
 		});
@@ -439,14 +440,14 @@ describe("detectThemeAtStartup — diagnostics (row 9; AC 9 / FR4)", () => {
 		const darkText = theme.text;
 		const darkGreen = colors.green;
 
-		const { theme: resolved } = await detect(["--theme=light", "status"], {});
+		const { theme: resolved } = await detect(["--theme=light", "ui"], {});
 
 		expect(resolved.mode).toBe("light");
 		expect(getTheme()).toBe(resolved);
 		expect(theme.text).not.toBe(darkText);
 		expect(colors.green).not.toBe(darkGreen);
 
-		await detect(["--theme=dark", "status"], {});
+		await detect(["--theme=dark", "ui"], {});
 		expect(theme.text).toBe(darkText);
 		expect(colors.green).toBe(darkGreen);
 	});
@@ -495,8 +496,37 @@ describe("detectThemeAtStartup — the FR6 gate (row 10)", () => {
 		expect(probe.mock.calls.length).toBe(0);
 	});
 
+	it("TUI gate: `ui` on a TTY probes; each TUI command is allowed through", async () => {
+		for (const cmd of TUI_COMMANDS) {
+			const { probe } = await detect([cmd], { io: ttyIo() });
+			expect(probe.mock.calls.length).toBe(1);
+		}
+	});
+
+	for (const cmd of ["search", "index", "watch", "status", "init"]) {
+		it(`TUI gate: \`${cmd}\` on a TTY never probes (a backgrounded job must not be stopped by SIGTTOU)`, async () => {
+			const { theme: resolved, probe } = await detect([cmd, "x"], {
+				io: ttyIo(),
+			});
+
+			expect(probe.mock.calls.length).toBe(0);
+			expect(resolved.source).toBe("default");
+		});
+	}
+
+	it("non-TUI commands still take the theme from env, so the palette switches without a query", async () => {
+		const { theme: resolved, probe } = await detect(["search", "x"], {
+			io: ttyIo(),
+			env: { TERM_THEME: "light" },
+		});
+
+		expect(probe.mock.calls.length).toBe(0);
+		expect(resolved.mode).toBe("light");
+		expect(resolved.source).toBe("term-theme");
+	});
+
 	it("agent mode never probes even on a TTY", async () => {
-		const { probe } = await detect(["status"], {
+		const { probe } = await detect(["ui"], {
 			io: ttyIo(),
 			agentMode: true,
 		});
@@ -505,7 +535,7 @@ describe("detectThemeAtStartup — the FR6 gate (row 10)", () => {
 	});
 
 	it("TERM=dumb from the startup snapshot never probes", async () => {
-		const { probe } = await detect(["status"], {
+		const { probe } = await detect(["ui"], {
 			io: ttyIo(),
 			env: { TERM: "dumb" },
 		});
@@ -514,18 +544,18 @@ describe("detectThemeAtStartup — the FR6 gate (row 10)", () => {
 	});
 
 	it("a piped stdout never probes; a TTY on both ends does", async () => {
-		const piped = await detect(["status"], {
+		const piped = await detect(["ui"], {
 			io: { stdin: ttyIo().stdin, stdout: pipedIo().stdout },
 		});
 		expect(piped.probe.mock.calls.length).toBe(0);
 
-		const tty = await detect(["status"], { io: ttyIo() });
+		const tty = await detect(["ui"], { io: ttyIo() });
 		expect(tty.probe.mock.calls.length).toBe(1);
 	});
 
 	it("a bad --theme value throws ThemeFlagError before anything is applied", async () => {
 		await expect(
-			detect(["--theme=blue", "status"], { io: ttyIo() }),
+			detect(["--theme=blue", "ui"], { io: ttyIo() }),
 		).rejects.toBeInstanceOf(ThemeFlagError);
 	});
 });

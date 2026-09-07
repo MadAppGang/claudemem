@@ -410,11 +410,37 @@ export interface DetectOptions {
 const NO_PROBE_ARGS = new Set(["--help", "-h", "--version"]);
 
 /**
+ * The only commands that may run the OSC 11 probe: those that open a
+ * full-screen TUI (`startTui`, `startMonitor`, `startSetupWizard`,
+ * `startAdminTUI` in `src/cli.ts`). `init` is not here — it goes to
+ * `handleInit`, not the wizard.
+ *
+ * Why the list exists: the probe calls `stdin.setRawMode(true)`, which is a
+ * tcsetattr on the controlling terminal. A job the user backgrounded from an
+ * interactive shell (`mnemex index &`, `mnemex watch &`) still has a TTY on
+ * both stdin and stdout, so every other gate passes — and a background job
+ * touching the terminal's attributes gets SIGTTOU and is STOPPED by the
+ * kernel. A TUI command in the background is already unusable, so limiting
+ * the query to them costs nothing; every other command still resolves the
+ * theme from --theme / MNEMEX_THEME / TERM_THEME / COLORFGBG, so the ANSI
+ * palette still switches — only the terminal query is skipped.
+ */
+export const TUI_COMMANDS: ReadonlySet<string> = new Set([
+	"ui",
+	"monitor",
+	"setup",
+	"configure",
+	"profile",
+	"admin",
+]);
+
+/**
  * The FR6 gate: the probe may only run when the process really is talking to
  * a person at a terminal. Every condition is independent and any one of them
  * is enough to say no; `rg` is byte-identical to ripgrep and must never see a
  * query echoed into its output, and help/version exit before any colour is
  * drawn (LOW-8). TERM comes from the startup snapshot, like the other env.
+ * Finally, only a TUI command may query at all (see `TUI_COMMANDS`).
  */
 function isInteractive(
 	rest: readonly string[],
@@ -429,6 +455,9 @@ function isInteractive(
 	if (rest.some((arg) => NO_PROBE_ARGS.has(arg))) return false;
 	// Bare argv prints help, same as --help (runCli's `!command` branch).
 	if (rest.length === 0) return false;
+	// Only a TUI command may touch the tty: a backgrounded non-TUI job would
+	// be stopped by SIGTTOU on setRawMode.
+	if (!TUI_COMMANDS.has(rest[0])) return false;
 	return true;
 }
 

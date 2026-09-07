@@ -277,7 +277,7 @@ describe("detectThemeAtStartup (black box) — diagnostics never touch stdout (F
 		const out = spyOn(process.stdout, "write").mockImplementation(() => true);
 		const log = spyOn(console, "log").mockImplementation(() => {});
 		try {
-			const { theme, stderrWrites } = await detect(["status"], {
+			const { theme, stderrWrites } = await detect(["ui"], {
 				agentMode: true,
 				io: pipedIo(),
 				debug: true,
@@ -298,7 +298,7 @@ describe("detectThemeAtStartup (black box) — diagnostics never touch stdout (F
 	it("CH-41: the interactive default line names MNEMEX_THEME as the way to skip detection, stdout untouched", async () => {
 		const out = spyOn(process.stdout, "write").mockImplementation(() => true);
 		try {
-			const { theme, stderrWrites } = await detect(["status"], {
+			const { theme, stderrWrites } = await detect(["ui"], {
 				io: ttyIo(),
 				debug: true,
 			});
@@ -314,12 +314,12 @@ describe("detectThemeAtStartup (black box) — diagnostics never touch stdout (F
 	});
 
 	it("CH-42: each diagnostic is one newline-terminated line with no ANSI escapes", async () => {
-		const nonInteractive = await detect(["status"], {
+		const nonInteractive = await detect(["ui"], {
 			agentMode: true,
 			io: pipedIo(),
 			debug: true,
 		});
-		const interactive = await detect(["status"], {
+		const interactive = await detect(["ui"], {
 			io: ttyIo(),
 			debug: true,
 		});
@@ -341,7 +341,7 @@ describe("detectThemeAtStartup (black box) — diagnostics never touch stdout (F
 			io: pipedIo(),
 			debug: false,
 		});
-		const interactive = await detect(["status"], {
+		const interactive = await detect(["ui"], {
 			io: ttyIo(),
 			debug: false,
 		});
@@ -382,8 +382,23 @@ describe("detectThemeAtStartup (black box) — the FR6 gate keeps args and never
 		expect(probe.mock.calls.length).toBe(0);
 	});
 
+	it("CH-50: `ui` with both streams TTY probes (the TUI needs the answer)", async () => {
+		const { probe } = await detect(["ui"], { io: ttyIo() });
+
+		expect(probe.mock.calls.length).toBe(1);
+	});
+
+	for (const cmd of ["search", "index", "watch"]) {
+		it(`CH-51: \`${cmd}\` with both streams TTY never probes (SIGTTOU on a backgrounded job)`, async () => {
+			const { theme, probe } = await detect([cmd, "x"], { io: ttyIo() });
+
+			expect(probe.mock.calls.length).toBe(0);
+			expect(theme.source).toBe("default");
+		});
+	}
+
 	it("CH-48: a TTY stdout with a non-TTY stdin never probes", async () => {
-		const { theme, probe } = await detect(["status"], {
+		const { theme, probe } = await detect(["ui"], {
 			io: { stdin: pipedIo().stdin, stdout: ttyIo().stdout },
 		});
 
@@ -401,7 +416,7 @@ describe("detectThemeAtStartup (black box) — the FR6 gate keeps args and never
 	});
 
 	it("CH-46: agent mode with a TTY still resolves from env (env-only, not forced dark)", async () => {
-		const { theme, probe } = await detect(["status"], {
+		const { theme, probe } = await detect(["ui"], {
 			io: ttyIo(),
 			agentMode: true,
 			env: { COLORFGBG: "0;15" },
@@ -413,10 +428,10 @@ describe("detectThemeAtStartup (black box) — the FR6 gate keeps args and never
 	});
 
 	it("CH-52/53: getTheme() agrees with the last returned resolution and has the contract shape", async () => {
-		const first = await detect(["--theme=light", "status"], {});
+		const first = await detect(["--theme=light", "ui"], {});
 		expect(getTheme()).toEqual(first.theme);
 
-		const second = await detect(["--theme=dark", "status"], {});
+		const second = await detect(["--theme=dark", "ui"], {});
 		const current = getTheme();
 
 		expect(current).toEqual(second.theme);
@@ -430,7 +445,7 @@ describe("detectThemeAtStartup (black box) — the FR6 gate keeps args and never
 			"default",
 		]).toContain(current.source);
 		expect(Array.isArray(current.argv)).toBe(true);
-		expect(current.argv).toEqual(["status"]);
+		expect(current.argv).toEqual(["ui"]);
 	});
 });
 
@@ -464,15 +479,15 @@ describe("parseThemeFlag (black box)", () => {
 	});
 
 	it("PF-08: other flags survive the strip in their original order", () => {
-		expect(parseThemeFlag(["--theme=light", "--agent", "status"])).toEqual({
+		expect(parseThemeFlag(["--theme=light", "--agent", "ui"])).toEqual({
 			mode: "light",
-			rest: ["--agent", "status"],
+			rest: ["--agent", "ui"],
 		});
 		expect(
-			parseThemeFlag(["--agent", "status", "--theme", "dark", "--json"]),
+			parseThemeFlag(["--agent", "ui", "--theme", "dark", "--json"]),
 		).toEqual({
 			mode: "dark",
-			rest: ["--agent", "status", "--json"],
+			rest: ["--agent", "ui", "--json"],
 		});
 	});
 
@@ -481,9 +496,9 @@ describe("parseThemeFlag (black box)", () => {
 			mode: null,
 			rest: ["--themes=light"],
 		});
-		expect(parseThemeFlag(["--theme-x", "status"])).toEqual({
+		expect(parseThemeFlag(["--theme-x", "ui"])).toEqual({
 			mode: null,
-			rest: ["--theme-x", "status"],
+			rest: ["--theme-x", "ui"],
 		});
 	});
 
@@ -502,9 +517,9 @@ describe("parseThemeFlag (black box)", () => {
 		expect(rest).not.toBe(frozen);
 		expect(frozen).toEqual(["--theme=light", "x"]);
 
-		const noFlag = Object.freeze(["status", "--agent"]);
+		const noFlag = Object.freeze(["ui", "--agent"]);
 		const passthrough = parseThemeFlag(noFlag);
-		expect(passthrough.rest).toEqual(["status", "--agent"]);
+		expect(passthrough.rest).toEqual(["ui", "--agent"]);
 		expect(passthrough.rest).not.toBe(noFlag);
 	});
 
