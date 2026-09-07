@@ -454,6 +454,7 @@ mnemex docs clear        # clear cached documentation
 --max-depth <n>       # impact analysis depth (default: 10)
 --include-exported    # include exported symbols in dead-code scan
 --agent               # agent mode: no logo, compact output (for AI tools)
+--theme=light|dark    # colour theme (default: auto-detect); also `--theme light`
 ```
 
 ## Config
@@ -463,6 +464,12 @@ Env vars:
 - `MNEMEX_MODEL` — override embedding model
 - `MNEMEX_ON_MODEL_MISMATCH` — `use-indexed` (default) or `force-model`, see below
 - `CONTEXT7_API_KEY` — for documentation fetching (optional)
+- `MNEMEX_THEME` — `light` or `dark`; mnemex's own theme override
+- `TERM_THEME` — `light` or `dark`; the shared terminal-theme convention, honoured when `MNEMEX_THEME` is unset
+
+The colour theme is resolved once at startup, first answer wins: `--theme` flag → `MNEMEX_THEME` → `TERM_THEME` → OSC 11 probe of the terminal background (interactive TTY only; never under `--agent`, `--mcp`, `mnemex rg`, piped output or `TERM=dumb`) → `COLORFGBG` → dark. Only `./.env` is loaded, via dotenv (Bun's automatic `.env.local` / `.env.$NODE_ENV` loading is disabled), and `TERM_THEME` / `MNEMEX_THEME` are never read from `.env` — they must come from the real process environment.
+
+Inside tmux or zellij, mnemex asks the multiplexer, not your terminal, for the background colour. Recent versions answer OSC 11 on the outer terminal's behalf; if yours does not, or you switched the terminal's theme after starting the session, set `TERM_THEME=light|dark` (or `MNEMEX_THEME`) — it takes precedence and mnemex's probe is skipped. (The TUI library still sends its own query at startup; its answer does not affect mnemex's colours.)
 
 Files:
 - `~/.mnemex/config.json` — global config (provider, model, docs settings)

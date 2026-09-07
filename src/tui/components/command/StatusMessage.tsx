@@ -12,7 +12,7 @@
  *   ⚠ Index is outdated, re-run: mnemex index --force
  */
 
-import { theme } from "../../theme.js";
+import { type ThemePalette, theme } from "../../theme.js";
 
 // ============================================================================
 // Types
@@ -43,12 +43,17 @@ const ICONS: Record<StatusType, string> = {
 	warning: "⚠",
 };
 
-/** Map message type to theme color */
-const COLORS: Record<StatusType, string> = {
-	success: theme.success,
-	error: theme.error,
-	info: theme.info,
-	warning: theme.warning,
+/**
+ * Map message type to the palette KEY, not the value. The value is read from
+ * `theme` at render time so that `applyTheme()` (which swaps the palette in
+ * place after this module has been imported) is honoured. A module-scope copy
+ * of `theme.success` would be a stale string snapshot.
+ */
+const COLOR_KEY: Record<StatusType, keyof ThemePalette> = {
+	success: "success",
+	error: "error",
+	info: "info",
+	warning: "warning",
 };
 
 // ============================================================================
@@ -63,7 +68,7 @@ const COLORS: Record<StatusType, string> = {
  */
 export function StatusMessage({ type, message }: StatusMessageProps) {
 	const icon = ICONS[type];
-	const color = COLORS[type];
+	const color = theme[COLOR_KEY[type]];
 
 	return (
 		<box flexDirection="row" paddingTop={1}>

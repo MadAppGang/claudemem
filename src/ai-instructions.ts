@@ -57,6 +57,7 @@ const INSTRUCTIONS: Record<AgentRole, string> = {
 
 <memory>
 Tool: mnemex (symbol graph + semantic search + code analysis)
+(--theme=light|dark / MNEMEX_THEME select the colour palette for interactive use; irrelevant under --agent, which never probes the terminal)
 
 SYMBOL GRAPH COMMANDS (use --agent for parsing):
   map [query]       → Repo structure, symbols ranked by PageRank
@@ -148,6 +149,7 @@ Format: symbol (file:line) with PageRank score
 
 <memory>
 Tool: mnemex (symbol graph + semantic search + code analysis)
+(--theme=light|dark / MNEMEX_THEME select the colour palette for interactive use; irrelevant under --agent, which never probes the terminal)
 
 SYMBOL GRAPH COMMANDS (use --agent):
   map [query]       → Find relevant code areas
@@ -246,6 +248,7 @@ Format: file:line references from symbol output
 
 <memory>
 Tool: mnemex (symbol graph + semantic search + code analysis)
+(--theme=light|dark / MNEMEX_THEME select the colour palette for interactive use; irrelevant under --agent, which never probes the terminal)
 
 SYMBOL GRAPH COMMANDS (use --agent):
   map [query]       → Find test-related code
@@ -340,6 +343,7 @@ Format: production file:line → test file:line
 
 <memory>
 Tool: mnemex (symbol graph + semantic search + code analysis)
+(--theme=light|dark / MNEMEX_THEME select the colour palette for interactive use; irrelevant under --agent, which never probes the terminal)
 
 SYMBOL GRAPH COMMANDS (use --agent):
   map [query]       → Overview of error-related code

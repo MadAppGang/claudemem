@@ -67,6 +67,7 @@ import {
 	formatElapsed,
 	printLogo as printLogoUI,
 } from "./ui/index.js";
+import { detectThemeAtStartup, ThemeFlagError } from "./ui/theme-detect.js";
 
 // ============================================================================
 // Version & Branding
@@ -194,6 +195,23 @@ export async function runCli(args: string[]): Promise<void> {
 	// Auto-enable agent mode in AI/non-TTY environments
 	if (isAgentMode()) {
 		agentMode = true;
+	}
+
+	// Resolve the colour theme once, before any coloured byte is written.
+	// Strips --theme from args (must precede `const command = args[0]`,
+	// CLAUDE.md gotcha #8). Only a bad flag value is handled here; anything
+	// else that escapes is a bug and goes to the caller's `fatal` handler.
+	try {
+		const themed = await detectThemeAtStartup(args, { agentMode });
+		args = themed.args;
+	} catch (err) {
+		if (!(err instanceof ThemeFlagError)) throw err;
+		if (agentMode) {
+			agentOutput.error(err.message);
+		} else {
+			console.error(`Error: ${err.message}`);
+		}
+		process.exit(1);
 	}
 
 	// Handle flag-style aliases (e.g. --watch → watch)
@@ -7065,6 +7083,7 @@ ${c.yellow}${c.bold}GLOBAL OPTIONS${c.reset}
   ${c.cyan}-v, --version${c.reset}          Show version
   ${c.cyan}-h, --help${c.reset}             Show this help
   ${c.cyan}--agent${c.reset}                Agent mode: no logo, compact output (for tools/scripts)
+  ${c.cyan}--theme=light|dark${c.reset}     Colour theme (default: auto-detect via TERM_THEME / OSC 11 / COLORFGBG)
   ${c.cyan}--models${c.reset}               List available embedding models (with --free, --refresh)
 
 ${c.yellow}${c.bold}MCP SERVER${c.reset}

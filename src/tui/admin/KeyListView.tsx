@@ -161,8 +161,8 @@ export function KeyListView({
 			<box flexDirection="column" paddingTop={1} paddingBottom={0}>
 				{logoLines.map((parts, i) => (
 					<box key={i} flexDirection="row">
-						<text fg="#e67e22">{parts[0]}</text>
-						<text fg="#2ecc71">{parts[1]}</text>
+						<text fg={theme.primary}>{parts[0]}</text>
+						<text fg={theme.success}>{parts[1]}</text>
 					</box>
 				))}
 			</box>

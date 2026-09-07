@@ -11,6 +11,7 @@ import { HelpOverlay } from "./components/HelpOverlay.js";
 import { StatusBar } from "./components/StatusBar.js";
 import { TabBar } from "./components/TabBar.js";
 import { AppProvider, type TabId, useAppContext } from "./context.js";
+import { theme } from "./theme.js";
 import { AnalysisView } from "./views/AnalysisView.js";
 import { DoctorView } from "./views/DoctorView.js";
 import { GraphView } from "./views/GraphView.js";
@@ -181,7 +182,7 @@ function ActiveView({ tab }: ActiveViewProps) {
 		default:
 			return (
 				<box flexDirection="column" width="100%" height="100%" padding={1}>
-					<text fg="#6B7280">Unknown view: {tab}</text>
+					<text fg={theme.muted}>Unknown view: {tab}</text>
 				</box>
 			);
 	}
