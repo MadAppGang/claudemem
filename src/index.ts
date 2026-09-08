@@ -1,4 +1,11 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S bun --env-file=/dev/null
+// ^ --env-file=/dev/null stops bun's OWN .env auto-load (bun loads cwd .env,
+//   .env.local and .env.$NODE_ENV into process.env before any user code runs);
+//   dotenv below is then the only .env loader. Compiled binaries get the same
+//   flag via --compile-exec-argv (package.json build:binary*, release.yml).
+//   Spell it exactly this way: --no-env-file works in a shebang but leaks
+//   through --compile-exec-argv. Without it a cwd .env could supply
+//   TERM_THEME / MNEMEX_THEME indistinguishably from the real environment (FR3).
 
 /**
  * mnemex - Local code indexing tool for Claude Code
@@ -10,6 +17,14 @@
 
 import { config } from "dotenv";
 import { runMigrations } from "./migration.js";
+import { captureStartupEnv } from "./ui/theme-env.js";
+
+// Snapshot TERM_THEME / MNEMEX_THEME / COLORFGBG / TERM from the REAL process
+// environment before dotenv can inject keys from ./.env (theme feature, FR3).
+// Two layers keep .env out of the theme: the shebang above stops bun's own
+// auto-load, and this call runs before dotenv, the only remaining loader.
+// Keep it above config().
+captureStartupEnv();
 
 // Load environment variables from .env file.
 // quiet: true is required — dotenv >= 17 prints an "injected env" banner to

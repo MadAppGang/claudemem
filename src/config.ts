@@ -221,6 +221,8 @@ export const ENV = {
 	MNEMEX_DOCS_ENABLED: "MNEMEX_DOCS_ENABLED",
 	/** What to do when the index's model differs from the configured one */
 	MNEMEX_ON_MODEL_MISMATCH: "MNEMEX_ON_MODEL_MISMATCH",
+	/** Colour theme override: "light" | "dark" (read pre-dotenv, see src/ui/theme-env.ts) */
+	MNEMEX_THEME: "MNEMEX_THEME",
 } as const;
 
 /** Context7 API endpoint */

@@ -49,7 +49,7 @@ jobs:
         run: bun run download-grammars
 
       - name: Build binary
-        run: bun build src/index.ts --compile --target=${{ matrix.target }} --external @opentui/core --external @opentui/react --outfile ${{ matrix.artifact }}
+        run: bun build src/index.ts --compile --compile-exec-argv="--env-file=/dev/null" --target=${{ matrix.target }} --external @opentui/core --external @opentui/react --outfile ${{ matrix.artifact }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

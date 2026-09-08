@@ -215,14 +215,11 @@ interface ResultRowProps {
 	terms: string[];
 }
 
-const SELECTED_BG = "#B8860B";
-const SELECTED_FG = "#000000";
-
-/** Background color for a score value (darker = worse) */
+/** Background color for a score value (darker = worse). Reads the active palette at call time. */
 function scoreBadgeBg(score: number): string {
-	if (score >= 0.7) return "#1B5E20"; // dark green
-	if (score >= 0.4) return "#E65100"; // dark orange
-	return "#B71C1C"; // dark red
+	if (score >= 0.7) return theme.scoreHighBg;
+	if (score >= 0.4) return theme.scoreMidBg;
+	return theme.scoreLowBg;
 }
 
 function ResultRow({ result, isSelected, isExpanded, terms }: ResultRowProps) {
@@ -250,9 +247,9 @@ function ResultRow({ result, isSelected, isExpanded, terms }: ResultRowProps) {
 	);
 	const gutterWidth = Math.max(String(maxLineNo).length, 3);
 
-	const headerBg = isSelected ? SELECTED_BG : undefined;
-	const headerFg = isSelected ? SELECTED_FG : theme.text;
-	const headerDimFg = isSelected ? SELECTED_FG : theme.dimmed;
+	const headerBg = isSelected ? theme.selectedRowBg : undefined;
+	const headerFg = isSelected ? theme.selectedRowFg : theme.text;
+	const headerDimFg = isSelected ? theme.selectedRowFg : theme.dimmed;
 
 	const description = useMemo(
 		() => getChunkDescription(chunk.signature, width, result.summary),
@@ -279,19 +276,19 @@ function ResultRow({ result, isSelected, isExpanded, terms }: ResultRowProps) {
 				</box>
 				{/* Score badges with colored backgrounds */}
 				<box backgroundColor={scoreBadgeBg(score)}>
-					<text fg="#FFFFFF">{` ${pct}% `}</text>
+					<text fg={theme.badgeText}>{` ${pct}% `}</text>
 				</box>
 				<box>
 					<text fg={theme.dimmed}> </text>
 				</box>
-				<box backgroundColor="#1A237E">
-					<text fg="#90CAF9">{` v:${vecPct}% `}</text>
+				<box backgroundColor={theme.badgeVecBg}>
+					<text fg={theme.badgeVecFg}>{` v:${vecPct}% `}</text>
 				</box>
 				<box>
 					<text fg={theme.dimmed}> </text>
 				</box>
-				<box backgroundColor="#4A148C">
-					<text fg="#CE93D8">{` k:${kwPct}% `}</text>
+				<box backgroundColor={theme.badgeKwBg}>
+					<text fg={theme.badgeKwFg}>{` k:${kwPct}% `}</text>
 				</box>
 				<box>
 					<text fg={theme.dimmed}> </text>

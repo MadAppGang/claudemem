@@ -46,15 +46,26 @@ const CHUNK_TYPE_ABBREV: Record<string, string> = {
 	file: "file",
 };
 
-const KIND_COLORS: Record<string, string> = {
-	function: "#61AFEF",
-	method: "#61AFEF",
-	class: "#E5C07B",
-	interface: "#E5C07B",
-	type: "#E5C07B",
-	enum: "#E5C07B",
-	module: "#8B5CF6",
-};
+/**
+ * Colour for a symbol kind, read from the ACTIVE palette at call time so
+ * `applyTheme` is honoured (a module-scope map would be a stale snapshot).
+ */
+function kindColorFor(kind: string): string {
+	switch (kind) {
+		case "function":
+		case "method":
+			return theme.kindFunc;
+		case "class":
+		case "interface":
+		case "type":
+		case "enum":
+			return theme.kindType;
+		case "module":
+			return theme.kindModule;
+		default:
+			return theme.muted;
+	}
+}
 
 /** Word-wrap a line to fit within maxW, appending results to `out` */
 function wrapLine(text: string, maxW: number, out: string[]) {
@@ -163,9 +174,9 @@ function parseSummaryContent(
 }
 
 function scoreBadgeBg(score: number): string {
-	if (score >= 0.7) return "#1B5E20";
-	if (score >= 0.4) return "#E65100";
-	return "#B71C1C";
+	if (score >= 0.7) return theme.scoreHighBg;
+	if (score >= 0.4) return theme.scoreMidBg;
+	return theme.scoreLowBg;
 }
 
 /**
@@ -197,9 +208,9 @@ function formatPR(pr: number, symbolCount = 1500): string {
 function prBadgeBg(pr: number, symbolCount = 1500): string {
 	const avg = 1 / symbolCount;
 	const ratio = pr / avg;
-	if (ratio >= 5) return "#1B5E20"; // green — well above average
-	if (ratio >= 1) return "#E65100"; // orange — around average
-	return "#B71C1C"; // red — below average
+	if (ratio >= 5) return theme.scoreHighBg; // green — well above average
+	if (ratio >= 1) return theme.scoreMidBg; // orange — around average
+	return theme.scoreLowBg; // red — below average
 }
 
 /** Strip "(part N/M)" suffix from chunk name for symbol lookup */
@@ -240,7 +251,7 @@ function SectionHeader({
 	return (
 		<box height={1} width="100%" backgroundColor={bg} flexDirection="row">
 			<box>
-				<text fg="#FFFFFF">{`  ${title}${countStr}  `}</text>
+				<text fg={theme.sectionText}>{`  ${title}${countStr}  `}</text>
 			</box>
 			{hint && (
 				<box>
@@ -266,7 +277,7 @@ function SymbolRow({
 	symbolCount: number;
 	selected?: boolean;
 }) {
-	const kindColor = KIND_COLORS[sym.kind] ?? theme.muted;
+	const kindColor = kindColorFor(sym.kind);
 	const kindBadge = CHUNK_TYPE_ABBREV[sym.kind] ?? sym.kind.slice(0, 4);
 	const pr = sym.pagerankScore;
 	const avg = 1 / symbolCount;
@@ -282,13 +293,13 @@ function SymbolRow({
 		<box
 			height={1}
 			flexDirection="row"
-			backgroundColor={selected ? "#37474F" : undefined}
+			backgroundColor={selected ? theme.detailSelectedBg : undefined}
 		>
 			<box>
 				<text fg={selected ? theme.info : theme.dimmed}>{prefix}</text>
 			</box>
 			<box backgroundColor={kindColor}>
-				<text fg="#000000">{` ${kindBadge.padEnd(4)} `}</text>
+				<text fg={theme.kindBadgeText}>{` ${kindBadge.padEnd(4)} `}</text>
 			</box>
 			<box>
 				<text fg={theme.dimmed}> </text>
@@ -308,7 +319,7 @@ function SymbolRow({
 				<text fg={theme.dimmed}>{"  "}</text>
 			</box>
 			<box backgroundColor={prBadgeBg(pr, symbolCount)}>
-				<text fg="#FFFFFF">{` PR:${prLabel} `}</text>
+				<text fg={theme.badgeText}>{` PR:${prLabel} `}</text>
 			</box>
 			{sym.isExported && (
 				<box>
@@ -684,7 +695,7 @@ export function ResultDetailView({
 	const ct = chunk.chunkType;
 	const typeLabel = ut && ut !== "unknown" ? ut : ct || "code";
 	const badge = CHUNK_TYPE_ABBREV[typeLabel] ?? typeLabel.substring(0, 4);
-	const kindColor = KIND_COLORS[typeLabel] ?? theme.muted;
+	const kindColor = kindColorFor(typeLabel);
 
 	const name = chunk.name
 		? chunk.parentName
@@ -770,7 +781,7 @@ export function ResultDetailView({
 			<box
 				height={1}
 				width="100%"
-				backgroundColor="#1E3A5F"
+				backgroundColor={theme.selected}
 				flexDirection="row"
 			>
 				<box>
@@ -779,7 +790,7 @@ export function ResultDetailView({
 					>{`  ${chunk.filePath}:${chunk.startLine}-${chunk.endLine}  `}</text>
 				</box>
 				<box backgroundColor={kindColor}>
-					<text fg="#000000">{` ${badge} `}</text>
+					<text fg={theme.kindBadgeText}>{` ${badge} `}</text>
 				</box>
 				<box>
 					<text fg={theme.dimmed}> </text>
@@ -791,19 +802,19 @@ export function ResultDetailView({
 					<text fg={theme.dimmed}>{"  "}</text>
 				</box>
 				<box backgroundColor={scoreBadgeBg(score)}>
-					<text fg="#FFFFFF">{` ${pct}% `}</text>
+					<text fg={theme.badgeText}>{` ${pct}% `}</text>
 				</box>
 				<box>
 					<text fg={theme.dimmed}> </text>
 				</box>
-				<box backgroundColor="#1A237E">
-					<text fg="#90CAF9">{` v:${vecPct}% `}</text>
+				<box backgroundColor={theme.badgeVecBg}>
+					<text fg={theme.badgeVecFg}>{` v:${vecPct}% `}</text>
 				</box>
 				<box>
 					<text fg={theme.dimmed}> </text>
 				</box>
-				<box backgroundColor="#4A148C">
-					<text fg="#CE93D8">{` k:${kwPct}% `}</text>
+				<box backgroundColor={theme.badgeKwBg}>
+					<text fg={theme.badgeKwFg}>{` k:${kwPct}% `}</text>
 				</box>
 				<box>
 					<text fg={theme.dimmed}>
@@ -826,7 +837,7 @@ export function ResultDetailView({
 						<box
 							height={1}
 							width="100%"
-							backgroundColor="#37474F"
+							backgroundColor={theme.sectionBgAlt}
 							flexDirection="row"
 						>
 							<box>
@@ -881,7 +892,7 @@ export function ResultDetailView({
 						<box
 							height={1}
 							width="100%"
-							backgroundColor="#263238"
+							backgroundColor={theme.sectionBg}
 							flexDirection="row"
 						>
 							<box>
@@ -910,7 +921,7 @@ export function ResultDetailView({
 			{/* ── Scrollable body ──────────────────────────────────────────── */}
 			<scrollbox width="100%" height="100%">
 				{/* ── Info section ──────────────────────────────────────── */}
-				<SectionHeader title="INFO" bg="#263238" />
+				<SectionHeader title="INFO" bg={theme.sectionBg} />
 				<InfoRow label="type" value={typeLabel} valueFg={kindColor} />
 				<InfoRow
 					label="language"
@@ -935,7 +946,7 @@ export function ResultDetailView({
 					<InfoRow
 						label="status"
 						value="POTENTIALLY DEAD (0 callers)"
-						valueFg="#EF5350"
+						valueFg={theme.dangerValue}
 					/>
 				)}
 				{sig && (
@@ -958,14 +969,16 @@ export function ResultDetailView({
 					<box
 						height={1}
 						width="100%"
-						backgroundColor="#B71C1C"
+						backgroundColor={theme.dangerBg}
 						flexDirection="row"
 					>
 						<box>
-							<text fg="#FFFFFF">{`  POTENTIALLY DEAD CODE  `}</text>
+							<text fg={theme.dangerFg}>{`  POTENTIALLY DEAD CODE  `}</text>
 						</box>
 						<box>
-							<text fg="#FFCDD2">{`0 callers found — this symbol may be unused`}</text>
+							<text
+								fg={theme.dangerNote}
+							>{`0 callers found — this symbol may be unused`}</text>
 						</box>
 					</box>
 				)}
@@ -976,7 +989,7 @@ export function ResultDetailView({
 						<box height={1}>
 							<text fg={theme.dimmed}>{""}</text>
 						</box>
-						<SectionHeader title="SYMBOL SUMMARY" bg="#37474F" />
+						<SectionHeader title="SYMBOL SUMMARY" bg={theme.sectionBgAlt} />
 						{symbolSummaryLines.map((sl, i) => (
 							<box
 								key={`ss-${i}`}
@@ -996,7 +1009,7 @@ export function ResultDetailView({
 						<box height={1}>
 							<text fg={theme.dimmed}>{""}</text>
 						</box>
-						<SectionHeader title="FILE SUMMARY" bg="#455A64" />
+						<SectionHeader title="FILE SUMMARY" bg={theme.sectionBgSoft} />
 						{fileSummaryLines.map((sl, i) => (
 							<box
 								key={`fs-${i}`}
@@ -1016,7 +1029,7 @@ export function ResultDetailView({
 						<box height={1}>
 							<text fg={theme.dimmed}>{""}</text>
 						</box>
-						<SectionHeader title="SUMMARY" bg="#37474F" />
+						<SectionHeader title="SUMMARY" bg={theme.sectionBgAlt} />
 						<box height={1} flexDirection="row" paddingLeft={4}>
 							<text fg={theme.dimmed}>
 								{"no summary (run mnemex index to generate)"}
@@ -1032,7 +1045,7 @@ export function ResultDetailView({
 				<SectionHeader
 					title={graphLoaded ? "CALLERS (who depends on this)" : "CALLERS"}
 					count={graphLoaded ? callers.length : undefined}
-					bg="#1A237E"
+					bg={theme.badgeVecBg}
 					hint={
 						callers.length > 0
 							? focusSection === "callers"
@@ -1072,7 +1085,7 @@ export function ResultDetailView({
 				<SectionHeader
 					title={graphLoaded ? "CALLEES (what this depends on)" : "CALLEES"}
 					count={graphLoaded ? callees.length : undefined}
-					bg="#4A148C"
+					bg={theme.badgeKwBg}
 					hint={
 						callees.length > 0
 							? focusSection === "callees"
@@ -1109,7 +1122,7 @@ export function ResultDetailView({
 				<box height={1}>
 					<text fg={theme.dimmed}>{""}</text>
 				</box>
-				<SectionHeader title={`CODE  ${chunk.filePath}`} bg="#263238" />
+				<SectionHeader title={`CODE  ${chunk.filePath}`} bg={theme.sectionBg} />
 				{codeLines.map((line, i) => {
 					const lineNo = chunk.startLine + i;
 					const num = String(lineNo).padStart(gutterWidth);

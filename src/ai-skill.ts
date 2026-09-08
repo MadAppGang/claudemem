@@ -172,6 +172,7 @@ LOW (<0.01):
 ✓ Use exact file:line from symbol output (not whole files)
 ✓ Trace full caller chain before complex changes
 ✓ Use --agent for all agent commands
+  (--theme=light|dark / MNEMEX_THEME select the colour palette for interactive use; irrelevant under --agent, which never probes the terminal)
 </best-practices>
 
 <avoid>

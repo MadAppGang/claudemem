@@ -3,6 +3,51 @@
 All notable changes to mnemex are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver.
 
+## [0.35.0] - 2026-09-08
+
+mnemex now knows whether your terminal is light or dark, and paints accordingly.
+Until now every interactive screen assumed a dark background; on a light terminal
+the code preview was yellow on white. The answer is decided once, at startup,
+before the first coloured byte, from the first source that has an opinion.
+
+### Added
+
+- **Terminal theme detection.** Resolution order, first answer wins: the `--theme=light|dark`
+  flag, then `MNEMEX_THEME`, then `TERM_THEME` (only `light` and `dark` count; `auto` or
+  anything else is "no opinion" and falls through rather than meaning dark), then an OSC 11
+  query to the terminal on an interactive TTY only (bounded at 200 ms, and usually answered
+  or declined in single-digit milliseconds thanks to a DA1 sentinel), then `COLORFGBG`, then
+  dark. `TERM_THEME` skips the query entirely. Nothing is printed when a source answered;
+  the only diagnostic goes to stderr, only on the default path, and only with `MNEMEX_DEBUG`.
+- **A light palette** for the TUI and for the ANSI output of every CLI command, with text
+  contrast of at least 4.5:1 on white pinned by tests. The dark palette is byte-identical to
+  0.34.0.
+- **`MNEMEX_THEME`** as mnemex's own theme variable, and `--theme` as a global flag,
+  documented in `mnemex --help` and the README, including a note for tmux and zellij users.
+
+### Changed
+
+- **`TERM_THEME` and `MNEMEX_THEME` are read from the process environment only, never from
+  a `.env` file.** Bun loads a cwd `.env` into `process.env` before any user code runs, so
+  the CLI entry now runs with `--env-file=/dev/null` (in the shebang for the npm install,
+  and compiled into the standalone binaries). `dotenv` remains the loader for `./.env`, as
+  before. Consequence: Bun's automatic loading of `.env.local` and `.env.$NODE_ENV` no
+  longer applies to mnemex; put those values in `./.env` or the environment. The shebang
+  needs an `env` that supports `-S` (macOS, FreeBSD, GNU coreutils ≥ 8.30); on BusyBox
+  run `bun --env-file=/dev/null dist/index.js` instead.
+- **TUI components read colours from the palette instead of their own literals.** The
+  syntax highlighter, result list, result detail view, and two smaller screens carried
+  hardcoded hex values; thirty roles moved into the palette so both themes reach every
+  screen.
+- The terminal query (OSC 11) runs only for the TUI commands (`ui`, `monitor`, `setup`,
+  `admin`), and only on an interactive TTY — never for `--agent`, `--mcp`, `mnemex rg`,
+  `--help`, `--version`, a bare `mnemex`, `TERM=dumb`, or a piped stdout. The query puts
+  stdin in raw mode, and a backgrounded job (`mnemex index &`) that still holds the
+  terminal would be stopped by SIGTTOU for doing that; a backgrounded job must never be
+  stopped by a tty query. Every other command still takes the theme from `--theme`,
+  `MNEMEX_THEME`, `TERM_THEME` and `COLORFGBG`, so machine-readable output stays
+  byte-exact and the ANSI palette still switches.
+
 ## [0.34.0] - 2026-09-04
 
 A release about failing loudly. Two silent failures are gone: an index built with

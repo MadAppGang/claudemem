@@ -11,15 +11,38 @@ import { theme } from "../theme.js";
 // Syntax color palette
 // ============================================================================
 
-export const SYNTAX_COLORS = {
-	keyword: "#C678DD",
-	string: "#98C379",
-	comment: "#5C6370",
-	number: "#D19A66",
-	type: "#E5C07B",
-	func: "#61AFEF",
-	punctuation: "#ABB2BF",
-} as const;
+export type SyntaxKind =
+	| "keyword"
+	| "string"
+	| "comment"
+	| "number"
+	| "type"
+	| "func"
+	| "punctuation";
+
+/**
+ * Resolve a syntax colour from the ACTIVE palette. Read at call time (inside
+ * the tokenizer, which runs at render) so `applyTheme` is honoured; a
+ * module-scope map of `theme.*` values would be a stale snapshot.
+ */
+export function syntaxColor(kind: SyntaxKind): string {
+	switch (kind) {
+		case "keyword":
+			return theme.syntaxKeyword;
+		case "string":
+			return theme.syntaxString;
+		case "comment":
+			return theme.syntaxComment;
+		case "number":
+			return theme.syntaxNumber;
+		case "type":
+			return theme.syntaxType;
+		case "func":
+			return theme.syntaxFunc;
+		case "punctuation":
+			return theme.syntaxPunctuation;
+	}
+}
 
 const JS_KEYWORDS = new Set([
 	"async",
@@ -149,25 +172,25 @@ export function syntaxColorLine(line: string, lang: string): TextSegment[] {
 			token.startsWith("/*") ||
 			token.startsWith("#")
 		) {
-			segments.push({ text: token, fg: SYNTAX_COLORS.comment });
+			segments.push({ text: token, fg: syntaxColor("comment") });
 		} else if (
 			(token.startsWith('"') && token.endsWith('"')) ||
 			(token.startsWith("'") && token.endsWith("'")) ||
 			(token.startsWith("`") && token.endsWith("`"))
 		) {
-			segments.push({ text: token, fg: SYNTAX_COLORS.string });
+			segments.push({ text: token, fg: syntaxColor("string") });
 		} else if (/^\d/.test(token)) {
-			segments.push({ text: token, fg: SYNTAX_COLORS.number });
+			segments.push({ text: token, fg: syntaxColor("number") });
 		} else if (keywords.has(token)) {
-			segments.push({ text: token, fg: SYNTAX_COLORS.keyword });
+			segments.push({ text: token, fg: syntaxColor("keyword") });
 		} else if (JS_LITERALS.has(token)) {
-			segments.push({ text: token, fg: SYNTAX_COLORS.number });
+			segments.push({ text: token, fg: syntaxColor("number") });
 		} else if (/^[A-Z][\w]*$/.test(token)) {
-			segments.push({ text: token, fg: SYNTAX_COLORS.type });
+			segments.push({ text: token, fg: syntaxColor("type") });
 		} else if (/^[a-zA-Z_$]/.test(token)) {
 			segments.push({ text: token, fg: theme.text });
 		} else {
-			segments.push({ text: token, fg: SYNTAX_COLORS.punctuation });
+			segments.push({ text: token, fg: syntaxColor("punctuation") });
 		}
 		match = tokenPattern.exec(line);
 	}
@@ -198,7 +221,7 @@ export function applyTermHighlights(
 					bg: seg.bg,
 				});
 			}
-			result.push({ text: m[0], fg: "#000000", bg: "#B8860B" });
+			result.push({ text: m[0], fg: theme.matchFg, bg: theme.matchBg });
 			lastIdx = pattern.lastIndex;
 			m = pattern.exec(seg.text);
 		}
