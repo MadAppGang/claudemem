@@ -27,6 +27,10 @@ import {
 	writeKeychainAccount,
 } from "../../../src/core/keychain.js";
 import {
+	DARWIN_ONLY_REFUSAL_FRAGMENTS,
+	expectedRefusalReason,
+} from "../../helpers/keychain-refusal.js";
+import {
 	FAILURE,
 	fakeKeychain,
 	installKeychainStub,
@@ -71,7 +75,14 @@ describe("test guards (D-7 / H3)", () => {
 		const read = readKeychainAccount("openrouter");
 		expect(read.status).toBe("failed");
 		if (read.status === "failed") {
-			expect(read.error).toContain("refusing to spawn /usr/bin/security");
+			// Off darwin the platform gate answers before either veto is reached, so
+			// the guarded-process wording is unreachable there.
+			expect(read.error).toContain(
+				expectedRefusalReason(
+					process.platform,
+					"refusing to spawn /usr/bin/security",
+				),
+			);
 		}
 
 		stub = installKeychainStub();
@@ -1131,6 +1142,33 @@ describe("test guards (D-7 / H3)", () => {
 		const patterns = securitySpawnPatterns();
 		const fired = benign.filter((f) => patterns.some((re) => re.test(f)));
 		expect(fired).toEqual([]);
+	});
+
+	test("no test hardcodes a darwin-only refusal reason", async () => {
+		// THE CLASS, not the instance. Six assertion sites hardcoded a refusal
+		// message that only darwin can produce; off darwin
+		// `keychainUnavailableReason()` answers first, so each one failed on
+		// `ubuntu-latest` while the security property held on BOTH platforms. They
+		// were found one CI round at a time, which is the expensive way.
+		//
+		// `expectedRefusalReason(platform, ...)` is the only sanctioned way to
+		// assert on these strings. This sweep reads real files, comment-stripped,
+		// so the prose above does not flag itself.
+		const glob = new Bun.Glob("**/*.{ts,tsx}");
+		const offenders: string[] = [];
+		for (const root of ["test", "tests"]) {
+			for await (const file of glob.scan({ cwd: root, absolute: true })) {
+				// The helper that DEFINES the fragments, and the sweep that reads
+				// them, both legitimately contain them.
+				if (file.includes("helpers/keychain-refusal")) continue;
+				if (file.endsWith("core/keychain.test.ts")) continue;
+				const source = stripComments(await Bun.file(file).text());
+				for (const fragment of DARWIN_ONLY_REFUSAL_FRAGMENTS) {
+					if (source.includes(fragment)) offenders.push(`${file}: ${fragment}`);
+				}
+			}
+		}
+		expect(offenders).toEqual([]);
 	});
 
 	test("the environment sentinel is present — a wrong-cwd run FAILS LOUDLY", () => {
