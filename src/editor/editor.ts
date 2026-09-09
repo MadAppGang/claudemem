@@ -5,10 +5,10 @@
  * Provides both symbol-level and line-level editing with per-file locking.
  */
 
-import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import type { DetachedEntryPointLauncher } from "../core/entry-point-launcher.js";
 import type { LspManager } from "../lsp/manager.js";
 import type { IndexCache } from "../mcp/cache.js";
 import type { McpConfig } from "../mcp/config.js";
@@ -62,6 +62,21 @@ export class SymbolEditor {
 	constructor(
 		private cache: IndexCache,
 		private config: McpConfig,
+		/**
+		 * Who starts the follow-up reindex. REQUIRED, and third rather than last,
+		 * so that no existing or future construction can silently fall back to the
+		 * installed binary.
+		 *
+		 * Production passes `spawnMnemexDetached` (`src/mcp/server.ts`); tests pass
+		 * a recorder (`test/helpers/test-workspace.ts`). Before this parameter
+		 * existed, `triggerReindex` called `spawn("mnemex", …)` directly, and every
+		 * `SymbolEditor` a test created — `test/e2e/editor/editor.e2e.test.ts`,
+		 * `test/e2e/scenarios/edit-restore.e2e.test.ts` — launched the real entry
+		 * point, which enables real keychain access in the child. An OPTIONAL
+		 * parameter defaulting to the production launcher would have left every one
+		 * of those call sites exactly as it was.
+		 */
+		private launchReindex: DetachedEntryPointLauncher,
 		private lspManager: LspManager | null = null,
 	) {
 		this.validator = new EditValidator();
@@ -254,16 +269,23 @@ export class SymbolEditor {
 	}
 
 	/**
-	 * Trigger immediate reindex for a specific file.
-	 * Spawns a background process to avoid blocking.
+	 * Trigger immediate reindex for a specific file, in the background.
+	 *
+	 * This used to be `spawn("mnemex", ["index", …])` — a BARE BINARY NAME
+	 * resolved through `PATH`. On any machine with mnemex installed it resolved
+	 * and ran the production entry point, whose first act is
+	 * `enableRealKeychainAccess()`; from a test, that reached the developer's real
+	 * login keychain. Nothing in the call looked like a path, so the static sweep
+	 * over entry-point PATHS could not see it (round 4). The launcher is now
+	 * injected: see the constructor, and `src/core/entry-point-launcher.ts` for
+	 * why this class no longer names the binary at all.
 	 */
 	private triggerReindex(filePath: string): void {
 		try {
-			const child = spawn("mnemex", ["index", "--quiet", "--files", filePath], {
-				cwd: this.config.workspaceRoot,
-				stdio: "ignore",
-				detached: true,
-			});
+			const child = this.launchReindex(
+				["index", "--quiet", "--files", filePath],
+				this.config.workspaceRoot,
+			);
 			// spawn() reports a missing executable ASYNCHRONOUSLY via an 'error'
 			// event — it does not throw — so the catch below never sees ENOENT.
 			// Without a listener Node re-raises it as an unhandled 'error' and
@@ -274,7 +296,8 @@ export class SymbolEditor {
 			child.on("error", () => {});
 			child.unref();
 		} catch {
-			// Synchronous spawn failures (e.g. unusable cwd) — also best-effort.
+			// Synchronous failures — an unusable cwd, or the launcher refusing
+			// because this is a guarded (test) process. Also best-effort.
 		}
 	}
 }

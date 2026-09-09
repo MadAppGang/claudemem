@@ -18,13 +18,18 @@
  * 11. Register SIGTERM/SIGINT shutdown handlers
  */
 
-import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { getIndexDbPath } from "../config.js";
+import {
+	type AwaitedEntryPointLauncher,
+	spawnMnemexAwaited,
+	spawnMnemexDetached,
+} from "../core/entry-point-launcher.js";
+import { primeSecrets } from "../core/secrets.js";
 import { SymbolEditor } from "../editor/editor.js";
 import { LspManager } from "../lsp/manager.js";
 import { MemoryStore } from "../memory/store.js";
@@ -32,7 +37,7 @@ import { IndexCache } from "./cache.js";
 import { CompletionDetector } from "./completion-detector.js";
 import { loadMcpConfig } from "./config.js";
 import { createLogger } from "./logger.js";
-import { DebounceReindexer } from "./reindexer.js";
+import { DebounceReindexer, spawnDetachedReindex } from "./reindexer.js";
 import { IndexStateManager } from "./state-manager.js";
 import {
 	registerAnalysisTools,
@@ -80,16 +85,33 @@ const SERVER_VERSION: string = readVersion();
 async function runBlockingIndex(
 	workspaceRoot: string,
 	logger: ReturnType<typeof createLogger>,
+	/**
+	 * Who starts the child. The literal `spawn("mnemex", …)` that used to sit
+	 * here was the same bare-binary-name bypass found in `src/editor/editor.ts`
+	 * (round 4): a name with no path in it, resolved through `PATH`, running the
+	 * production entry point and therefore enabling real keychain access inside
+	 * the child. See `src/core/entry-point-launcher.ts`.
+	 */
+	launch: AwaitedEntryPointLauncher,
 ): Promise<void> {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		logger.info(
 			"No index found — running initial index before starting server",
 		);
 
-		const child = spawn("mnemex", ["index", "--quiet"], {
-			cwd: workspaceRoot,
-			stdio: "ignore",
-		});
+		let child: ReturnType<AwaitedEntryPointLauncher>;
+		try {
+			child = launch(["index", "--quiet"], workspaceRoot);
+		} catch (err) {
+			// The launcher refuses outright in a guarded (test) process. Same
+			// best-effort contract as the 'error' path below: tools report "no
+			// index" gracefully rather than the server failing to start.
+			logger.warn(
+				`Could not run initial index: ${err instanceof Error ? err.message : String(err)}`,
+			);
+			resolve();
+			return;
+		}
 
 		child.on("exit", (code) => {
 			if (code === 0) {
@@ -130,6 +152,27 @@ export async function startMcpServer(): Promise<void> {
 	logger.debug("MCP server starting", { workspaceRoot: config.workspaceRoot });
 
 	// -------------------------------------------------------------------------
+	// Step 2b: Prime API keys ONCE into a session cache (long-lived process only)
+	// -------------------------------------------------------------------------
+	// Search and observe construct an embeddings client PER REQUEST, so without
+	// this an interactive user pays a fresh Bun.spawnSync on most requests and a
+	// locked keychain freezes the whole server once per request.
+	//
+	// If priming FAILS the cache is left EMPTY — never negatively populated. A
+	// negatively populated cache would make the server permanently believe nothing
+	// is stored; an empty one falls through to the normal read path, where the
+	// circuit breaker suppresses the follow-on spawns anyway.
+	//
+	// The trade: a user who edits the keychain in Keychain Access.app while this
+	// server runs is not picked up until it restarts. That applies ONLY here; the
+	// CLI, the wizard and the indexer keep the 3 s burst window.
+	const primed = primeSecrets();
+	logger.debug("Primed secrets", {
+		primed: primed.primed,
+		failed: primed.failed,
+	});
+
+	// -------------------------------------------------------------------------
 	// Step 3: Initialize IndexStateManager
 	// -------------------------------------------------------------------------
 	const stateManager = new IndexStateManager(config.indexDir);
@@ -140,7 +183,7 @@ export async function startMcpServer(): Promise<void> {
 	// -------------------------------------------------------------------------
 	const indexDbPath = getIndexDbPath(config.workspaceRoot);
 	if (!existsSync(indexDbPath)) {
-		await runBlockingIndex(config.workspaceRoot, logger);
+		await runBlockingIndex(config.workspaceRoot, logger, spawnMnemexAwaited);
 	}
 
 	// -------------------------------------------------------------------------
@@ -172,6 +215,10 @@ export async function startMcpServer(): Promise<void> {
 		cache,
 		completionDetector,
 		logger,
+		// The real one. This is the ONE place that launches the installed entry
+		// point in the background; see `spawnDetachedReindex` for why it is a
+		// parameter and not a hard-coded `spawn`.
+		spawnDetachedReindex,
 	);
 
 	// -------------------------------------------------------------------------
@@ -217,7 +264,14 @@ export async function startMcpServer(): Promise<void> {
 	// -------------------------------------------------------------------------
 	// Step 8b: Create SymbolEditor
 	// -------------------------------------------------------------------------
-	const editor = new SymbolEditor(cache, config, lspManager);
+	const editor = new SymbolEditor(
+		cache,
+		config,
+		// The production reindex launcher, supplied explicitly. See
+		// `src/core/entry-point-launcher.ts` for why it is injected.
+		spawnMnemexDetached,
+		lspManager,
+	);
 
 	// -------------------------------------------------------------------------
 	// Step 8c: Create MemoryStore

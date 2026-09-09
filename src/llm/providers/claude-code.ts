@@ -8,10 +8,10 @@
  * This is faster than spawning the CLI as a subprocess.
  */
 
-import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { readGenericPassword } from "../../core/keychain.js";
 import type {
 	LLMGenerateOptions,
 	LLMMessage,
@@ -85,26 +85,45 @@ function resolveModel(model: string): string {
 // Token Retrieval
 // ============================================================================
 
+/** The service Claude Code stores its own OAuth credentials under. */
+const CLAUDE_CODE_KEYCHAIN_SERVICE = "Claude Code-credentials";
+
 /**
  * Get Claude OAuth token from Claude Code's stored credentials.
  * Tries Keychain (Mac) first, then falls back to credentials file.
+ *
+ * THE KEYCHAIN READ GOES THROUGH `src/core/keychain.ts`'s PORT. It used to be a
+ * local `execSync` on a shell string naming the binary RELATIVELY, and external
+ * review found that to be the single largest hole in this build's central safety
+ * claim. Three distinct defects, all fixed by the one-line change of caller:
+ *
+ *  - PATH hijack (CWE-426). A binary named `security` earlier on `PATH` was handed
+ *    `-w` and printed this user's Claude Code OAuth token onto a pipe we parsed.
+ *    The port pins the absolute, Apple-signed path.
+ *  - Guard bypass (CWE-284). This is the DEFAULT enrichment provider, so any
+ *    process that constructed the default LLM client spawned `security` with
+ *    deny-by-default, the test sentinel and the `testDepsEverInstalled` latch all
+ *    unconsulted. A test that did so reached the developer's real login keychain.
+ *  - Budget lie. Its 5000 ms timeout was charged to nothing, so the process budget
+ *    that bounds worst-case index-lock staleness at 7000 ms did not cover it.
+ *
+ * Behaviour for the user is unchanged: a failure here still falls through to the
+ * credentials file below, which is what makes non-darwin and denied-keychain
+ * machines work.
  */
 function getClaudeOAuthToken(): string {
-	// Try Mac Keychain first
+	// Try Mac Keychain first — through the port, which refuses in any process that
+	// has not opted in, and never resolves the binary through PATH.
 	if (process.platform === "darwin") {
-		try {
-			const keychainData = execSync(
-				'security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null',
-				{ encoding: "utf-8", timeout: 5000 },
-			).trim();
-
-			if (keychainData) {
-				const parsed = JSON.parse(keychainData);
+		const read = readGenericPassword(CLAUDE_CODE_KEYCHAIN_SERVICE);
+		if (read.status === "found") {
+			try {
+				const parsed = JSON.parse(read.value.trim());
 				const token = parsed?.claudeAiOauth?.accessToken;
 				if (token) return token;
+			} catch {
+				// Not JSON, or no token in it. Try the file fallback.
 			}
-		} catch {
-			// Keychain access failed, try file fallback
 		}
 	}
 

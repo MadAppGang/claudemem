@@ -20,7 +20,11 @@ import { join } from "node:path";
 import type { IndexCache } from "../../src/mcp/cache.js";
 import { CompletionDetector } from "../../src/mcp/completion-detector.js";
 import type { Logger } from "../../src/mcp/logger.js";
-import { DebounceReindexer } from "../../src/mcp/reindexer.js";
+import {
+	DebounceReindexer,
+	REINDEX_ARGS,
+	type ReindexLauncher,
+} from "../../src/mcp/reindexer.js";
 import { IndexStateManager } from "../../src/mcp/state-manager.js";
 import { buildFreshness } from "../../src/mcp/tools/deps.js";
 import { FileWatcher } from "../../src/mcp/watcher.js";
@@ -173,6 +177,52 @@ function makeStubCache(): IndexCache {
 	} as unknown as IndexCache;
 }
 
+/**
+ * THE LAUNCHER, RECORDED INSTEAD OF RUN.
+ *
+ * Every `DebounceReindexer` below used to launch the INSTALLED `mnemex` binary
+ * for real: `spawn("mnemex", ["index", …])` with no `env`, so the child inherited
+ * whatever this process had. `mnemex` is on PATH on a developer machine, and the
+ * installed entry point calls `enableRealKeychainAccess()` in itself, so a run of
+ * this file from a directory where `bunfig.toml`'s preload does not apply reached
+ * the real login keychain — the round-3 CRITICAL, arrived at transitively, which
+ * is why no sweep over spawn sites in test files could see it.
+ *
+ * Those same real children were also the "pre-existing flake": each one raced to
+ * write `.mnemex/.indexing.lock` into the temp workspace, and the next
+ * `isLocked()` check in this file then skipped its reindex. Measured before this
+ * change: 1 failure in 8 runs of this file, always
+ * "after reindex completes, a new reindex can be triggered".
+ *
+ * The recorder captures the exact argv that WOULD have run, so the tests assert
+ * on the launch rather than on a side effect of one.
+ */
+/**
+ * What a launch request carries. There is no `command` field: since round 6
+ * the reindexer cannot choose what is launched, only the argv and the cwd
+ * (`ReindexLauncher` is `(args, cwd)`), so there is nothing to record.
+ */
+interface LaunchRecord {
+	args: string[];
+	cwd: string;
+}
+
+function makeRecordingLauncher(): {
+	launch: ReindexLauncher;
+	launches: LaunchRecord[];
+} {
+	const launches: LaunchRecord[] = [];
+	const launch: ReindexLauncher = (args, cwd) => {
+		launches.push({ args, cwd });
+		return {
+			pid: 424242,
+			on: () => {},
+			unref: () => {},
+		};
+	};
+	return { launch, launches };
+}
+
 // ---------------------------------------------------------------------------
 // Scenario 1: IndexStateManager tracks freshness across file changes
 // ---------------------------------------------------------------------------
@@ -320,6 +370,7 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 	let cache: IndexCache;
 	let completionDetector: CompletionDetector;
 	let reindexer: DebounceReindexer;
+	let recorder: ReturnType<typeof makeRecordingLauncher>;
 	let previousPath: string;
 
 	beforeEach(async () => {
@@ -330,6 +381,7 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 		cache = makeStubCache();
 		// Short poll interval for tests (not actually used in these tests)
 		completionDetector = new CompletionDetector(indexDir, 50);
+		recorder = makeRecordingLauncher();
 	});
 
 	afterEach(() => {
@@ -356,6 +408,7 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		expect(manager.isReindexing).toBe(false);
@@ -369,32 +422,39 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 			() => `onReindexStart was called ${startCount} times, expected 1`,
 		);
 
-		// The reindexer should have called onReindexStart() on the state manager.
-		// The actual `mnemex index` spawn will fail (no real binary in test),
-		// but the state transition should still happen.
-		// Either reindexing = true (spawn started but not finished) or the spawn
-		// error path called onReindexComplete(), leaving isReindexing = false.
-		// Either way, onReindexStart must have been called — verify via the
-		// side-effect: we check that the reindexer attempted to run at all by
-		// confirming manager received onReindexStart (isReindexing was true at
-		// some point). Since spawn can fail synchronously and immediately call
-		// onReindexComplete(), we instead check isLocked() or verify the
-		// state was touched by looking at lastIndexed being set (since
-		// onReindexComplete sets it).
-		//
-		// In test environments the mnemex binary may not be available,
-		// so the spawn throws and onReindexComplete is called synchronously,
-		// leaving isReindexing = false and lastIndexed set.
-		// In environments where the binary exists it will run and complete asynchronously.
-		// We accept either outcome.
-		const freshness = manager.getFreshness();
-		// The key invariant: after the debounce fires and reindex was attempted,
-		// we are NOT stuck with reindexingInProgress = true AND no lastIndexed.
-		// Either fresh (complete) or stale-with-reindexing.
-		const isConsistent =
-			freshness.reindexingInProgress === true ||
-			freshness.reindexingInProgress === false;
-		expect(isConsistent).toBe(true);
+		// THE LAUNCH, and its argv. This assertion used to read "either
+		// reindexingInProgress is true or it is false", because the test could not
+		// know whether the real `mnemex` binary existed on the machine running it —
+		// a tautology standing in for the thing it wanted to check. With the
+		// launcher injected there is nothing to hedge about: exactly one child was
+		// requested, with the argv the MCP server uses, rooted at the workspace.
+		expect(recorder.launches).toEqual([{ args: [...REINDEX_ARGS], cwd: root }]);
+		expect(manager.isReindexing).toBe(true);
+	}, 5000);
+
+	test("no REAL process is started — the recorded launch is the only one", () => {
+		// The property under repair, asserted on the filesystem rather than on a
+		// report: a real `mnemex index` child writes `.mnemex/.indexing.lock` into
+		// the workspace it was pointed at. Before the launcher was injected, this
+		// file started nine of them on any machine with `mnemex` on PATH.
+		reindexer = new DebounceReindexer(
+			root,
+			indexDir,
+			10,
+			manager,
+			cache,
+			completionDetector,
+			noopLogger,
+			recorder.launch,
+		);
+
+		reindexer.scheduleReindex();
+
+		return new Promise<void>((resolve) => setTimeout(resolve, 300)).then(() => {
+			expect(recorder.launches.length).toBe(1);
+			// BYTES ON DISK: no lock file, so no real indexer ever ran here.
+			expect(existsSync(join(indexDir, ".indexing.lock"))).toBe(false);
+		});
 	}, 5000);
 
 	test("scheduleReindex() debounce: multiple calls collapse into one", async () => {
@@ -415,6 +475,7 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		// Fire multiple schedule calls quickly
@@ -454,6 +515,7 @@ describe("DebounceReindexer schedules reindex after file changes", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		reindexer.scheduleReindex();
@@ -930,6 +992,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 	let cache: IndexCache;
 	let completionDetector: CompletionDetector;
 	let reindexer: DebounceReindexer;
+	let recorder: ReturnType<typeof makeRecordingLauncher>;
 	let previousPath: string;
 
 	beforeEach(async () => {
@@ -939,6 +1002,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 		await manager.initialize();
 		cache = makeStubCache();
 		completionDetector = new CompletionDetector(indexDir, 50);
+		recorder = makeRecordingLauncher();
 	});
 
 	afterEach(() => {
@@ -964,6 +1028,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		reindexer.scheduleReindex();
@@ -1001,6 +1066,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		// Trigger first reindex
@@ -1037,6 +1103,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		// Start first reindex via schedule
@@ -1070,6 +1137,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		// Simulate an external process holding the lock (like `mnemex index` from CLI)
@@ -1120,6 +1188,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		// First reindex
@@ -1148,6 +1217,7 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 			cache,
 			completionDetector,
 			noopLogger,
+			recorder.launch,
 		);
 
 		// Second reindex should now be allowed
@@ -1159,5 +1229,18 @@ describe("Race condition: reindex not triggered twice concurrently", () => {
 				`startCount was ${startCount} after the second schedule, expected 1 (completeCount=${completeCount})`,
 		);
 		expect(startCount).toBe(1); // New trigger allowed
+
+		// WHY THIS TEST USED TO FAIL ~1 RUN IN 8. The first reindexer launched the
+		// REAL installed `mnemex index`, which raced to write
+		// `.mnemex/.indexing.lock` into this temp workspace. When it won that race,
+		// the second reindexer's `isLocked()` was true and `triggerReindex()`
+		// skipped, leaving startCount at 0. It was never a timing bug in the class;
+		// it was a real child process, and the same real child process that made
+		// this file an entry-point keychain bypass.
+		expect(existsSync(join(indexDir, ".indexing.lock"))).toBe(false);
+		expect(recorder.launches.map((l) => l.args)).toEqual([
+			[...REINDEX_ARGS],
+			[...REINDEX_ARGS],
+		]);
 	}, 5000);
 });

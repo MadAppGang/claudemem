@@ -420,6 +420,33 @@ mnemex hooks uninstall   # remove the hook
 mnemex hooks status      # check if hook is installed
 ```
 
+### API keys and the macOS Keychain
+```
+mnemex keychain status               # what is stored where, and whether the backend works
+mnemex keychain migrate --dry-run    # preview moving plaintext keys into the Keychain
+mnemex keychain migrate              # copy them (config.json is left unchanged)
+mnemex keychain prune                # remove the plaintext copies that re-verify
+mnemex keychain rm <id>              # delete one Keychain item (--force if it is the last copy)
+```
+
+On macOS, API keys entered through `mnemex init` or the setup wizard go to the system
+Keychain (service `mnemex`) instead of plaintext `~/.mnemex/config.json`. Resolution order
+per key is **environment variable → Keychain → `~/.mnemex/config.json`**, and keys are
+`openrouter`, `voyage`, `anthropic`, `context7`, `cloud`, `ollama`.
+
+Upgrading moves nothing. Keys already in `config.json` keep working exactly as before;
+`migrate` and `prune` are two separate, opt-in steps so an interrupted or regretted
+migration cannot lose a key. A failed or unavailable Keychain write never drops a key —
+it stays in `config.json`, which is now written atomically at mode `0600`.
+
+Opt out with `MNEMEX_DISABLE_KEYCHAIN=1` or `"keychain": false` in `~/.mnemex/config.json`.
+On Linux and Windows everything stays in the config file, with no attempt to spawn anything.
+
+> **Downgrade note:** once a key lives only in the Keychain (after `migrate` + `prune`, or
+> for a key entered after upgrading), a downgrade to ≤ 0.32.0 reads only `config.json` and
+> will not find it. The item is not destroyed — it stays in Keychain Access.app and is
+> readable with `security find-generic-password -s mnemex -a <account> -w`.
+
 ### IDE integrations
 ```
 mnemex install opencode                # install OpenCode plugins (suggestion + tools)

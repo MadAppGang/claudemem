@@ -52,22 +52,52 @@ describe("spawn() ENOENT semantics", () => {
 	});
 });
 
-describe("every background mnemex spawn attaches an 'error' listener", () => {
+describe("every background mnemex launch attaches an 'error' listener", () => {
+	/**
+	 * The files that START a background mnemex, paired with the token that proves
+	 * they still do.
+	 *
+	 * ROUND 4 rewrote all three. None of them writes `spawn("mnemex"` any more:
+	 * `editor/editor.ts` did — a BARE BINARY NAME resolved through `PATH`, which
+	 * launched the production entry point from every test that edited a symbol —
+	 * and `mcp/server.ts` had the same spelling in `runBlockingIndex`. Both now
+	 * take an injected launcher, and the single production launcher lives in
+	 * `core/entry-point-launcher.ts`. What this file is actually about — the
+	 * 'error' listener, without which a missing binary is FATAL rather than
+	 * best-effort — is unchanged: it is attached by the caller, on whatever the
+	 * launcher returns.
+	 *
+	 * The token is per-file rather than a shared disjunction so that a file which
+	 * silently stops launching anything fails here instead of passing on its
+	 * neighbour's evidence.
+	 */
 	const sites = [
-		"editor/editor.ts",
-		"mcp/reindexer.ts",
-		"mcp/server.ts",
+		{ rel: "editor/editor.ts", token: "this.launchReindex(" },
+		// Round 6: the reindexer no longer NAMES the binary; it calls the
+		// purpose-specific launcher, which owns the name. This token proves it
+		// still launches.
+		{ rel: "mcp/reindexer.ts", token: "spawnMnemexDetached(args, cwd)" },
+		{ rel: "mcp/server.ts", token: "spawnMnemexAwaited" },
+		{
+			rel: "core/entry-point-launcher.ts",
+			token: 'MNEMEX_ENTRY_COMMAND = "mnemex"',
+		},
 	] as const;
 
-	for (const rel of sites) {
+	for (const { rel, token } of sites) {
 		test(`${rel} handles spawn errors`, () => {
 			const src = readFileSync(join(SRC, rel), "utf-8");
 
-			// Only meaningful while the file still spawns mnemex.
-			expect(src).toContain('spawn("mnemex"');
+			// Only meaningful while the file still launches mnemex.
+			expect(src).toContain(token);
 
 			// An 'error' listener must exist; without it a missing binary is fatal.
-			expect(src).toMatch(/\.on\(\s*["']error["']/);
+			// The launcher module is the exception: it RETURNS the child, and the
+			// listener is the caller's to attach — so it is asserted on the callers
+			// above, which is where the omission would actually be fatal.
+			if (rel !== "core/entry-point-launcher.ts") {
+				expect(src).toMatch(/\.on\(\s*["']error["']/);
+			}
 		});
 	}
 });

@@ -11,6 +11,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, extname, join, relative } from "node:path";
+import type {
+	DetachedEntryPointLauncher,
+	EntryPointProcess,
+} from "../../src/core/entry-point-launcher.js";
 import {
 	createReferenceGraphManager,
 	type ReferenceGraphManager,
@@ -124,8 +128,39 @@ export class TestWorkspace {
 		return this._config;
 	}
 
+	/**
+	 * Every reindex a `SymbolEditor` from this workspace ASKED for, as the argv
+	 * and cwd it actually passed. Nothing was started.
+	 *
+	 * `SymbolEditor.triggerReindex` used to call `spawn("mnemex", ["index",
+	 * "--quiet", "--files", …])` directly — a bare binary name resolved through
+	 * `PATH`, so on a developer machine every edit in `editor.e2e.test.ts` and
+	 * `edit-restore.e2e.test.ts` really did launch the production entry point,
+	 * which enables real keychain access in the child (`src/index.ts:32`). The
+	 * launcher is injected now; this is where it goes.
+	 */
+	readonly reindexLaunches: { args: string[]; cwd: string }[] = [];
+
+	/** The injected launcher: records the request, starts nothing. */
+	readonly recordReindexLaunch: DetachedEntryPointLauncher = (
+		args: string[],
+		cwd: string,
+	): EntryPointProcess => {
+		this.reindexLaunches.push({ args: [...args], cwd });
+		return {
+			pid: undefined,
+			on: () => {},
+			unref: () => {},
+		} as EntryPointProcess;
+	};
+
 	createEditor(): SymbolEditor {
-		return new SymbolEditor(this.getCache(), this.getConfig(), null);
+		return new SymbolEditor(
+			this.getCache(),
+			this.getConfig(),
+			this.recordReindexLaunch,
+			null,
+		);
 	}
 
 	createMemoryStore(): MemoryStore {

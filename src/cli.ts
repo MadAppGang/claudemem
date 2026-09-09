@@ -26,6 +26,7 @@ import {
 	MNEMEX_SKILL_COMPACT,
 } from "./ai-skill.js";
 import {
+	ConfigLockUnavailableError,
 	getAnthropicApiKey,
 	getApiKey,
 	getContext7ApiKey,
@@ -52,6 +53,7 @@ import { createReferenceGraphManager } from "./core/reference-graph.js";
 // Note: createVectorStore is imported lazily to avoid loading LanceDB on startup
 // Use: const { createVectorStore } = await import("./core/store.js");
 import { createRepoMapGenerator } from "./core/repo-map.js";
+import { resolveSecretBeforeHardExit } from "./core/secrets.js";
 import { FileTracker } from "./core/tracker.js";
 import {
 	CURATED_PICKS,
@@ -111,7 +113,7 @@ function isAgentMode(): boolean {
 function printCompactHelp(): void {
 	console.log(`mnemex v${VERSION} - Semantic code search with AST analysis`);
 	console.log(
-		"Commands: index index --cloud search status clear map symbol callers callees context dead-code test-gaps impact pack watch hooks hook install rg docs feedback learn update team",
+		"Commands: index index --cloud search status clear map symbol callers callees context dead-code test-gaps impact pack watch hooks hook install rg docs feedback learn update team keychain",
 	);
 	console.log(
 		"Use: mnemex --agent <cmd> | Docs: https://github.com/MadAppGang/mnemex",
@@ -144,18 +146,53 @@ function compactDuration(ms: number): string {
 	return `${(ms / 60000).toFixed(1)}m`;
 }
 
-/** Exit with an error if the embedding provider is missing required credentials */
+/**
+ * Exit with an error if the embedding provider is missing required credentials.
+ *
+ * This is the ONE place a keychain diagnostic turns into `process.exit(1)`, and
+ * the one place where collapsing "could not read" into "nothing stored" is wrong.
+ * The bad sequence: first-ever read on a machine whose ACL prompt has not been
+ * answered -> `security` blocks on the dialog -> the timeout kills it while the
+ * dialog is still on screen -> the user clicks Allow one second later, too late,
+ * because mnemex has already exited telling them to re-enter a key they already
+ * have. Re-asking would have succeeded.
+ *
+ * So: re-resolve ONCE with the cache, the circuit breaker and the process time
+ * budget all cleared, and if that also fails, print the keychain reason instead of
+ * the actively misleading "Run 'mnemex init'".
+ */
 function assertValidEmbeddingCredentials(): void {
 	if (hasValidEmbeddingCredentials()) {
 		return;
 	}
 	const provider = getEmbeddingProvider();
-	const envHint =
-		provider === "voyage" ? "VOYAGE_API_KEY" : "OPENROUTER_API_KEY";
+	const isVoyage = provider === "voyage";
+	const envHint = isVoyage ? "VOYAGE_API_KEY" : "OPENROUTER_API_KEY";
+
+	const retry = resolveSecretBeforeHardExit(
+		isVoyage ? "voyage" : "openrouter",
+		() =>
+			isVoyage
+				? loadGlobalConfig().voyageApiKey
+				: loadGlobalConfig().openrouterApiKey,
+	);
+	if (retry.value) {
+		return;
+	}
+
 	console.error(
 		`Error: API key not configured for embedding provider '${provider}'.`,
 	);
-	console.error(`Run 'mnemex init' to set up, or set ${envHint}.`);
+	if (retry.keychainFailure) {
+		console.error(
+			`The macOS Keychain could not be read: ${retry.keychainFailure}`,
+		);
+		console.error(
+			`Set ${envHint}, or set MNEMEX_DISABLE_KEYCHAIN=1 to use ~/.mnemex/config.json only.`,
+		);
+	} else {
+		console.error(`Run 'mnemex init' to set up, or set ${envHint}.`);
+	}
 	process.exit(1);
 }
 
@@ -363,6 +400,21 @@ export async function runCli(args: string[]): Promise<void> {
 		case "hooks":
 			await handleHooks(args.slice(1));
 			break;
+		// Secret storage — the control surface of the config.json -> Keychain migration
+		case "keychain": {
+			const { handleKeychainCommand } = await import(
+				"./cli/commands/keychain.js"
+			);
+			// The handler RETURNS its status rather than calling `process.exit`
+			// itself: exiting mid-render truncates buffered stdout, which is how an
+			// agent consumer ends up parsing half a line. A failed migration or an
+			// aborted prune must not exit 0.
+			const code = await handleKeychainCommand(args.slice(1), {
+				agent: agentMode,
+			});
+			if (code !== 0) process.exitCode = code;
+			break;
+		}
 		case "hook":
 			// Claude Code hook handler - reads JSON from stdin
 			await handleHookCommand(args.slice(1));
@@ -2114,6 +2166,31 @@ async function handleClear(args: string[]): Promise<void> {
 	}
 }
 
+/**
+ * `saveGlobalConfig`, with the fail-closed lock refusal rendered as a message.
+ *
+ * The credential lock now REFUSES rather than proceeding unlocked (external
+ * review HIGH 4 — it used to return null after 2 s and do the read-modify-write
+ * anyway). Refusing is right; letting that surface as an unhandled rejection with
+ * a stack trace, in the middle of an interactive wizard, is not. Returns `null`
+ * so the caller stops rather than reporting a save that did not happen.
+ *
+ * Only `ConfigLockUnavailableError` is caught. Every other failure still throws.
+ */
+function saveGlobalConfigOrReport(
+	config: Parameters<typeof saveGlobalConfig>[0],
+): ReturnType<typeof saveGlobalConfig> | null {
+	try {
+		return saveGlobalConfig(config);
+	} catch (error) {
+		if (!(error instanceof ConfigLockUnavailableError)) throw error;
+		console.error(`\n❌ ${error.message}`);
+		console.error("   Nothing was written. Try again once it finishes.\n");
+		process.exitCode = 1;
+		return null;
+	}
+}
+
 async function handleInit(): Promise<void> {
 	printLogo();
 
@@ -2363,20 +2440,25 @@ async function handleInit(): Promise<void> {
 					default: true,
 				});
 				if (!useExisting) {
-					anthropicApiKey = await input({
-						message: "Enter your Anthropic API key:",
-						validate: (v) =>
-							v.startsWith("sk-ant-") ||
-							"Invalid format. Keys start with 'sk-ant-'",
-					});
+					// M7: trim at the boundary — see `promptForVoyageApiKey`.
+					anthropicApiKey = (
+						await input({
+							message: "Enter your Anthropic API key:",
+							validate: (v) =>
+								v.trim().startsWith("sk-ant-") ||
+								"Invalid format. Keys start with 'sk-ant-'",
+						})
+					).trim();
 				}
 			} else {
-				anthropicApiKey = await input({
-					message: "Enter your Anthropic API key:",
-					validate: (v) =>
-						v.startsWith("sk-ant-") ||
-						"Invalid format. Keys start with 'sk-ant-'",
-				});
+				anthropicApiKey = (
+					await input({
+						message: "Enter your Anthropic API key:",
+						validate: (v) =>
+							v.trim().startsWith("sk-ant-") ||
+							"Invalid format. Keys start with 'sk-ant-'",
+					})
+				).trim();
 			}
 
 			const llmModel = await select({
@@ -2526,7 +2608,11 @@ async function handleInit(): Promise<void> {
 			// Save custom endpoint to config and use local provider
 			llmSpec = `local/${localModel}`;
 			// Store the endpoint separately - will be saved to config below
-			saveGlobalConfig({ llmEndpoint: `${normalizedEndpoint}/v1` });
+			if (
+				!saveGlobalConfigOrReport({ llmEndpoint: `${normalizedEndpoint}/v1` })
+			) {
+				return;
+			}
 			console.log(`\n📝 Saved endpoint: ${normalizedEndpoint}/v1`);
 		}
 	}
@@ -2572,22 +2658,26 @@ Documentation providers (used in priority order):
 					console.log(
 						"Get your free API key at: https://context7.com/dashboard\n",
 					);
-					context7ApiKey = await input({
-						message: "Enter Context7 API key:",
-						validate: (v) => v.trim().length > 0 || "API key is required",
-					});
+					// M7: trim at the boundary — see `promptForVoyageApiKey`. The old
+					// code nulled a whitespace-ONLY value but never trimmed a real key
+					// with surrounding spaces, which is the case that actually happens.
+					context7ApiKey = (
+						await input({
+							message: "Enter Context7 API key:",
+							validate: (v) => v.trim().length > 0 || "API key is required",
+						})
+					).trim();
 				}
 			} else {
 				console.log(
 					"Get your free API key at: https://context7.com/dashboard\n",
 				);
-				context7ApiKey = await input({
-					message: "Enter Context7 API key (or press Enter to skip):",
-				});
-				// Clear empty input
-				if (context7ApiKey && !context7ApiKey.trim()) {
-					context7ApiKey = undefined;
-				}
+				context7ApiKey =
+					(
+						await input({
+							message: "Enter Context7 API key (or press Enter to skip):",
+						})
+					).trim() || undefined;
 			}
 		}
 	}
@@ -2623,7 +2713,7 @@ View stats anytime with: mnemex learn
 	// ═══════════════════════════════════════════════════════════════════════════
 	// Save Configuration
 	// ═══════════════════════════════════════════════════════════════════════════
-	saveGlobalConfig({
+	const persistReport = saveGlobalConfigOrReport({
 		embeddingProvider:
 			embeddingProvider === "lmstudio" ? "lmstudio" : embeddingProvider,
 		defaultModel: embeddingModel,
@@ -2648,6 +2738,10 @@ View stats anytime with: mnemex learn
 	// ═══════════════════════════════════════════════════════════════════════════
 	// Summary
 	// ═══════════════════════════════════════════════════════════════════════════
+	// A refused save is not a completed setup. Say so and stop, rather than
+	// printing a configuration summary for a file that was never written.
+	if (!persistReport) return;
+
 	console.log("\n✅ Setup complete!\n");
 	console.log("─── Configuration Summary ───\n");
 	console.log(`  Embedding provider: ${embeddingProvider}`);
@@ -2668,6 +2762,38 @@ View stats anytime with: mnemex learn
 	console.log(
 		`  Self-learning:      ${enableLearning ? "enabled" : "disabled"}`,
 	);
+
+	// Where the keys actually landed. `promptForApiKey` already says this for the
+	// one key it handles; `init` printed "Setup complete!" and nothing else, so a
+	// user whose keychain write failed learned only later, from a 401. The second
+	// line is the sole notice that a downgrade to <= 0.32.0 will not find the key.
+	if (persistReport.storedInKeychain.length > 0) {
+		console.log(
+			`\n  Stored in the macOS Keychain (service mnemex): ${persistReport.storedInKeychain.join(", ")}`,
+		);
+		console.log(
+			"  Those keys are NOT in ~/.mnemex/config.json. `mnemex keychain status` shows what is stored.",
+		);
+	}
+	for (const outcome of persistReport.outcomes) {
+		if (outcome.stored === "config-file" || outcome.stored === "clear-failed") {
+			console.log(
+				`  Kept in ~/.mnemex/config.json (mode 0600): ${outcome.id}${outcome.reason ? ` — ${outcome.reason}` : ""}`,
+			);
+		}
+	}
+	// A distinct line, because this outcome is neither of the two above: the value
+	// was written NOWHERE by this save. Reporting it as "stored in the Keychain"
+	// was the user-visible face of the disposition defect.
+	for (const id of persistReport.omittedKeychainSourced) {
+		const reason = persistReport.outcomes.find((o) => o.id === id)?.reason;
+		console.log(
+			`  NOT written by this save: ${id} — it came from the Keychain, so it was not copied into config.json,` +
+				` and this save could not re-verify the Keychain still holds it${reason ? ` (${reason})` : ""}.`,
+		);
+		console.log("  Check it with `mnemex keychain status`.");
+	}
+
 	console.log("\nYou can now index your codebase:");
 	console.log("  mnemex index\n");
 }
@@ -2786,7 +2912,15 @@ async function promptForVoyageApiKey(): Promise<string> {
 		},
 	});
 
-	return apiKey;
+	// M7: fresh user input is normalised AT THE BOUNDARY, matching
+	// `promptForApiKey`. A key pasted from a web UI with a trailing space verifies
+	// its round-trip byte-for-byte, so the plaintext copy is deleted and the bad
+	// value lives in the Keychain where the user cannot edit it — they get a 401
+	// they cannot explain. A trailing NEWLINE is worse: `describeUnstorableValue`
+	// rejects it as a control character and the key is silently demoted to
+	// plaintext. This is NOT the read-back rule, which forbids trimming a value that
+	// came OUT of the keychain.
+	return apiKey.trim();
 }
 
 async function handleModels(args: string[]): Promise<void> {
@@ -3015,11 +3149,46 @@ async function promptForApiKey(): Promise<void> {
 		},
 	});
 
-	saveGlobalConfig({ openrouterApiKey: apiKey });
-	const { isKeychainAvailable } = await import("./core/keychain.js");
-	console.log(
-		`\n✅ API key saved${isKeychainAvailable() ? " to macOS Keychain" : ""}.`,
-	);
+	// M7: strip surrounding whitespace from FRESH USER INPUT here, at the boundary.
+	// A key pasted with a trailing newline would otherwise be rejected as unstorable
+	// and demoted to plaintext with a reason string — the opposite of what the user
+	// asked for. This is NOT the read-back rule, which forbids trimming a value that
+	// came out of the keychain.
+	const report = saveGlobalConfigOrReport({
+		openrouterApiKey: apiKey.trim(),
+	});
+	if (!report) return;
+
+	// The old message printed "saved to macOS Keychain" whenever the platform was
+	// darwin — the user-visible face of the defect where a failed write still
+	// deleted the key. It now reports what actually happened, and says where the key
+	// is NOT: that second line is the only notice a user gets that a downgrade will
+	// not find this key.
+	if (report.storedInKeychain.includes("openrouter")) {
+		console.log(
+			"\n✅ API key saved to macOS Keychain (service mnemex, account openrouter).",
+		);
+		console.log(
+			"   It is NOT in ~/.mnemex/config.json. `mnemex keychain status` shows what is stored.",
+		);
+	} else if (report.omittedKeychainSourced.includes("openrouter")) {
+		// The third case, which used to be rendered as the second and was therefore
+		// a lie about where the key is: unproven, and deliberately not written to
+		// the file either. Never claim a save that did not happen.
+		const reason = report.outcomes.find((o) => o.id === "openrouter")?.reason;
+		console.log(
+			"\n⚠️  The key was NOT saved by this run. It came from the Keychain, so it was not" +
+				` written to ~/.mnemex/config.json, and this run could not verify the Keychain still holds it${
+					reason ? ` (${reason})` : ""
+				}.`,
+		);
+		console.log("   Run `mnemex keychain status` to see what is stored.");
+	} else {
+		const reason = report.outcomes.find((o) => o.id === "openrouter")?.reason;
+		console.log(
+			`\n✅ API key saved to ~/.mnemex/config.json (mode 0600).${reason ? ` (keychain: ${reason})` : ""}`,
+		);
+	}
 }
 
 // ============================================================================
@@ -6969,6 +7138,7 @@ ${c.yellow}${c.bold}DEVELOPER EXPERIENCE${c.reset}
   ${c.green}monitor${c.reset} [path]          Passive MCP activity display ${c.dim}(auto-updates from Claude Code)${c.reset}
   ${c.green}watch${c.reset}                  Watch for changes and auto-reindex ${c.dim}(daemon mode)${c.reset}
   ${c.green}hooks${c.reset} <subcommand>     Manage git hooks ${c.dim}(install|uninstall|status)${c.reset}
+  ${c.green}keychain${c.reset} <subcommand>  Manage API keys in the macOS Keychain ${c.dim}(status|migrate|prune|rm)${c.reset}
   ${c.green}hook${c.reset}                   Claude Code hook handler ${c.dim}(reads JSON from stdin)${c.reset}
   ${c.green}install${c.reset} <tool>         Install integration ${c.dim}(opencode|claude-code)${c.reset}
   ${c.green}pack${c.reset} [path]            Pack codebase into a single file ${c.dim}(for AI analysis)${c.reset}
@@ -6993,6 +7163,14 @@ ${c.yellow}${c.bold}SELF-LEARNING SYSTEM${c.reset} ${c.dim}(enabled by default, 
   ${c.green}learn patterns${c.reset}         Show detected patterns
   ${c.green}learn reset${c.reset}            Reset learned weights to defaults
   ${c.dim}Configure: mnemex init or set "learning: false" in ~/.mnemex/config.json${c.reset}
+
+${c.yellow}${c.bold}KEYCHAIN SUBCOMMANDS${c.reset} ${c.dim}(macOS only; nothing runs automatically)${c.reset}
+  ${c.green}keychain status${c.reset}        Which keys are in the Keychain, which are still plaintext
+  ${c.green}keychain migrate${c.reset}       Copy plaintext keys from config.json into the Keychain
+    ${c.cyan}--dry-run${c.reset}             Show what would be copied, write nothing
+  ${c.green}keychain prune${c.reset}         Remove plaintext copies that re-verify against the Keychain
+  ${c.green}keychain rm${c.reset} <id>       Delete one Keychain item ${c.dim}(--force if it is the last copy)${c.reset}
+  ${c.dim}Opt out entirely: MNEMEX_DISABLE_KEYCHAIN=1 or "keychain": false in ~/.mnemex/config.json${c.reset}
 
 ${c.yellow}${c.bold}INDEX OPTIONS${c.reset}
   ${c.cyan}-f, --force${c.reset}            Force re-index all files

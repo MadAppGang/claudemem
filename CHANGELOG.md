@@ -3,6 +3,103 @@
 All notable changes to mnemex are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver.
 
+## [0.36.0] - 2026-09-09
+
+Your API keys can now live in the macOS Keychain instead of in plaintext in
+`~/.mnemex/config.json`. Nothing moves on upgrade: the migration is opt-in, runs
+in two steps, and every step is inspectable and reversible. The existing Keychain
+module was rewritten rather than extended — it had seven measured defects, and two
+of them destroyed keys.
+
+### Added
+
+- **Keychain-backed storage for all six credentials** (`openrouter`, `voyage`,
+  `anthropic`, `context7`, `cloud`, `ollama`). Resolution order, first answer wins:
+  environment variable, then Keychain, then `~/.mnemex/config.json`. One resolver
+  serves every getter, so the order cannot drift between them.
+- **`mnemex keychain status`** — what is stored where, and whether the backend
+  works. Read-only, one attribute-only lookup for all six, no value reads. Keys are
+  masked to their last four characters. A key that could not be read is reported as
+  unreadable, never as absent.
+- **`mnemex keychain migrate [--dry-run]`** — copies plaintext keys into the
+  Keychain and verifies each round-trip, leaving `config.json` untouched. It writes
+  create-only, so an existing item is never overwritten; `security` refuses the
+  write rather than the code deciding not to.
+- **`mnemex keychain prune`** — removes the plaintext copies, but only those that
+  re-verify byte-for-byte against the Keychain first. A key that does not verify is
+  refused by name, with the remedy; a read failure aborts the whole prune and
+  writes nothing.
+- **`mnemex keychain rm <id> [--force]`** — deletes one item, and refuses when no
+  plaintext copy remains, so the last copy of a key cannot go by accident.
+- **`OLLAMA_API_KEY`** as a first-class credential, resolved through the same chain
+  as the rest.
+- **Opt-out**, for a locked or ACL-hostile Keychain: `MNEMEX_DISABLE_KEYCHAIN=1`
+  for one run, or `"keychain": false` in the config for good. Either makes the
+  process fall back to the config file with zero `security` calls.
+
+### Fixed
+
+- **A failed Keychain write no longer deletes the key from `config.json`.** The
+  write's result was discarded and the file was stripped unconditionally. A secret
+  now leaves the file only when that save proved the Keychain holds those exact
+  bytes, and an unconfirmed delete keeps the field and says so.
+- **Off-macOS, saving no longer destroys every secret.** The module claimed to fall
+  back to the config file; it stripped the keys and stored them nowhere.
+- **Secrets no longer appear in `argv`**, where any user on the machine could read
+  them with `ps`. Values now go to `security` over stdin, hex-encoded.
+- **`getApiKey()` costs one `security` spawn, not seven** (101 ms measured before).
+- **"Could not read the Keychain" is no longer reported as "nothing is stored".**
+  Reads return a three-way answer, so a failure and an absence stay distinguishable
+  wherever the difference matters.
+- **An explicitly `undefined` config field means untouched.** It previously
+  destroyed a plaintext-only key silently, without appearing in the save report at
+  all. Only `""` clears a value.
+- **A value read from the Keychain is never written back to the file in plaintext.**
+- **An unrecognised flag now aborts the command.** `keychain migrate --dry-runDD`
+  matched no known flag, fell through to the destructive default, ran a real
+  migration and exited 0. Each subcommand now declares the flags it accepts and
+  refuses anything else before taking the lock or touching the Keychain.
+- **`excludePatterns` stores your additions only.** Loading prepends the 102
+  built-in defaults for convenience, and saving wrote that concatenation back —
+  growing the file by 102 entries every time (measured on a real file: 408 entries,
+  102 unique). Saving now normalises, which also heals an already-polluted file.
+
+### Changed
+
+- **`~/.mnemex/config.json` is treated as a secret store**, since a key may still
+  legitimately live there: a `0700` directory, atomic tmp-then-rename writes, and an
+  unconditional `chmod 0600` on every save. `writeFileSync`'s `mode:` is ignored for
+  a file that already exists, so an existing `0644` file stayed `0644`.
+- **One cross-process lock guards save, migrate, prune and rm, and it fails
+  closed.** If the lock cannot be taken, the command changes nothing and says why.
+  The previous advisory lock gave up after two seconds and then wrote anyway.
+- **An unparseable config file is preserved** as `config.json.corrupt-<timestamp>`
+  rather than merged over.
+
+### Security
+
+- **`OLLAMA_API_KEY` is bound to the `ollama.com` endpoint, not to the `local`
+  provider.** Ollama Cloud, LM Studio and any self-hosted OpenAI-compatible server
+  all resolve to the `local` provider, so attaching the key by provider type sent an
+  Ollama Cloud credential to third-party and self-hosted endpoints. An explicitly
+  passed key is still honoured anywhere.
+- **Claude Code's OAuth token is no longer read by `execSync` on a relative binary
+  name.** That was a PATH hijack (CWE-426): a planted `security` executable was
+  handed the token. It now goes through the same port as everything else.
+- **No test can reach the real login Keychain.** The adapter denies by default and
+  only the production entry point turns it on, so importing the module cannot spawn
+  `security`, and a test that spawns the entry point is caught by a static sweep
+  over both test roots.
+- **Every entry-point launch routes through one guarded launcher**, enforced by an
+  import- and alias-resolving capability analysis over `src/`.
+
+### Known limitation
+
+The compiled binaries attached to releases cannot start outside a `node_modules`
+tree (`Cannot find module '@opentui/react'`). This is pre-existing and affects
+v0.33.0 through v0.35.0 identically; the npm install path is unaffected. Fix
+tracked for a follow-up release.
+
 ## [0.35.0] - 2026-09-08
 
 mnemex now knows whether your terminal is light or dark, and paints accordingly.

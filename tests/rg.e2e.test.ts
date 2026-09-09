@@ -28,6 +28,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { keychainSafeChildEnv } from "../test/helpers/child-env.js";
 
 // ============================================================================
 // Paths
@@ -67,10 +68,16 @@ function runMnemexRg(args: string[], cwd: string): RgResult {
 			`Built CLI not found at ${CLI_BIN}. Run \`bun run build\` before these tests.`,
 		);
 	}
+	// `keychainSafeChildEnv` and NOT `{...process.env}`: this child runs the real
+	// composition root, which calls `enableRealKeychainAccess()`. Inheriting the
+	// parent's environment is not enough, because the sentinel that vetoes that
+	// call is written by `bunfig.toml`'s preload — which bun resolves against the
+	// CWD and does not walk up for. Semantic `rg` resolves an embedding key, and
+	// that path ends at `/usr/bin/security`. See `test/helpers/child-env.ts`.
 	const proc = spawnSync("bun", [CLI_BIN, "rg", ...args], {
 		cwd,
 		encoding: "utf-8",
-		env: { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0" },
+		env: keychainSafeChildEnv({ NO_COLOR: "1", FORCE_COLOR: "0" }),
 	});
 	return {
 		stdout: proc.stdout ?? "",

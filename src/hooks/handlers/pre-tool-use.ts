@@ -9,9 +9,9 @@
  * - All tools: Log tool start for interaction monitoring
  */
 
-import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { runSelfSync } from "../../core/entry-point-launcher.js";
 import type { HookInput, HookOutput, IndexStatus } from "../types.js";
 import { logToolStart } from "./interaction-logger.js";
 
@@ -38,11 +38,12 @@ function isIndexed(cwd: string): IndexStatus {
  */
 function runMnemex(args: string[], cwd?: string): string | null {
 	try {
-		const result = spawnSync(process.execPath, [process.argv[1], ...args], {
-			cwd,
-			encoding: "utf-8",
-			timeout: 10000,
-		});
+		// `process.execPath` + `process.argv[1]` re-executes THIS build's own
+		// script — in production that is `dist/index.js`, i.e. the entry point
+		// under a name containing neither "mnemex" nor "index". Routed through the
+		// one launcher so the static sweep can see it and the runtime veto covers
+		// it; see `src/core/entry-point-launcher.ts`.
+		const result = runSelfSync(args, cwd, 10000);
 
 		if (result.status === 0) {
 			return result.stdout?.trim() || null;
