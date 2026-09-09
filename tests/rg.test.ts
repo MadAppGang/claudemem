@@ -13,6 +13,7 @@ import { patchClaudeSettings } from "../src/rg/install";
 import { matchesPattern, mergeResults } from "../src/rg/merger";
 import { ensureLineNumbers, parseRgArgs } from "../src/rg/parser";
 import type { SearchResult } from "../src/types";
+import { keychainSafeChildEnv } from "../test/helpers/child-env";
 
 // ============================================================================
 // Helpers
@@ -640,7 +641,14 @@ function runMnemexRg(
 		cwd,
 		encoding: "utf-8",
 		timeout: 10000,
-		env: { ...process.env, NO_COLOR: "1" },
+		// NOT `{ ...process.env }`. This spawns the production entry point, whose
+		// first act is `enableRealKeychainAccess()` — see `keychainSafeChildEnv`.
+		// The static sweep in `test/unit/core/keychain.test.ts` could not see this
+		// site for three rounds because `CLI_PATH` is assembled as
+		// `join(dir, "..", "src", "index.ts")` and its `ENTRY_PATH` regex only
+		// matched a contiguous `src/index.ts`. The detector now understands the
+		// split form; this call no longer relies on it noticing.
+		env: keychainSafeChildEnv({ NO_COLOR: "1" }),
 	});
 	return {
 		stdout: result.stdout || "",

@@ -18,9 +18,37 @@
  * Developer experience:
  * - watch: auto-reindex on file changes
  * - hooks: git post-commit hook for auto-indexing
+ * - keychain: inspect/migrate API keys between config.json and the macOS Keychain
  *
  * Core workflow: STRUCTURE FIRST, then targeted reads
  */
+
+/**
+ * Shared credential note appended to every role's instructions.
+ *
+ * Agents hit "no API key configured" often enough that the resolution order and
+ * the inspection command belong in front of them, not in the README.
+ */
+export const CREDENTIALS_NOTE = `
+<credentials>
+API KEY RESOLUTION (per key, first non-empty wins):
+  1. environment variable   e.g. OPENROUTER_API_KEY, VOYAGE_API_KEY, ANTHROPIC_API_KEY,
+                            CONTEXT7_API_KEY, OLLAMA_API_KEY
+  2. macOS Keychain         service "mnemex", accounts: openrouter, voyage, anthropic,
+                            context7, cloud, ollama
+  3. ~/.mnemex/config.json  mode 0600
+
+  mnemex keychain status            # what is stored where; costs one lookup
+  mnemex keychain migrate --dry-run # preview moving plaintext keys into the Keychain
+  mnemex keychain prune             # remove plaintext copies that re-verify
+
+  A failed or unavailable Keychain NEVER drops a key — it stays in config.json and
+  mnemex says so. "Could not read the Keychain" is reported differently from
+  "nothing is stored"; do not treat the first as the second.
+
+  Opt out: MNEMEX_DISABLE_KEYCHAIN=1, or "keychain": false in ~/.mnemex/config.json.
+  Non-macOS platforms use the config file only and attempt no Keychain access.
+</credentials>`;
 
 export type AgentRole = "architect" | "developer" | "tester" | "debugger";
 
@@ -35,7 +63,7 @@ export const VALID_ROLES: AgentRole[] = [
  * Get instruction text for a specific role
  */
 export function getInstructions(role: AgentRole): string {
-	return INSTRUCTIONS[role];
+	return `${INSTRUCTIONS[role]}\n${CREDENTIALS_NOTE}`;
 }
 
 /**

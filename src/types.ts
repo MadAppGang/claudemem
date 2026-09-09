@@ -448,6 +448,11 @@ export interface GlobalConfig {
 	openrouterApiKey?: string;
 	/** Voyage AI API key */
 	voyageApiKey?: string;
+	/**
+	 * Ollama API key. Used for GENERATION only (Ollama Cloud `/v1/chat/completions`).
+	 * Never sent on the embeddings path — see CLAUDE.md gotcha #18.
+	 */
+	ollamaApiKey?: string;
 	/** Global exclude patterns */
 	excludePatterns: string[];
 	/** Embedding provider (openrouter, ollama, lmstudio, local, voyage) */
@@ -490,6 +495,14 @@ export interface GlobalConfig {
 	 * to improve search quality over time.
 	 */
 	learning?: boolean;
+
+	// ─── Secret Storage ───
+	/**
+	 * User-facing opt-out for the macOS Keychain secret backend (default: enabled
+	 * on darwin). Set to `false` to keep every API key in this file instead.
+	 * Equivalent to exporting `MNEMEX_DISABLE_KEYCHAIN=1`.
+	 */
+	keychain?: boolean;
 }
 
 export interface ProjectConfig {

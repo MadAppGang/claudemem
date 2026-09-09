@@ -9,6 +9,7 @@ import {
 	getAnthropicApiKey,
 	getApiKey,
 	getLLMSpec,
+	getOllamaApiKey,
 	loadGlobalConfig,
 } from "../config.js";
 import type {
@@ -18,6 +19,7 @@ import type {
 	LLMProvider,
 	LLMResponse,
 } from "../types.js";
+import { isOllamaCloudEndpoint } from "./ollama-cloud.js";
 
 // ============================================================================
 // Re-exports
@@ -376,6 +378,66 @@ export interface LLMClientOptions {
 }
 
 // ============================================================================
+// Credential resolution — ONE function, so the endpoint gate cannot be skipped
+// ============================================================================
+
+/**
+ * The credential for a provider, resolved through env -> keychain -> config.
+ *
+ * B1. `"local"` gets the Ollama key ONLY for an Ollama Cloud endpoint. The
+ * provider type is not the security boundary: `"local"` also covers LM Studio and
+ * any endpoint a user typed into `mnemex init`, and sending an Ollama Cloud token
+ * to those discloses it to somebody else's server. See `./ollama-cloud.ts`.
+ *
+ * `claude-code` has no credential — the CLI carries its own auth.
+ */
+function credentialForProvider(
+	provider: LLMProvider,
+	endpoint: string | undefined,
+): string | undefined {
+	switch (provider) {
+		case "anthropic":
+		case "anthropic-batch":
+			return getAnthropicApiKey();
+		case "openrouter":
+			return getApiKey();
+		case "local":
+			return isOllamaCloudEndpoint(endpoint) ? getOllamaApiKey() : undefined;
+		default:
+			return undefined;
+	}
+}
+
+/**
+ * Resolve the credential `createLLMClient` WOULD use, without building a client.
+ *
+ * For callers that must not perform a keychain read where they stand — the
+ * indexer resolves this above `acquire()` because `Bun.spawnSync` blocks the
+ * event loop and a blocked heartbeat can get a held index lock reclaimed. Returns
+ * `{ apiKey }` rather than a bare string so a caller can pass "resolved, and the
+ * answer is none" through `LLMClientOptions` without it being confused with
+ * "unresolved".
+ */
+export function resolveLLMCredential(
+	options?: LLMClientOptions,
+	projectPath?: string,
+): { apiKey: string | undefined } {
+	if (options?.apiKey !== undefined) return { apiKey: options.apiKey };
+
+	let provider = options?.provider;
+	let endpoint = options?.endpoint;
+	if (!provider) {
+		const spec = getLLMSpec(projectPath);
+		provider = spec.provider;
+		endpoint = endpoint || spec.endpoint;
+	}
+	if (provider === "local" && !endpoint) {
+		endpoint = loadGlobalConfig().llmEndpoint;
+	}
+	return { apiKey: credentialForProvider(provider, endpoint) };
+}
+
+// ============================================================================
 // Factory Function
 // ============================================================================
 
@@ -402,6 +464,17 @@ export async function createLLMClient(
 		model = model || spec.model || DEFAULT_LLM_MODELS[provider];
 		endpoint = endpoint || spec.endpoint;
 	}
+	if (provider === "local") {
+		endpoint = endpoint || config.llmEndpoint;
+	}
+
+	// ONE resolution point, so the B1 endpoint gate cannot be bypassed by a new
+	// branch below forgetting it. `!== undefined` rather than `||`: an explicit ""
+	// means "send no auth" and must not fall through to a stored key.
+	const apiKey =
+		options?.apiKey !== undefined
+			? options.apiKey
+			: credentialForProvider(provider, endpoint);
 
 	switch (provider) {
 		case "claude-code": {
@@ -418,7 +491,7 @@ export async function createLLMClient(
 			const { AnthropicLLMClient } = await import("./providers/anthropic.js");
 			return new AnthropicLLMClient({
 				model,
-				apiKey: options?.apiKey || getAnthropicApiKey(),
+				apiKey,
 				timeout: options?.timeout,
 			});
 		}
@@ -429,7 +502,7 @@ export async function createLLMClient(
 			);
 			return new AnthropicBatchLLMClient({
 				model,
-				apiKey: options?.apiKey || getAnthropicApiKey(),
+				apiKey,
 			});
 		}
 
@@ -437,16 +510,27 @@ export async function createLLMClient(
 			const { OpenRouterLLMClient } = await import("./providers/openrouter.js");
 			return new OpenRouterLLMClient({
 				model,
-				apiKey: options?.apiKey || getApiKey(),
+				apiKey,
 				timeout: options?.timeout,
 			});
 		}
 
 		case "local": {
+			// Credential resolution belongs at the COMPOSITION SITE, not in the
+			// adapter: `local.ts` must not import `config.ts` (it would create a
+			// cycle next to the existing config <-> llm/client one), and
+			// `test/unit/llm/local-auth.test.ts` asserts that a constructor with no
+			// key sends no Authorization header — a constructor that consulted the
+			// keychain would fail that on any machine with an ollama key stored.
+			//
+			// B1: `credentialForProvider` returns the Ollama key ONLY for an Ollama
+			// Cloud endpoint. LM Studio and user-configured endpoints get `undefined`
+			// and therefore no Authorization header, however the key is stored.
 			const { LocalLLMClient } = await import("./providers/local.js");
 			return new LocalLLMClient({
 				model,
-				endpoint: endpoint || config.llmEndpoint,
+				endpoint,
+				apiKey,
 				timeout: options?.timeout,
 			});
 		}

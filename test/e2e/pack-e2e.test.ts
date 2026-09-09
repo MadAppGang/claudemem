@@ -20,6 +20,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { keychainSafeChildEnv } from "../helpers/child-env.js";
 
 // ============================================================================
 // Constants
@@ -42,10 +43,15 @@ function runCli(
 	stderr: string;
 	status: number | null;
 } {
+	// This spawns the production entry point, which enables real keychain access
+	// in the child. The guard variables must be set EXPLICITLY here — inherited
+	// preload state is cwd-dependent and has been measured absent. See
+	// `test/helpers/child-env.ts` for the incident.
 	const result = spawnSync("bun", [CLI, ...args], {
 		cwd,
 		encoding: "utf-8",
 		timeout: SPAWN_TIMEOUT,
+		env: keychainSafeChildEnv(),
 	});
 	return {
 		stdout: result.stdout ?? "",

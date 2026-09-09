@@ -15,6 +15,7 @@
  * Developer experience:
  * - watch: auto-reindex on file changes
  * - hooks: git post-commit hook for auto-indexing
+ * - keychain: inspect/migrate API keys between config.json and the macOS Keychain
  *
  * Core principle: STRUCTURE FIRST, then targeted reads
  */
@@ -60,6 +61,7 @@ INDEXING:
   Auto-reindex on file changes before search/map
   Watch mode for continuous re-indexing
   Git hooks for post-commit indexing
+  API keys resolved env > macOS Keychain > ~/.mnemex/config.json
 </capabilities>
 
 <tools>
@@ -91,6 +93,14 @@ INDEX/STATUS:
   mnemex clear             # Remove index
   mnemex watch             # Auto-reindex on file changes (daemon)
   mnemex hooks install     # Git post-commit hook for auto-indexing
+
+CREDENTIALS (macOS Keychain, service "mnemex"):
+  mnemex keychain status   # Which keys are stored where; one lookup
+  mnemex keychain migrate  # Copy plaintext keys from config.json (never overwrites)
+  mnemex keychain prune    # Remove plaintext copies that re-verify
+  Order: env var > Keychain > ~/.mnemex/config.json. A Keychain failure NEVER
+  drops a key, and "could not read" is not "nothing stored".
+  Opt out: MNEMEX_DISABLE_KEYCHAIN=1
 
 AI INSTRUCTIONS:
   mnemex ai <role>         # Role instructions (architect|developer|tester|debugger)

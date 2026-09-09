@@ -12,6 +12,7 @@ import type {
 } from "../../types.js";
 import { combineAbortSignals } from "../abort.js";
 import { BaseLLMClient, DEFAULT_LLM_MODELS } from "../client.js";
+import { isOllamaCloudEndpoint } from "../ollama-cloud.js";
 
 // ============================================================================
 // LMStudio Model Contention Handler
@@ -113,14 +114,18 @@ export function parseParameterSize(sizeStr: string): number | undefined {
 async function getOllamaModelInfo(
 	modelName: string,
 	baseEndpoint: string,
+	apiKey?: string,
 ): Promise<LocalModelInfo | undefined> {
 	try {
 		// Hosted Ollama (ollama.com) requires auth; local Ollama ignores the header.
+		// The key is THREADED IN, never read from `process.env` here: this module
+		// must stay ignorant of `config.ts` (no import, no cycle), and a bare env
+		// read cannot see a key stored in the macOS Keychain.
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 		};
-		if (process.env.OLLAMA_API_KEY) {
-			headers.Authorization = `Bearer ${process.env.OLLAMA_API_KEY}`;
+		if (apiKey) {
+			headers.Authorization = `Bearer ${apiKey}`;
 		}
 
 		const response = await fetch(`${baseEndpoint}/api/show`, {
@@ -285,6 +290,7 @@ async function getLMStudioModelInfo(
 export async function getLocalModelInfo(
 	modelName: string,
 	endpoint = "http://localhost:11434",
+	apiKey?: string,
 ): Promise<LocalModelInfo | undefined> {
 	// Check cache first
 	const cacheKey = `${endpoint}:${modelName}`;
@@ -300,7 +306,7 @@ export async function getLocalModelInfo(
 
 	const info = isLMStudio
 		? await getLMStudioModelInfo(modelName, baseEndpoint)
-		: await getOllamaModelInfo(modelName, baseEndpoint);
+		: await getOllamaModelInfo(modelName, baseEndpoint, apiKey);
 
 	if (info) {
 		modelInfoCache.set(cacheKey, info);
@@ -332,7 +338,9 @@ interface LocalOptions {
 	 *
 	 * Local Ollama and LM Studio need no auth, but Ollama Cloud
 	 * (`https://ollama.com/v1`) rejects unauthenticated requests with HTTP 401.
-	 * Falls back to `OLLAMA_API_KEY` when not passed explicitly.
+	 *
+	 * Falls back to `OLLAMA_API_KEY` when not passed explicitly AND the endpoint is
+	 * Ollama Cloud. An explicit value is always sent, whatever the endpoint.
 	 */
 	apiKey?: string;
 }
@@ -377,7 +385,21 @@ export class LocalLLMClient extends BaseLLMClient {
 		);
 
 		this.endpoint = options.endpoint || DEFAULT_ENDPOINT;
-		this.apiKey = options.apiKey || process.env.OLLAMA_API_KEY || undefined;
+		// KEPT as a bare env read on purpose. `createLLMClient` already resolves the
+		// key through `getOllamaApiKey()` (env -> keychain -> config) and passes it
+		// as `options.apiKey`; this fallback exists only for direct construction, and
+		// `test/unit/llm/local-auth.test.ts` pins its behaviour.
+		//
+		// B1: the IMPLICIT fallback is gated on the endpoint being Ollama Cloud. An
+		// EXPLICIT `options.apiKey` is always honoured — that is a caller
+		// deliberately authenticating to an endpoint of its own choosing. Without the
+		// gate, an exported OLLAMA_API_KEY was sent to LM Studio and to every
+		// user-configured OpenAI-compatible endpoint.
+		this.apiKey =
+			options.apiKey ||
+			(isOllamaCloudEndpoint(this.endpoint)
+				? process.env.OLLAMA_API_KEY || undefined
+				: undefined);
 
 		// Ensure endpoint ends without slash
 		if (this.endpoint.endsWith("/")) {
@@ -549,7 +571,11 @@ export class LocalLLMClient extends BaseLLMClient {
 	 * Queries local provider API (Ollama or LM Studio) for authoritative size info.
 	 */
 	async getModelSizeB(): Promise<number | undefined> {
-		const info = await getLocalModelInfo(this.model, this.endpoint);
+		const info = await getLocalModelInfo(
+			this.model,
+			this.endpoint,
+			this.apiKey,
+		);
 		if (process.env.DEBUG_MODEL_SIZE) {
 			console.error(
 				`[getModelSizeB] model=${this.model} endpoint=${this.endpoint} → ${info?.parameterSizeB ?? "unknown"}B`,

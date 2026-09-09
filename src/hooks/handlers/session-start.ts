@@ -8,7 +8,6 @@
  * - Returns context about available features
  */
 
-import { spawnSync } from "node:child_process";
 import {
 	existsSync,
 	readdirSync,
@@ -18,6 +17,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { runSelfSync } from "../../core/entry-point-launcher.js";
 import type { HookInput, HookOutput, IndexStatus } from "../types.js";
 import { cleanupStaleSessions, logSessionStart } from "./interaction-logger.js";
 
@@ -94,15 +94,9 @@ function isIndexed(cwd: string): IndexStatus {
 
 	// Try to get symbol count from status command
 	try {
-		const result = spawnSync(
-			process.execPath,
-			[process.argv[1], "status", "--nologo"],
-			{
-				cwd,
-				encoding: "utf-8",
-				timeout: 5000,
-			},
-		);
+		// A re-exec of this build's own script, which IS the entry point. Routed
+		// through the one launcher; see `src/core/entry-point-launcher.ts`.
+		const result = runSelfSync(["status", "--nologo"], cwd, 5000);
 
 		if (result.status === 0 && result.stdout) {
 			// Look for chunk/file count in output

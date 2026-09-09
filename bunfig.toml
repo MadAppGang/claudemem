@@ -1,0 +1,10 @@
+# bunfig.toml — `[test] preload` ONLY.
+#
+# Layer 3 of the three independent guards that make a real `/usr/bin/security`
+# spawn impossible in the test suite (architecture D-7 / H3). Deliberately
+# contains nothing else: an unrelated setting here would change `bun` behaviour
+# for every command, and R3's rollback is "delete this file" — which must remain
+# safe because layers 1 and 2 still hold without it.
+
+[test]
+preload = ["./test/setup/keychain-guard.ts"]

@@ -5,17 +5,32 @@
  * project-specific config (.mnemex/config.json)
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	closeSync,
+	existsSync,
+	linkSync,
+	mkdirSync,
+	openSync,
+	readdirSync,
+	readFileSync,
+	renameSync,
+	statSync,
+	unlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
-	getKeychainSecret,
-	mergeKeychainSecrets,
-	routeSecretsToKeychain,
-	stripSecrets,
-} from "./core/keychain.js";
+	hydrateSecrets,
+	invalidateSecretSessionCache,
+	persistSecrets,
+	resolveSecret,
+	type SecretPersistReport,
+	setKeychainConfigOptOut,
+	setKeychainOptOutProvider,
+} from "./core/secrets.js";
 import type {
-	Config,
 	EmbeddingProvider,
 	GlobalConfig,
 	ProjectConfig,
@@ -219,6 +234,8 @@ export const ENV = {
 	CONTEXT7_API_KEY: "CONTEXT7_API_KEY",
 	/** Enable/disable documentation fetching (default: true) */
 	MNEMEX_DOCS_ENABLED: "MNEMEX_DOCS_ENABLED",
+	/** Ollama API key — GENERATION only, never the embeddings path (CLAUDE.md #18) */
+	OLLAMA_API_KEY: "OLLAMA_API_KEY",
 	/** What to do when the index's model differs from the configured one */
 	MNEMEX_ON_MODEL_MISMATCH: "MNEMEX_ON_MODEL_MISMATCH",
 	/** Colour theme override: "light" | "dark" (read pre-dotenv, see src/ui/theme-env.ts) */
@@ -242,34 +259,147 @@ export const DEFAULT_DOCS_MAX_PAGES = 10;
 // ============================================================================
 
 /**
- * Load global configuration from ~/.mnemex/config.json
+ * Read ~/.mnemex/config.json exactly as it is on disk. No defaults, no merging,
+ * no keychain. `corrupt` is true when the file EXISTS and does not parse — the
+ * difference between "nothing there" and "I could not read it", which is the same
+ * distinction the keychain engine makes and for the same reason.
+ */
+function readGlobalConfigFileRaw(): {
+	parsed: Record<string, unknown> | null;
+	corrupt: boolean;
+} {
+	if (!existsSync(GLOBAL_CONFIG_PATH)) return { parsed: null, corrupt: false };
+	try {
+		const parsed = JSON.parse(readFileSync(GLOBAL_CONFIG_PATH, "utf-8"));
+		if (
+			parsed === null ||
+			typeof parsed !== "object" ||
+			Array.isArray(parsed)
+		) {
+			return { parsed: null, corrupt: true };
+		}
+		return { parsed: parsed as Record<string, unknown>, corrupt: false };
+	} catch {
+		return { parsed: null, corrupt: true };
+	}
+}
+
+// The persistent `"keychain": false` opt-out, registered so the enable gate is
+// correct on the FIRST getter call in a process, before anything has loaded the
+// config. It is invoked lazily and at most once, and reads the raw file rather
+// than going through `loadGlobalConfig` so it can never recurse into the getters
+// it gates.
+setKeychainOptOutProvider(
+	() => readGlobalConfigFileRaw().parsed?.keychain === false,
+);
+
+/**
+ * Load global configuration from ~/.mnemex/config.json.
+ *
+ * PERFORMS ZERO KEYCHAIN ACCESS, at all 16 call sites. It used to pay
+ * `mergeKeychainSecrets` — five lookups on the MISS path at 22.4 ms each, about
+ * 112 ms of spawn cost for a config load that needs none of it — on the indexing
+ * path among others.
+ *
+ * Two independent legs make dropping the merge safe:
+ *
+ *  1. REDUNDANCY. Every secret consumer goes through a getter, and each getter
+ *     consults the keychain itself at step 2. Exactly one consumer outside this
+ *     file and the wizard's own state reads a secret field off a
+ *     `loadGlobalConfig()` result, and it switches to
+ *     `loadGlobalConfigWithSecrets()`.
+ *  2. CORRECTNESS. `saveGlobalConfig` merges over `existing`. If `existing`
+ *     carried keychain-sourced values, a keychain-sourced secret could be flushed
+ *     into plaintext by a later failure — a leak created by the fix. Removing the
+ *     merge is a PRECONDITION for that being safe; it is not on its own
+ *     sufficient, which is why `saveGlobalConfig` re-reads the raw file.
+ *
+ * Rejected: lazy `Object.defineProperty` getters on the returned config. Elegant
+ * and broken on contact — a spread MATERIALISES every getter, as do
+ * `JSON.stringify` and structured cloning, in places with nothing to do with secrets.
  */
 export function loadGlobalConfig(): GlobalConfig {
 	const defaultConfig: GlobalConfig = {
 		excludePatterns: DEFAULT_EXCLUDE_PATTERNS,
 	};
 
-	if (!existsSync(GLOBAL_CONFIG_PATH)) {
+	const { parsed } = readGlobalConfigFileRaw();
+	if (!parsed) {
+		// LOW (b): the opt-out cache must follow the file in BOTH directions. A
+		// `keychain: false` read earlier in this process otherwise survived the file
+		// being deleted or moved aside — which `preserveCorruptGlobalConfig` does —
+		// leaving the backend silently disabled for the rest of the run.
+		setKeychainConfigOptOut(false);
 		return defaultConfig;
 	}
 
-	try {
-		const content = readFileSync(GLOBAL_CONFIG_PATH, "utf-8");
-		const loaded = JSON.parse(content) as Partial<GlobalConfig>;
-		const merged = {
-			...defaultConfig,
-			...loaded,
-			excludePatterns: [
-				...DEFAULT_EXCLUDE_PATTERNS,
-				...(loaded.excludePatterns || []),
-			],
-		};
-		// Pull secrets from keychain (macOS) and merge into config
-		return mergeKeychainSecrets(merged);
-	} catch (error) {
-		console.warn("Failed to load global config:", error);
-		return defaultConfig;
+	const loaded = parsed as Partial<GlobalConfig>;
+	// Keep the enable gate in step with the file without letting secrets.ts import
+	// this module (M9; the dependency stays one-way, config -> secrets).
+	setKeychainConfigOptOut(loaded.keychain === false);
+
+	return {
+		...defaultConfig,
+		...loaded,
+		excludePatterns: [
+			...DEFAULT_EXCLUDE_PATTERNS,
+			...(loaded.excludePatterns || []),
+		],
+	};
+}
+
+/**
+ * `loadGlobalConfig()` plus keychain-stored secrets overlaid ON TOP of the file's
+ * values (keychain wins, matching F3 and `resolveSecret`).
+ *
+ * Explicit and opt-in: exactly one caller wants it, the setup wizard's prefill.
+ * Costs one `dump-keychain` plus one read per stored id.
+ */
+export function loadGlobalConfigWithSecrets(): GlobalConfig {
+	return hydrateSecrets(loadGlobalConfig());
+}
+
+/** O(1) membership for the write-side normalisation below. */
+const DEFAULT_EXCLUDE_SET = new Set(DEFAULT_EXCLUDE_PATTERNS);
+
+/**
+ * What `excludePatterns` should look like IN THE FILE: the user's own additions,
+ * de-duplicated, in order, and nothing else.
+ *
+ * ---------------------------------------------------------------------------
+ * C2 — the file grew by 102 entries on every save.
+ *
+ * `loadGlobalConfig` PREPENDS all 102 `DEFAULT_EXCLUDE_PATTERNS` for the caller's
+ * convenience, so every consumer sees a complete list without having to know the
+ * defaults exist. Callers then hand that same object back to `saveGlobalConfig`,
+ * which wrote the concatenation to disk, and the next load prepended the defaults
+ * again. Measured on a real `~/.mnemex/config.json`: 408 entries, 102 unique, 306
+ * duplicates — four accumulated rounds.
+ *
+ * The distinction that fixes it is between the list as SERVED and the list as
+ * STORED. Only the additions are stored. Behaviour is unchanged in both
+ * directions: `loadGlobalConfig` puts the defaults back on the way out, and
+ * `getExcludePatterns` seeds its Set with `DEFAULT_EXCLUDE_PATTERNS`
+ * independently, so removing them from the file can exclude nothing new and
+ * un-exclude nothing old. A user pattern that happens to equal a default is
+ * dropped from the file and still applied, for the same reason.
+ *
+ * Applied to the MERGED object rather than to the incoming one, so an
+ * already-polluted file is healed by the next save whatever that save was about.
+ */
+function normaliseExcludePatterns(patterns: readonly unknown[]): string[] {
+	const out: string[] = [];
+	const seen = new Set<string>();
+	for (const pattern of patterns) {
+		// The field is typed `string[]`; anything else is junk a hand-edit left
+		// behind, matches no file, and is not worth carrying forward.
+		if (typeof pattern !== "string") continue;
+		if (DEFAULT_EXCLUDE_SET.has(pattern)) continue;
+		if (seen.has(pattern)) continue;
+		seen.add(pattern);
+		out.push(pattern);
 	}
+	return out;
 }
 
 /**
@@ -410,46 +540,668 @@ export function getExcludePatterns(
 	return Array.from(patterns);
 }
 
-/**
- * Load merged configuration (global + project)
- */
-export function loadConfig(projectPath: string): Config {
-	const global = loadGlobalConfig();
-	const project = loadProjectConfig(projectPath);
+// ============================================================================
+// ~/.mnemex/config.json is a SECRET STORE — permissions, atomicity, serialisation
+// ============================================================================
+//
+// After the keychain rewrite a secret can legitimately remain in this file, and
+// every user upgrading from <= 0.32.0 already has ALL of their API keys here in
+// plaintext at mode 0644 (the keychain module never shipped). The file therefore
+// gets the treatment `src/cloud/auth.ts` already gives `credentials.json`.
 
-	return {
-		...global,
-		project: project || undefined,
-	};
+/**
+ * THE credential mutation lock. ~2 s acquisition budget, 10 s staleness.
+ *
+ * NOT "advisory and best-effort" any more, and the change of wording is the fix.
+ * `acquireConfigLock()` returned `null` after the budget and `saveGlobalConfig()`
+ * carried on with its read-modify-write regardless — it FAILED OPEN. External
+ * review supplied the sequence: two supported saves overlap, the loser's stale
+ * merged snapshot wins the rename, and a credential whose keychain write failed
+ * exists in neither place. A lock that proceeds when it cannot be taken is not a
+ * lock; every acquisition failure is now a refusal (`ConfigLockUnavailableError`).
+ *
+ * It covers ONE resource pair — `~/.mnemex/config.json` and the mnemex keychain
+ * items — because those two are the ends of the cross-resource TOCTOU that lets
+ * `keychain prune` and `keychain rm` between them delete both copies of a
+ * credential: prune verifies the keychain, rm sees the still-present plaintext,
+ * rm deletes the item, prune deletes the line. Every command that touches either
+ * end (`save`, `migrate`, `prune`, `rm`) now runs inside `withConfigLock`, so
+ * that interleaving cannot be constructed.
+ */
+const CONFIG_LOCK_PATH = join(GLOBAL_CONFIG_DIR, "config.lock");
+const CONFIG_LOCK_BUDGET_MS = 2000;
+const CONFIG_LOCK_STALE_MS = 10000;
+const CONFIG_LOCK_POLL_MS = 25;
+
+/**
+ * Thrown instead of proceeding unlocked. A distinct type so a caller can render
+ * "another mnemex is changing your credentials, nothing was touched" rather than
+ * a generic failure, and so `catch (e) {}` somewhere cannot quietly restore the
+ * fail-open behaviour by looking like an ordinary I/O error.
+ */
+export class ConfigLockUnavailableError extends Error {
+	constructor(reason: string) {
+		super(
+			`could not take the ~/.mnemex credential lock (${reason}); nothing was changed. ` +
+				"Another mnemex process may be saving, migrating or pruning credentials.",
+		);
+		this.name = "ConfigLockUnavailableError";
+	}
 }
 
 /**
- * Save global configuration
+ * A bounded synchronous sleep, so the lock wait is a short retry loop rather than
+ * a busy spin. No `saveGlobalConfig` call site sits inside the index lock's
+ * critical region, so this 2 s ceiling is outside `lock.ts`'s heartbeat window by
+ * construction — verified across all four call sites.
  */
-export function saveGlobalConfig(config: Partial<GlobalConfig>): void {
-	// Ensure directory exists
-	if (!existsSync(GLOBAL_CONFIG_DIR)) {
-		mkdirSync(GLOBAL_CONFIG_DIR, { recursive: true });
+function sleepSyncMs(ms: number): void {
+	if (typeof Bun !== "undefined" && typeof Bun.sleepSync === "function") {
+		Bun.sleepSync(ms);
+		return;
+	}
+	const shared = new Int32Array(new SharedArrayBuffer(4));
+	Atomics.wait(shared, 0, 0, ms);
+}
+
+/**
+ * The token written INTO the lock file, and checked again before we unlink it.
+ *
+ * Without it, release is "unlink whatever is at that path", so an owner whose
+ * lock had already been reclaimed as stale would delete the NEW owner's lock and
+ * put two writers on the file at once. pid alone is not enough — pids are reused.
+ */
+function newLockToken(): string {
+	return `${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * The three instants inside a stale takeover at which another process could
+ * change the world underneath this one. Each one is a layer of the defence, and
+ * each is separately stageable — see `test/unit/config/credential-lock-reclaim`.
+ *
+ *  - `judged`   — the mtime says the holder is dead. The exclusive right to
+ *                 reclaim THIS lock has just been won; nothing has been acted on.
+ *  - `verified` — the lock still carries the token and mtime that were judged.
+ *  - `detached` — the lock file has been moved aside and is about to be compared.
+ */
+export type ConfigLockStalePhase = "judged" | "verified" | "detached";
+
+/**
+ * A hook fired at those two instants. `null` in production; nothing else reads it.
+ *
+ * It exists because the defect it guards against lives ENTIRELY in the gap
+ * between a judgement and the act on it, and a race reproducible only by chance
+ * is a race whose fix cannot be shown to work. With this, the two-owner
+ * interleaving is staged deterministically: the hook does what the other process
+ * would have done — reclaim the stale lock and install one of its own — and the
+ * assertion is that this process then refuses instead of deleting it.
+ *
+ * It cannot weaken the lock. It takes no decision, its return value is ignored,
+ * and every step after it is re-derived from the filesystem.
+ */
+let onConfigLockStalePhase: ((phase: ConfigLockStalePhase) => void) | null =
+	null;
+
+/** Test-only. See `onConfigLockStalePhase`. */
+export function setConfigLockStaleHook(
+	hook: ((phase: ConfigLockStalePhase) => void) | null,
+): void {
+	onConfigLockStalePhase = hook;
+}
+
+/**
+ * ATOMICALLY take the lock file out of the way, and report WHAT WAS TAKEN.
+ *
+ * This is the whole answer to "compare the owner token under an atomic
+ * operation, not check-then-act". `rename` moves a specific inode out of the
+ * well-known name in one step: after it returns, no other process can act on the
+ * thing we removed, and only then do we read its token and decide whether we were
+ * entitled to remove it. Swap first, compare second, roll back on mismatch.
+ *
+ * The previous code did the opposite — `statSync` said stale, and a later
+ * `unlinkSync(path)` deleted whatever happened to be at that name by then. Two
+ * processes that both observed one stale lock could therefore both delete: the
+ * first reclaimed it and installed its own, the second deleted THAT, and both
+ * entered their critical sections. That is two owners, and two owners is the
+ * `prune`/`rm` credential-destruction sequence back in full.
+ *
+ * Returns `null` when the name was already empty — someone else got there first,
+ * which is a retry, not an error.
+ */
+function detachLockFile(): { path: string; token: string } | null {
+	const path = `${CONFIG_LOCK_PATH}.detached-${newLockToken()}`;
+	try {
+		renameSync(CONFIG_LOCK_PATH, path);
+	} catch {
+		return null;
+	}
+	let token = "";
+	try {
+		token = readFileSync(path, "utf8");
+	} catch {
+		// An unreadable detached lock is not proof of anything; the empty string
+		// only matches a lock that was itself never stamped.
+	}
+	return { path, token };
+}
+
+/**
+ * Put back a lock we detached but were not entitled to remove.
+ *
+ * `link` rather than `rename`: it FAILS if the name is occupied instead of
+ * overwriting, so restoring can never clobber a third process's lock. If it does
+ * fail we are in a state we cannot describe truthfully, so the caller refuses.
+ */
+function restoreDetachedLock(detached: { path: string }): boolean {
+	try {
+		linkSync(detached.path, CONFIG_LOCK_PATH);
+	} catch {
+		return false;
+	}
+	try {
+		unlinkSync(detached.path);
+	} catch {}
+	return true;
+}
+
+/** Outcome of trying to take over a lock whose mtime says its holder died. */
+type Reclaim = "reclaimed" | "retry" | "ambiguous";
+
+/** FNV-1a, for a short path-safe name derived from an arbitrary lock token. */
+function shortHash(value: string): string {
+	let h = 0x811c9dc5;
+	for (let i = 0; i < value.length; i++) {
+		h ^= value.charCodeAt(i);
+		h = Math.imul(h, 0x01000193) >>> 0;
+	}
+	return h.toString(16).padStart(8, "0");
+}
+
+/**
+ * The name of the EXCLUSIVE RIGHT to reclaim the lock identified by this exact
+ * (token, mtime) pair.
+ *
+ * Deterministic across processes on purpose: every process that judges the same
+ * stale lock computes the same name, so `openSync(..., "wx")` — which is atomic —
+ * elects exactly one of them.
+ */
+function reclaimClaimPath(token: string, mtimeMs: number): string {
+	return `${CONFIG_LOCK_PATH}.reclaim-${shortHash(token)}-${Math.trunc(mtimeMs)}`;
+}
+
+/** Read the lock's identity: what it says, and how old it is. */
+function observeLockFile(): { token: string; mtimeMs: number } | null {
+	try {
+		return {
+			token: readFileSync(CONFIG_LOCK_PATH, "utf8"),
+			mtimeMs: statSync(CONFIG_LOCK_PATH).mtimeMs,
+		};
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Take over a lock last stamped with `observed`, or do nothing.
+ *
+ * THREE LAYERS, because a lock file protocol has no primitive that both removes
+ * and identifies in one step, and each layer closes what the one below it cannot:
+ *
+ *  1. ELECTION. Only the process that wins `openSync(claim, "wx")` may touch the
+ *     lock at all. Without this, every contender that judged one stale lock is
+ *     entitled to remove whatever is at that name later — the reported defect —
+ *     and, worse, each of them briefly makes the name FREE while checking, which
+ *     hands a live owner's lock to whoever polls next. Measured: an eight-process
+ *     race over one stale lock produced an overlap without this layer.
+ *  2. RE-VERIFICATION. The winner re-derives (token, mtime) while holding the
+ *     right, so a takeover that completed since the judgement is seen.
+ *  3. DETACH AND COMPARE. `rename` moves a specific inode out of the well-known
+ *     name in one atomic step; only then is its token compared. Whatever we
+ *     removed, we removed exclusively, and we can say what it was. If it was not
+ *     ours to remove we put it back, and if we cannot put it back we refuse.
+ *
+ * A process that dies holding the claim leaves a file named after a lock that is
+ * itself stale; the next pass drops it once it is older than the staleness window
+ * and tries again, so a crash costs one window rather than wedging the CLI.
+ */
+function reclaimStaleLock(observed: {
+	token: string;
+	mtimeMs: number;
+}): Reclaim {
+	const claim = reclaimClaimPath(observed.token, observed.mtimeMs);
+	let claimFd: number;
+	try {
+		claimFd = openSync(claim, "wx");
+	} catch {
+		// Another process is reclaiming this exact lock — or died doing so.
+		try {
+			if (Date.now() - statSync(claim).mtimeMs > CONFIG_LOCK_STALE_MS) {
+				unlinkSync(claim);
+			}
+		} catch {}
+		return "retry";
 	}
 
-	// Route secret fields to keychain (macOS) and strip from JSON
-	const keychainSafe = routeSecretsToKeychain(config);
+	try {
+		try {
+			writeFileSync(claimFd, `${process.pid}`, "utf8");
+		} catch {}
+		try {
+			closeSync(claimFd);
+		} catch {}
 
-	// Merge with existing config (also keychain-merged on load)
-	const existing = loadGlobalConfig();
-	const merged = { ...existing, ...keychainSafe };
+		onConfigLockStalePhase?.("judged");
 
-	// Strip any secrets from the final result so they never leak to JSON
-	const plaintextSafe = stripSecrets(merged);
+		// LAYER 2 — is the thing we judged still the thing that is there?
+		const current = observeLockFile();
+		if (
+			current === null ||
+			current.token !== observed.token ||
+			Math.trunc(current.mtimeMs) !== Math.trunc(observed.mtimeMs)
+		) {
+			return "retry";
+		}
 
-	writeFileSync(
-		GLOBAL_CONFIG_PATH,
-		JSON.stringify(plaintextSafe, null, 2),
-		"utf-8",
-	);
+		onConfigLockStalePhase?.("verified");
 
-	// The learning decision is cached per path; a rewrite must be visible.
-	resetLearningEnabledCache();
+		// LAYER 3 — swap first, compare second.
+		const detached = detachLockFile();
+		if (detached === null) return "retry";
+
+		onConfigLockStalePhase?.("detached");
+
+		if (detached.token === observed.token) {
+			try {
+				unlinkSync(detached.path);
+			} catch {}
+			return "reclaimed";
+		}
+
+		// NOT the lock we judged. Someone else owns this one.
+		return restoreDetachedLock(detached) ? "retry" : "ambiguous";
+	} finally {
+		try {
+			unlinkSync(claim);
+		} catch {}
+	}
+}
+
+function acquireConfigLock(): { fd: number; token: string } | null {
+	const deadline = Date.now() + CONFIG_LOCK_BUDGET_MS;
+	for (;;) {
+		try {
+			const fd = openSync(CONFIG_LOCK_PATH, "wx");
+			const token = newLockToken();
+			try {
+				writeFileSync(fd, token, "utf8");
+			} catch {
+				// A lock we cannot stamp is a lock we must not claim: release would
+				// then be unable to prove ownership and would unlink blindly.
+				try {
+					closeSync(fd);
+				} catch {}
+				try {
+					unlinkSync(CONFIG_LOCK_PATH);
+				} catch {}
+				return null;
+			}
+			return { fd, token };
+		} catch {
+			// Read the identity AND the age of the thing we are about to judge. The
+			// token is what makes the takeover verifiable; the mtime only decides
+			// whether to attempt one, and both together name the takeover claim.
+			// `null` means the holder released it between our open and our read.
+			const observed = observeLockFile();
+
+			if (
+				observed !== null &&
+				Date.now() - observed.mtimeMs > CONFIG_LOCK_STALE_MS
+			) {
+				const outcome = reclaimStaleLock(observed);
+				// AMBIGUOUS means we detached a live lock and could not put it back,
+				// so we cannot say who holds what. Refusing is the only honest move;
+				// proceeding here is exactly the two-owner state being prevented.
+				if (outcome === "ambiguous") return null;
+				if (outcome === "reclaimed") continue;
+			}
+
+			if (Date.now() >= deadline) return null;
+			sleepSyncMs(CONFIG_LOCK_POLL_MS);
+		}
+	}
+}
+
+function releaseConfigLock(lock: { fd: number; token: string } | null): void {
+	if (lock === null) return;
+	try {
+		closeSync(lock.fd);
+	} catch {}
+
+	// Same atomic swap-then-compare as the takeover, for the same reason: reading
+	// the token and then unlinking the PATH is check-then-act, and if our lock had
+	// already been reclaimed as stale we would delete the new owner's lock in the
+	// window between the two calls. Detaching first means whatever we compare is
+	// something no one else can still be using.
+	const detached = detachLockFile();
+	if (detached === null) return;
+	if (detached.token === lock.token) {
+		try {
+			unlinkSync(detached.path);
+		} catch {}
+		return;
+	}
+	// Not ours any more. Put it back; if we cannot, leave the file for
+	// `sweepStaleConfigDebris` rather than destroying someone's evidence.
+	restoreDetachedLock(detached);
+}
+
+/** Depth, so the four commands can nest the shared lock without deadlocking. */
+let configLockDepth = 0;
+let heldConfigLock: { fd: number; token: string } | null = null;
+
+/**
+ * Run `fn` holding the credential lock, or DO NOT RUN IT AT ALL.
+ *
+ * Re-entrant within a process on purpose: `keychain prune` must hold the lock
+ * across the raw file read, the keychain verification AND the file replacement,
+ * and the replacement is `removeGlobalConfigFields`, which takes the same lock.
+ * A non-re-entrant lock would deadlock for two seconds and then — under the old
+ * fail-open rule — proceed anyway, which is how the hole stayed open.
+ *
+ * Re-entrancy is per-process state and is therefore NOT a weakening: the race
+ * being closed is between processes, and the file lock is what serialises those.
+ */
+export function withConfigLock<T>(fn: () => T): T {
+	if (configLockDepth > 0) {
+		configLockDepth++;
+		try {
+			return fn();
+		} finally {
+			configLockDepth--;
+		}
+	}
+
+	ensureGlobalConfigDir();
+	const lock = acquireConfigLock();
+	if (!lock) {
+		// FAIL CLOSED. This is the whole point of the change.
+		throw new ConfigLockUnavailableError(
+			`no lock after ${CONFIG_LOCK_BUDGET_MS} ms at ${CONFIG_LOCK_PATH}`,
+		);
+	}
+	heldConfigLock = lock;
+	configLockDepth = 1;
+	try {
+		return fn();
+	} finally {
+		configLockDepth = 0;
+		heldConfigLock = null;
+		releaseConfigLock(lock);
+	}
+}
+
+/** True while this process holds the lock. Used only by assertions and tests. */
+export function isConfigLockHeld(): boolean {
+	return configLockDepth > 0 && heldConfigLock !== null;
+}
+
+function ensureGlobalConfigDir(): void {
+	try {
+		mkdirSync(GLOBAL_CONFIG_DIR, { recursive: true, mode: 0o700 });
+	} catch {
+		// Best-effort: a pre-existing directory keeps its mode, which is fine.
+	}
+}
+
+/**
+ * Remove `config.json.tmp.*` left by a process that died between the write and
+ * the rename (LOW (e)), and `config.lock.detached-*` left by one that died
+ * mid-takeover.
+ *
+ * Not a disclosure — the tmp is created `0600` and re-`chmod`ed, and `~/.mnemex`
+ * is deliberately not re-`chmod`ed when it already exists — but it holds every
+ * plaintext secret the save was about to install and nothing ever removed it. One
+ * `readdir` per save. The live tmp for THIS pid is excluded: the caller is about
+ * to create it, and unlinking a name we are about to write is pointless churn.
+ *
+ * The detached-lock debris is empty of secrets (it holds an owner token) but is
+ * swept for the same reason: a name nothing ever deletes accumulates forever, and
+ * this runs while the credential lock is held, so nothing can be mid-takeover.
+ */
+function sweepStaleConfigTmpFiles(): void {
+	const live = `config.json.tmp.${process.pid}`;
+	try {
+		for (const name of readdirSync(GLOBAL_CONFIG_DIR)) {
+			const debris =
+				(name.startsWith("config.json.tmp.") && name !== live) ||
+				name.startsWith("config.lock.detached-") ||
+				name.startsWith("config.lock.reclaim-");
+			if (!debris) continue;
+			const path = join(GLOBAL_CONFIG_DIR, name);
+			try {
+				// AGE, not pid. "A different pid is in the filename" is not evidence of
+				// staleness — on Unix, unlinking a live writer's open temporary file
+				// succeeds silently, so the old test could destroy another process's
+				// in-flight save while reporting nothing. Only a tmp older than the
+				// lock staleness window can have been abandoned.
+				if (Date.now() - statSync(path).mtimeMs <= CONFIG_LOCK_STALE_MS) {
+					continue;
+				}
+				unlinkSync(path);
+			} catch {
+				// Another process may own it and be mid-rename. Leave it.
+			}
+		}
+	} catch {
+		// No directory yet, or unreadable. Nothing to sweep.
+	}
+}
+
+/**
+ * Atomic, 0600 write.
+ *
+ * MEASURED, and the reason `mode:` alone is not the control it looks like:
+ * `writeFileSync(p, data, {mode: 0o600})` on an EXISTING file leaves it at 644 —
+ * the mode applies only when `O_CREAT` actually creates the file, and the real
+ * `~/.mnemex/config.json` is `-rw-r--r--`. The population this control protects is
+ * exactly the population `mode:` cannot reach. Only `chmodSync` gets to 600.
+ *
+ * tmp -> chmod -> rename is what makes a crash, a full disk or two concurrent
+ * saves survivable: `writeFileSync` truncates in place, and a truncated file makes
+ * `loadGlobalConfig` return defaults, after which the next save would write
+ * defaults over it and permanently discard every setting AND every plaintext secret.
+ */
+function writeGlobalConfigFileAtomic(obj: Record<string, unknown>): void {
+	ensureGlobalConfigDir();
+	sweepStaleConfigTmpFiles();
+	const tmp = `${GLOBAL_CONFIG_PATH}.tmp.${process.pid}`;
+	try {
+		writeFileSync(tmp, JSON.stringify(obj, null, 2), {
+			encoding: "utf8",
+			mode: 0o600,
+		});
+		try {
+			chmodSync(tmp, 0o600);
+		} catch {}
+		renameSync(tmp, GLOBAL_CONFIG_PATH);
+	} catch (error) {
+		try {
+			if (existsSync(tmp)) unlinkSync(tmp);
+		} catch {}
+		throw error;
+	}
+	// Belt and braces: `renameSync` carries the tmp inode's 0600, but F9's test is
+	// "holds, or has ever held, a secret", and this must hold on EVERY save.
+	try {
+		chmodSync(GLOBAL_CONFIG_PATH, 0o600);
+	} catch {
+		// Non-fatal: a failed chmod must not cost the user a save.
+	}
+}
+
+/** Never merge over a file we could not understand — preserve it and say so. */
+function preserveCorruptGlobalConfig(): string | undefined {
+	const preserved = `${GLOBAL_CONFIG_PATH}.corrupt-${Date.now()}`;
+	try {
+		renameSync(GLOBAL_CONFIG_PATH, preserved);
+		return preserved;
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Save global configuration.
+ *
+ * Returns a `SecretPersistReport` (was `void` — additive; every current caller
+ * ignores it). `src/cli.ts` consumes it so the confirmation message can say where
+ * the key is NOT, which is the only notice a user gets that a downgrade will not
+ * find it.
+ *
+ * THE TWO MERGES ARE DIFFERENT OBJECTS, and that is the whole of the fix:
+ * `incoming` is what is offered to the keychain, `merged` is what goes to the
+ * file. Before this change they were the same object, so a save of
+ * `{llmEndpoint}` re-offered six file-resident secrets to the keychain with `-U`
+ * and could overwrite a value the user had just edited in Keychain Access.app.
+ */
+export function saveGlobalConfig(
+	config: Partial<GlobalConfig>,
+): SecretPersistReport {
+	ensureGlobalConfigDir();
+	return withConfigLock(() => {
+		// If the file exists and does not parse, preserve it BEFORE anything else.
+		let corruptFilePreservedAs: string | undefined;
+		if (readGlobalConfigFileRaw().corrupt) {
+			corruptFilePreservedAs = preserveCorruptGlobalConfig();
+		}
+
+		const { jsonSafe, report } = persistSecrets(config);
+		if (corruptFilePreservedAs) {
+			report.corruptFilePreservedAs = corruptFilePreservedAs;
+		}
+
+		// Re-read INSIDE the critical section, immediately before the write, so the
+		// window in which another process's save can be resurrected is as small as
+		// it can be made without a real lock.
+		const existing = readGlobalConfigFileRaw().parsed ?? {};
+		const merged: Record<string, unknown> = { ...existing, ...jsonSafe };
+
+		// ------------------------------------------------------------------
+		// I1, second half. AN OBJECT SPREAD CANNOT DELETE A FIELD.
+		//
+		// Omitting a proven-stored secret from `jsonSafe` does NOT remove it from
+		// `merged` — the spread takes it straight back out of `existing`. The old
+		// `stripSecrets(merged)` performed that deletion; deleting `stripSecrets`
+		// without replacing this step would write the secret back to config.json in
+		// plaintext immediately after a successful keychain write, while the CLI
+		// printed "It is NOT in ~/.mnemex/config.json".
+		//
+		// Only `keychain` and `cleared` are deleted: those are the two dispositions
+		// this save PROVED. A failed write must leave the INCOMING value in the file
+		// — deleting on failure is the original key-loss defect all over again.
+		// ------------------------------------------------------------------
+		for (const outcome of report.outcomes) {
+			if (outcome.stored === "keychain" || outcome.stored === "cleared") {
+				delete merged[outcome.field];
+			}
+		}
+
+		// C2. Store the user's additions only; `loadGlobalConfig` puts the 102
+		// defaults back on the way out. Without this the file grew by 102 entries
+		// per save. See `normaliseExcludePatterns`.
+		if (Array.isArray(merged.excludePatterns)) {
+			merged.excludePatterns = normaliseExcludePatterns(merged.excludePatterns);
+		}
+
+		writeGlobalConfigFileAtomic(merged);
+		setKeychainConfigOptOut(merged.keychain === false);
+		invalidateSecretSessionCache();
+		// The learning decision is cached per path; a rewrite must be visible.
+		// Carried across the 0.35.0 merge: upstream added this to the old
+		// `saveGlobalConfig` body, which this function replaced wholesale.
+		resetLearningEnabledCache();
+		return report;
+	});
+}
+
+/**
+ * Remove named top-level fields from the config file in ONE atomic write.
+ *
+ * `mnemex keychain prune`'s writer. A single write is what makes a mixed prune
+ * safe: the verified subset is removed together, and a crash mid-verification
+ * changes nothing at all.
+ */
+export function removeGlobalConfigFields(
+	fields: string[],
+	/**
+	 * The value each field is EXPECTED to still hold, as verified by the caller.
+	 *
+	 * `pruneFileSecrets` reads the file, proves each value byte-identical against
+	 * the keychain, and returns the field list; this function then re-reads the
+	 * file under the config lock. Between those two reads another save can change
+	 * the field — most plausibly a save whose keychain write FAILED, which writes a
+	 * new plaintext value precisely because it could not be stored. Deleting
+	 * unconditionally would then remove a value nobody ever verified while the
+	 * keychain still held the old one. Passing the verified values makes the
+	 * deletion conditional on the file not having moved underneath it.
+	 *
+	 * Omitted (the non-prune callers) means unconditional, as before.
+	 */
+	expectedValues?: Record<string, unknown>,
+): { removed: string[]; skipped: string[] } {
+	if (fields.length === 0) return { removed: [], skipped: [] };
+	// LOW (c): `acquireConfigLock` opens `~/.mnemex/config.lock` with "wx". Without
+	// the directory it fails ENOENT on every iteration and burns the whole 2 s
+	// budget before discovering there is no config to edit. `saveGlobalConfig`
+	// already does this; this path did not.
+	ensureGlobalConfigDir();
+	return withConfigLock(() => {
+		const existing = readGlobalConfigFileRaw().parsed;
+		if (!existing) return { removed: [], skipped: [] };
+		const removed: string[] = [];
+		const skipped: string[] = [];
+		for (const field of fields) {
+			if (
+				expectedValues &&
+				field in expectedValues &&
+				existing[field] !== expectedValues[field]
+			) {
+				skipped.push(field);
+				continue;
+			}
+			delete existing[field];
+			removed.push(field);
+		}
+		if (removed.length === 0) return { removed, skipped };
+		writeGlobalConfigFileAtomic(existing);
+		invalidateSecretSessionCache();
+		return { removed, skipped };
+	});
+}
+
+/**
+ * Tighten `~/.mnemex/config.json` to 0600 WITHOUT touching its contents.
+ *
+ * `mnemex keychain migrate` deliberately leaves the plaintext copies in place —
+ * copy-verify-then-separately-delete is the only shape in which an interrupted
+ * migration cannot lose a key. But it performed no save either, so on the verified
+ * starting state for every upgrading user (a 0644 file, which is what
+ * `writeFileSync`'s `mode:` cannot fix on an existing file) every plaintext copy
+ * stayed WORLD-READABLE for the whole validation interval the two-step migration
+ * asks the user to sit in. CWE-732.
+ *
+ * Returns false when the mode could not be confirmed, so the caller can say so and
+ * fail rather than implying the file is protected.
+ */
+export function hardenGlobalConfigFileMode(): boolean {
+	try {
+		if (!existsSync(GLOBAL_CONFIG_PATH)) return true;
+		chmodSync(GLOBAL_CONFIG_PATH, 0o600);
+		return (statSync(GLOBAL_CONFIG_PATH).mode & 0o777) === 0o600;
+	} catch {
+		return false;
+	}
 }
 
 /**
@@ -547,24 +1299,11 @@ export function ensureProjectDir(projectPath: string): void {
 // ============================================================================
 
 /**
- * Get OpenRouter API key from environment or config
+ * Get OpenRouter API key.
+ * Order: OPENROUTER_API_KEY -> macOS Keychain -> ~/.mnemex/config.json.
  */
 export function getApiKey(): string | undefined {
-	// First check environment variable
-	const envKey = process.env[ENV.OPENROUTER_API_KEY];
-	if (envKey) {
-		return envKey;
-	}
-
-	// Then check macOS Keychain
-	const keychainKey = getKeychainSecret("openrouter");
-	if (keychainKey) {
-		return keychainKey;
-	}
-
-	// Then check global config
-	const config = loadGlobalConfig();
-	return config.openrouterApiKey;
+	return resolveSecret("openrouter", () => loadGlobalConfig().openrouterApiKey);
 }
 
 /**
@@ -575,24 +1314,11 @@ export function hasApiKey(): boolean {
 }
 
 /**
- * Get Voyage AI API key from environment or config
+ * Get Voyage AI API key.
+ * Order: VOYAGE_API_KEY -> macOS Keychain -> ~/.mnemex/config.json.
  */
 export function getVoyageApiKey(): string | undefined {
-	// First check environment variable
-	const envKey = process.env[ENV.VOYAGE_API_KEY];
-	if (envKey) {
-		return envKey;
-	}
-
-	// Then check macOS Keychain
-	const keychainKey = getKeychainSecret("voyage");
-	if (keychainKey) {
-		return keychainKey;
-	}
-
-	// Then check global config
-	const config = loadGlobalConfig();
-	return config.voyageApiKey;
+	return resolveSecret("voyage", () => loadGlobalConfig().voyageApiKey);
 }
 
 /**
@@ -669,24 +1395,24 @@ export function getEmbeddingModel(projectPath?: string): string {
 import { LLMResolver, type LLMSpec } from "./llm/resolver.js";
 
 /**
- * Get Anthropic API key from environment or config
+ * Get Anthropic API key.
+ * Order: ANTHROPIC_API_KEY -> macOS Keychain -> ~/.mnemex/config.json.
  */
 export function getAnthropicApiKey(): string | undefined {
-	// First check environment variable
-	const envKey = process.env[ENV.ANTHROPIC_API_KEY];
-	if (envKey) {
-		return envKey;
-	}
+	return resolveSecret("anthropic", () => loadGlobalConfig().anthropicApiKey);
+}
 
-	// Then check macOS Keychain
-	const keychainKey = getKeychainSecret("anthropic");
-	if (keychainKey) {
-		return keychainKey;
-	}
-
-	// Then check global config
-	const config = loadGlobalConfig();
-	return config.anthropicApiKey;
+/**
+ * Get the Ollama API key.
+ * Order: OLLAMA_API_KEY -> macOS Keychain -> ~/.mnemex/config.json.
+ *
+ * GENERATION ONLY. `OllamaEmbeddingsClient` sends no auth header and must keep
+ * sending none: Ollama Cloud's `/api/embed` returns 401 for EVERY model, so a key
+ * on the embeddings path turns a working local-Ollama embedding run into a
+ * confusing failure (CLAUDE.md #18). Do not "fix" the asymmetry.
+ */
+export function getOllamaApiKey(): string | undefined {
+	return resolveSecret("ollama", () => loadGlobalConfig().ollamaApiKey);
 }
 
 /**
@@ -772,29 +1498,13 @@ import type { DocProviderType, DocsConfig } from "./types.js";
  * Priority: env > project config > global config
  */
 export function getContext7ApiKey(projectPath?: string): string | undefined {
-	// First check environment variable
-	const envKey = process.env[ENV.CONTEXT7_API_KEY];
-	if (envKey) {
-		return envKey;
-	}
-
-	// Then check macOS Keychain
-	const keychainKey = getKeychainSecret("context7");
-	if (keychainKey) {
-		return keychainKey;
-	}
-
-	// Then check project config
-	if (projectPath) {
-		const projectConfig = loadProjectConfig(projectPath);
-		if (projectConfig?.docs?.context7ApiKey) {
-			return projectConfig.docs.context7ApiKey;
-		}
-	}
-
-	// Then check global config
-	const config = loadGlobalConfig();
-	return config.context7ApiKey;
+	return resolveSecret(
+		"context7",
+		() =>
+			(projectPath
+				? loadProjectConfig(projectPath)?.docs?.context7ApiKey
+				: undefined) || loadGlobalConfig().context7ApiKey,
+	);
 }
 
 /**

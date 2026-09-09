@@ -40,6 +40,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { KEYCHAIN_CHILD_GUARD_ENV } from "../helpers/child-env.js";
 
 const REPO_ROOT = resolve(import.meta.dir, "../..");
 const CLI = join(REPO_ROOT, "dist/index.js");
@@ -75,6 +76,10 @@ function runCliDirect(
 			MNEMEX_DEBUG: "1",
 			MNEMEX_DOCS_ENABLED: "false",
 			...extraEnv,
+			// LAST, so no caller can weaken it. This child runs the production entry
+			// point, which enables real keychain access as its first act; the built-up
+			// env means it inherits no sentinel from the test runner.
+			...KEYCHAIN_CHILD_GUARD_ENV,
 		},
 	});
 	return {

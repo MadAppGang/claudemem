@@ -8,11 +8,12 @@
 import { useCallback, useEffect, useState } from "react";
 import type { TeamConfig } from "../../cloud/types.js";
 import {
-	loadGlobalConfig,
+	loadGlobalConfigWithSecrets,
 	loadProjectConfig,
 	saveGlobalConfig,
 	saveProjectConfig,
 } from "../../config.js";
+import { setSecretWarningSink } from "../../core/secrets.js";
 import type { GlobalConfig, ProjectConfig } from "../../types.js";
 import { detectHardware } from "./hardware.js";
 import { CloudSetupScreen } from "./screens/CloudSetup.js";
@@ -94,6 +95,22 @@ function resolveNextStep(current: WizardStep, state: WizardState): WizardStep {
 }
 
 /**
+ * Which GlobalConfig field holds the API key for a given LLM spec.
+ *
+ * The single source of truth for both prefill and save — they MUST agree, and a
+ * pre-existing bug where they did not is what wrote an Anthropic key over the
+ * openrouter keychain item.
+ */
+function llmApiKeyField(
+	llm: string | null,
+): "anthropicApiKey" | "openrouterApiKey" | null {
+	if (!llm) return null;
+	if (llm.startsWith("a/")) return "anthropicApiKey";
+	if (llm.startsWith("or/")) return "openrouterApiKey";
+	return null;
+}
+
+/**
  * Convert WizardState into GlobalConfig + ProjectConfig parts.
  */
 function buildConfigs(state: WizardState): BuildConfigResult {
@@ -124,12 +141,26 @@ function buildConfigs(state: WizardState): BuildConfigResult {
 	} else if (state.llm) {
 		globalPart.llm = state.llm;
 		globalPart.enableEnrichment = true;
-		if (state.llm.startsWith("a/") && state.llmApiKey) {
-			globalPart.anthropicApiKey = state.llmApiKey;
+
+		// The key goes to the field that matches the SELECTED SPEC. Prefill and save
+		// must read and write the same field: the wizard previously prefilled from
+		// `anthropicApiKey` while writing into `openrouterApiKey` for an "or/" spec,
+		// so re-running it with an OpenRouter model wrote the ANTHROPIC key over the
+		// openrouter item.
+		const llmKeyField = llmApiKeyField(state.llm);
+		// M7: fresh user input is normalised at the boundary. Distinct from the rule
+		// that forbids trimming a value READ BACK from the keychain.
+		const typedKey = state.llmApiKey?.trim() || null;
+		if (
+			llmKeyField &&
+			typedKey &&
+			// Omit an UNCHANGED hydrated value entirely, so a keychain-sourced secret
+			// never enters the save path.
+			typedKey !== state.llmApiKeyPrefill
+		) {
+			globalPart[llmKeyField] = typedKey;
 		}
-		if (state.llm.startsWith("or/") && state.llmApiKey) {
-			globalPart.openrouterApiKey = state.llmApiKey;
-		}
+
 		if (state.llmEndpoint) {
 			globalPart.llmEndpoint = state.llmEndpoint;
 		}
@@ -145,8 +176,8 @@ function buildConfigs(state: WizardState): BuildConfigResult {
 		};
 		// Always persist the cloud API key to global config so authentication
 		// works regardless of scope selection.
-		if (state.cloudApiKey) {
-			globalPart.cloudApiKey = state.cloudApiKey;
+		if (state.cloudApiKey.trim()) {
+			globalPart.cloudApiKey = state.cloudApiKey.trim();
 		}
 		if (projectPart !== null) {
 			// Project or "both" scope: write team config to project config.
@@ -165,7 +196,9 @@ function buildConfigs(state: WizardState): BuildConfigResult {
  * Pre-fill wizard state from existing configs (reconfigure flow).
  */
 function prefillFromExistingConfig(base: WizardState): WizardState {
-	const globalConfig = loadGlobalConfig();
+	// The ONE caller that wants keychain-hydrated values. Keychain wins over the
+	// file, matching resolution order, so the box shows the key mnemex actually uses.
+	const globalConfig = loadGlobalConfigWithSecrets();
 	const projectConfig = loadProjectConfig(process.cwd());
 
 	const updated: WizardState = { ...base };
@@ -191,8 +224,12 @@ function prefillFromExistingConfig(base: WizardState): WizardState {
 	if (globalConfig.enableEnrichment === false) {
 		updated.enrichmentSkipped = true;
 	}
-	if (globalConfig.anthropicApiKey) {
-		updated.llmApiKey = globalConfig.anthropicApiKey;
+	// Read the field the SELECTED spec writes to — see `llmApiKeyField`.
+	const prefillField = llmApiKeyField(updated.llm);
+	const prefilled = prefillField ? globalConfig[prefillField] : undefined;
+	if (prefilled) {
+		updated.llmApiKey = prefilled;
+		updated.llmApiKeyPrefill = prefilled;
 	}
 	if (globalConfig.llmEndpoint) {
 		updated.llmEndpoint = globalConfig.llmEndpoint;
@@ -240,6 +277,16 @@ export function SetupApp({ quit, initialMode }: SetupAppProps) {
 	const [isSaving, setIsSaving] = useState(false);
 
 	const currentStep = history[history.length - 1] ?? "mode-select";
+
+	// The buffering sink is installed by the composition root
+	// (`src/tui/setup/index.tsx`) BEFORE this component is constructed, because the
+	// `useState` initializer above already reaches the keychain and an effect runs
+	// too late to cover it. This effect only re-asserts it, for the case where the
+	// component is mounted by something other than `startSetupWizard`; draining is
+	// the root's job, in `onDestroy`.
+	useEffect(() => {
+		setSecretWarningSink(null);
+	}, []);
 
 	// Background hardware detection when entering hardware-detect screen
 	useEffect(() => {

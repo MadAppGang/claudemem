@@ -20,6 +20,20 @@
 set -euo pipefail
 
 # ============================================================================
+# Keychain guard — REQUIRED, and not optional because this script is manual.
+#
+# Every `bun "$CLI_BIN" ...` below runs the production composition root, whose
+# first act is `enableRealKeychainAccess()`. Without these two variables a
+# semantic `mnemex rg` in this script resolves an embedding key and reaches
+# /usr/bin/security against the operator's real login keychain — the incident
+# that produced unanswerable macOS authorization dialogs. Exported, so every
+# child (including the shim at $DEV_MNEMEX and anything Claude Code spawns)
+# inherits them. See test/helpers/child-env.ts.
+# ============================================================================
+export MNEMEX_KEYCHAIN_TEST_GUARD=1
+export MNEMEX_DISABLE_KEYCHAIN=1
+
+# ============================================================================
 # Paths
 # ============================================================================
 

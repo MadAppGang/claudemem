@@ -6,9 +6,12 @@
  * - All tools: Log tool completion for interaction monitoring
  */
 
-import { spawn } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { extname, join } from "node:path";
+import {
+	type EntryPointProcess,
+	spawnSelfDetached,
+} from "../../core/entry-point-launcher.js";
 import type { HookInput, HookOutput } from "../types.js";
 import { logToolCompletion } from "./interaction-logger.js";
 
@@ -110,12 +113,18 @@ async function handleAutoReindex(input: HookInput): Promise<HookOutput | null> {
 	// Update timestamp
 	writeFileSync(debounceFile, Math.floor(Date.now() / 1000).toString());
 
-	// Spawn background reindex
-	const child = spawn(process.execPath, [process.argv[1], "index", "--quiet"], {
-		cwd: input.cwd,
-		detached: true,
-		stdio: "ignore",
-	});
+	// Spawn background reindex. `process.execPath` + `process.argv[1]` re-executes
+	// this build's own script, which IS the entry point — routed through the one
+	// launcher so the static sweep can see it and the runtime veto covers it. See
+	// `src/core/entry-point-launcher.ts`.
+	let child: EntryPointProcess;
+	try {
+		child = spawnSelfDetached(["index", "--quiet"], input.cwd);
+	} catch {
+		// The launcher refuses in a guarded (test) process. The hook's own work is
+		// already done; the background reindex is best-effort.
+		return null;
+	}
 
 	// Write PID to lock file and register cleanup handler BEFORE unref()
 	if (child.pid) {

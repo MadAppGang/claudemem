@@ -8,6 +8,7 @@
 
 import type { ILLMClient, LLMProvider } from "../types.js";
 import { createLLMClient, type LLMClientOptions } from "./client.js";
+import { OLLAMA_CLOUD_ENDPOINT } from "./ollama-cloud.js";
 
 // ============================================================================
 // Types
@@ -71,7 +72,9 @@ const CLAUDE_ALIASES: Record<string, string> = {
  */
 const LOCAL_ENDPOINTS: Record<string, string> = {
 	ollama: "http://localhost:11434/v1",
-	"ollama-cloud": "https://ollama.com/v1",
+	// Shared with the credential gate in `./ollama-cloud.ts` — the one endpoint on
+	// this list that the Ollama key is permitted to reach (B1).
+	"ollama-cloud": OLLAMA_CLOUD_ENDPOINT,
 	lmstudio: "http://localhost:1234/v1",
 };
 

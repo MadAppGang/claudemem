@@ -66,6 +66,15 @@ export interface WizardState {
 	// Enrichment (All modes)
 	llm: string | null;
 	llmApiKey: string | null;
+	/**
+	 * The value `llmApiKey` was PREFILLED with, if any.
+	 *
+	 * Closes the wizard round-trip leak at its source: when the user does not touch
+	 * a hydrated key, `buildConfigs` omits the field from `globalPart` entirely, so
+	 * a keychain-sourced value never re-enters the save path and cannot be flushed
+	 * into plaintext by a later write failure.
+	 */
+	llmApiKeyPrefill: string | null;
 	enrichmentSkipped: boolean;
 	llmEndpoint: string | null;
 
@@ -112,6 +121,7 @@ export const DEFAULT_WIZARD_STATE: WizardState = {
 	repoSlug: "",
 	llm: "cc/sonnet",
 	llmApiKey: null,
+	llmApiKeyPrefill: null,
 	enrichmentSkipped: false,
 	llmEndpoint: null,
 	scope: "global",

@@ -16,6 +16,7 @@
  */
 
 import { config } from "dotenv";
+import { enableRealKeychainAccess } from "./core/keychain.js";
 import { runMigrations } from "./migration.js";
 import { captureStartupEnv } from "./ui/theme-env.js";
 
@@ -31,6 +32,19 @@ captureStartupEnv();
 // stdout by default, which corrupts machine-readable output (notably `mnemex rg`,
 // which must stay byte-identical to ripgrep) and any --agent mode consumer.
 config({ quiet: true });
+
+// THE ONLY PLACE real macOS Keychain access is turned on.
+//
+// `src/core/keychain.ts`'s adapter denies by default, so every process that is
+// not this binary — a test in any working directory, a helper script, a fresh
+// `bun somefile.ts` — refuses to spawn `/usr/bin/security` with no environment
+// variable, no preload and no cwd involved. Do not call this from anywhere else,
+// and do not replace it with an env var: an env var is inherited by every child,
+// which is exactly the propagation that made the previous guard fragile.
+//
+// It is itself a no-op when MNEMEX_KEYCHAIN_TEST_GUARD=1, so a test that spawns
+// this binary with the inherited environment still cannot reach the keychain.
+enableRealKeychainAccess();
 
 // Migrate .claudemem/ → .mnemex/ for existing users (silent, non-blocking)
 runMigrations();

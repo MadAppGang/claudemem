@@ -294,6 +294,31 @@ export class Indexer {
 	private indexLock: IIndexLock | null = null;
 	private globalLock: IIndexLock | null = null;
 	private docsFetcher: DocsFetcher | null = null;
+	/**
+	 * Resolved BEFORE the index lock is acquired, and never re-resolved inside it.
+	 *
+	 * `getDocsConfig` -> `getContext7ApiKey()` -> a `Bun.spawnSync` against the
+	 * macOS Keychain, and `Bun.spawnSync` BLOCKS the event loop, so the index lock's
+	 * 1 s heartbeat cannot fire while it is outstanding. `isLockStale`'s secondary
+	 * rule reclaims a lock whose heartbeat is older than 10 s regardless of pid
+	 * liveness, so a stalled keychain inside the locked region can put a SECOND
+	 * indexer on the same LanceDB store.
+	 *
+	 * WHAT THIS DOES NOT DO, corrected from an earlier claim that said otherwise:
+	 * it does NOT eliminate keychain access from the locked region. `initialize()`
+	 * runs INSIDE the lock and still resolves credentials there —
+	 * `createEmbeddingsClient` -> `getApiKey`/`getVoyageApiKey`, and
+	 * `createLLMClient` -> `getAnthropicApiKey`/`getApiKey`/`getOllamaApiKey`. The
+	 * property that actually holds the bound is `KEYCHAIN_PROCESS_BUDGET_MS`'s
+	 * PRE-FLIGHT CLAMP (`runGuarded` in `keychain.ts`): the sum of all `deps.run`
+	 * time in a process is <= 6000 ms by construction and the longest contiguous
+	 * block is one `SPAWN_TIMEOUT_MS` (3000 ms), so worst-case heartbeat staleness
+	 * stays at 1000 + 6000 = 7000 ms against `DEFAULT_STALE_TIMEOUT` of 10000.
+	 *
+	 * Anyone raising `SPAWN_TIMEOUT_MS` or `KEYCHAIN_PROCESS_BUDGET_MS` must redo
+	 * that arithmetic. Hoisting is a bonus here, not the guarantee.
+	 */
+	private docsConfigPreLock: ReturnType<typeof getDocsConfig> | null = null;
 	private codeUnitExtractor: CodeUnitExtractor | null = null;
 
 	/**
@@ -503,8 +528,17 @@ export class Indexer {
 		this.vectorStore = createVectorStore(vectorStorePath);
 		await this.vectorStore.initialize();
 
-		// Initialize enrichment if enabled (requires vector mode for embeddings)
-		if (this.enableEnrichment && this.vectorEnabled) {
+		// Initialize enrichment if enabled (requires vector mode for embeddings).
+		//
+		// NOT on the read paths. `search()` and `getStatus()` call
+		// `initialize(true)` and never enrich, yet they were constructing the
+		// default LLM client — which on darwin reads Claude Code's OAuth token out
+		// of the login keychain. So `mnemex search` and `mnemex status` each paid a
+		// credential read, and a provider that cannot be reached made them THROW
+		// "Enrichment failed to initialize" for a query that needs no LLM at all.
+		// External review flagged the construction; the read path not needing it is
+		// the reason it should never have been there.
+		if (!forSearch && this.enableEnrichment && this.vectorEnabled) {
 			try {
 				this.llmClient = await createLLMClient({}, this.projectPath);
 				this.enricher = createEnricher(
@@ -525,9 +559,15 @@ export class Indexer {
 			}
 		}
 
-		// Initialize docs fetcher if enabled
+		// Initialize docs fetcher if enabled. The pre-lock config is PASSED IN rather
+		// than only stored: `createDocsFetcher(projectPath)` re-resolves it — a
+		// second `getContext7ApiKey()`, inside the lock — so hoisting it and then not
+		// using it here bought nothing.
 		if (isDocsEnabled(this.projectPath) && this.vectorEnabled) {
-			this.docsFetcher = createDocsFetcher(this.projectPath);
+			this.docsFetcher = createDocsFetcher(
+				this.projectPath,
+				this.docsConfigPreLock ?? undefined,
+			);
 		}
 	}
 
@@ -542,6 +582,19 @@ export class Indexer {
 
 		// Ensure project directory exists before acquiring lock
 		ensureProjectDir(this.projectPath);
+
+		// Resolve anything that can reach the macOS Keychain BEFORE acquiring a lock.
+		// See `docsConfigPreLock`.
+		//
+		// GATED on docs actually being used. `getDocsConfig` calls
+		// `getContext7ApiKey()`, so calling it unconditionally added a keychain
+		// lookup — and, on a locked keychain, a stall — to every index run of every
+		// project with docs or vectors disabled, which is work for a feature that is
+		// switched off. The two predicates are plain config reads and cost nothing.
+		this.docsConfigPreLock =
+			this.vectorEnabled && isDocsEnabled(this.projectPath)
+				? getDocsConfig(this.projectPath)
+				: null;
 
 		// LOCK ORDERING (deadlock-safe): ALWAYS acquire the MACHINE-GLOBAL lock
 		// FIRST, then the PER-PROJECT lock; release in REVERSE (project first, then
@@ -1861,7 +1914,10 @@ export class Indexer {
 			return { librariesFetched: 0, chunksAdded: 0 };
 		}
 
-		const config = getDocsConfig(this.projectPath);
+		// Pre-resolved outside the locked region on the `index()` path. The `??`
+		// fallback covers the other three `initialize()` entry points, which do not
+		// hold the lock, and is bounded by the keychain process budget either way.
+		const config = this.docsConfigPreLock ?? getDocsConfig(this.projectPath);
 		const cacheTTLMs = (config.cacheTTL || 24) * 60 * 60 * 1000;
 
 		// Detect dependencies

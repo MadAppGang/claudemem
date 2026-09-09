@@ -15,6 +15,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { keychainSafeChildEnv } from "../helpers/child-env.js";
 
 const REPO_ROOT = resolve(import.meta.dir, "../..");
 const CLI = join(REPO_ROOT, "dist/index.js");
@@ -25,12 +26,13 @@ function runCli(args: string[], cwd: string) {
 		cwd,
 		encoding: "utf-8",
 		timeout: SPAWN_TIMEOUT,
-		env: {
-			...process.env,
+		// `keychainSafeChildEnv` rather than `{...process.env}`: this child runs the
+		// production entry point, whose first act is to enable real keychain access.
+		env: keychainSafeChildEnv({
 			// Never queue behind (or hold) the developer's real machine-wide lock.
 			MNEMEX_GLOBAL_LOCK_PATH: join(cwd, "global.lock"),
 			MNEMEX_DOCS_ENABLED: "false",
-		},
+		}),
 	});
 	return {
 		stdout: result.stdout ?? "",
