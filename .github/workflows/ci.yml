@@ -72,3 +72,67 @@ jobs:
       # unused symbols, and the two React heuristics) and does not fail the run.
       - name: Lint
         run: bun run lint
+
+  # ==========================================================================
+  # The compiled binary must START. Not "must build".
+  #
+  # Every binary attached to a release from v0.33.0 to v0.36.0 built cleanly and
+  # then died before running a single command (issue #15). The release workflow
+  # only fires on a tag, so a check that lives only there is first exercised
+  # during a release — and by then the tag exists and the version number is
+  # burned. This job runs the same check on every PR, on both platforms, so the
+  # mechanism is proven before any tag is pushed.
+  #
+  # It executes a NATIVE artifact on each runner. Cross-target builds are the
+  # release workflow's business; what cannot be verified here is stated there.
+  # ==========================================================================
+  binary:
+    name: compiled binary starts (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+
+      - name: Install dependencies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun install --frozen-lockfile
+
+      - name: Download grammars
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun run download-grammars
+
+      # No --target: native to this runner, so the result can be executed.
+      - name: Build the binary
+        run: bun run build:binary
+
+      # `mktemp -d` is outside the checkout, so nothing can resolve a module from
+      # the repo's node_modules — which is exactly how a user runs a downloaded
+      # release binary, and exactly the condition the shipped binaries failed.
+      #
+      # The keychain guard variables are set because this runs the production
+      # entry point, which enables real keychain access as its first act
+      # (CLAUDE.md gotcha 24). On Linux the platform gate refuses anyway; on
+      # macOS runners it is the sentinel that does the work.
+      - name: Run it from outside the checkout
+        env:
+          MNEMEX_KEYCHAIN_TEST_GUARD: "1"
+          MNEMEX_DISABLE_KEYCHAIN: "1"
+        run: |
+          BIN="$PWD/mnemex"
+          ISOLATED="$(mktemp -d)"
+          cd "$ISOLATED"
+          "$BIN" --version
+          "$BIN" --help
+          "$BIN" keychain help --agent

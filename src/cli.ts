@@ -12,8 +12,7 @@ import {
 	readFileSync,
 	unlinkSync,
 } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
 import { confirm, input, select } from "@inquirer/prompts";
 import inquirerSearch from "@inquirer/search";
 import { type AgentRole, VALID_ROLES } from "./ai-instructions.js";
@@ -75,11 +74,24 @@ import { detectThemeAtStartup, ThemeFlagError } from "./ui/theme-detect.js";
 // Version & Branding
 // ============================================================================
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const packageJson = JSON.parse(
-	readFileSync(join(__dirname, "../package.json"), "utf-8"),
-);
-const VERSION = packageJson.version;
+/**
+ * The version, EMBEDDED at build time rather than read from disk at startup.
+ *
+ * This used to be `readFileSync(join(__dirname, "../package.json"))` at module
+ * scope. Inside a `bun --compile` binary `__dirname` is `/$bunfs/root`, so it
+ * resolved to `/$bunfs/package.json`, which does not exist — and because the read
+ * is at module scope and unguarded, it threw before any command handler ran. That
+ * killed EVERY command in the published binaries, `--version` and `--help`
+ * included. See issue #15.
+ *
+ * The three other version readers (`src/ui/logo.ts`, `src/mcp/server.ts`,
+ * `src/pack/index.ts`) already guard the read and fall back to "0.0.0"; a
+ * fallback here would have made the binary report the wrong version, so this one
+ * imports the value instead. `resolveJsonModule` is already enabled.
+ */
+import packageJson from "../package.json" with { type: "json" };
+
+const VERSION: string = packageJson.version;
 
 /** Global flag for agent mode (--agent): no logo, plain output, compact format */
 let agentMode = false;

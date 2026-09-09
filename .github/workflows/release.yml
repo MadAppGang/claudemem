@@ -48,8 +48,39 @@ jobs:
       - name: Download grammars
         run: bun run download-grammars
 
+      # These externals are NOT interchangeable with the `@opentui/core` /
+      # `@opentui/react` they replace. Externalising the packages themselves means
+      # nothing embeds them, so the binary cannot resolve them at all and dies at
+      # startup — every published binary since v0.33.0 is broken that way (#15).
+      #
+      #   `@opentui/core-*` — the eight per-platform native packages ONLY. The
+      #   glob requires the hyphen, so it does not match `@opentui/core` itself.
+      #   They must stay external: `bun install` on a glibc runner skips the musl
+      #   optional dependency, while the bundler demands both libc branches.
+      #
+      #   `web-tree-sitter/tree-sitter.wasm` — OpenTUI 0.5.1 asks for the pre-0.26
+      #   specifier; web-tree-sitter 0.26 exports `./web-tree-sitter.wasm`. The bad
+      #   specifier is latent on the npm path too, reached only by OpenTUI's
+      #   syntax highlighting.
       - name: Build binary
-        run: bun build src/index.ts --compile --compile-exec-argv="--env-file=/dev/null" --target=${{ matrix.target }} --external @opentui/core --external @opentui/react --outfile ${{ matrix.artifact }}
+        run: bun build src/index.ts --compile --compile-exec-argv="--env-file=/dev/null" --target=${{ matrix.target }} --external "web-tree-sitter/tree-sitter.wasm" --external "@opentui/core-*" --outfile ${{ matrix.artifact }}
+
+      # A successful build is not the check. The defect this replaces was a
+      # STARTUP crash: all four builds succeeded for three releases while
+      # producing binaries that could not run a single command. Only the runner's
+      # own platform can be executed here — which is exactly the artifact this
+      # job produced.
+      # Three of the four artifacts are native to the runner that built them and
+      # can simply be executed. `bun-darwin-x64` is cross-arch on an arm64 macOS
+      # runner and would depend on Rosetta, so it is the one target still shipped
+      # unexecuted — stated here rather than hidden, because that artifact is also
+      # the size outlier (72 MB against 288 MB) noted in #15.
+      - name: Smoke-test the artifact
+        if: matrix.target != 'bun-darwin-x64'
+        run: |
+          chmod +x ${{ matrix.artifact }}
+          ./${{ matrix.artifact }} --version
+          ./${{ matrix.artifact }} keychain help --agent
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
