@@ -3,6 +3,55 @@
 All notable changes to mnemex are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver.
 
+## [0.36.1] - 2026-09-09
+
+The compiled binaries attached to releases could not start. This fixes them, and
+adds the check that would have caught it.
+
+If you installed mnemex from npm you were never affected. If you downloaded a
+binary from a GitHub Release, or installed through Homebrew, every version from
+0.33.0 to 0.36.0 died before running a single command.
+
+### Fixed
+
+- **The release binaries start.** Two independent defects, each fatal on its own,
+  which is why the first diagnosis was wrong — fixing either alone still produced
+  a dead binary.
+
+  The first was a `package.json` read at module scope in `src/cli.ts`. Inside a
+  `bun --compile` binary `__dirname` is `/$bunfs/root`, so it resolved to
+  `/$bunfs/package.json`, which does not exist, and threw before any command
+  handler ran. The version is now embedded at build time.
+
+  The second was the build externalising `@opentui/core` and `@opentui/react`
+  themselves. An external module is not embedded, so the binary had nothing to
+  resolve them from. Only the eight per-platform native packages need to stay
+  external, and they genuinely do: `bun install` on a glibc runner skips the musl
+  optional dependency while the bundler demands both libc branches, so removing
+  the externals outright breaks three of the four release targets.
+
+### Added
+
+- **The release build now runs the binary it just produced**, on three of four
+  targets — every one that is native to its runner. A successful build was never
+  the check: all four builds succeeded for three releases while producing
+  binaries that could not run.
+- **The same check runs on every pull request**, building a native binary on
+  Linux and macOS and executing it from a temporary directory outside the
+  checkout, where nothing can resolve a module from the repository. A check that
+  lives only in the release workflow is first exercised during a release, and by
+  then the tag exists and the version number is spent.
+
+### Known limitations
+
+- TUI commands (`mnemex tui`, the setup wizard) fail in the standalone binary
+  with `Cannot find package '@opentui/core-<platform>'`, because the per-platform
+  package stays external. Every other command works. Embedding it requires
+  force-installing the target's package in CI before the build, which is a
+  separate change. The npm install is unaffected and its TUI works.
+- `mnemex-darwin-x64` is cross-compiled on an arm64 macOS runner, so it is the
+  one artifact still shipped without being executed first.
+
 ## [0.36.0] - 2026-09-09
 
 Your API keys can now live in the macOS Keychain instead of in plaintext in
